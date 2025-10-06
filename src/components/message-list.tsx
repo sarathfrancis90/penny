@@ -1,6 +1,5 @@
 "use client";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -11,8 +10,7 @@ interface MessageListProps {
 
 export function MessageList({ messages }: MessageListProps) {
   return (
-    <ScrollArea className="flex-1 p-4">
-      <div className="space-y-4 max-w-3xl mx-auto">
+    <div className="space-y-4 max-w-3xl mx-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-6">
             <div className="relative">
@@ -126,7 +124,6 @@ export function MessageList({ messages }: MessageListProps) {
             </div>
           ))
         )}
-      </div>
-    </ScrollArea>
+    </div>
   );
 }

@@ -224,30 +224,32 @@ export default function Home() {
   return (
     <AppLayout>
       <div className="h-full flex flex-col">
-        {/* Chat Messages Area */}
-        <div className="flex-1 overflow-hidden">
-          <MessageList messages={messages} />
-          
-          {/* Show confirmation card if there's a pending expense */}
-          {pendingExpense && (
-            <div className="p-4 max-w-3xl mx-auto w-full animate-in fade-in-50 slide-in-from-bottom-2">
-              <ExpenseConfirmationCard
-                vendor={pendingExpense.vendor}
-                amount={pendingExpense.amount}
-                date={pendingExpense.date}
-                category={pendingExpense.category}
-                description={pendingExpense.description}
-                confidence={pendingExpense.confidence}
-                onConfirm={handleConfirmExpense}
-                onCancel={handleCancelExpense}
-                isProcessing={isProcessing}
-              />
-            </div>
-          )}
+        {/* Chat Messages Area - Scrollable */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="p-4">
+            <MessageList messages={messages} />
+            
+            {/* Show confirmation card if there's a pending expense */}
+            {pendingExpense && (
+              <div className="max-w-3xl mx-auto w-full mt-4 animate-in fade-in-50 slide-in-from-bottom-2">
+                <ExpenseConfirmationCard
+                  vendor={pendingExpense.vendor}
+                  amount={pendingExpense.amount}
+                  date={pendingExpense.date}
+                  category={pendingExpense.category}
+                  description={pendingExpense.description}
+                  confidence={pendingExpense.confidence}
+                  onConfirm={handleConfirmExpense}
+                  onCancel={handleCancelExpense}
+                  isProcessing={isProcessing}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Chat Input - Fixed at bottom */}
-        <div className="shrink-0">
+        <div className="shrink-0 border-t">
           <ChatInput onSendMessage={handleSendMessage} isProcessing={isProcessing} />
         </div>
       </div>
