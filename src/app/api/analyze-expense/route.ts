@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { expenseCategories } from "@/lib/categories";
 
 // Initialize the Gemini AI client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // System prompt with detailed instructions for expense analysis
 const getSystemPrompt = () => {
@@ -76,10 +76,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine which model to use
-    const modelName = imageBase64 ? "gemini-1.5-flash" : "gemini-1.5-flash";
-    const model = genAI.getGenerativeModel({ model: modelName });
-
     // Prepare the content parts
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
@@ -106,10 +102,20 @@ export async function POST(request: NextRequest) {
       parts.push({ text: "\n\nAnalyze this receipt image and extract the expense information." });
     }
 
-    // Generate content with Gemini
-    const result = await model.generateContent(parts);
-    const response = result.response;
-    const responseText = response.text();
+    // Generate content with Gemini using the new SDK
+    const result = await genAI.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: parts,
+    });
+    
+    const responseText = result.text;
+
+    if (!responseText) {
+      return NextResponse.json(
+        { error: "No response from AI model" },
+        { status: 500 }
+      );
+    }
 
     console.log("Gemini response:", responseText);
 
