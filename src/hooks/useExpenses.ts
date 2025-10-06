@@ -6,7 +6,6 @@ import {
   query,
   where,
   onSnapshot,
-  orderBy,
   QuerySnapshot,
   DocumentData,
 } from "firebase/firestore";
@@ -49,8 +48,9 @@ export function useExpenses(userId: string | undefined) {
 
           // Sort by date in memory (descending - newest first)
           expensesData.sort((a, b) => {
-            const dateA = new Date(a.date).getTime();
-            const dateB = new Date(b.date).getTime();
+            // Handle Firestore Timestamp objects
+            const dateA = a.date?.toMillis ? a.date.toMillis() : 0;
+            const dateB = b.date?.toMillis ? b.date.toMillis() : 0;
             return dateB - dateA;
           });
 
