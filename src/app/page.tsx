@@ -1,103 +1,256 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Timestamp } from "firebase/firestore";
+import { MessageList } from "@/components/message-list";
+import { ChatInput } from "@/components/chat-input";
+import { ExpenseConfirmationCard } from "@/components/expense-confirmation-card";
+import { ChatMessage } from "@/lib/types";
+import { useAuth } from "@/hooks/useAuth";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { AppLayout } from "@/components/app-layout";
+
+interface PendingExpense {
+  vendor: string;
+  amount: number;
+  date: string;
+  category: string;
+  description?: string;
+  confidence?: number;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [pendingExpense, setPendingExpense] = useState<PendingExpense | null>(null);
+  const [pendingMessageId, setPendingMessageId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { analyzeExpense, saveExpense } = useOfflineSync(user?.uid);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Convert File to base64 string
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Return full data URL (including the data:image/jpeg;base64, prefix)
+        resolve(result);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleSendMessage = async (message: string, image?: File) => {
+    // Create user message
+    let imageUrl: string | undefined;
+    let imageBase64: string | undefined;
+
+    if (image) {
+      imageUrl = URL.createObjectURL(image);
+      try {
+        imageBase64 = await fileToBase64(image);
+      } catch (error) {
+        console.error("Error converting image to base64:", error);
+        // Add error message
+        const errorMessage: ChatMessage = {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: "Sorry, I couldn't process that image. Please try again.",
+          timestamp: Timestamp.now(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        return;
+      }
+    }
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: message || "📷 Uploaded a receipt",
+      timestamp: Timestamp.now(),
+      imageUrl,
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setIsProcessing(true);
+
+    // Add "thinking" message
+    const thinkingMessage: ChatMessage = {
+      id: `thinking-${Date.now()}`,
+      role: "assistant",
+      content: "🤔 Analyzing your expense...",
+      timestamp: Timestamp.now(),
+    };
+    setMessages((prev) => [...prev, thinkingMessage]);
+
+    try {
+      // Use offline sync hook to analyze expense
+      const result = await analyzeExpense(message || undefined, imageBase64 || undefined);
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to analyze expense");
+      }
+
+      const expenseData = result.data;
+
+      if (!expenseData) {
+        throw new Error("No expense data returned from analysis");
+      }
+
+      // Remove thinking message
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessage.id));
+
+      // Create confirmation message with special ID
+      const confirmationMessageId = `confirmation-${Date.now()}`;
+      const confirmationMessage: ChatMessage = {
+        id: confirmationMessageId,
+        role: "assistant",
+        content: "I've extracted the following details. Please confirm:",
+        timestamp: Timestamp.now(),
+        status: "pending",
+      };
+
+      setMessages((prev) => [...prev, confirmationMessage]);
+      setPendingExpense(expenseData);
+      setPendingMessageId(confirmationMessageId);
+
+    } catch (error) {
+      console.error("Error analyzing expense:", error);
+
+      // Remove thinking message
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessage.id));
+
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: `Sorry, I couldn't analyze that expense. ${
+          error instanceof Error ? error.message : "Please try again."
+        }`,
+        timestamp: Timestamp.now(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleConfirmExpense = async () => {
+    if (!pendingExpense || !pendingMessageId || !user) return;
+
+    setIsProcessing(true);
+
+    try {
+      // Use offline sync hook to save expense
+      const result = await saveExpense({
+        vendor: pendingExpense.vendor,
+        amount: pendingExpense.amount,
+        date: pendingExpense.date,
+        category: pendingExpense.category,
+        description: pendingExpense.description,
+        userId: user.uid,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save expense");
+      }
+
+      console.log("Expense saved with ID:", result.id);
+
+      // Update message status to confirmed
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === pendingMessageId ? { ...msg, status: "confirmed" } : msg
+        )
+      );
+
+      // Add success message
+      const successMessage: ChatMessage = {
+        id: `success-${Date.now()}`,
+        role: "assistant",
+        content: `✅ Expense saved! $${pendingExpense.amount.toFixed(2)} at ${
+          pendingExpense.vendor
+        } has been added to your records.`,
+        timestamp: Timestamp.now(),
+      };
+
+      setMessages((prev) => [...prev, successMessage]);
+      setPendingExpense(null);
+      setPendingMessageId(null);
+
+    } catch (error) {
+      console.error("Error saving expense:", error);
+
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: `Sorry, I couldn't save that expense. ${
+          error instanceof Error ? error.message : "Please try again."
+        }`,
+        timestamp: Timestamp.now(),
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCancelExpense = () => {
+    if (!pendingMessageId) return;
+
+    // Update message status to rejected
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === pendingMessageId ? { ...msg, status: "rejected" } : msg
+      )
+    );
+
+    // Add cancellation message
+    const cancelMessage: ChatMessage = {
+      id: `cancel-${Date.now()}`,
+      role: "assistant",
+      content: "No problem! Feel free to try again with a different description or image.",
+      timestamp: Timestamp.now(),
+    };
+
+    setMessages((prev) => [...prev, cancelMessage]);
+    setPendingExpense(null);
+    setPendingMessageId(null);
+  };
+
+  return (
+    <AppLayout>
+      <div className="h-full flex flex-col">
+        {/* Chat Messages Area */}
+        <div className="flex-1 overflow-hidden">
+          <MessageList messages={messages} />
+          
+          {/* Show confirmation card if there's a pending expense */}
+          {pendingExpense && (
+            <div className="p-4 max-w-3xl mx-auto w-full animate-in fade-in-50 slide-in-from-bottom-2">
+              <ExpenseConfirmationCard
+                vendor={pendingExpense.vendor}
+                amount={pendingExpense.amount}
+                date={pendingExpense.date}
+                category={pendingExpense.category}
+                description={pendingExpense.description}
+                confidence={pendingExpense.confidence}
+                onConfirm={handleConfirmExpense}
+                onCancel={handleCancelExpense}
+                isProcessing={isProcessing}
+              />
+            </div>
+          )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Chat Input - Fixed at bottom */}
+        <div className="shrink-0">
+          <ChatInput onSendMessage={handleSendMessage} isProcessing={isProcessing} />
+        </div>
+      </div>
+    </AppLayout>
   );
 }
