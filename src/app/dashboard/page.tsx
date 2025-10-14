@@ -435,11 +435,10 @@ export default function DashboardPage() {
               onValueChange={setActiveTab} 
               className="mb-8"
             >
-              <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-6">
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="charts">Charts</TabsTrigger>
-                <TabsTrigger value="list">List View</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="list">Expenses</TabsTrigger>
                 <TabsTrigger value="categories">Categories</TabsTrigger>
               </TabsList>
               
@@ -605,9 +604,9 @@ export default function DashboardPage() {
               <TabsContent value="list">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Expense List</CardTitle>
+                    <CardTitle>All Expenses</CardTitle>
                     <CardDescription>
-                      View, edit, or delete individual expenses
+                      View all your expense transactions. Click the edit icon to modify or the delete icon to remove an expense.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -616,58 +615,6 @@ export default function DashboardPage() {
                       onDelete={deleteExpense}
                       onUpdate={updateExpense}
                     />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="details">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Expense Details</CardTitle>
-                    <CardDescription>
-                      All your expense transactions
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-md border overflow-auto max-h-[600px]">
-                      <Table>
-                        <TableHeader className="sticky top-0 bg-background z-10">
-                          <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Vendor</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Amount</TableHead>
-                            <TableHead>Description</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredExpenses.map((expense) => (
-                            <TableRow key={expense.id}>
-                              <TableCell>
-                                {expense.date.toDate().toLocaleDateString()}
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                {expense.vendor}
-                              </TableCell>
-                              <TableCell>{expense.category}</TableCell>
-                              <TableCell className="text-right font-semibold">
-                                ${expense.amount.toFixed(2)}
-                              </TableCell>
-                              <TableCell className="max-w-[200px] truncate">
-                                {expense.description || "-"}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {filteredExpenses.length === 0 && (
-                            <TableRow>
-                              <TableCell colSpan={5} className="h-24 text-center">
-                                No matching expenses found.
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
