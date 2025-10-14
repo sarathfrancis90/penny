@@ -136,19 +136,25 @@ export default function Home() {
     }
   };
 
-  const handleConfirmExpense = async () => {
-    if (!pendingExpense || !pendingMessageId || !user) return;
+  const handleConfirmExpense = async (editedData: {
+    vendor: string;
+    amount: number;
+    date: string;
+    category: string;
+    description?: string;
+  }) => {
+    if (!pendingMessageId || !user) return;
 
     setIsProcessing(true);
 
     try {
-      // Use offline sync hook to save expense
+      // Use offline sync hook to save expense with edited data
       const result = await saveExpense({
-        vendor: pendingExpense.vendor,
-        amount: pendingExpense.amount,
-        date: pendingExpense.date,
-        category: pendingExpense.category,
-        description: pendingExpense.description,
+        vendor: editedData.vendor,
+        amount: editedData.amount,
+        date: editedData.date,
+        category: editedData.category,
+        description: editedData.description,
         userId: user.uid,
       });
 
@@ -169,8 +175,8 @@ export default function Home() {
       const successMessage: ChatMessage = {
         id: `success-${Date.now()}`,
         role: "assistant",
-        content: `✅ Expense saved! $${pendingExpense.amount.toFixed(2)} at ${
-          pendingExpense.vendor
+        content: `✅ Expense saved! $${editedData.amount.toFixed(2)} at ${
+          editedData.vendor
         } has been added to your records.`,
         timestamp: Timestamp.now(),
       };
