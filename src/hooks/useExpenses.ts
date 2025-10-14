@@ -17,6 +17,90 @@ export function useExpenses(userId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Delete expense
+  const deleteExpense = async (expenseId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch(`/api/expenses/${expenseId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete expense");
+      }
+    } catch (err) {
+      console.error("Error deleting expense:", err);
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Unknown error",
+      };
+    }
+  };
+
+  // Update expense
+  const updateExpense = async (
+    expenseId: string,
+    updates: {
+      vendor?: string;
+      amount?: number;
+      date?: string;
+      category?: string;
+      description?: string;
+    }
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch(`/api/expenses/${expenseId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+
+      if (response.ok) {
+        return { success: true };
+      } else {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update expense");
+      }
+    } catch (err) {
+      console.error("Error updating expense:", err);
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Unknown error",
+      };
+    }
+  };
+
+  // Delete all expenses for a user
+  const deleteAllExpenses = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      if (!userId) {
+        return { success: false, error: "User not authenticated" };
+      }
+
+      // Delete all expenses one by one (batch delete would need additional API)
+      const deletePromises = expenses.map((expense) => deleteExpense(expense.id!));
+      const results = await Promise.all(deletePromises);
+      
+      const failures = results.filter((r) => !r.success);
+      if (failures.length > 0) {
+        return {
+          success: false,
+          error: `Failed to delete ${failures.length} expense(s)`,
+        };
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error("Error deleting all expenses:", err);
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Unknown error",
+      };
+    }
+  };
+
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -73,5 +157,12 @@ export function useExpenses(userId: string | undefined) {
     }
   }, [userId]);
 
-  return { expenses, loading, error };
+  return {
+    expenses,
+    loading,
+    error,
+    deleteExpense,
+    updateExpense,
+    deleteAllExpenses,
+  };
 }

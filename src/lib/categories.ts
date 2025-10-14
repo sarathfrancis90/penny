@@ -64,7 +64,7 @@ export type ExpenseCategory = typeof expenseCategories[number];
 export const categoryGroups = {
   "General Business Expenses": [
     "Advertising (Promotion, gift cards etc.)",
-    "Meals and entertainment (50%)",
+    "Meals and entertainment",
     "Insurance (No life insurance)",
     "Interest (and bank charges)",
     "Fees, licences, dues, memberships, and subscriptions",

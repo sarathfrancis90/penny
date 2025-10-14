@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, TrendingUp, DollarSign, Tag, Filter, Calendar } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, Tag, Filter, Calendar, AlertTriangle, Trash2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -38,8 +38,18 @@ import { DateRangePicker } from "@/components/dashboard/date-range-picker";
 import { CategoryFilter } from "@/components/dashboard/category-filter";
 import { ExportData } from "@/components/dashboard/export-data";
 import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
+import { ExpenseListView } from "@/components/dashboard/expense-list-view";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Color palette for the chart
 const COLORS = [
@@ -57,12 +67,14 @@ const COLORS = [
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { expenses, loading, error } = useExpenses(user?.uid);
+  const { expenses, loading, error, deleteExpense, updateExpense, deleteAllExpenses } = useExpenses(user?.uid);
   
   // State for filters
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>("overview");
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Filter expenses based on date range and categories
   const filteredExpenses = useMemo<Expense[]>(() => {
@@ -162,6 +174,19 @@ export default function DashboardPage() {
     setSelectedCategories([]);
   };
 
+  // Reset all expenses
+  const handleResetAll = async () => {
+    setIsResetting(true);
+    const result = await deleteAllExpenses();
+    setIsResetting(false);
+    
+    if (result.success) {
+      setShowResetDialog(false);
+    } else {
+      alert(`Failed to delete all expenses: ${result.error}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -211,12 +236,64 @@ export default function DashboardPage() {
               </div>
               
               {expenses.length > 0 && (
-                <ExportData
-                  expenses={expenses}
-                  categorySummaries={categorySummaries}
-                  dateRange={dateRange}
-                  selectedCategories={selectedCategories}
-                />
+                <div className="flex gap-2">
+                  <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear All
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-destructive">
+                          <AlertTriangle className="h-5 w-5" />
+                          Clear All Expenses
+                        </DialogTitle>
+                        <DialogDescription className="space-y-2">
+                          <p className="font-semibold">Are you absolutely sure?</p>
+                          <p>
+                            This will permanently delete all {expenses.length} expenses from your account.
+                            This action cannot be undone.
+                          </p>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowResetDialog(false)}
+                          disabled={isResetting}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={handleResetAll}
+                          disabled={isResetting}
+                        >
+                          {isResetting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Deleting...
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Yes, Delete All
+                            </>
+                          )}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  
+                  <ExportData
+                    expenses={expenses}
+                    categorySummaries={categorySummaries}
+                    dateRange={dateRange}
+                    selectedCategories={selectedCategories}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -358,10 +435,11 @@ export default function DashboardPage() {
               onValueChange={setActiveTab} 
               className="mb-8"
             >
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
+              <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="charts">Charts</TabsTrigger>
-                <TabsTrigger value="details">Expense Details</TabsTrigger>
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="categories">Categories</TabsTrigger>
               </TabsList>
               
@@ -522,6 +600,24 @@ export default function DashboardPage() {
                   {/* Pie Chart */}
                   <CategoryPieChart categorySummaries={categorySummaries} />
                 </div>
+              </TabsContent>
+              
+              <TabsContent value="list">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Expense List</CardTitle>
+                    <CardDescription>
+                      View, edit, or delete individual expenses
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ExpenseListView
+                      expenses={filteredExpenses}
+                      onDelete={deleteExpense}
+                      onUpdate={updateExpense}
+                    />
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="details">

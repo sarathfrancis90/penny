@@ -28,7 +28,6 @@ INSTRUCTIONS:
 ${categoriesList}
 
 4. RULES:
-   - For meals and entertainment, use categories with "(50%)" suffix as they have special tax treatment
    - Be conservative with categorization - choose the most specific category that applies
    - If the image is unclear or data is missing, make reasonable assumptions based on context
    - Always provide a vendor name, even if it's "Unknown Vendor"
