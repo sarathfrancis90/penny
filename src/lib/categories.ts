@@ -1,81 +1,55 @@
 /**
  * Master list of Canadian tax expense categories for self-incorporated professionals
- * Based on CRA business expense guidelines
+ * Based on official CRA T2125 Business Income and Expenses forms
  * 
- * NOTE: This is a comprehensive starting list. Update this array with categories
- * from EXPENSES.csv, HOME OFFICE.csv, and VEHICLE.csv once available.
+ * Categories are organized by:
+ * 1. General Business Expenses
+ * 2. Home Office Expenses
+ * 3. Automobile/Vehicle Expenses
  */
 export const expenseCategories = [
-  // Advertising & Marketing
-  "Advertising",
-  "Marketing",
-  "Website & Domain",
-  "Social Media Advertising",
+  // GENERAL BUSINESS EXPENSES (from main expenses sheet)
+  "Advertising (Promotion, gift cards etc.)",
+  "Meals and entertainment",
+  "Insurance (No life insurance)",
+  "Interest (and bank charges)",
+  "Fees, licences, dues, memberships, and subscriptions",
+  "Office expenses",
+  "Supplies (for example PPT kit etc.)",
+  "Rent (covers only office rent in industrial area)",
+  "Legal, accounting, and other professional fees",
+  "Management and administration fees",
+  "Sub contracts / consultants paid in Canada",
+  "Sub contracts / consultants paid outside Canada",
+  "Salaries, wages, and benefits paid to the employees",
+  "Withdrawal by Directors",
+  "Travel (including transportation fees, accommodations, and meals)",
+  "Telephone",
+  "Motor vehicle expenses",
+  "Other expenses (specify)",
   
-  // Professional Services
-  "Accounting & Bookkeeping",
-  "Legal Fees",
-  "Consulting Fees",
-  "Professional Development",
-  "Training & Courses",
-  
-  // Office Expenses
-  "Office Supplies",
-  "Software & Subscriptions",
-  "Computer Equipment",
-  "Office Furniture",
-  "Stationery & Printing",
-  
-  // Home Office
-  "Home Office - Rent",
-  "Home Office - Utilities",
-  "Home Office - Internet",
-  "Home Office - Maintenance",
+  // HOME OFFICE EXPENSES (from home office sheet)
+  "Home Office - Heat (gas, propane, wood, etc.)",
+  "Home Office - Electricity",
+  "Home Office - Water",
   "Home Office - Insurance",
-  "Home Office - Property Taxes",
+  "Home Office - Maintenance",
+  "Home Office - Mortgage interest or rent",
+  "Home Office - Property taxes",
+  "Home Office - Monitoring and internet",
+  "Home Office - Office furnishings",
   
-  // Communication
-  "Telephone & Mobile",
-  "Internet",
-  "Web Hosting",
-  "Communication Tools",
-  
-  // Travel & Transportation
-  "Airfare",
-  "Hotel Accommodation",
-  "Meals & Entertainment (50%)",
-  "Ground Transportation",
-  "Parking",
-  "Vehicle - Fuel",
-  "Vehicle - Maintenance & Repairs",
+  // AUTOMOBILE/VEHICLE EXPENSES (from vehicle sheet)
+  "Vehicle - Fuel (gasoline, propane, oil)",
+  "Vehicle - Repairs and maintenance (including oil changes)",
+  "Vehicle - Lease payments",
+  "Vehicle - Car washes",
   "Vehicle - Insurance",
-  "Vehicle - License & Registration",
-  "Vehicle - Lease Payments",
-  
-  // Business Operations
-  "Bank Fees & Charges",
-  "Credit Card Fees",
-  "Business Insurance",
-  "Business Licenses & Permits",
-  "Memberships & Dues",
-  
-  // Technology
-  "Cloud Services",
-  "SaaS Subscriptions",
-  "Development Tools",
-  "API Services",
-  "Data Storage",
-  
-  // Meals & Entertainment
-  "Client Meals (50%)",
-  "Business Lunches (50%)",
-  "Entertainment (50%)",
-  
-  // Other
-  "Contract Labour",
-  "Subcontractors",
-  "Miscellaneous",
-  "Other Business Expenses",
+  "Vehicle - Licence and registration",
+  "Vehicle - Interest expense on vehicle purchase loan",
+  "Vehicle - ETR 407",
+  "Vehicle - CAA (Canadian Auto Association)",
+  "Vehicle - Parking costs (non-prorated)",
 ] as const;
 
 /**
@@ -85,75 +59,51 @@ export type ExpenseCategory = typeof expenseCategories[number];
 
 /**
  * Category groups for better organization in the UI
+ * Organized to match the tax form structure
  */
 export const categoryGroups = {
-  "Advertising & Marketing": [
-    "Advertising",
-    "Marketing",
-    "Website & Domain",
-    "Social Media Advertising",
+  "General Business Expenses": [
+    "Advertising (Promotion, gift cards etc.)",
+    "Meals and entertainment (50%)",
+    "Insurance (No life insurance)",
+    "Interest (and bank charges)",
+    "Fees, licences, dues, memberships, and subscriptions",
+    "Office expenses",
+    "Supplies (for example PPT kit etc.)",
+    "Rent (covers only office rent in industrial area)",
+    "Legal, accounting, and other professional fees",
+    "Management and administration fees",
+    "Sub contracts / consultants paid in Canada",
+    "Sub contracts / consultants paid outside Canada",
+    "Salaries, wages, and benefits paid to the employees",
+    "Withdrawal by Directors",
+    "Travel (including transportation fees, accommodations, and meals)",
+    "Telephone",
+    "Motor vehicle expenses",
+    "Other expenses (specify)",
   ],
-  "Professional Services": [
-    "Accounting & Bookkeeping",
-    "Legal Fees",
-    "Consulting Fees",
-    "Professional Development",
-    "Training & Courses",
-  ],
-  "Office": [
-    "Office Supplies",
-    "Software & Subscriptions",
-    "Computer Equipment",
-    "Office Furniture",
-    "Stationery & Printing",
-  ],
-  "Home Office": [
-    "Home Office - Rent",
-    "Home Office - Utilities",
-    "Home Office - Internet",
-    "Home Office - Maintenance",
+  "Home Office Expenses": [
+    "Home Office - Heat (gas, propane, wood, etc.)",
+    "Home Office - Electricity",
+    "Home Office - Water",
     "Home Office - Insurance",
-    "Home Office - Property Taxes",
+    "Home Office - Maintenance",
+    "Home Office - Mortgage interest or rent",
+    "Home Office - Property taxes",
+    "Home Office - Monitoring and internet",
+    "Home Office - Office furnishings",
   ],
-  "Communication": [
-    "Telephone & Mobile",
-    "Internet",
-    "Web Hosting",
-    "Communication Tools",
-  ],
-  "Travel": [
-    "Airfare",
-    "Hotel Accommodation",
-    "Meals & Entertainment (50%)",
-    "Ground Transportation",
-    "Parking",
-  ],
-  "Vehicle": [
-    "Vehicle - Fuel",
-    "Vehicle - Maintenance & Repairs",
+  "Automobile/Vehicle Expenses": [
+    "Vehicle - Fuel (gasoline, propane, oil)",
+    "Vehicle - Repairs and maintenance (including oil changes)",
+    "Vehicle - Lease payments",
+    "Vehicle - Car washes",
     "Vehicle - Insurance",
-    "Vehicle - License & Registration",
-    "Vehicle - Lease Payments",
-  ],
-  "Technology": [
-    "Cloud Services",
-    "SaaS Subscriptions",
-    "Development Tools",
-    "API Services",
-    "Data Storage",
-  ],
-  "Business Operations": [
-    "Bank Fees & Charges",
-    "Credit Card Fees",
-    "Business Insurance",
-    "Business Licenses & Permits",
-    "Memberships & Dues",
-  ],
-  "Other": [
-    "Contract Labour",
-    "Subcontractors",
-    "Miscellaneous",
-    "Other Business Expenses",
+    "Vehicle - Licence and registration",
+    "Vehicle - Interest expense on vehicle purchase loan",
+    "Vehicle - ETR 407",
+    "Vehicle - CAA (Canadian Auto Association)",
+    "Vehicle - Parking costs (non-prorated)",
   ],
 } as const;
 
