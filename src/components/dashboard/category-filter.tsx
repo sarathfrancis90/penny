@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -18,6 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { expenseCategories, categoryGroups } from "@/lib/categories";
+import { IndeterminateCheckbox } from "@/components/ui/checkbox-indeterminate";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export type CategoryFilterProps = {
@@ -128,12 +128,12 @@ export function CategoryFilter({
               {Object.entries(categoryGroups).map(([group, categories]) => (
                 <div key={group} className="border-b last:border-b-0">
                   <div className="flex items-center p-2 bg-muted/50">
-                    <Checkbox
+                    <IndeterminateCheckbox
                       checked={isGroupSelected(group)}
                       indeterminate={isGroupIndeterminate(group)}
                       onCheckedChange={() => toggleGroup(group)}
                       id={`group-${group}`}
-                      className="mr-2 data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground"
+                      className="mr-2"
                     />
                     <label
                       htmlFor={`group-${group}`}

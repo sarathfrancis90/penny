@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
+  PieLabelRenderProps,
 } from "recharts";
 import { ExpenseSummary } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -28,6 +29,21 @@ const COLORS = [
 
 interface CategoryPieChartProps {
   categorySummaries: ExpenseSummary[];
+}
+
+
+// Define types for the tooltip props
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: {
+      name: string;
+      value: number;
+      percentage: number;
+    };
+  }>;
 }
 
 export function CategoryPieChart({ categorySummaries }: CategoryPieChartProps) {
@@ -63,20 +79,23 @@ export function CategoryPieChart({ categorySummaries }: CategoryPieChartProps) {
     ];
   }, [categorySummaries]);
 
-  const renderCustomizedLabel = ({
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    percent,
-  }: any) => {
-    if (percent < 0.05) return null; // Don't show labels for small slices
+  const renderCustomizedLabel = (props: PieLabelRenderProps) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
+    
+    // Convert all values to numbers to handle unknown types
+    const cxValue = cx !== undefined ? Number(cx) : 0;
+    const cyValue = cy !== undefined ? Number(cy) : 0;
+    const midAngleValue = midAngle !== undefined ? Number(midAngle) : 0;
+    const innerRadiusValue = innerRadius !== undefined ? Number(innerRadius) : 0;
+    const outerRadiusValue = outerRadius !== undefined ? Number(outerRadius) : 0;
+    const percentValue = percent !== undefined ? Number(percent) : 0;
+    
+    if (percentValue < 0.05) return null; // Don't show labels for small slices
     
     const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const radius = innerRadiusValue + (outerRadiusValue - innerRadiusValue) * 0.6;
+    const x = cxValue + radius * Math.cos(-midAngleValue * RADIAN);
+    const y = cyValue + radius * Math.sin(-midAngleValue * RADIAN);
 
     return (
       <text
@@ -87,12 +106,12 @@ export function CategoryPieChart({ categorySummaries }: CategoryPieChartProps) {
         dominantBaseline="central"
         className="text-xs font-medium"
       >
-        {`${(percent * 100).toFixed(0)}%`}
+        {`${(percentValue * 100).toFixed(0)}%`}
       </text>
     );
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-background border rounded-md shadow-md p-3">

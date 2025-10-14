@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageIcon, Send, Loader2 } from "lucide-react";
@@ -72,11 +73,15 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
         {/* Image Preview */}
         {imagePreview && (
           <div className="mb-3 relative inline-block">
-            <img
-              src={imagePreview}
-              alt="Preview"
-              className="h-20 w-20 object-cover rounded-lg border"
-            />
+            <div className="relative h-20 w-20">
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                fill
+                sizes="80px"
+                className="object-cover rounded-lg border"
+              />
+            </div>
             <button
               type="button"
               onClick={removeImage}

@@ -40,7 +40,6 @@ import { ExportData } from "@/components/dashboard/export-data";
 import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { expenseCategories } from "@/lib/categories";
 
 // Color palette for the chart
 const COLORS = [

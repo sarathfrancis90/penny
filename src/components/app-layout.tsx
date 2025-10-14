@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,11 +49,16 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="flex items-center gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img 
-                src="/favicon-32x32.png" 
-                alt="Penny" 
-                className="h-8 w-8 rounded-lg"
-              />
+              <div className="relative h-8 w-8">
+                <Image 
+                  src="/favicon-32x32.png" 
+                  alt="Penny" 
+                  fill
+                  sizes="32px"
+                  className="rounded-lg object-contain"
+                  priority
+                />
+              </div>
               <h1 className="text-xl font-bold hidden sm:inline">Penny</h1>
             </Link>
 

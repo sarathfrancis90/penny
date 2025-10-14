@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -13,11 +14,14 @@ export function MessageList({ messages }: MessageListProps) {
     <div className="space-y-4 max-w-3xl mx-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center space-y-6">
-            <div className="relative">
-              <img 
+            <div className="relative w-32 h-32">
+              <Image 
                 src="/penny_mono.png" 
                 alt="Penny Logo" 
-                className="w-32 h-32 opacity-90 hover:opacity-100 transition-opacity duration-300"
+                fill
+                sizes="128px"
+                className="opacity-90 hover:opacity-100 transition-opacity duration-300 object-contain"
+                priority
               />
             </div>
             <div className="space-y-2">
@@ -73,11 +77,15 @@ export function MessageList({ messages }: MessageListProps) {
                 >
                   {/* Display image if present */}
                   {message.imageUrl && (
-                    <img
-                      src={message.imageUrl}
-                      alt="Receipt"
-                      className="rounded-lg mb-2 max-w-full h-auto"
-                    />
+                    <div className="relative w-full h-48 mb-2">
+                      <Image
+                        src={message.imageUrl}
+                        alt="Receipt"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 400px"
+                        className="rounded-lg object-contain"
+                      />
+                    </div>
                   )}
                   
                   {/* Message text */}
