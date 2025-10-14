@@ -13,6 +13,20 @@ import { cn } from "@/lib/utils";
 import { expenseCategories } from "@/lib/categories";
 import { format } from "date-fns";
 
+// Helper function to parse date string in local timezone
+const parseLocalDate = (dateString: string): Date => {
+  if (!dateString || dateString === "") {
+    return new Date();
+  }
+  // Parse YYYY-MM-DD in local timezone (not UTC)
+  const [year, month, day] = dateString.split("-").map(Number);
+  if (!year || !month || !day) {
+    return new Date();
+  }
+  const parsedDate = new Date(year, month - 1, day); // month is 0-indexed
+  return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+};
+
 interface ExpenseConfirmationCardProps {
   vendor: string;
   amount: number;
@@ -45,14 +59,7 @@ export function ExpenseConfirmationCard({
   // State for editable fields
   const [vendor, setVendor] = useState(initialVendor);
   const [amount, setAmount] = useState(initialAmount.toString());
-  const [date, setDate] = useState<Date>(() => {
-    // If no date or invalid date, use today's date
-    if (!initialDate || initialDate === "") {
-      return new Date();
-    }
-    const parsedDate = new Date(initialDate);
-    return isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
-  });
+  const [date, setDate] = useState<Date>(() => parseLocalDate(initialDate));
   const [category, setCategory] = useState(initialCategory);
   const [description, setDescription] = useState(initialDescription || "");
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -61,12 +68,7 @@ export function ExpenseConfirmationCard({
   useEffect(() => {
     setVendor(initialVendor);
     setAmount(initialAmount.toString());
-    if (initialDate && initialDate !== "") {
-      const parsedDate = new Date(initialDate);
-      if (!isNaN(parsedDate.getTime())) {
-        setDate(parsedDate);
-      }
-    }
+    setDate(parseLocalDate(initialDate));
     setCategory(initialCategory);
     setDescription(initialDescription || "");
   }, [initialVendor, initialAmount, initialDate, initialCategory, initialDescription]);

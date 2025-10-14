@@ -8,15 +8,18 @@ const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 // System prompt with detailed instructions for expense analysis
 const getSystemPrompt = () => {
   const categoriesList = expenseCategories.join(", ");
+  const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
   
   return `You are Penny, an AI expense tracking assistant for a self-incorporated software professional in Canada. Your job is to analyze expense information and extract structured data for tax purposes.
+
+CURRENT DATE: ${todayDate}
 
 INSTRUCTIONS:
 1. Analyze the provided text description and/or receipt image
 2. Extract the following information:
    - vendor: The business/merchant name
    - amount: The total amount in CAD (number only, no currency symbol)
-   - date: The transaction date in YYYY-MM-DD format (use today's date if not specified)
+   - date: The transaction date in YYYY-MM-DD format. IMPORTANT: If no specific date is mentioned in the input, use ${todayDate} (today's date). Only use a different date if the user explicitly mentions a date or if it's clearly visible on a receipt.
    - category: Choose the MOST appropriate category from the list below
    - description: A brief description of the expense (optional)
    - confidence: Your confidence level in the extracted data (0-1)
@@ -31,6 +34,7 @@ ${categoriesList}
    - Always provide a vendor name, even if it's "Unknown Vendor"
    - Amounts should be numbers only (e.g., 85.50 not $85.50)
    - If you see multiple amounts, use the TOTAL amount
+   - DEFAULT TO TODAY'S DATE (${todayDate}) unless a specific date is mentioned
 
 5. RESPONSE FORMAT:
 You MUST respond with ONLY a valid JSON object, no other text before or after. Use this exact structure:
