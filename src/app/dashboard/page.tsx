@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useExpenses } from "@/hooks/useExpenses";
@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, TrendingUp, DollarSign, Tag } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, Tag, Filter, Calendar } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -33,7 +33,14 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { ExpenseSummary } from "@/lib/types";
+import { Expense, ExpenseSummary } from "@/lib/types";
+import { DateRangePicker } from "@/components/dashboard/date-range-picker";
+import { CategoryFilter } from "@/components/dashboard/category-filter";
+import { ExportData } from "@/components/dashboard/export-data";
+import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
+import { DateRange } from "react-day-picker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { expenseCategories } from "@/lib/categories";
 
 // Color palette for the chart
 const COLORS = [
@@ -52,15 +59,47 @@ const COLORS = [
 export default function DashboardPage() {
   const { user } = useAuth();
   const { expenses, loading, error } = useExpenses(user?.uid);
+  
+  // State for filters
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("overview");
+
+  // Filter expenses based on date range and categories
+  const filteredExpenses = useMemo<Expense[]>(() => {
+    return expenses.filter((expense) => {
+      // Filter by date range
+      if (dateRange?.from && expense.date.toDate() < dateRange.from) {
+        return false;
+      }
+      if (dateRange?.to) {
+        const endOfDay = new Date(dateRange.to);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (expense.date.toDate() > endOfDay) {
+          return false;
+        }
+      }
+
+      // Filter by selected categories
+      if (
+        selectedCategories.length > 0 &&
+        !selectedCategories.includes(expense.category)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [expenses, dateRange, selectedCategories]);
 
   // Process expenses to calculate category summaries
   const categorySummaries = useMemo<ExpenseSummary[]>(() => {
-    if (!expenses.length) return [];
+    if (!filteredExpenses.length) return [];
 
     // Group by category and calculate totals
     const categoryMap = new Map<string, { total: number; count: number }>();
 
-    expenses.forEach((expense) => {
+    filteredExpenses.forEach((expense) => {
       const existing = categoryMap.get(expense.category) || {
         total: 0,
         count: 0,
@@ -88,7 +127,7 @@ export default function DashboardPage() {
       .sort((a, b) => b.total - a.total); // Sort by total descending
 
     return summaries;
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   // Calculate overall statistics
   const totalExpenses = useMemo(
@@ -117,6 +156,12 @@ export default function DashboardPage() {
       })),
     [categorySummaries]
   );
+
+  // Reset all filters
+  const resetFilters = () => {
+    setDateRange(undefined);
+    setSelectedCategories([]);
+  };
 
   if (loading) {
     return (
@@ -155,13 +200,26 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 overflow-auto">
         <div className="container mx-auto p-4 md:p-8 max-w-7xl">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold tracking-tight">
-              Your Expense Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Overview of your business expenses
-            </p>
+          <div className="mb-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight">
+                  Your Expense Dashboard
+                </h1>
+                <p className="text-muted-foreground mt-2">
+                  Overview of your business expenses
+                </p>
+              </div>
+              
+              {expenses.length > 0 && (
+                <ExportData
+                  expenses={expenses}
+                  categorySummaries={categorySummaries}
+                  dateRange={dateRange}
+                  selectedCategories={selectedCategories}
+                />
+              )}
+            </div>
           </div>
 
         {expenses.length === 0 ? (
@@ -181,6 +239,66 @@ export default function DashboardPage() {
           </Card>
         ) : (
           <>
+            {/* Filters */}
+            <Card className="mb-6">
+              <CardHeader className="pb-2">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-5 w-5 text-muted-foreground" />
+                    <CardTitle className="text-lg">Filter Expenses</CardTitle>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={resetFilters}
+                    className="self-start md:self-center"
+                  >
+                    Reset Filters
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Date Range:</span>
+                    </div>
+                    <DateRangePicker 
+                      dateRange={dateRange} 
+                      onDateRangeChange={setDateRange} 
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Categories:</span>
+                    </div>
+                    <CategoryFilter
+                      selectedCategories={selectedCategories}
+                      onCategoriesChange={setSelectedCategories}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Filter Results Summary */}
+            {(dateRange?.from || dateRange?.to || selectedCategories.length > 0) && (
+              <div className="mb-6 px-2">
+                <p className="text-sm text-muted-foreground">
+                  Showing {filteredExpenses.length} of {expenses.length} expenses
+                  {dateRange?.from && ` from ${dateRange.from.toLocaleDateString()}`}
+                  {dateRange?.to && ` to ${dateRange.to.toLocaleDateString()}`}
+                  {selectedCategories.length > 0 && 
+                    ` in ${selectedCategories.length} selected ${
+                      selectedCategories.length === 1 ? "category" : "categories"
+                    }`}
+                </p>
+              </div>
+            )}
+
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <Card>
@@ -234,107 +352,282 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* Bar Chart */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Expenses by Category</CardTitle>
-                <CardDescription>
-                  Top {chartData.length} categories by total amount
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis
-                      dataKey="category"
-                      angle={-45}
-                      textAnchor="end"
-                      height={120}
-                      tick={{ fontSize: 12 }}
-                      className="text-muted-foreground"
-                    />
-                    <YAxis
-                      tick={{ fontSize: 12 }}
-                      className="text-muted-foreground"
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [
-                        `$${value.toFixed(2)}`,
-                        "Amount",
-                      ]}
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "6px",
-                      }}
-                    />
-                    <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+            {/* Tabs for different visualizations */}
+            <Tabs 
+              defaultValue="overview" 
+              value={activeTab} 
+              onValueChange={setActiveTab} 
+              className="mb-8"
+            >
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="charts">Charts</TabsTrigger>
+                <TabsTrigger value="details">Expense Details</TabsTrigger>
+                <TabsTrigger value="categories">Categories</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-6">
+                {/* Bar Chart */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Expenses by Category</CardTitle>
+                    <CardDescription>
+                      Top {chartData.length} categories by total amount
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={400}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis
+                          dataKey="category"
+                          angle={-45}
+                          textAnchor="end"
+                          height={120}
+                          tick={{ fontSize: 12 }}
+                          className="text-muted-foreground"
                         />
+                        <YAxis
+                          tick={{ fontSize: 12 }}
+                          className="text-muted-foreground"
+                        />
+                        <Tooltip
+                          formatter={(value: number) => [
+                            `$${value.toFixed(2)}`,
+                            "Amount",
+                          ]}
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--background))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "6px",
+                          }}
+                        />
+                        <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
+                          {chartData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+                
+                {/* Category Summary Table */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Category Breakdown</CardTitle>
+                    <CardDescription>
+                      Detailed view of all expense categories
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableCaption>
+                        Your expense summary for all categories
+                      </TableCaption>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Category</TableHead>
+                          <TableHead className="text-right">Count</TableHead>
+                          <TableHead className="text-right">Total (CAD)</TableHead>
+                          <TableHead className="text-right">Percentage</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {categorySummaries.map((summary) => (
+                          <TableRow key={summary.category}>
+                            <TableCell className="font-medium">
+                              {summary.category}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {summary.count}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              ${summary.total.toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                                {summary.percentage.toFixed(1)}%
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {/* Total Row */}
+                        <TableRow className="bg-muted/50 font-bold">
+                          <TableCell>TOTAL</TableCell>
+                          <TableCell className="text-right">{totalCount}</TableCell>
+                          <TableCell className="text-right">
+                            ${totalExpenses.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right">100.0%</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="charts" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Bar Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Expenses by Category</CardTitle>
+                      <CardDescription>
+                        Top {chartData.length} categories by total amount
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis
+                            dataKey="category"
+                            angle={-45}
+                            textAnchor="end"
+                            height={120}
+                            tick={{ fontSize: 12 }}
+                            className="text-muted-foreground"
+                          />
+                          <YAxis
+                            tick={{ fontSize: 12 }}
+                            className="text-muted-foreground"
+                          />
+                          <Tooltip
+                            formatter={(value: number) => [
+                              `$${value.toFixed(2)}`,
+                              "Amount",
+                            ]}
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--background))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "6px",
+                            }}
+                          />
+                          <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
+                            {chartData.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[index % COLORS.length]}
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Pie Chart */}
+                  <CategoryPieChart categorySummaries={categorySummaries} />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="details">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Expense Details</CardTitle>
+                    <CardDescription>
+                      All your expense transactions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-md border overflow-auto max-h-[600px]">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-background z-10">
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Vendor</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                            <TableHead>Description</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredExpenses.map((expense) => (
+                            <TableRow key={expense.id}>
+                              <TableCell>
+                                {expense.date.toDate().toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {expense.vendor}
+                              </TableCell>
+                              <TableCell>{expense.category}</TableCell>
+                              <TableCell className="text-right font-semibold">
+                                ${expense.amount.toFixed(2)}
+                              </TableCell>
+                              <TableCell className="max-w-[200px] truncate">
+                                {expense.description || "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {filteredExpenses.length === 0 && (
+                            <TableRow>
+                              <TableCell colSpan={5} className="h-24 text-center">
+                                No matching expenses found.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="categories">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Category Analysis</CardTitle>
+                    <CardDescription>
+                      Detailed breakdown by category
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {categorySummaries.map((summary) => (
+                        <Card key={summary.category} className="overflow-hidden">
+                          <CardHeader className="bg-muted/30 p-4">
+                            <CardTitle className="text-base">{summary.category}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-4 pt-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground">Total</span>
+                              <span className="font-semibold">${summary.total.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground">Transactions</span>
+                              <span>{summary.count}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-muted-foreground">% of Total</span>
+                              <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                                {summary.percentage.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div className="mt-3 w-full bg-muted rounded-full h-2">
+                              <div
+                                className="bg-primary h-2 rounded-full"
+                                style={{
+                                  width: `${Math.min(100, summary.percentage)}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Category Summary Table */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Category Breakdown</CardTitle>
-                <CardDescription>
-                  Detailed view of all expense categories
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableCaption>
-                    Your expense summary for all categories
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Count</TableHead>
-                      <TableHead className="text-right">Total (CAD)</TableHead>
-                      <TableHead className="text-right">Percentage</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {categorySummaries.map((summary) => (
-                      <TableRow key={summary.category}>
-                        <TableCell className="font-medium">
-                          {summary.category}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {summary.count}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ${summary.total.toFixed(2)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                            {summary.percentage.toFixed(1)}%
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {/* Total Row */}
-                    <TableRow className="bg-muted/50 font-bold">
-                      <TableCell>TOTAL</TableCell>
-                      <TableCell className="text-right">{totalCount}</TableCell>
-                      <TableCell className="text-right">
-                        ${totalExpenses.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">100.0%</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                      {categorySummaries.length === 0 && (
+                        <div className="col-span-full flex items-center justify-center h-40">
+                          <p className="text-muted-foreground">No categories found for the selected filters.</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </>
         )}
         </div>
