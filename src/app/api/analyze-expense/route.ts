@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { expenseCategories } from "@/lib/categories";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 // Initialize the Gemini AI client
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -57,10 +59,16 @@ interface AnalyzeExpenseResponse {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+  let userId: string | undefined;
+  
   try {
     // Parse request body
     const body: AnalyzeExpenseRequest = await request.json();
     const { text, imageBase64 } = body;
+    
+    // Extract userId from request headers or body (if available)
+    userId = request.headers.get("x-user-id") || undefined;
 
     // Validate input
     if (!text && !imageBase64) {
@@ -178,6 +186,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Track analytics (fire and forget - don't block response)
+    const duration = Date.now() - startTime;
+    trackAnalytics({
+      userId,
+      requestType: imageBase64 ? "image" : "text",
+      success: true,
+      duration,
+      inputLength: text?.length || 0,
+      hasImage: !!imageBase64,
+    }).catch(err => console.error("Analytics tracking failed:", err));
+
     // Return the extracted expense data
     return NextResponse.json({
       success: true,
@@ -187,6 +206,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Error in analyze-expense API:", error);
     
+    // Track failed request
+    const duration = Date.now() - startTime;
+    trackAnalytics({
+      userId,
+      requestType: "unknown",
+      success: false,
+      duration,
+      error: error instanceof Error ? error.message : "Unknown error",
+    }).catch(err => console.error("Analytics tracking failed:", err));
+    
     return NextResponse.json(
       {
         error: "Failed to analyze expense",
@@ -194,6 +223,41 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  }
+}
+
+// Analytics tracking function
+async function trackAnalytics(data: {
+  userId?: string;
+  requestType: string;
+  success: boolean;
+  duration: number;
+  inputLength?: number;
+  hasImage?: boolean;
+  error?: string;
+}) {
+  try {
+    // Estimate tokens (rough approximation)
+    const estimatedTokens = data.inputLength ? Math.ceil(data.inputLength / 4) + 500 : 500;
+    
+    // Estimate cost (Gemini 2.0 Flash pricing: ~$0.075 per 1M input tokens, $0.30 per 1M output tokens)
+    // Rough estimate: 500 input tokens + 200 output tokens per request
+    const estimatedCost = (estimatedTokens * 0.075 + 200 * 0.30) / 1000000;
+
+    await addDoc(collection(db, "analytics"), {
+      timestamp: Timestamp.now(),
+      userId: data.userId || "anonymous",
+      requestType: data.requestType,
+      success: data.success,
+      duration: data.duration,
+      estimatedTokens,
+      estimatedCost,
+      hasImage: data.hasImage || false,
+      error: data.error || null,
+    });
+  } catch (error) {
+    // Don't throw - analytics failure shouldn't break the main flow
+    console.error("Failed to track analytics:", error);
   }
 }
 
