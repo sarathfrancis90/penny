@@ -24,19 +24,44 @@ The Admin Console is a **hidden administrative interface** for managing users, m
 
 ## 📊 Features
 
+### Overview Cards
+
+The admin dashboard shows 4 key metrics at the top:
+1. **Total Users** - Number of registered users (with count of users who have expenses)
+2. **API Requests** - Total AI requests made (last 30 days)
+3. **Total Cost** - Estimated total cost in USD
+4. **Success Rate** - Percentage of successful API requests
+
 ### 1. User Management
 
-**View All Users:**
+**View All Users (from Firebase Auth):**
+- Shows **ALL registered users**, even those who haven't added any expenses yet
+- User display name and email (fetched from Firebase Authentication)
+- Email verification status (verified/unverified indicator)
+- Account status (Active/Disabled)
 - User ID (truncated for display)
+- Registration date (when account was created)
+- Last sign-in time
+- Last activity (latest of: last login or last expense)
 - Total number of expenses
 - Total amount spent
-- Last activity timestamp
-- First activity timestamp
+
+**Search & Filter:**
+- Real-time search by email, display name, or user ID
+- Shows filtered count vs total users
+- Instant results as you type
 
 **User Actions:**
-- **Reset User Data** - Deletes all expenses for a user (preserves analytics)
+- **Export User Data** - Downloads complete JSON export of user profile, expenses, and analytics
+- **Reset Expenses** - Deletes all expenses for a user (preserves analytics)
+  - Disabled for users with zero expenses
 - **Delete User** - Completely removes all user data including expenses and analytics
-- Both actions require confirmation dialog
+- All destructive actions require confirmation dialog
+
+**Data Retention:**
+- Users remain visible in the admin console even after resetting all expenses
+- This allows tracking of registered users who haven't added data yet
+- Admin can see inactive accounts and users who are just getting started
 
 ### 2. Analytics Dashboard
 
@@ -105,13 +130,19 @@ The system automatically tracks:
 - `DELETE /api/admin/auth` - Logout
 
 **User Management:**
-- `GET /api/admin/users` - List all users with stats
-- `GET /api/admin/users/[userId]` - Get detailed user info
-- `DELETE /api/admin/users/[userId]?type=expenses` - Reset user expenses
-- `DELETE /api/admin/users/[userId]?type=all` - Delete all user data
+- `GET /api/admin/users` - List **ALL registered users** from Firebase Auth + expense data
+  - Returns: `users[]`, `totalUsers`, `registeredUsers`, `usersWithExpenses`
+  - Merges Firebase Auth data with expense aggregations
+  - Shows users even if they have zero expenses
+- `GET /api/admin/users/[userId]/export` - Export complete user data as JSON
+  - Returns: user profile, expenses, analytics, summary statistics
+  - Useful for GDPR compliance and data portability
+- `DELETE /api/admin/users/[userId]?type=expenses` - Reset user expenses only
+- `DELETE /api/admin/users/[userId]?type=all` - Delete all user data (expenses + analytics)
 
 **Analytics:**
 - `GET /api/admin/analytics?days=30` - Get analytics for specified period
+  - Returns: summary stats, user breakdown, daily breakdown, type breakdown
 
 ### Database Collections
 
@@ -298,14 +329,39 @@ ADMIN_USERNAME=your_secure_username
 ADMIN_PASSWORD=your_secure_password_here
 ADMIN_SESSION_SECRET=your_random_secret_key_min_32_chars
 
-# Firebase Configuration (existing)
+# Firebase Configuration - Client Side (existing)
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-# ... other Firebase vars
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+
+# Firebase Admin SDK - Server Side (for Admin Console user data)
+# Get from Firebase Console > Project Settings > Service Accounts
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your_project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour_Key_Here\n-----END PRIVATE KEY-----\n"
 
 # Gemini API (existing)
 GEMINI_API_KEY=...
 ```
+
+### 🔑 Getting Firebase Admin SDK Credentials
+
+To display user names and emails in the admin console:
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Navigate to **Project Settings** (gear icon) → **Service Accounts** tab
+4. Click **"Generate New Private Key"** button
+5. Download the JSON file (keep it secure!)
+6. Extract these values from the JSON:
+   - `project_id` → `FIREBASE_PROJECT_ID`
+   - `client_email` → `FIREBASE_CLIENT_EMAIL`
+   - `private_key` → `FIREBASE_PRIVATE_KEY`
+
+> **Important:** Keep the `\n` newline characters in the private key and wrap it in quotes.
 
 ---
 
@@ -344,6 +400,45 @@ For issues or questions about the Admin Console:
 
 ---
 
-**Last Updated:** October 14, 2024  
-**Version:** 1.0.0
+## 🚀 Future Enhancement Ideas
+
+While the current admin console is comprehensive, here are potential additions:
+
+**User Management:**
+- Disable/Enable users temporarily
+- Bulk operations on multiple users
+- User activity timeline view
+
+**Analytics:**
+- Real-time dashboard updates
+- Cost alerts and budget tracking
+- Usage pattern analysis
+
+**Security:**
+- Multi-admin support with roles
+- Two-factor authentication
+- IP whitelisting
+
+---
+
+## 📝 Version History
+
+**v2.0.0** (2024-10-22) - Enhanced User Tracking
+- **ALL registered users now visible**, even those with 0 expenses
+- Firebase Auth integration for complete user list
+- User search and filtering
+- Export individual user data (JSON)
+- Email verification status indicators
+- Account status display
+- Enhanced user metadata
+
+**v1.0.0** (2024) - Initial Release
+- User management with delete/reset
+- Analytics tracking
+- Session-based authentication
+
+---
+
+**Last Updated:** October 22, 2024  
+**Version:** 2.0.0
 

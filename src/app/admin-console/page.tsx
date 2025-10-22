@@ -25,15 +25,29 @@ import {
   LogOut,
   Loader2,
   AlertTriangle,
+  Search,
+  CheckCircle2,
+  XCircle,
+  UserCheck,
+  UserX,
+  Download,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface User {
   userId: string;
   email?: string;
+  displayName?: string;
+  photoURL?: string;
+  emailVerified: boolean;
+  createdAt: Date;
+  lastSignInTime?: Date;
+  disabled: boolean;
   expenseCount: number;
   totalAmount: number;
   lastActivity?: Date;
-  firstActivity?: Date;
+  lastExpenseDate?: Date;
+  firstExpenseDate?: Date;
 }
 
 interface Analytics {
@@ -67,11 +81,15 @@ export default function AdminConsolePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [deleteType, setDeleteType] = useState<"expenses" | "all">("expenses");
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [totalRegistered, setTotalRegistered] = useState(0);
+  const [usersWithExpenses, setUsersWithExpenses] = useState(0);
 
   // Check authentication
   useEffect(() => {
@@ -105,10 +123,30 @@ export default function AdminConsolePage() {
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
+        setFilteredUsers(data.users || []);
+        setTotalRegistered(data.registeredUsers || 0);
+        setUsersWithExpenses(data.usersWithExpenses || 0);
       }
     } catch {
       // Silent error handling
     }
+  };
+
+  // Filter users based on search query
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (!query.trim()) {
+      setFilteredUsers(users);
+      return;
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const filtered = users.filter((user) => 
+      user.email?.toLowerCase().includes(lowerQuery) ||
+      user.displayName?.toLowerCase().includes(lowerQuery) ||
+      user.userId.toLowerCase().includes(lowerQuery)
+    );
+    setFilteredUsers(filtered);
   };
 
   const loadAnalytics = async () => {
@@ -126,6 +164,30 @@ export default function AdminConsolePage() {
   const handleLogout = async () => {
     await fetch("/api/admin/auth", { method: "DELETE" });
     router.push("/admin-console/login");
+  };
+
+  const handleExportUser = async (userId: string, userEmail?: string) => {
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/export`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Create a blob and download
+        const blob = new Blob([JSON.stringify(data.data, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `user-export-${userEmail || userId}-${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      // Silent error handling
+    }
   };
 
   const handleDeleteUser = async () => {
@@ -201,8 +263,10 @@ export default function AdminConsolePage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground mt-1">Active users</p>
+              <div className="text-2xl font-bold">{totalRegistered}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {usersWithExpenses} with expenses
+              </p>
             </CardContent>
           </Card>
 
@@ -260,38 +324,128 @@ export default function AdminConsolePage() {
               <CardHeader>
                 <CardTitle>User Management</CardTitle>
                 <CardDescription>
-                  View and manage all users and their data
+                  View and manage all users and their data. Shows ALL registered users.
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* Search Bar */}
+                <div className="mb-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by email, name, or user ID..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  {searchQuery && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Showing {filteredUsers.length} of {users.length} users
+                    </p>
+                  )}
+                </div>
+
                 <div className="rounded-md border overflow-auto max-h-[600px]">
                   <Table>
-                    <TableHeader className="sticky top-0 bg-background">
+                    <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
-                        <TableHead>User ID</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead className="text-right">Expenses</TableHead>
                         <TableHead className="text-right">Total Amount</TableHead>
+                        <TableHead>Registered</TableHead>
                         <TableHead>Last Activity</TableHead>
                         <TableHead className="text-center">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((user) => (
-                        <TableRow key={user.userId}>
-                          <TableCell className="font-mono text-xs">
-                            {user.userId.substring(0, 20)}...
+                      {filteredUsers.map((user) => (
+                        <TableRow key={user.userId} className={user.disabled ? "opacity-50" : ""}>
+                          <TableCell>
+                            <div className="flex flex-col min-w-[200px]">
+                              {user.displayName && (
+                                <span className="font-medium">{user.displayName}</span>
+                              )}
+                              {user.email ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {user.email}
+                                  </span>
+                                  {user.emailVerified ? (
+                                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                                  ) : (
+                                    <XCircle className="h-3 w-3 text-amber-500" />
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground italic">
+                                  No email
+                                </span>
+                              )}
+                              <span className="text-xs font-mono text-muted-foreground">
+                                {user.userId.substring(0, 12)}...
+                              </span>
+                            </div>
                           </TableCell>
-                          <TableCell className="text-right">{user.expenseCount}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              {user.disabled ? (
+                                <span className="inline-flex items-center gap-1 text-xs text-destructive">
+                                  <UserX className="h-3 w-3" />
+                                  Disabled
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                                  <UserCheck className="h-3 w-3" />
+                                  Active
+                                </span>
+                              )}
+                              {user.expenseCount === 0 && (
+                                <span className="text-xs text-amber-600">
+                                  No expenses
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right">
-                            ${user.totalAmount.toFixed(2)}
+                            {user.expenseCount > 0 ? (
+                              <span className="font-medium">{user.expenseCount}</span>
+                            ) : (
+                              <span className="text-muted-foreground">0</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {user.totalAmount > 0 ? (
+                              <span className="font-semibold">${user.totalAmount.toFixed(2)}</span>
+                            ) : (
+                              <span className="text-muted-foreground">$0.00</span>
+                            )}
                           </TableCell>
                           <TableCell>
-                            {user.lastActivity
-                              ? new Date(user.lastActivity).toLocaleDateString()
-                              : "N/A"}
+                            <span className="text-xs">
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </span>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center justify-center gap-2">
+                            <span className="text-xs">
+                              {user.lastActivity
+                                ? new Date(user.lastActivity).toLocaleDateString()
+                                : user.lastSignInTime
+                                ? new Date(user.lastSignInTime).toLocaleDateString()
+                                : "Never"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleExportUser(user.userId, user.email)}
+                                className="h-8 px-2"
+                              >
+                                <Download className="h-3 w-3" />
+                              </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -300,6 +454,8 @@ export default function AdminConsolePage() {
                                   setDeleteType("expenses");
                                   setShowDeleteDialog(true);
                                 }}
+                                disabled={user.expenseCount === 0}
+                                className="h-8"
                               >
                                 <RefreshCw className="h-3 w-3 mr-1" />
                                 Reset
@@ -312,6 +468,7 @@ export default function AdminConsolePage() {
                                   setDeleteType("all");
                                   setShowDeleteDialog(true);
                                 }}
+                                className="h-8"
                               >
                                 <Trash2 className="h-3 w-3 mr-1" />
                                 Delete
@@ -320,10 +477,10 @@ export default function AdminConsolePage() {
                           </TableCell>
                         </TableRow>
                       ))}
-                      {users.length === 0 && (
+                      {filteredUsers.length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
-                            No users found
+                          <TableCell colSpan={7} className="h-24 text-center">
+                            {searchQuery ? "No users match your search" : "No users found"}
                           </TableCell>
                         </TableRow>
                       )}
