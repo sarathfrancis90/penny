@@ -23,11 +23,12 @@ import type {
   RegistrationResponseJSON, 
   AuthenticationResponseJSON 
 } from '@simplewebauthn/types';
+import { getRPID, getRPName, getOrigin } from './passkey-config';
 
-// Get RP (Relying Party) configuration from environment
-const rpName = process.env.NEXT_PUBLIC_APP_NAME || 'Penny AI';
-const rpID = process.env.NEXT_PUBLIC_RP_ID || (typeof window !== 'undefined' ? window.location.hostname : 'localhost');
-const origin = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+// Get RP (Relying Party) configuration
+const rpName = getRPName();
+const rpID = getRPID();
+const origin = getOrigin();
 
 /**
  * Generate options for passkey registration (WebAuthn create)
