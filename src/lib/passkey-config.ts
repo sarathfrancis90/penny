@@ -6,9 +6,12 @@
 /**
  * Get the Relying Party ID based on the current environment
  * This must match the domain where the app is running
+ * 
+ * IMPORTANT: For production deployments, ALWAYS set NEXT_PUBLIC_RP_ID
+ * environment variable to avoid using localhost fallback
  */
 export function getRPID(): string {
-  // Use environment variable if set
+  // CRITICAL: Use environment variable if set (required for production)
   if (process.env.NEXT_PUBLIC_RP_ID) {
     return process.env.NEXT_PUBLIC_RP_ID;
   }
@@ -26,8 +29,12 @@ export function getRPID(): string {
     return hostname;
   }
 
-  // Server-side fallback
-  // In production, this should be set via environment variables
+  // Server-side fallback - should NEVER be used in production
+  // This will cause passkey authentication to fail
+  console.warn(
+    '⚠️  WARNING: NEXT_PUBLIC_RP_ID not set! Falling back to localhost. ' +
+    'Passkey authentication will NOT work in production without this environment variable.'
+  );
   return 'localhost';
 }
 

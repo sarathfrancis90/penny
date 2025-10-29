@@ -147,10 +147,18 @@ export function usePasskey() {
 
   /**
    * Load user's registered passkeys
+   * Note: This requires the user to be authenticated (have a session)
    */
   const loadPasskeys = async () => {
     try {
       const response = await fetch('/api/auth/passkey/list');
+      
+      // Handle 401 gracefully - user just needs to log in first
+      if (response.status === 401) {
+        // User not authenticated yet - this is OK, just clear passkeys
+        setPasskeys([]);
+        return;
+      }
       
       if (!response.ok) {
         throw new Error('Failed to load passkeys');
@@ -160,7 +168,8 @@ export function usePasskey() {
       setPasskeys(loadedPasskeys || []);
     } catch (err) {
       console.error('Error loading passkeys:', err);
-      setError('Failed to load passkeys');
+      // Don't set error for auth issues - just clear passkeys
+      setPasskeys([]);
     }
   };
 
