@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/app-layout";
 import { DevTools } from "@/components/dev-tools";
+import { PasskeyManagement } from "@/components/passkey-management";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -113,6 +114,9 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Passkey Management Card */}
+        <PasskeyManagement />
 
         {/* App Information Card */}
         <Card className="mb-6">

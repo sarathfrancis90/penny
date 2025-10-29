@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { usePasskey } from "@/hooks/usePasskey";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,14 +16,41 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Fingerprint, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const { signIn } = useAuth();
+  const { authenticateWithPasskey, isAvailable: isPasskeyAvailable } = usePasskey();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
+
+  // Auto-show password fields if passkeys not available
+  useEffect(() => {
+    if (!isPasskeyAvailable) {
+      setShowPasswordFields(true);
+    }
+  }, [isPasskeyAvailable]);
+
+  const handlePasskeyLogin = async () => {
+    setError("");
+    setPasskeyLoading(true);
+
+    try {
+      await authenticateWithPasskey(email || undefined);
+      router.push("/");
+    } catch (err) {
+      console.error("Passkey login error:", err);
+      setError("Failed to sign in with passkey. Try password instead.");
+      setShowPasswordFields(true);
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,42 +97,120 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                disabled={loading}
-              />
-            </div>
+
+            {/* Passkey Sign In Button - Show first if available */}
+            {isPasskeyAvailable && !showPasswordFields && (
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  onClick={handlePasskeyLogin}
+                  className="w-full"
+                  size="lg"
+                  disabled={passkeyLoading}
+                >
+                  {passkeyLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Authenticating...
+                    </>
+                  ) : (
+                    <>
+                      <Fingerprint className="h-5 w-5 mr-2" />
+                      Sign in with Face ID / Touch ID
+                    </>
+                  )}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with password
+                    </span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowPasswordFields(true)}
+                  className="w-full"
+                >
+                  Sign in with Email & Password
+                </Button>
+              </div>
+            )}
+
+            {/* Traditional Email/Password Fields */}
+            {showPasswordFields && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email webauthn"
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    disabled={loading}
+                  />
+                </div>
+              </>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-              size="lg"
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
+            {showPasswordFields && (
+              <>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading}
+                  size="lg"
+                >
+                  {loading ? "Signing in..." : "Sign In"}
+                </Button>
+
+                {/* Back to Passkey button */}
+                {isPasskeyAvailable && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      setShowPasswordFields(false);
+                      setError("");
+                    }}
+                    className="w-full text-xs"
+                  >
+                    <Fingerprint className="h-3 w-3 mr-1" />
+                    Use Face ID / Touch ID instead
+                  </Button>
+                )}
+              </>
+            )}
+            
+            {!showPasswordFields && isPasskeyAvailable && (
+              <p className="text-xs text-center text-muted-foreground">
+                Passkeys are more secure than passwords and work across your devices
+              </p>
+            )}
+
             <p className="text-sm text-center text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link

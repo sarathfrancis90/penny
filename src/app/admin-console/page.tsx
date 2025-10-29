@@ -346,7 +346,8 @@ export default function AdminConsolePage() {
         const data = await response.json();
         alert(`Failed: ${data.error}`);
       }
-    } catch (error) {
+    } catch (err) {
+      console.error("Failed to delete user data:", err);
       alert("Failed to delete user data");
     } finally {
       setIsDeleting(false);

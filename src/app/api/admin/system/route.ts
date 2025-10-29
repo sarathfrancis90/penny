@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { collection, getDocs, query, where, Timestamp, orderBy, limit as firestoreLimit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { isAdmin } from "@/lib/admin-auth";
