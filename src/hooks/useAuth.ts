@@ -24,14 +24,57 @@ export function useAuth() {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    
+    // Create JWT session for passkey compatibility
+    try {
+      await fetch('/api/auth/session/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: userCredential.user.uid,
+          email: userCredential.user.email 
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      // Don't fail signup if session creation fails
+    }
+    
+    return userCredential;
   };
 
   const signIn = async (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    
+    // Create JWT session for passkey compatibility
+    try {
+      await fetch('/api/auth/session/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: userCredential.user.uid,
+          email: userCredential.user.email 
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      // Don't fail login if session creation fails
+    }
+    
+    return userCredential;
   };
 
   const signOut = async () => {
+    // Clear JWT session
+    try {
+      await fetch('/api/auth/session/create', {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Failed to clear session:', error);
+    }
+    
     return firebaseSignOut(auth);
   };
 

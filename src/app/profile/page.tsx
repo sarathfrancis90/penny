@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { AppLayout } from "@/components/app-layout";
@@ -19,6 +20,25 @@ import { LogOut, Mail, Calendar, Shield } from "lucide-react";
 export default function ProfilePage() {
   const router = useRouter();
   const { user, signOut } = useAuth();
+
+  // Automatically create JWT session for Firebase-authenticated users
+  // This ensures existing accounts can use passkey features
+  useEffect(() => {
+    if (user) {
+      // Create JWT session (idempotent - safe to call multiple times)
+      fetch('/api/auth/session/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: user.uid,
+          email: user.email 
+        }),
+      }).catch((error) => {
+        console.error('Failed to sync session:', error);
+        // Don't show error to user - this is a background sync
+      });
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
