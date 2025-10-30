@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-secret": "node scripts/generate-jwt-secret.js"
   },
   "dependencies": {
     "@google/genai": "^1.22.0",
