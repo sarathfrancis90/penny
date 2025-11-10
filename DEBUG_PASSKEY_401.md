@@ -265,3 +265,4 @@ Then the issue is: **Firebase login doesn't create a JWT session**.
 
 You'll need to implement **Option 2** above to bridge Firebase Auth with the JWT session system used by passkeys.
 
+

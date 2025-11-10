@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 
 interface CreateExpenseRequest {
   vendor: string;
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
       syncStatus: "synced",
     };
 
-    // Save to Firestore
-    const docRef = await addDoc(collection(db, "expenses"), expenseData);
+    // Save to Firestore using Admin SDK (bypasses security rules)
+    const docRef = await adminDb.collection("expenses").add(expenseData);
 
     // Return success with the document ID
     return NextResponse.json({
