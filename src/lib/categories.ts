@@ -11,6 +11,7 @@ export const expenseCategories = [
   // GENERAL BUSINESS EXPENSES (from main expenses sheet)
   "Advertising (Promotion, gift cards etc.)",
   "Meals and entertainment",
+  "Groceries",
   "Insurance (No life insurance)",
   "Interest (and bank charges)",
   "Fees, licences, dues, memberships, and subscriptions",
@@ -65,6 +66,7 @@ export const categoryGroups = {
   "General Business Expenses": [
     "Advertising (Promotion, gift cards etc.)",
     "Meals and entertainment",
+    "Groceries",
     "Insurance (No life insurance)",
     "Interest (and bank charges)",
     "Fees, licences, dues, memberships, and subscriptions",
