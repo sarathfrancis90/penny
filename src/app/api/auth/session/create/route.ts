@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
-import { auth } from '@/lib/firebase';
-import { getAuth } from 'firebase/auth';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
