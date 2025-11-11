@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPasskeyAuthentication } from '@/lib/passkey-utils';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
@@ -93,6 +93,9 @@ export async function POST(request: NextRequest) {
     // Create session using Firebase-compatible approach
     const userId = passkeyData.userId;
     
+    // Create Firebase custom token for client-side Firebase auth
+    const customToken = await adminAuth.createCustomToken(userId);
+    
     // Create JWT session token
     const token = await new SignJWT({ userId, authMethod: 'passkey' })
       .setProtectedHeader({ alg: 'HS256' })
@@ -117,6 +120,7 @@ export async function POST(request: NextRequest) {
       success: true,
       verified: true,
       userId,
+      customToken, // Send Firebase custom token to client
       message: 'Authentication successful',
     });
   } catch (error) {

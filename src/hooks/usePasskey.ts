@@ -5,6 +5,8 @@
 
 import { useState, useEffect } from 'react';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { signInWithCustomToken } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/types';
 
 interface Passkey {
@@ -174,6 +176,11 @@ export function usePasskey() {
       }
 
       const result = await verifyResponse.json();
+
+      // Sign in to Firebase with the custom token
+      if (result.customToken) {
+        await signInWithCustomToken(auth, result.customToken);
+      }
 
       setIsLoading(false);
       return result;
