@@ -15,9 +15,25 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       setLoading(false);
+      
+      // Auto-create JWT session for authenticated users
+      if (user) {
+        try {
+          await fetch('/api/auth/session/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              userId: user.uid,
+              email: user.email 
+            }),
+          });
+        } catch (error) {
+          console.error('Failed to sync session:', error);
+        }
+      }
     });
 
     return unsubscribe;
@@ -32,6 +48,15 @@ export function useAuth() {
   };
 
   const signOut = async () => {
+    // Clear JWT session
+    try {
+      await fetch('/api/auth/session/create', {
+        method: 'DELETE',
+      });
+    } catch (error) {
+      console.error('Failed to clear session:', error);
+    }
+    
     return firebaseSignOut(auth);
   };
 
