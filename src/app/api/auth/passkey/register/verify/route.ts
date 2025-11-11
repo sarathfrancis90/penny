@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyPasskeyRegistration, getDeviceInfo } from '@/lib/passkey-utils';
+import { verifyPasskeyRegistration } from '@/lib/passkey-utils';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { RegistrationResponseJSON } from '@simplewebauthn/types';
@@ -10,7 +10,7 @@ import type { RegistrationResponseJSON } from '@simplewebauthn/types';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, response } = await request.json();
+    const { userId, response, deviceName } = await request.json();
 
     if (!userId || !response) {
       return NextResponse.json(
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       counter: registrationInfo.credential.counter,
       credentialDeviceType: registrationInfo.credentialDeviceType,
       credentialBackedUp: registrationInfo.credentialBackedUp,
-      deviceName: getDeviceInfo(),
+      deviceName: deviceName || 'Unknown Device',
       transports: response.response?.transports || [],
       createdAt: Timestamp.now(),
       lastUsedAt: Timestamp.now(),

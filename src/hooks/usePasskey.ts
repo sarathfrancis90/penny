@@ -45,6 +45,43 @@ export function usePasskey() {
   }, []);
 
   /**
+   * Get device/browser info for better UX
+   */
+  const getDeviceInfo = (): string => {
+    if (typeof window === 'undefined') return 'Unknown Device';
+
+    const ua = navigator.userAgent;
+    let device = 'Unknown Device';
+    
+    // Detect OS/Device
+    if (/iPhone|iPad|iPod/.test(ua)) {
+      device = /iPad/.test(ua) ? 'iPad' : 'iPhone';
+    } else if (/Android/.test(ua)) {
+      device = 'Android';
+    } else if (/Macintosh|Mac OS X/.test(ua)) {
+      device = 'Mac';
+    } else if (/Windows/.test(ua)) {
+      device = 'Windows';
+    } else if (/Linux/.test(ua)) {
+      device = 'Linux';
+    }
+
+    // Detect Browser
+    let browser = '';
+    if (/Edg/.test(ua)) {
+      browser = 'Edge';
+    } else if (/Chrome/.test(ua) && !/Edg/.test(ua)) {
+      browser = 'Chrome';
+    } else if (/Safari/.test(ua) && !/Chrome/.test(ua)) {
+      browser = 'Safari';
+    } else if (/Firefox/.test(ua)) {
+      browser = 'Firefox';
+    }
+
+    return browser ? `${browser} on ${device}` : device;
+  };
+
+  /**
    * Register a new passkey
    */
   const registerPasskey = async (userId: string, email: string, displayName?: string) => {
@@ -69,11 +106,14 @@ export function usePasskey() {
       // Prompt user for biometric/passkey
       const registrationResponse: RegistrationResponseJSON = await startRegistration(options);
 
+      // Get device info on client-side
+      const deviceName = getDeviceInfo();
+
       // Verify registration on server
       const verifyResponse = await fetch('/api/auth/passkey/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, response: registrationResponse }),
+        body: JSON.stringify({ userId, response: registrationResponse, deviceName }),
       });
 
       if (!verifyResponse.ok) {
