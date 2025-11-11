@@ -221,16 +221,22 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 overflow-auto">
-        <div className="container mx-auto p-4 md:p-8 max-w-7xl">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-slate-100 dark:from-slate-950 dark:via-violet-950/20 dark:to-slate-900 overflow-auto relative">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-40 left-20 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-40 right-20 w-96 h-96 bg-fuchsia-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="container mx-auto p-4 md:p-8 max-w-7xl relative z-10">
           {/* Header */}
-          <div className="mb-6">
+          <div className="mb-8 animate-in slide-in-from-top-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h1 className="text-4xl font-bold tracking-tight">
+                <h1 className="text-4xl font-bold gradient-text tracking-tight">
                   Your Expense Dashboard
                 </h1>
-                <p className="text-muted-foreground mt-2">
+                <p className="text-muted-foreground mt-2 text-lg">
                   Overview of your business expenses
                 </p>
               </div>
@@ -300,15 +306,17 @@ export default function DashboardPage() {
 
         {expenses.length === 0 ? (
           // Empty state
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Tag className="h-16 w-16 text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">No expenses yet</h2>
-              <p className="text-muted-foreground mb-6 text-center max-w-md">
+          <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30 shadow-2xl shadow-violet-500/10 animate-in zoom-in-95 duration-500">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mb-6 shadow-lg animate-float">
+                <Tag className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold gradient-text mb-3">No expenses yet</h2>
+              <p className="text-muted-foreground mb-8 text-center max-w-md text-lg">
                 Start tracking your business expenses by adding them through the
                 chat interface.
               </p>
-              <Button asChild>
+              <Button asChild className="h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 text-base font-semibold">
                 <Link href="/">Add Your First Expense</Link>
               </Button>
             </CardContent>
@@ -316,18 +324,18 @@ export default function DashboardPage() {
         ) : (
           <>
             {/* Filters */}
-            <Card className="mb-6">
+            <Card className="mb-6 glass border-2 border-slate-200/50 dark:border-slate-800/30 shadow-lg animate-in slide-in-from-bottom-4 duration-500">
               <CardHeader className="pb-2">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-muted-foreground" />
-                    <CardTitle className="text-lg">Filter Expenses</CardTitle>
+                    <Filter className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                    <CardTitle className="text-lg gradient-text">Filter Expenses</CardTitle>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={resetFilters}
-                    className="self-start md:self-center"
+                    className="self-start md:self-center hover:bg-violet-50 dark:hover:bg-violet-950/30"
                   >
                     Reset Filters
                   </Button>
@@ -376,51 +384,59 @@ export default function DashboardPage() {
             )}
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30 shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20 transition-all duration-300 hover:scale-105 animate-in zoom-in-95 duration-500">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Total Expenses
                   </CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+                    <DollarSign className="h-5 w-5 text-white" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent">
                     ${totalExpenses.toFixed(2)}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-2 font-medium">
                     CAD across all categories
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass border-2 border-fuchsia-200/50 dark:border-fuchsia-800/30 shadow-lg shadow-fuchsia-500/10 hover:shadow-fuchsia-500/20 transition-all duration-300 hover:scale-105 animate-in zoom-in-95 duration-500 delay-100">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Total Transactions
                   </CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-500 flex items-center justify-center shadow-lg">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{totalCount}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-fuchsia-600 to-violet-600 dark:from-fuchsia-400 dark:to-violet-400 bg-clip-text text-transparent">
+                    {totalCount}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 font-medium">
                     expense entries
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30 shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20 transition-all duration-300 hover:scale-105 animate-in zoom-in-95 duration-500 delay-200">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
                     Top Category
                   </CardTitle>
-                  <Tag className="h-4 w-4 text-muted-foreground" />
+                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+                    <Tag className="h-5 w-5 text-white" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xl font-bold truncate">
+                  <div className="text-xl font-bold truncate bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent">
                     {topCategory?.category || "N/A"}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-2 font-medium">
                     ${topCategory?.total.toFixed(2) || "0.00"} (
                     {topCategory?.percentage.toFixed(1) || "0"}%)
                   </p>
@@ -435,11 +451,19 @@ export default function DashboardPage() {
               onValueChange={setActiveTab} 
               className="mb-8"
             >
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="charts">Charts</TabsTrigger>
-                <TabsTrigger value="list">Expenses</TabsTrigger>
-                <TabsTrigger value="categories">Categories</TabsTrigger>
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6 glass border-2 border-violet-200/50 dark:border-violet-800/30 p-1 h-auto gap-1">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="charts" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                  Charts
+                </TabsTrigger>
+                <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                  Expenses
+                </TabsTrigger>
+                <TabsTrigger value="categories" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                  Categories
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-6">
