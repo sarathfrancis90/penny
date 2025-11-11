@@ -8,7 +8,7 @@ interface AuthGuardProps {
   children: React.ReactNode;
 }
 
-const publicRoutes = ["/login", "/signup"];
+const publicRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"];
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const { user, loading } = useAuth();
