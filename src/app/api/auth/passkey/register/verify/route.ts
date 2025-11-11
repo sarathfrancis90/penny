@@ -66,7 +66,6 @@ export async function POST(request: NextRequest) {
     // Store the passkey credential in Firestore
     // Use response.id directly (it's already base64url encoded from the client)
     const credentialID = response.id;
-    console.log('✅ Storing passkey with credentialID:', credentialID);
     
     await adminDb.collection('passkeys').add({
       userId,

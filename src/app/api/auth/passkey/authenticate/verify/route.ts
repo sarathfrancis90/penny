@@ -48,32 +48,15 @@ export async function POST(request: NextRequest) {
 
     // Find the passkey credential by credentialID
     const credentialID = response.id;
-    console.log('Looking for passkey with credentialID:', credentialID);
     
     const passkeysSnapshot = await adminDb
       .collection('passkeys')
       .where('credentialID', '==', credentialID)
       .get();
-
-    console.log('Passkeys found:', passkeysSnapshot.size);
     
     if (passkeysSnapshot.empty) {
-      // Log all passkeys to help debug
-      const allPasskeys = await adminDb.collection('passkeys').limit(5).get();
-      console.log('Sample passkeys in database:', allPasskeys.docs.map(doc => ({
-        id: doc.id,
-        credentialID: doc.data().credentialID,
-        userId: doc.data().userId
-      })));
-      
       return NextResponse.json(
-        { 
-          error: 'Passkey not found',
-          debug: {
-            searchedFor: credentialID,
-            totalPasskeys: allPasskeys.size
-          }
-        },
+        { error: 'Passkey not found' },
         { status: 404 }
       );
     }
