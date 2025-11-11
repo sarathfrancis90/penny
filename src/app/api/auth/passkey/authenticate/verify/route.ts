@@ -94,17 +94,17 @@ export async function POST(request: NextRequest) {
     const userId = passkeyData.userId;
     
     // Ensure Firebase Auth user exists (create if needed)
-    let firebaseUser;
     try {
-      firebaseUser = await adminAuth.getUser(userId);
-    } catch (error: any) {
+      await adminAuth.getUser(userId);
+    } catch (error) {
       // User doesn't exist in Firebase Auth, create one
-      if (error.code === 'auth/user-not-found') {
+      const firebaseError = error as { code?: string };
+      if (firebaseError.code === 'auth/user-not-found') {
         // Get user email from Firestore or use a placeholder
         const userDoc = await adminDb.collection('users').doc(userId).get();
         const email = userDoc.exists ? userDoc.data()?.email : `${userId}@passkey.local`;
         
-        firebaseUser = await adminAuth.createUser({
+        await adminAuth.createUser({
           uid: userId,
           email: email,
           emailVerified: true,
