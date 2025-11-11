@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Mail, Lock, Loader2, CheckCircle2, ArrowRight, Shield, Sparkles } from "lucide-react";
+import { Mail, Lock, Loader2, CheckCircle2, Shield, Sparkles } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
