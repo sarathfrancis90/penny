@@ -93,6 +93,27 @@ export async function POST(request: NextRequest) {
     // Create session using Firebase-compatible approach
     const userId = passkeyData.userId;
     
+    // Ensure Firebase Auth user exists (create if needed)
+    let firebaseUser;
+    try {
+      firebaseUser = await adminAuth.getUser(userId);
+    } catch (error: any) {
+      // User doesn't exist in Firebase Auth, create one
+      if (error.code === 'auth/user-not-found') {
+        // Get user email from Firestore or use a placeholder
+        const userDoc = await adminDb.collection('users').doc(userId).get();
+        const email = userDoc.exists ? userDoc.data()?.email : `${userId}@passkey.local`;
+        
+        firebaseUser = await adminAuth.createUser({
+          uid: userId,
+          email: email,
+          emailVerified: true,
+        });
+      } else {
+        throw error;
+      }
+    }
+    
     // Create Firebase custom token for client-side Firebase auth
     const customToken = await adminAuth.createCustomToken(userId);
     
@@ -125,10 +146,24 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error verifying passkey authentication:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to verify passkey authentication';
+    let details = 'Unknown error';
+    
+    if (error instanceof Error) {
+      details = error.message;
+      
+      // Check for specific Firebase errors
+      if (error.message.includes('auth/')) {
+        errorMessage = 'Failed to create Firebase session';
+      }
+    }
+    
     return NextResponse.json(
       { 
-        error: 'Failed to verify passkey authentication',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: errorMessage,
+        details: details
       },
       { status: 500 }
     );

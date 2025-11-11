@@ -45,7 +45,8 @@ export default function LoginPage() {
       router.push("/");
     } catch (err) {
       console.error("Passkey login error:", err);
-      setError("Failed to sign in with passkey. Try password instead.");
+      const errorMessage = err instanceof Error ? err.message : "Failed to sign in with passkey";
+      setError(`${errorMessage}. Try password instead.`);
       setShowPasswordFields(true);
     } finally {
       setPasskeyLoading(false);

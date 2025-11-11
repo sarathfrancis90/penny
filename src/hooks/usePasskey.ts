@@ -179,7 +179,13 @@ export function usePasskey() {
 
       // Sign in to Firebase with the custom token
       if (result.customToken) {
-        await signInWithCustomToken(auth, result.customToken);
+        try {
+          await signInWithCustomToken(auth, result.customToken);
+          console.log('Successfully signed in with custom token');
+        } catch (firebaseError) {
+          console.error('Failed to sign in with custom token:', firebaseError);
+          throw new Error('Failed to create Firebase session after passkey authentication');
+        }
       }
 
       setIsLoading(false);
