@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
     } catch (err) {
       console.error("Password reset error:", err);
       if (err instanceof Error) {
-        const errorCode = (err as any).code;
+        const errorCode = (err as { code?: string }).code;
         switch (errorCode) {
           case "auth/user-not-found":
             setError("No account found with this email address.");
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
             </div>
             <CardTitle className="text-2xl">Check Your Email</CardTitle>
             <CardDescription className="text-base">
-              We've sent password reset instructions to
+              We&apos;ve sent password reset instructions to
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
               </AlertDescription>
             </Alert>
             <div className="text-sm text-muted-foreground text-center space-y-2">
-              <p>Didn't receive the email? Check your spam folder.</p>
+              <p>Didn&apos;t receive the email? Check your spam folder.</p>
               <Button
                 variant="link"
                 onClick={() => {
@@ -121,7 +121,7 @@ export default function ForgotPasswordPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Forgot Password?</CardTitle>
           <CardDescription>
-            Enter your email address and we'll send you a link to reset your password.
+            Enter your email address and we&apos;ll send you a link to reset your password.
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>

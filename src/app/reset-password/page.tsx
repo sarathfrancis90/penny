@@ -47,7 +47,7 @@ function ResetPasswordForm() {
       })
       .catch((err) => {
         console.error("Code verification error:", err);
-        const errorCode = (err as any).code;
+        const errorCode = (err as { code?: string }).code;
         switch (errorCode) {
           case "auth/expired-action-code":
             setError("This reset link has expired. Please request a new one.");
@@ -120,7 +120,7 @@ function ResetPasswordForm() {
       }, 3000);
     } catch (err) {
       console.error("Password reset error:", err);
-      const errorCode = (err as any).code;
+      const errorCode = (err as { code?: string }).code;
       switch (errorCode) {
         case "auth/expired-action-code":
           setError("This reset link has expired. Please request a new one.");
