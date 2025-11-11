@@ -92,7 +92,7 @@ export default function SignUpPage() {
           <div className="flex justify-center mb-2">
             <div className="h-16 w-16 rounded-2xl overflow-hidden shadow-lg shadow-fuchsia-500/30 animate-in zoom-in-90 duration-700 delay-100">
               <Image 
-                src="/logo.svg" 
+                src="/penny_icon.png" 
                 alt="Penny" 
                 width={64}
                 height={64}
