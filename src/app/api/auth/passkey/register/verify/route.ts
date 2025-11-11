@@ -64,9 +64,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the passkey credential in Firestore
+    const credentialIDToStore = Buffer.from(registrationInfo.credential.id).toString('base64url');
+    console.log('Storing passkey with credentialID:', credentialIDToStore);
+    console.log('Response ID from client:', response.id);
+    console.log('IDs match:', credentialIDToStore === response.id);
+    
     await adminDb.collection('passkeys').add({
       userId,
-      credentialID: Buffer.from(registrationInfo.credential.id).toString('base64url'),
+      credentialID: credentialIDToStore,
       credentialPublicKey: Buffer.from(registrationInfo.credential.publicKey).toString('base64url'),
       counter: registrationInfo.credential.counter,
       credentialDeviceType: registrationInfo.credentialDeviceType,
