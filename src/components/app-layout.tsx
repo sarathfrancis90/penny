@@ -58,24 +58,22 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             {/* Logo with Animation */}
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 p-0.5 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-lg group-hover:shadow-violet-500/50">
-                <div className="h-full w-full rounded-lg bg-white dark:bg-slate-900 flex items-center justify-center">
-                  <Image 
-                    src="/favicon-32x32.png" 
-                    alt="Penny" 
-                    width={28}
-                    height={28}
-                    className="rounded-lg object-contain transition-transform group-hover:scale-110"
-                    priority
-                  />
-                </div>
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative h-12 w-12 rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-lg shadow-violet-500/30 group-hover:shadow-violet-500/60">
+                <Image 
+                  src="/logo.svg" 
+                  alt="Penny" 
+                  width={48}
+                  height={48}
+                  className="object-contain transition-transform group-hover:scale-110"
+                  priority
+                />
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 dark:from-violet-400 dark:to-fuchsia-400 bg-clip-text text-transparent transition-all">
                   Penny
                 </h1>
-                <p className="text-[10px] text-muted-foreground -mt-1">AI Expense Tracker</p>
+                <p className="text-[10px] text-muted-foreground -mt-1 font-medium">AI Expense Tracker</p>
               </div>
             </Link>
 

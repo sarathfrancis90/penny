@@ -1,11 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Background -->
-  <rect width="512" height="512" fill="#0f172a" rx="128"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient Definition -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D946EF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
-  <!-- P Letter -->
-  <text x="256" y="380" font-family="Arial, sans-serif" font-size="320" font-weight="bold" fill="#ffffff" text-anchor="middle">P</text>
+  <!-- Rounded Square Background -->
+  <rect x="0" y="0" width="512" height="512" rx="110" fill="url(#grad)"/>
   
-  <!-- Coin Circle Accent -->
-  <circle cx="380" cy="140" r="60" fill="#f59e0b" opacity="0.9"/>
-  <text x="380" y="160" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="#ffffff" text-anchor="middle">¢</text>
+  <!-- Inner Glow -->
+  <rect x="20" y="20" width="472" height="472" rx="100" fill="white" opacity="0.1"/>
+  
+  <!-- Letter P -->
+  <path d="M 160 140 L 160 380 M 160 140 L 280 140 C 340 140 370 170 370 230 C 370 290 340 320 280 320 L 160 320" 
+        stroke="white" 
+        stroke-width="35" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none"/>
+  
+  <!-- Sparkles -->
+  <path d="M 400 100 L 415 115 L 400 130 L 385 115 Z" fill="white" opacity="0.8"/>
+  <path d="M 430 330 L 442 342 L 430 354 L 418 342 Z" fill="white" opacity="0.7"/>
+  <path d="M 100 330 L 112 342 L 100 354 L 88 342 Z" fill="white" opacity="0.7"/>
+  
+  <!-- Small Dots -->
+  <circle cx="120" cy="120" r="8" fill="white" opacity="0.5"/>
+  <circle cx="420" cy="240" r="8" fill="white" opacity="0.5"/>
+  <circle cx="140" cy="420" r="8" fill="white" opacity="0.5"/>
 </svg>

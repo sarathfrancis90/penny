@@ -164,16 +164,16 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
               className={cn(
                 "shrink-0 h-11 w-11 rounded-xl transition-all duration-300 shadow-lg",
                 canSend
-                  ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 shadow-violet-500/50 hover:scale-110 hover:shadow-violet-500/70"
+                  ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-violet-500/50 hover:scale-110 hover:shadow-violet-500/70"
                   : "bg-slate-200 dark:bg-slate-800"
               )}
               title="Send message"
             >
               {isProcessing ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-5 w-5 text-white animate-spin" />
               ) : (
                 <Send className={cn(
-                  "h-5 w-5 transition-transform duration-300",
+                  "h-5 w-5 text-white transition-transform duration-300",
                   canSend && "group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 )} />
               )}
