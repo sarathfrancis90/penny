@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { usePasskey } from "@/hooks/usePasskey";
@@ -16,10 +16,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Fingerprint, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Fingerprint, Loader2, CheckCircle2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signIn } = useAuth();
   const { authenticateWithPasskey, isAvailable: isPasskeyAvailable } = usePasskey();
   const [email, setEmail] = useState("");
@@ -28,6 +30,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Check for success message and pre-fill email from URL
+  useEffect(() => {
+    const resetSuccess = searchParams.get("reset");
+    const emailParam = searchParams.get("email");
+    
+    if (resetSuccess === "success") {
+      setSuccessMessage("Password reset successful! You can now sign in with your new password.");
+      setShowPasswordFields(true);
+    }
+    
+    if (emailParam) {
+      setEmail(decodeURIComponent(emailParam));
+      setShowPasswordFields(true);
+    }
+  }, [searchParams]);
 
   // Auto-show password fields if passkeys not available
   useEffect(() => {
@@ -93,6 +112,15 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {successMessage && (
+              <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-600 dark:text-green-400">
+                  {successMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {error && (
               <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md border border-destructive/20">
                 {error}
@@ -161,7 +189,15 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-muted-foreground hover:text-primary underline-offset-4 hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
                   <Input
                     id="password"
                     type="password"
@@ -225,5 +261,21 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardContent className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
