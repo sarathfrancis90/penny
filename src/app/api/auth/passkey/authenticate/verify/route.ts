@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPasskeyAuthentication } from '@/lib/passkey-utils';
-import { collection, query, where, getDocs, doc, getDoc, deleteDoc, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
+import { Timestamp } from 'firebase-admin/firestore';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
@@ -26,21 +26,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the stored challenge
-    const challengeRef = doc(db, 'challenges', challengeId);
-    const challengeDoc = await getDoc(challengeRef);
+    const challengeDoc = await adminDb.collection('challenges').doc(challengeId).get();
 
-    if (!challengeDoc.exists()) {
+    if (!challengeDoc.exists) {
       return NextResponse.json(
         { error: 'Challenge not found or expired' },
         { status: 400 }
       );
     }
 
-    const { challenge, expiresAt } = challengeDoc.data();
+    const { challenge, expiresAt } = challengeDoc.data()!;
 
     // Check if challenge has expired
     if (new Date() > expiresAt.toDate()) {
-      await deleteDoc(challengeRef);
+      await adminDb.collection('challenges').doc(challengeId).delete();
       return NextResponse.json(
         { error: 'Challenge expired. Please try again.' },
         { status: 400 }
@@ -49,9 +48,10 @@ export async function POST(request: NextRequest) {
 
     // Find the passkey credential by credentialID
     const credentialID = response.id;
-    const passkeysRef = collection(db, 'passkeys');
-    const passkeysQuery = query(passkeysRef, where('credentialID', '==', credentialID));
-    const passkeysSnapshot = await getDocs(passkeysQuery);
+    const passkeysSnapshot = await adminDb
+      .collection('passkeys')
+      .where('credentialID', '==', credentialID)
+      .get();
 
     if (passkeysSnapshot.empty) {
       return NextResponse.json(
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Authentication successful! Update counter and last used
-    await updateDoc(doc(db, 'passkeys', passkeyDoc.id), {
+    await adminDb.collection('passkeys').doc(passkeyDoc.id).update({
       counter: verification.authenticationInfo.newCounter,
       lastUsedAt: Timestamp.now(),
     });
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Clean up the challenge
-    await deleteDoc(challengeRef);
+    await adminDb.collection('challenges').doc(challengeId).delete();
 
     return NextResponse.json({
       success: true,

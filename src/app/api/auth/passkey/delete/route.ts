@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
@@ -46,17 +45,16 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get the passkey document
-    const passkeyRef = doc(db, 'passkeys', passkeyId);
-    const passkeyDoc = await getDoc(passkeyRef);
+    const passkeyDoc = await adminDb.collection('passkeys').doc(passkeyId).get();
 
-    if (!passkeyDoc.exists()) {
+    if (!passkeyDoc.exists) {
       return NextResponse.json(
         { error: 'Passkey not found' },
         { status: 404 }
       );
     }
 
-    const passkeyData = passkeyDoc.data();
+    const passkeyData = passkeyDoc.data()!;
 
     // Verify the passkey belongs to the authenticated user
     if (passkeyData.userId !== userId) {
@@ -67,7 +65,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the passkey
-    await deleteDoc(passkeyRef);
+    await adminDb.collection('passkeys').doc(passkeyId).delete();
 
     return NextResponse.json({
       success: true,

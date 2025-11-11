@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyPasskeyRegistration, getDeviceInfo } from '@/lib/passkey-utils';
-import { collection, doc, getDoc, deleteDoc, addDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 import type { RegistrationResponseJSON } from '@simplewebauthn/types';
 
 /**
@@ -20,21 +20,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the stored challenge
-    const challengeRef = doc(db, 'challenges', userId);
-    const challengeDoc = await getDoc(challengeRef);
+    const challengeDoc = await adminDb.collection('challenges').doc(userId).get();
 
-    if (!challengeDoc.exists()) {
+    if (!challengeDoc.exists) {
       return NextResponse.json(
         { error: 'Challenge not found or expired' },
         { status: 400 }
       );
     }
 
-    const { challenge, expiresAt } = challengeDoc.data();
+    const { challenge, expiresAt } = challengeDoc.data()!;
 
     // Check if challenge has expired
     if (new Date() > expiresAt.toDate()) {
-      await deleteDoc(challengeRef);
+      await adminDb.collection('challenges').doc(userId).delete();
       return NextResponse.json(
         { error: 'Challenge expired. Please try again.' },
         { status: 400 }
@@ -65,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the passkey credential in Firestore
-    await addDoc(collection(db, 'passkeys'), {
+    await adminDb.collection('passkeys').add({
       userId,
       credentialID: Buffer.from(registrationInfo.credential.id).toString('base64url'),
       credentialPublicKey: Buffer.from(registrationInfo.credential.publicKey).toString('base64url'),
@@ -79,7 +78,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Clean up the challenge
-    await deleteDoc(challengeRef);
+    await adminDb.collection('challenges').doc(userId).delete();
 
     return NextResponse.json({
       success: true,

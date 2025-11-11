@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePasskeyRegistrationOptions } from '@/lib/passkey-utils';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 
 /**
  * POST /api/auth/passkey/register/start
@@ -27,8 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Store the challenge temporarily for verification
     // Using a temporary collection that auto-expires after 5 minutes
-    const challengeRef = doc(db, 'challenges', userId);
-    await setDoc(challengeRef, {
+    await adminDb.collection('challenges').doc(userId).set({
       challenge: options.challenge,
       type: 'registration',
       createdAt: new Date(),

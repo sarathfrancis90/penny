@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
@@ -37,13 +36,11 @@ export async function GET() {
     }
 
     // Get all passkeys for this user
-    const passkeysRef = collection(db, 'passkeys');
-    const passkeysQuery = query(
-      passkeysRef,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
-    const passkeysSnapshot = await getDocs(passkeysQuery);
+    const passkeysSnapshot = await adminDb
+      .collection('passkeys')
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .get();
 
     const passkeys = passkeysSnapshot.docs.map(doc => {
       const data = doc.data();

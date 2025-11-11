@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePasskeyAuthenticationOptions } from '@/lib/passkey-utils';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 
 /**
  * POST /api/auth/passkey/authenticate/start
@@ -27,8 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Store the challenge temporarily for verification
     const challengeId = email || `anon-${Date.now()}`;
-    const challengeRef = doc(db, 'challenges', challengeId);
-    await setDoc(challengeRef, {
+    await adminDb.collection('challenges').doc(challengeId).set({
       challenge: options.challenge,
       type: 'authentication',
       email: email || null,
