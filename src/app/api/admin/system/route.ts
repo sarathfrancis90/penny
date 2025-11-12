@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { collection, getDocs, query, where, Timestamp, orderBy, limit as firestoreLimit } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 import { isAdmin } from "@/lib/admin-auth";
 import { getAuth } from "firebase-admin/auth";
 
@@ -72,37 +72,41 @@ export async function GET() {
     const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const last30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Get expenses data
-    const expensesRef = collection(db, "expenses");
-    const allExpenses = await getDocs(expensesRef);
+    // Get expenses data using Admin SDK
+    const allExpenses = await adminDb.collection("expenses").get();
     const expenseCount = allExpenses.size;
 
     // Count expenses by time period
-    const expenses24h = await getDocs(
-      query(expensesRef, where("createdAt", ">=", Timestamp.fromDate(last24h)))
-    );
-    const expenses7d = await getDocs(
-      query(expensesRef, where("createdAt", ">=", Timestamp.fromDate(last7d)))
-    );
-    const expenses30d = await getDocs(
-      query(expensesRef, where("createdAt", ">=", Timestamp.fromDate(last30d)))
-    );
+    const expenses24h = await adminDb
+      .collection("expenses")
+      .where("createdAt", ">=", Timestamp.fromDate(last24h))
+      .get();
+    const expenses7d = await adminDb
+      .collection("expenses")
+      .where("createdAt", ">=", Timestamp.fromDate(last7d))
+      .get();
+    const expenses30d = await adminDb
+      .collection("expenses")
+      .where("createdAt", ">=", Timestamp.fromDate(last30d))
+      .get();
 
-    // Get analytics data
-    const analyticsRef = collection(db, "analytics");
-    const allAnalytics = await getDocs(analyticsRef);
+    // Get analytics data using Admin SDK
+    const allAnalytics = await adminDb.collection("analytics").get();
     const analyticsCount = allAnalytics.size;
 
     // Count API calls by time period
-    const analytics24h = await getDocs(
-      query(analyticsRef, where("timestamp", ">=", Timestamp.fromDate(last24h)))
-    );
-    const analytics7d = await getDocs(
-      query(analyticsRef, where("timestamp", ">=", Timestamp.fromDate(last7d)))
-    );
-    const analytics30d = await getDocs(
-      query(analyticsRef, where("timestamp", ">=", Timestamp.fromDate(last30d)))
-    );
+    const analytics24h = await adminDb
+      .collection("analytics")
+      .where("timestamp", ">=", Timestamp.fromDate(last24h))
+      .get();
+    const analytics7d = await adminDb
+      .collection("analytics")
+      .where("timestamp", ">=", Timestamp.fromDate(last7d))
+      .get();
+    const analytics30d = await adminDb
+      .collection("analytics")
+      .where("timestamp", ">=", Timestamp.fromDate(last30d))
+      .get();
 
     // Calculate performance metrics from recent analytics
     let totalDuration = 0;
@@ -211,13 +215,17 @@ export async function GET() {
     };
 
     // Get recent activity (last 10 expenses and API calls)
-    const recentExpenses = await getDocs(
-      query(expensesRef, orderBy("createdAt", "desc"), firestoreLimit(10))
-    );
+    const recentExpenses = await adminDb
+      .collection("expenses")
+      .orderBy("createdAt", "desc")
+      .limit(10)
+      .get();
 
-    const recentApiCalls = await getDocs(
-      query(analyticsRef, orderBy("timestamp", "desc"), firestoreLimit(10))
-    );
+    const recentApiCalls = await adminDb
+      .collection("analytics")
+      .orderBy("timestamp", "desc")
+      .limit(10)
+      .get();
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { expenseCategories } from "@/lib/categories";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 
 // Initialize the Gemini AI client
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -244,7 +244,8 @@ async function trackAnalytics(data: {
     // Rough estimate: 500 input tokens + 200 output tokens per request
     const estimatedCost = (estimatedTokens * 0.075 + 200 * 0.30) / 1000000;
 
-    await addDoc(collection(db, "analytics"), {
+    // Save analytics using Admin SDK (bypasses security rules)
+    await adminDb.collection("analytics").add({
       timestamp: Timestamp.now(),
       userId: data.userId || "anonymous",
       requestType: data.requestType,

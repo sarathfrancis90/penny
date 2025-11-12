@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 import { isAdmin } from "@/lib/admin-auth";
 
 interface AnalyticsData {
@@ -32,13 +32,11 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    // Get analytics data
-    const analyticsRef = collection(db, "analytics");
-    const analyticsQuery = query(
-      analyticsRef,
-      where("timestamp", ">=", startTimestamp)
-    );
-    const analyticsSnapshot = await getDocs(analyticsQuery);
+    // Get analytics data using Admin SDK
+    const analyticsSnapshot = await adminDb
+      .collection("analytics")
+      .where("timestamp", ">=", startTimestamp)
+      .get();
 
     // Process analytics data
     const analytics = analyticsSnapshot.docs.map((doc) => ({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
 
 interface UpdateExpenseRequest {
   vendor?: string;
@@ -25,9 +25,8 @@ export async function DELETE(
       );
     }
 
-    // Delete the expense document
-    const expenseRef = doc(db, "expenses", id);
-    await deleteDoc(expenseRef);
+    // Delete the expense document using Admin SDK (bypasses security rules)
+    await adminDb.collection("expenses").doc(id).delete();
 
     return NextResponse.json({
       success: true,
@@ -108,9 +107,8 @@ export async function PUT(
       updateData.date = Timestamp.fromDate(localDate);
     }
 
-    // Update the expense document
-    const expenseRef = doc(db, "expenses", id);
-    await updateDoc(expenseRef, updateData);
+    // Update the expense document using Admin SDK (bypasses security rules)
+    await adminDb.collection("expenses").doc(id).update(updateData);
 
     return NextResponse.json({
       success: true,
