@@ -18,7 +18,7 @@ export function MessageList({ messages }: MessageListProps) {
           <div className="relative w-40 h-40 animate-float">
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-full blur-3xl"></div>
             <Image 
-              src="/penny_icon.png" 
+              src="/penny.png" 
               alt="Penny Logo" 
               fill
               sizes="160px"

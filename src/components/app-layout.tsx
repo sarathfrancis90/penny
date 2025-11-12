@@ -61,7 +61,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             <Link href="/" className="flex items-center gap-3 group">
               <div className="relative h-12 w-12 rounded-xl overflow-hidden transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 shadow-lg shadow-violet-500/30 group-hover:shadow-violet-500/60">
                 <Image 
-                  src="/penny_icon.png" 
+                  src="/penny.png" 
                   alt="Penny" 
                   width={48}
                   height={48}
