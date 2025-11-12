@@ -50,24 +50,19 @@ function LoginForm() {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!isPasskeyAvailable) {
-      setShowPasswordFields(true);
-    }
-  }, [isPasskeyAvailable]);
-
+  // ONE-CLICK PASSKEY LOGIN - immediately triggers authentication
   const handlePasskeyLogin = async () => {
     setError("");
     setPasskeyLoading(true);
 
     try {
-      await authenticateWithPasskey(email || undefined);
+      await authenticateWithPasskey(undefined); // No email needed for passkey
       router.push("/");
     } catch (err) {
       console.error("Passkey login error:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to sign in with passkey";
       setError(`${errorMessage}. Try password instead.`);
-      setShowPasswordFields(true);
+      setShowPasswordFields(true); // Fall back to password fields on error
     } finally {
       setPasskeyLoading(false);
     }
@@ -131,196 +126,194 @@ function LoginForm() {
           </CardDescription>
         </CardHeader>
         
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-5">
-            {/* Success Message */}
-            {successMessage && (
-              <Alert className="glass border-2 border-green-500/50 animate-in slide-in-from-top-2">
-                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <AlertDescription className="text-green-600 dark:text-green-400 font-medium">
-                  {successMessage}
-                </AlertDescription>
-              </Alert>
-            )}
-            
-            {/* Error Message */}
-            {error && (
-              <Alert variant="destructive" className="animate-in slide-in-from-top-2">
-                <AlertDescription className="font-medium">{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Passkey Sign In */}
-            {isPasskeyAvailable && !showPasswordFields && (
-              <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                <Button
-                  type="button"
-                  onClick={handlePasskeyLogin}
-                  className="w-full h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 text-base font-semibold"
-                  size="lg"
-                  disabled={passkeyLoading}
-                >
-                  {passkeyLoading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Authenticating...
-                    </>
-                  ) : (
-                    <>
-                      <Fingerprint className="h-5 w-5 mr-2" />
-                      Sign in with Face ID / Touch ID
-                      <Sparkles className="h-4 w-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-300 dark:border-slate-700" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="glass px-4 py-1 text-muted-foreground font-medium rounded-full">
-                      Or continue with email
-                    </span>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPasswordFields(true)}
-                  className="w-full h-11 border-2 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  Sign in with Email & Password
-                </Button>
-              </div>
-            )}
-
-            {/* Email/Password Fields */}
-            {showPasswordFields && (
-              <div className="space-y-5 animate-in slide-in-from-bottom-4 duration-500">
-                {/* Email Field with Floating Label */}
-                <div className="relative group">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-300 group-focus-within:text-violet-500" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder=" "
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onFocus={() => setEmailFocused(true)}
-                    onBlur={() => setEmailFocused(false)}
-                    required
-                    autoComplete="email webauthn"
-                    disabled={loading}
-                    className="pl-10 h-12 peer transition-all duration-300 focus:border-violet-500 focus:ring-violet-500"
-                  />
-                  <Label 
-                    htmlFor="email"
-                    className={`absolute left-10 transition-all duration-300 pointer-events-none
-                      ${emailFocused || email ? '-top-2 text-xs bg-background px-2 text-violet-600 dark:text-violet-400 font-medium' : 'top-1/2 -translate-y-1/2 text-muted-foreground'}`}
-                  >
-                    Email address
-                  </Label>
-                </div>
-
-                {/* Password Field with Floating Label */}
-                <div className="relative group">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-300 group-focus-within:text-violet-500" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder=" "
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setPasswordFocused(true)}
-                    onBlur={() => setPasswordFocused(false)}
-                    required
-                    autoComplete="current-password"
-                    disabled={loading}
-                    className="pl-10 h-12 peer transition-all duration-300 focus:border-violet-500 focus:ring-violet-500"
-                  />
-                  <Label 
-                    htmlFor="password"
-                    className={`absolute left-10 transition-all duration-300 pointer-events-none
-                      ${passwordFocused || password ? '-top-2 text-xs bg-background px-2 text-violet-600 dark:text-violet-400 font-medium' : 'top-1/2 -translate-y-1/2 text-muted-foreground'}`}
-                  >
-                    Password
-                  </Label>
-                  <Link
-                    href="/forgot-password"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-violet-600 dark:text-violet-400 hover:underline font-medium"
-                  >
-                    Forgot?
-                  </Link>
-                </div>
-              </div>
-            )}
-          </CardContent>
+        <CardContent className="space-y-5 pb-6">
+          {/* Success Message */}
+          {successMessage && (
+            <Alert className="glass border-2 border-green-500/50 animate-in slide-in-from-top-2">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription className="text-green-600 dark:text-green-400 font-medium">
+                {successMessage}
+              </AlertDescription>
+            </Alert>
+          )}
           
-          <CardFooter className="flex flex-col space-y-4 pt-2">
-            {showPasswordFields && (
-              <>
-                <Button
-                  type="submit"
-                  className="w-full h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 text-base font-semibold"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      Sign In
-                      <ArrowRight className="h-5 w-5 ml-2" />
-                    </>
-                  )}
-                </Button>
+          {/* Error Message */}
+          {error && (
+            <Alert variant="destructive" className="animate-in slide-in-from-top-2">
+              <AlertDescription className="font-medium">{error}</AlertDescription>
+            </Alert>
+          )}
 
-                {isPasskeyAvailable && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setShowPasswordFields(false);
-                      setError("");
-                    }}
-                    className="w-full text-sm hover:bg-violet-50 dark:hover:bg-violet-950/30"
-                  >
-                    <Fingerprint className="h-4 w-4 mr-2" />
-                    Use Face ID / Touch ID instead
-                  </Button>
+          {/* PRIMARY: ONE-CLICK PASSKEY SIGN IN */}
+          {isPasskeyAvailable && !showPasswordFields && (
+            <div className="space-y-5 animate-in slide-in-from-bottom-4 duration-500">
+              <Button
+                type="button"
+                onClick={handlePasskeyLogin}
+                className="w-full h-14 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 text-base font-semibold"
+                size="lg"
+                disabled={passkeyLoading}
+              >
+                {passkeyLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Authenticating...
+                  </>
+                ) : (
+                  <>
+                    <Fingerprint className="h-5 w-5 mr-2" />
+                    Sign in with Face ID / Touch ID
+                    <Sparkles className="h-4 w-4 ml-2" />
+                  </>
                 )}
-              </>
-            )}
-            
-            {!showPasswordFields && isPasskeyAvailable && (
-              <div className="text-center space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  🔐 Passkeys are more secure than passwords
+              </Button>
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-slate-300 dark:border-slate-700" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="glass px-4 py-1.5 text-muted-foreground font-medium rounded-full">
+                    Or continue with email
+                  </span>
+                </div>
+              </div>
+
+              {/* Secondary: Email/Password Button */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowPasswordFields(true)}
+                className="w-full h-12 border-2 hover:bg-violet-50 dark:hover:bg-violet-950/30 hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300 text-base"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Sign in with Email & Password
+              </Button>
+
+              {/* Passkey Benefits */}
+              <div className="text-center space-y-2 pt-2">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  <span className="text-base">🔐</span>
+                  <span className="font-medium">Passkeys are more secure than passwords</span>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Works across all your devices with biometric authentication
                 </p>
               </div>
-            )}
-
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href="/signup"
-                  className="font-semibold text-violet-600 dark:text-violet-400 hover:underline"
-                >
-                  Sign up
-                </Link>
-              </p>
             </div>
-          </CardFooter>
-        </form>
+          )}
+
+          {/* Email/Password Fields (shown when requested or passkey not available) */}
+          {(showPasswordFields || !isPasskeyAvailable) && (
+            <form onSubmit={handleSubmit} className="space-y-5 animate-in slide-in-from-bottom-4 duration-500">
+              {/* Email Field with Floating Label */}
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-300 group-focus-within:text-violet-500" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder=" "
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                  required
+                  autoComplete="email webauthn"
+                  disabled={loading}
+                  className="pl-10 h-12 peer transition-all duration-300 focus:border-violet-500 focus:ring-violet-500"
+                />
+                <Label 
+                  htmlFor="email"
+                  className={`absolute left-10 transition-all duration-300 pointer-events-none
+                    ${emailFocused || email ? '-top-2 text-xs bg-background px-2 text-violet-600 dark:text-violet-400 font-medium' : 'top-1/2 -translate-y-1/2 text-muted-foreground'}`}
+                >
+                  Email address
+                </Label>
+              </div>
+
+              {/* Password Field with Floating Label */}
+              <div className="relative group">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-300 group-focus-within:text-violet-500" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder=" "
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                  required
+                  autoComplete="current-password"
+                  disabled={loading}
+                  className="pl-10 h-12 peer transition-all duration-300 focus:border-violet-500 focus:ring-violet-500"
+                />
+                <Label 
+                  htmlFor="password"
+                  className={`absolute left-10 transition-all duration-300 pointer-events-none
+                    ${passwordFocused || password ? '-top-2 text-xs bg-background px-2 text-violet-600 dark:text-violet-400 font-medium' : 'top-1/2 -translate-y-1/2 text-muted-foreground'}`}
+                >
+                  Password
+                </Label>
+                <Link
+                  href="/forgot-password"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                >
+                  Forgot?
+                </Link>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 text-base font-semibold"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="h-5 w-5 ml-2" />
+                  </>
+                )}
+              </Button>
+
+              {/* Back to Passkey option */}
+              {isPasskeyAvailable && showPasswordFields && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowPasswordFields(false);
+                    setError("");
+                  }}
+                  className="w-full text-sm hover:bg-violet-50 dark:hover:bg-violet-950/30"
+                >
+                  <Fingerprint className="h-4 w-4 mr-2" />
+                  Use Face ID / Touch ID instead
+                </Button>
+              )}
+            </form>
+          )}
+        </CardContent>
+        
+        <CardFooter className="flex flex-col border-t pt-6">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/signup"
+                className="font-semibold text-violet-600 dark:text-violet-400 hover:underline"
+              >
+                Sign up
+              </Link>
+            </p>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
