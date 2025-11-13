@@ -7,16 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Plus, Search, Loader2, CheckSquare, Trash2, X } from "lucide-react";
 import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 
@@ -29,6 +19,7 @@ interface ConversationSidebarProps {
   onPin: (conversationId: string, isPinned: boolean) => void;
   onArchive: (conversationId: string) => void;
   onDelete: (conversationId: string) => void;
+  onBulkDelete?: (conversationIds: string[]) => void;
 }
 
 type DateGroup = "pinned" | "today" | "yesterday" | "this_week" | "this_month" | "older";
@@ -62,12 +53,11 @@ export function ConversationSidebar({
   onPin,
   onArchive,
   onDelete,
+  onBulkDelete,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Filter conversations by search query
   const filteredConversations = conversations.filter((conv) =>
@@ -109,20 +99,11 @@ export function ConversationSidebar({
     setSelectedConversations(new Set());
   };
 
-  const handleBulkDelete = async () => {
-    setIsBulkDeleting(true);
-    try {
-      // Delete all selected conversations
-      for (const conversationId of selectedConversations) {
-        await onDelete(conversationId);
-      }
+  const handleBulkDelete = () => {
+    if (onBulkDelete && selectedConversations.size > 0) {
+      onBulkDelete(Array.from(selectedConversations));
       setSelectedConversations(new Set());
       setSelectionMode(false);
-    } catch (error) {
-      console.error("Error deleting conversations:", error);
-    } finally {
-      setIsBulkDeleting(false);
-      setBulkDeleteDialogOpen(false);
     }
   };
 
@@ -208,7 +189,7 @@ export function ConversationSidebar({
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => setBulkDeleteDialogOpen(true)}
+            onClick={handleBulkDelete}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
@@ -261,37 +242,6 @@ export function ConversationSidebar({
           )}
         </div>
       </ScrollArea>
-
-      {/* Bulk Delete Confirmation Dialog */}
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Conversations?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {selectedConversations.size} conversation
-              {selectedConversations.size !== 1 ? "s" : ""}? This will permanently delete all messages in{" "}
-              {selectedConversations.size === 1 ? "this conversation" : "these conversations"}. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleBulkDelete}
-              disabled={isBulkDeleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isBulkDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

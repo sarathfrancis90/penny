@@ -294,8 +294,11 @@ service cloud.firestore {
     // ============================================
     
     match /conversations/{conversationId} {
-      // Users can only access their own conversations
-      allow read, delete: if isAuthenticated() && 
+      // Allow list queries for user's own conversations
+      allow list: if isAuthenticated();
+      
+      // Users can get their own conversations
+      allow get, delete: if isAuthenticated() && 
         resource.data.userId == request.auth.uid;
       
       // Any authenticated user can create a conversation
@@ -312,8 +315,11 @@ service cloud.firestore {
       
       // Messages subcollection
       match /messages/{messageId} {
+        // Allow list queries for messages
+        allow list: if isAuthenticated();
+        
         // Users can read messages from their own conversations
-        allow read, create: if isAuthenticated() && 
+        allow get, create: if isAuthenticated() && 
           get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
         
         // Users can update/delete messages in their own conversations

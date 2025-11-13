@@ -51,6 +51,7 @@ export default function Home() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [conversationsToDelete, setConversationsToDelete] = useState<string[]>([]);
   const [editTitleDialogOpen, setEditTitleDialogOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [conversationIdToEdit, setConversationIdToEdit] = useState<string | null>(null);
@@ -424,21 +425,41 @@ export default function Home() {
 
   const handleDelete = (conversationId: string) => {
     setConversationToDelete(conversationId);
+    setConversationsToDelete([]);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleBulkDelete = (conversationIds: string[]) => {
+    setConversationsToDelete(conversationIds);
+    setConversationToDelete(null);
     setDeleteDialogOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (!conversationToDelete) return;
-
-    const success = await deleteConversation(conversationToDelete);
-    if (success) {
-      if (conversationToDelete === conversationIdFromUrl) {
-        router.push("/");
+    // Handle bulk delete
+    if (conversationsToDelete.length > 0) {
+      for (const id of conversationsToDelete) {
+        await deleteConversation(id);
+        // If we're deleting the current conversation, redirect
+        if (id === conversationIdFromUrl) {
+          router.push("/");
+        }
       }
       refetchConversations();
+      setConversationsToDelete([]);
+    } 
+    // Handle single delete
+    else if (conversationToDelete) {
+      const success = await deleteConversation(conversationToDelete);
+      if (success) {
+        if (conversationToDelete === conversationIdFromUrl) {
+          router.push("/");
+        }
+        refetchConversations();
+      }
+      setConversationToDelete(null);
     }
     setDeleteDialogOpen(false);
-    setConversationToDelete(null);
   };
 
   const handleEditTitle = (conversationId: string) => {
@@ -475,6 +496,7 @@ export default function Home() {
             onPin={handlePin}
             onArchive={handleArchive}
             onDelete={handleDelete}
+            onBulkDelete={handleBulkDelete}
           />
         </div>
 
@@ -490,6 +512,7 @@ export default function Home() {
           onPin={handlePin}
           onArchive={handleArchive}
           onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
         />
 
         {/* Main Chat Area */}
@@ -550,13 +573,21 @@ export default function Home() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Conversation?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {conversationsToDelete.length > 0 
+                ? `Delete ${conversationsToDelete.length} Conversation${conversationsToDelete.length !== 1 ? 's' : ''}?`
+                : 'Delete Conversation?'
+              }
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this conversation and all its messages. This action cannot be undone.
+              {conversationsToDelete.length > 0
+                ? `This will permanently delete ${conversationsToDelete.length} conversation${conversationsToDelete.length !== 1 ? 's' : ''} and all ${conversationsToDelete.length === 1 ? 'its' : 'their'} messages. This action cannot be undone.`
+                : 'This will permanently delete this conversation and all its messages. This action cannot be undone.'
+              }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"

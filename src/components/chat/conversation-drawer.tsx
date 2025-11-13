@@ -15,16 +15,6 @@ import {
 import { Plus, Search, Loader2, CheckSquare, Trash2, X } from "lucide-react";
 import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface ConversationDrawerProps {
   open: boolean;
@@ -37,6 +27,7 @@ interface ConversationDrawerProps {
   onPin: (conversationId: string, isPinned: boolean) => void;
   onArchive: (conversationId: string) => void;
   onDelete: (conversationId: string) => void;
+  onBulkDelete?: (conversationIds: string[]) => void;
 }
 
 type DateGroup = "pinned" | "today" | "yesterday" | "this_week" | "this_month" | "older";
@@ -72,12 +63,11 @@ export function ConversationDrawer({
   onPin,
   onArchive,
   onDelete,
+  onBulkDelete,
 }: ConversationDrawerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Filter conversations by search query
   const filteredConversations = conversations.filter((conv) =>
@@ -119,19 +109,12 @@ export function ConversationDrawer({
     setSelectedConversations(new Set());
   };
 
-  const handleBulkDelete = async () => {
-    setIsBulkDeleting(true);
-    try {
-      for (const conversationId of selectedConversations) {
-        await onDelete(conversationId);
-      }
+  const handleBulkDelete = () => {
+    if (onBulkDelete && selectedConversations.size > 0) {
+      onBulkDelete(Array.from(selectedConversations));
       setSelectedConversations(new Set());
       setSelectionMode(false);
-    } catch (error) {
-      console.error("Error deleting conversations:", error);
-    } finally {
-      setIsBulkDeleting(false);
-      setBulkDeleteDialogOpen(false);
+      onOpenChange(false); // Close drawer after bulk delete
     }
   };
 
@@ -228,14 +211,14 @@ export function ConversationDrawer({
               <span className="text-sm font-medium">
                 {selectedConversations.size} conversation{selectedConversations.size !== 1 ? "s" : ""} selected
               </span>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => setBulkDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={handleBulkDelete}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
             </div>
           )}
 
@@ -286,37 +269,6 @@ export function ConversationDrawer({
           </ScrollArea>
         </div>
       </SheetContent>
-
-      {/* Bulk Delete Confirmation Dialog */}
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Conversations?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {selectedConversations.size} conversation
-              {selectedConversations.size !== 1 ? "s" : ""}? This will permanently delete all messages in{" "}
-              {selectedConversations.size === 1 ? "this conversation" : "these conversations"}. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleBulkDelete}
-              disabled={isBulkDeleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {isBulkDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Sheet>
   );
 }
