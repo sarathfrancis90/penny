@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useGroups } from "@/hooks/useGroups";
@@ -203,8 +204,9 @@ export default function DashboardPage() {
     
     if (result.success) {
       setShowResetDialog(false);
+      toast.success("All expenses have been deleted");
     } else {
-      alert(`Failed to delete all expenses: ${result.error}`);
+      toast.error(`Failed to delete all expenses: ${result.error}`);
     }
   };
 

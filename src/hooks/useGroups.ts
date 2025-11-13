@@ -52,22 +52,34 @@ export function useGroups() {
             where("__name__", "in", groupIds)
           );
 
-          const unsubscribeGroups = onSnapshot(groupsQuery, (groupsSnapshot) => {
-            const groupsData = groupsSnapshot.docs.map((doc) => {
-              const groupData = doc.data() as Group;
-              const membership = memberships.find((m) => m.groupId === doc.id);
+          const unsubscribeGroups = onSnapshot(
+            groupsQuery, 
+            (groupsSnapshot) => {
+              const groupsData = groupsSnapshot.docs.map((doc) => {
+                const groupData = doc.data() as Group;
+                const membership = memberships.find((m) => m.groupId === doc.id);
 
-              return {
-                ...groupData,
-                id: doc.id,
-                myRole: membership?.role || "viewer",
-                memberCount: groupData.stats?.memberCount || 0,
-              };
-            });
+                return {
+                  ...groupData,
+                  id: doc.id,
+                  myRole: membership?.role || "viewer",
+                  memberCount: groupData.stats?.memberCount || 0,
+                };
+              });
 
-            setGroups(groupsData);
-            setLoading(false);
-          });
+              setGroups(groupsData);
+              setLoading(false);
+            },
+            (err) => {
+              // Suppress permission errors (group was likely deleted)
+              if (err.code !== 'permission-denied') {
+                console.error("Error listening to groups:", err);
+              }
+              // Clear state silently when group is deleted
+              setGroups([]);
+              setLoading(false);
+            }
+          );
 
           return () => unsubscribeGroups();
         } catch (err) {
@@ -77,8 +89,11 @@ export function useGroups() {
         }
       },
       (err) => {
-        console.error("Error listening to memberships:", err);
-        setError(err.message);
+        // Suppress permission errors (membership was likely deleted)
+        if (err.code !== 'permission-denied') {
+          console.error("Error listening to memberships:", err);
+        }
+        setGroups([]);
         setLoading(false);
       }
     );

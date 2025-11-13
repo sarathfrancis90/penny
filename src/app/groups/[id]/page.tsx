@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
@@ -136,11 +137,11 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         throw new Error(error.error || "Failed to leave group");
       }
 
-      alert("You have left the group successfully!");
+      toast.success("You have left the group successfully!");
       router.push("/groups");
     } catch (error) {
       console.error("Error leaving group:", error);
-      alert(error instanceof Error ? error.message : "Failed to leave group");
+      toast.error(error instanceof Error ? error.message : "Failed to leave group");
     } finally {
       setLeaving(false);
       setLeaveDialogOpen(false);

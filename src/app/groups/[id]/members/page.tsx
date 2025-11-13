@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -93,9 +94,10 @@ export default function MembersPage({ params }: MembersPageProps) {
       }
 
       console.log("Role updated successfully");
+      toast.success("Member role updated successfully");
     } catch (err) {
       console.error("Error updating role:", err);
-      alert(err instanceof Error ? err.message : "Failed to update member role");
+      toast.error(err instanceof Error ? err.message : "Failed to update member role");
     } finally {
       setUpdatingRoleId(null);
       setActionLoading(false);
@@ -124,9 +126,10 @@ export default function MembersPage({ params }: MembersPageProps) {
       console.log("Member removed successfully");
       setRemovingMemberId(null);
       setRemovingRole("");
+      toast.success("Member removed successfully");
     } catch (err) {
       console.error("Error removing member:", err);
-      alert(err instanceof Error ? err.message : "Failed to remove member");
+      toast.error(err instanceof Error ? err.message : "Failed to remove member");
     } finally {
       setActionLoading(false);
     }
@@ -156,10 +159,10 @@ export default function MembersPage({ params }: MembersPageProps) {
       console.log("Invitation sent successfully");
       setInviteDialogOpen(false);
       setInviteEmail("");
-      alert("Invitation sent successfully!");
+      toast.success("Invitation sent successfully!");
     } catch (err) {
       console.error("Error inviting member:", err);
-      alert(err instanceof Error ? err.message : "Failed to send invitation");
+      toast.error(err instanceof Error ? err.message : "Failed to send invitation");
     } finally {
       setInviting(false);
     }
