@@ -188,7 +188,11 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       }
 
       toast.success("Group settings updated successfully!");
-      router.push(`/groups/${groupId}`);
+      
+      // Small delay to show the toast before navigating
+      setTimeout(() => {
+        router.push(`/groups/${groupId}`);
+      }, 1000);
     } catch (error) {
       console.error("Error updating group:", error);
       toast.error(error instanceof Error ? error.message : "Failed to update group");
@@ -217,11 +221,14 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       }
 
       toast.success("Group archived successfully!");
-      router.push("/groups");
+      
+      // Small delay to show the toast before navigating
+      setTimeout(() => {
+        router.push("/groups");
+      }, 1000);
     } catch (error) {
       console.error("Error archiving group:", error);
       toast.error(error instanceof Error ? error.message : "Failed to archive group");
-    } finally {
       setActionLoading(false);
       setArchiveDialogOpen(false);
     }
@@ -250,11 +257,14 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       }
 
       toast.success("Group deleted successfully!");
-      router.push("/groups");
+      
+      // Small delay to show the toast before navigating
+      setTimeout(() => {
+        router.push("/groups");
+      }, 1000);
     } catch (error) {
       console.error("Error deleting group:", error);
       toast.error(error instanceof Error ? error.message : "Failed to delete group");
-    } finally {
       setActionLoading(false);
       setDeleteDialogOpen(false);
     }

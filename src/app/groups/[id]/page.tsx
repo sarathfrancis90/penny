@@ -138,7 +138,11 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
       }
 
       toast.success("You have left the group successfully!");
-      router.push("/groups");
+      
+      // Small delay to show the toast before navigating
+      setTimeout(() => {
+        router.push("/groups");
+      }, 1000);
     } catch (error) {
       console.error("Error leaving group:", error);
       toast.error(error instanceof Error ? error.message : "Failed to leave group");
