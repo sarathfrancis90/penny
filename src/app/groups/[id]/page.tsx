@@ -173,7 +173,15 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {(isOwner || myMembership?.role === "admin") && (
+              <Button variant="outline" asChild>
+                <Link href={`/groups/${groupId}/members`}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Manage Members
+                </Link>
+              </Button>
+            )}
             {canManageSettings && (
               <Button variant="outline" asChild>
                 <Link href={`/groups/${groupId}/settings`}>

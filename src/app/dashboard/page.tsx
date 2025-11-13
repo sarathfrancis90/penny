@@ -514,17 +514,17 @@ export default function DashboardPage() {
               onValueChange={setActiveTab} 
               className="mb-8"
             >
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6 glass border-2 border-violet-200/50 dark:border-violet-800/30 p-1 h-auto gap-1">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6 glass border-2 border-violet-200/50 dark:border-violet-800/30 p-1 h-auto gap-1 w-full">
+                <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Overview
                 </TabsTrigger>
-                <TabsTrigger value="charts" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                <TabsTrigger value="charts" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Charts
                 </TabsTrigger>
-                <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Expenses
                 </TabsTrigger>
-                <TabsTrigger value="categories" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300">
+                <TabsTrigger value="categories" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Categories
                 </TabsTrigger>
               </TabsList>

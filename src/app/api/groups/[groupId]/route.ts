@@ -86,19 +86,17 @@ export async function PATCH(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const { groupId } = await params;
-    const body = await request.json();
-    const { userId, name, description, color, icon, settings } = body;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { groupId } = await params;
+    const body = await request.json();
+    const { name, description, color, icon, settings } = body;
+
     // Check membership and permissions
-    const membershipId = `${groupId}_${userId}`;
+    const membershipId = `${groupId}_${currentUser.uid}`;
     const membershipDoc = await adminDb
       .collection("groupMembers")
       .doc(membershipId)
@@ -184,10 +182,10 @@ export async function PATCH(
     await adminDb.collection("groups").doc(groupId).update(updateData);
 
     // Log activity
-    await adminDb.collection("groupActivities").add({
+    await adminDb.collection("groupActivity").add({
       groupId,
-      userId,
-      userName: membershipData.userName || "User",
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email || "Unknown User",
       action: "group_updated",
       details: "Updated group details",
       metadata: { changes: Object.keys(updateData) },
@@ -209,6 +207,9 @@ export async function PATCH(
     );
   }
 }
+
+// PUT is an alias for PATCH
+export const PUT = PATCH;
 
 /**
  * DELETE /api/groups/[groupId] - Permanently delete a group

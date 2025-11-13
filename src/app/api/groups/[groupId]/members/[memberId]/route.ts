@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { auth } from "@/lib/firebase";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
 
 /**
@@ -11,13 +12,18 @@ export async function PATCH(
   { params }: { params: Promise<{ groupId: string; memberId: string }> }
 ) {
   try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { groupId, memberId } = await params;
     const body = await request.json();
-    const { userId, newRole } = body;
+    const { newRole } = body;
 
-    if (!userId || !newRole) {
+    if (!newRole) {
       return NextResponse.json(
-        { error: "User ID and new role are required" },
+        { error: "New role is required" },
         { status: 400 }
       );
     }
@@ -33,7 +39,7 @@ export async function PATCH(
     // Check if requester has permission
     const requesterMembershipDoc = await adminDb
       .collection("groupMembers")
-      .doc(`${groupId}_${userId}`)
+      .doc(`${groupId}_${currentUser.uid}`)
       .get();
 
     if (!requesterMembershipDoc.exists) {
@@ -120,10 +126,10 @@ export async function PATCH(
     });
 
     // Log activity
-    await adminDb.collection("groupActivities").add({
+    await adminDb.collection("groupActivity").add({
       groupId,
-      userId,
-      userName: requesterData.userName || "Admin",
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email || "Admin",
       action: "member_role_changed",
       details: `Changed ${targetMemberData.userEmail}'s role from ${targetMemberData.role} to ${newRole}`,
       metadata: {
@@ -151,6 +157,9 @@ export async function PATCH(
   }
 }
 
+// PUT is an alias for PATCH
+export const PUT = PATCH;
+
 /**
  * DELETE /api/groups/[groupId]/members/[memberId] - Remove member from group
  */
@@ -159,17 +168,14 @@ export async function DELETE(
   { params }: { params: Promise<{ groupId: string; memberId: string }> }
 ) {
   try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { groupId, memberId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
     const action = searchParams.get("action"); // "leave" or "remove"
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
 
     // Get target member
     const targetMemberDoc = await adminDb
@@ -193,7 +199,7 @@ export async function DELETE(
     }
 
     // Check if it's a leave action (member removing themselves)
-    if (action === "leave" && targetMemberData.userId === userId) {
+    if (action === "leave" && targetMemberData.userId === currentUser.uid) {
       if (targetMemberData.role === "owner") {
         return NextResponse.json(
           { error: "Owners cannot leave the group. Transfer ownership first or delete the group." },
@@ -219,9 +225,9 @@ export async function DELETE(
       });
 
       // Log activity
-      await adminDb.collection("groupActivities").add({
+      await adminDb.collection("groupActivity").add({
         groupId,
-        userId,
+        userId: currentUser.uid,
         userName: targetMemberData.userName || "Member",
         action: "member_left",
         details: `${targetMemberData.userEmail} left the group`,
@@ -238,7 +244,7 @@ export async function DELETE(
     // Otherwise, it's a remove action by admin/owner
     const requesterMembershipDoc = await adminDb
       .collection("groupMembers")
-      .doc(`${groupId}_${userId}`)
+      .doc(`${groupId}_${currentUser.uid}`)
       .get();
 
     if (!requesterMembershipDoc.exists) {
@@ -275,7 +281,7 @@ export async function DELETE(
     // Update status to "removed"
     await targetMemberDoc.ref.update({
       status: "removed",
-      removedBy: userId,
+      removedBy: currentUser.uid,
       leftAt: Timestamp.now(),
     });
 
@@ -291,10 +297,10 @@ export async function DELETE(
     });
 
     // Log activity
-    await adminDb.collection("groupActivities").add({
+    await adminDb.collection("groupActivity").add({
       groupId,
-      userId,
-      userName: requesterData.userName || "Admin",
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email || "Admin",
       action: "member_removed",
       details: `Removed ${targetMemberData.userEmail} from the group`,
       metadata: {
