@@ -4,6 +4,7 @@ import { use } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { useGroupExpenses } from "@/hooks/useGroupExpenses";
 import { InviteMemberDialog } from "@/components/groups";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id: groupId } = use(params);
   const { groups, loading: groupsLoading } = useGroups();
   const { members, myMembership, loading: membersLoading } = useGroupMembers(groupId);
+  const { expenses, loading: expensesLoading } = useGroupExpenses(groupId);
 
   const group = groups.find((g) => g.id === groupId);
   const loading = groupsLoading || membersLoading;
@@ -244,19 +246,63 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           </CardContent>
         </Card>
 
-        {/* Expenses Section - TODO: Implement in next phase */}
+        {/* Expenses Section */}
         <Card className="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-fuchsia-500" />
-              Group Expenses
+              Group Expenses ({expenses.length})
             </CardTitle>
             <CardDescription>View and manage expenses for this group</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-center text-muted-foreground py-8">
-              Group expense viewing coming soon...
-            </p>
+            {expensesLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+              </div>
+            ) : expenses.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 rounded-full bg-fuchsia-100 dark:bg-fuchsia-950 flex items-center justify-center mx-auto mb-4">
+                  <DollarSign className="h-8 w-8 text-fuchsia-500" />
+                </div>
+                <p className="text-muted-foreground mb-2">No expenses yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Add expenses from the chat page and assign them to this group
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {expenses.map((expense) => (
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-fuchsia-500/50 transition-all hover:shadow-md"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <p className="font-semibold">{expense.vendor}</p>
+                        <Badge variant="secondary" className="text-xs">
+                          {expense.category}
+                        </Badge>
+                      </div>
+                      {expense.description && (
+                        <p className="text-sm text-muted-foreground">{expense.description}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {expense.date.toDate().toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold gradient-text">
+                        ${expense.amount.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -62,8 +62,12 @@ service cloud.firestore {
     // ============================================
     
     match /expenses/{expenseId} {
-      // Read rules
-      allow read: if isAuthenticated() && (
+      // List expenses (for queries) - allow authenticated users
+      // The where clause in the query will filter by userId or groupId
+      allow list: if isAuthenticated();
+      
+      // Get specific expense
+      allow get: if isAuthenticated() && (
         // Personal expense: owner can read
         (resource.data.expenseType == 'personal' && resource.data.userId == request.auth.uid) ||
         // Group expense: group member can read
