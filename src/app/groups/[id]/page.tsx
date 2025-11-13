@@ -54,7 +54,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id: groupId } = use(params);
   const router = useRouter();
   const { groups, loading: groupsLoading } = useGroups();
-  const { myMembership, loading: membersLoading } = useGroupMembers(groupId);
+  const { members, myMembership, loading: membersLoading } = useGroupMembers(groupId);
   const { expenses, loading: expensesLoading } = useGroupExpenses(groupId);
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -62,6 +62,11 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   const group = groups.find((g) => g.id === groupId);
   const loading = groupsLoading || membersLoading;
+
+  // Calculate real-time stats from actual data
+  const totalMembers = members.length;
+  const totalExpenses = expenses.length;
+  const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   if (loading) {
     return (
@@ -213,7 +218,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         </div>
       </div>
 
-      <div className="container max-w-6xl mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
+      <div className="container max-w-6xl mx-auto px-4 pt-[140px] pb-4 md:pt-0 md:py-8 space-y-6 md:space-y-8">
         {/* Desktop Header */}
         <div className="hidden md:block">
           <Button variant="ghost" className="mb-6" asChild>
@@ -291,17 +296,17 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           <CompactStatCard
             icon={<Users className="h-5 w-5 md:h-6 md:w-6 text-violet-500" />}
             label="Total Members"
-            value={group.stats?.memberCount || 0}
+            value={totalMembers}
           />
           <CompactStatCard
             icon={<DollarSign className="h-5 w-5 md:h-6 md:w-6 text-fuchsia-500" />}
             label="Total Expenses"
-            value={group.stats?.expenseCount || 0}
+            value={totalExpenses}
           />
           <CompactStatCard
             icon={<TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-violet-500" />}
             label="Total Amount"
-            value={`$${(group.stats?.totalAmount || 0).toFixed(2)}`}
+            value={`$${totalAmount.toFixed(2)}`}
           />
         </div>
 
