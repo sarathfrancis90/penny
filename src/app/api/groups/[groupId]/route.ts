@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { auth } from "@/lib/firebase";
 import { Group } from "@/lib/types";
 
 /**
@@ -210,26 +211,22 @@ export async function PATCH(
 }
 
 /**
- * DELETE /api/groups/[groupId] - Archive a group
+ * DELETE /api/groups/[groupId] - Permanently delete a group
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const { groupId } = await params;
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { groupId } = await params;
+
     // Check membership and permissions
-    const membershipId = `${groupId}_${userId}`;
+    const membershipId = `${groupId}_${currentUser.uid}`;
     const membershipDoc = await adminDb
       .collection("groupMembers")
       .doc(membershipId)
@@ -251,37 +248,65 @@ export async function DELETE(
       );
     }
 
-    // Archive group (soft delete)
+    // Mark group as deleted (soft delete for safety)
     await adminDb
       .collection("groups")
       .doc(groupId)
       .update({
-        status: "archived",
-        archivedAt: Timestamp.now(),
-        archivedBy: userId,
+        status: "deleted",
         updatedAt: Timestamp.now(),
       });
 
+    // Update all members' status to 'removed'
+    const membersSnapshot = await adminDb
+      .collection("groupMembers")
+      .where("groupId", "==", groupId)
+      .get();
+
+    const batch = adminDb.batch();
+    membersSnapshot.docs.forEach((doc) => {
+      batch.update(doc.ref, {
+        status: "removed",
+        leftAt: Timestamp.now(),
+      });
+    });
+    await batch.commit();
+
+    // Convert group expenses to personal expenses
+    const expensesSnapshot = await adminDb
+      .collection("expenses")
+      .where("groupId", "==", groupId)
+      .get();
+
+    const expenseBatch = adminDb.batch();
+    expensesSnapshot.docs.forEach((doc) => {
+      expenseBatch.update(doc.ref, {
+        groupId: null,
+        expenseType: "personal",
+        updatedAt: Timestamp.now(),
+      });
+    });
+    await expenseBatch.commit();
+
     // Log activity
-    await adminDb.collection("groupActivities").add({
+    await adminDb.collection("groupActivity").add({
       groupId,
-      userId,
-      userName: membershipData.userName || "User",
-      action: "group_archived",
-      details: "Archived group",
-      metadata: {},
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email || "Unknown User",
+      action: "group_deleted",
+      details: `Group permanently deleted by ${currentUser.displayName || currentUser.email}`,
       createdAt: Timestamp.now(),
     });
 
     return NextResponse.json({
       success: true,
-      message: "Group archived successfully",
+      message: "Group deleted successfully",
     });
   } catch (error) {
-    console.error("Error archiving group:", error);
+    console.error("Error deleting group:", error);
     return NextResponse.json(
       {
-        error: "Failed to archive group",
+        error: "Failed to delete group",
         details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }

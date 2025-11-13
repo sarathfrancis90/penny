@@ -1,6 +1,7 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
@@ -9,17 +10,28 @@ import { InviteMemberDialog } from "@/components/groups";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Loader2, 
-  Users, 
-  Settings, 
-  DollarSign, 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Loader2,
+  Users,
+  Settings,
+  DollarSign,
   Calendar,
   ArrowLeft,
   TrendingUp,
   Crown,
   Shield,
   Eye,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -32,9 +44,13 @@ interface GroupDetailPageProps {
 
 export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id: groupId } = use(params);
+  const router = useRouter();
   const { groups, loading: groupsLoading } = useGroups();
   const { members, myMembership, loading: membersLoading } = useGroupMembers(groupId);
   const { expenses, loading: expensesLoading } = useGroupExpenses(groupId);
+
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const group = groups.find((g) => g.id === groupId);
   const loading = groupsLoading || membersLoading;
@@ -89,6 +105,30 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   const canManageMembers = myMembership?.permissions.canInviteMembers;
   const canManageSettings = myMembership?.permissions.canManageSettings;
+  const isOwner = myMembership?.role === "owner";
+
+  const handleLeaveGroup = async () => {
+    setLeaving(true);
+    try {
+      const response = await fetch(`/api/groups/${groupId}/leave`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to leave group");
+      }
+
+      alert("You have left the group successfully!");
+      router.push("/groups");
+    } catch (error) {
+      console.error("Error leaving group:", error);
+      alert(error instanceof Error ? error.message : "Failed to leave group");
+    } finally {
+      setLeaving(false);
+      setLeaveDialogOpen(false);
+    }
+  };
 
   return (
     <AppLayout>
@@ -140,6 +180,16 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </Link>
+              </Button>
+            )}
+            {!isOwner && (
+              <Button
+                variant="outline"
+                onClick={() => setLeaveDialogOpen(true)}
+                className="border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Leave Group
               </Button>
             )}
           </div>
@@ -304,6 +354,38 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             )}
           </CardContent>
         </Card>
+
+        {/* Leave Group Confirmation Dialog */}
+        <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Leave Group?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to leave <strong>{group.name}</strong>?
+                <br />
+                <br />
+                You won&apos;t be able to see group expenses or interact with members unless invited back.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleLeaveGroup}
+                disabled={leaving}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                {leaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Leaving...
+                  </>
+                ) : (
+                  "Leave Group"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
