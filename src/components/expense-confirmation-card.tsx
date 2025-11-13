@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarIcon, DollarSign, Store, Tag, CheckCircle2, XCircle, Sparkles, AlertCircle } from "lucide-react";
+import { Calendar as CalendarIcon, DollarSign, Store, Tag, CheckCircle2, XCircle, Sparkles, AlertCircle, Users } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { expenseCategories } from "@/lib/categories";
 import { format } from "date-fns";
+import { GroupSelector } from "@/components/groups";
 
 // Helper function to parse date string in local timezone
 const parseLocalDate = (dateString: string): Date => {
@@ -33,12 +34,14 @@ interface ExpenseConfirmationCardProps {
   category: string;
   description?: string;
   confidence?: number;
+  groupId?: string | null;
   onConfirm: (editedData: {
     vendor: string;
     amount: number;
     date: string;
     category: string;
     description?: string;
+    groupId?: string | null;
   }) => void;
   onCancel: () => void;
   isProcessing?: boolean;
@@ -50,6 +53,7 @@ export function ExpenseConfirmationCard({
   date: initialDate,
   category: initialCategory,
   description: initialDescription,
+  groupId: initialGroupId,
   confidence,
   onConfirm,
   onCancel,
@@ -60,6 +64,7 @@ export function ExpenseConfirmationCard({
   const [date, setDate] = useState<Date>(() => parseLocalDate(initialDate));
   const [category, setCategory] = useState(initialCategory);
   const [description, setDescription] = useState(initialDescription || "");
+  const [groupId, setGroupId] = useState<string | null>(initialGroupId || null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -69,7 +74,8 @@ export function ExpenseConfirmationCard({
     setDate(parseLocalDate(initialDate));
     setCategory(initialCategory);
     setDescription(initialDescription || "");
-  }, [initialVendor, initialAmount, initialDate, initialCategory, initialDescription]);
+    setGroupId(initialGroupId || null);
+  }, [initialVendor, initialAmount, initialDate, initialCategory, initialDescription, initialGroupId]);
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};
@@ -101,6 +107,7 @@ export function ExpenseConfirmationCard({
       date: formattedDate,
       category,
       description: description?.trim(),
+      groupId,
     });
   };
 
@@ -293,6 +300,22 @@ export function ExpenseConfirmationCard({
               {errors.category}
             </p>
           )}
+        </div>
+
+        {/* Group Selector */}
+        <div className="space-y-2 group">
+          <Label className="flex items-center gap-2 text-sm font-semibold">
+            <Users className="h-4 w-4 text-violet-500" />
+            Assign to Group
+          </Label>
+          <GroupSelector 
+            value={groupId}
+            onChange={setGroupId}
+            disabled={isProcessing}
+          />
+          <p className="text-xs text-muted-foreground">
+            {groupId ? "This expense will be shared with the group" : "This is a personal expense"}
+          </p>
         </div>
 
         {/* Description (Optional) */}
