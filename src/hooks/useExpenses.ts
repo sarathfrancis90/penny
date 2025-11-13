@@ -11,15 +11,15 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Expense } from "@/lib/types";
-import { useGroupMembers } from "./useGroupMembers";
 import { useGroups } from "./useGroups";
+import { useMemo } from "react";
 
 export function useExpenses(userId: string | undefined) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { groups } = useGroups(); // Get user's groups
-  const userGroupIds = groups.map(g => g.id);
+  const userGroupIds = useMemo(() => groups.map(g => g.id), [groups]);
 
   // Delete expense
   const deleteExpense = async (expenseId: string): Promise<{ success: boolean; error?: string }> => {
@@ -235,7 +235,7 @@ export function useExpenses(userId: string | undefined) {
       setError(err instanceof Error ? err.message : "Failed to fetch expenses");
       setLoading(false);
     }
-  }, [userId, userGroupIds.join(",")]);
+  }, [userId, userGroupIds]);
 
   return {
     expenses,

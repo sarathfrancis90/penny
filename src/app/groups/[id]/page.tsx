@@ -9,6 +9,14 @@ import { useGroupExpenses } from "@/hooks/useGroupExpenses";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CompactStatCard } from "@/components/mobile-first";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +39,7 @@ import {
   Shield,
   Eye,
   LogOut,
+  MoreVertical,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -45,7 +54,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id: groupId } = use(params);
   const router = useRouter();
   const { groups, loading: groupsLoading } = useGroups();
-  const { members, myMembership, loading: membersLoading } = useGroupMembers(groupId);
+  const { myMembership, loading: membersLoading } = useGroupMembers(groupId);
   const { expenses, loading: expensesLoading } = useGroupExpenses(groupId);
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
@@ -130,120 +139,170 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   return (
     <AppLayout>
-      <div className="container max-w-6xl mx-auto px-4 py-8 space-y-8">
-        {/* Back Button */}
-        <Button variant="ghost" asChild>
-          <Link href="/groups">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Groups
-          </Link>
-        </Button>
-
-        {/* Group Header */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-          <div className="flex items-start gap-4">
+      {/* Mobile Header - Sticky */}
+      <div className="md:hidden sticky top-[57px] z-40 bg-background/95 backdrop-blur-sm border-b">
+        <div className="flex items-center justify-between p-4 gap-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Button variant="ghost" size="icon" className="shrink-0" asChild>
+              <Link href="/groups">
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+            </Button>
             <div
-              className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-2xl flex-shrink-0"
+              className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl shrink-0"
               style={{ backgroundColor: group.color || "#8B5CF6" }}
             >
               {group.icon || "👥"}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-bold gradient-text">{group.name}</h1>
-                <Badge className="capitalize">
-                  {getRoleIcon(group.myRole)}
-                  <span className="ml-1">{group.myRole}</span>
-                </Badge>
-              </div>
-              {group.description && (
-                <p className="text-muted-foreground text-lg">{group.description}</p>
-              )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl font-bold truncate">{group.name}</h1>
               {group.stats?.lastActivityAt && (
-                <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Last activity{" "}
-                  {formatDistanceToNow(group.stats.lastActivityAt.toDate(), {
-                    addSuffix: true,
-                  })}
+                <p className="text-xs text-muted-foreground truncate">
+                  Active {formatDistanceToNow(group.stats.lastActivityAt.toDate(), { addSuffix: true })}
                 </p>
               )}
             </div>
           </div>
+          
+          {/* Mobile Actions Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0">
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {(isOwner || myMembership?.role === "admin") && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/groups/${groupId}/members`}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Manage Members
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {canManageSettings && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/groups/${groupId}/settings`}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              {!isOwner && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setLeaveDialogOpen(true)}
+                    className="text-red-500 focus:text-red-500"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Leave Group
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        {/* Mobile Role Badge */}
+        <div className="px-4 pb-3">
+          <Badge className="capitalize">
+            {getRoleIcon(group.myRole)}
+            <span className="ml-1">{group.myRole}</span>
+          </Badge>
+        </div>
+      </div>
 
-          <div className="flex flex-wrap gap-2">
-            {(isOwner || myMembership?.role === "admin") && (
-              <Button variant="outline" asChild>
-                <Link href={`/groups/${groupId}/members`}>
-                  <Users className="mr-2 h-4 w-4" />
-                  Manage Members
-                </Link>
-              </Button>
-            )}
-            {canManageSettings && (
-              <Button variant="outline" asChild>
-                <Link href={`/groups/${groupId}/settings`}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </Link>
-              </Button>
-            )}
-            {!isOwner && (
-              <Button
-                variant="outline"
-                onClick={() => setLeaveDialogOpen(true)}
-                className="border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white"
+      <div className="container max-w-6xl mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
+        {/* Desktop Header */}
+        <div className="hidden md:block">
+          <Button variant="ghost" className="mb-6" asChild>
+            <Link href="/groups">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Groups
+            </Link>
+          </Button>
+
+          <div className="flex items-start justify-between">
+            <div className="flex gap-6">
+              <div
+                className="w-24 h-24 rounded-2xl flex items-center justify-center text-5xl shadow-2xl animate-in fade-in-50 zoom-in-95 duration-500"
+                style={{ backgroundColor: group.color || "#8B5CF6" }}
               >
-                <LogOut className="mr-2 h-4 w-4" />
-                Leave Group
-              </Button>
-            )}
+                {group.icon || "👥"}
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-bold gradient-text">{group.name}</h1>
+                  <Badge className="capitalize">
+                    {getRoleIcon(group.myRole)}
+                    <span className="ml-1">{group.myRole}</span>
+                  </Badge>
+                </div>
+                {group.description && (
+                  <p className="text-muted-foreground text-lg mb-2">{group.description}</p>
+                )}
+                {group.stats?.lastActivityAt && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    Last activity{" "}
+                    {formatDistanceToNow(group.stats.lastActivityAt.toDate(), {
+                      addSuffix: true,
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Desktop Actions */}
+            <div className="flex gap-3">
+              {(isOwner || myMembership?.role === "admin") && (
+                <Button variant="outline" asChild>
+                  <Link href={`/groups/${groupId}/members`}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Manage Members
+                  </Link>
+                </Button>
+              )}
+              {canManageSettings && (
+                <Button variant="outline" asChild>
+                  <Link href={`/groups/${groupId}/settings`}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </Button>
+              )}
+              {!isOwner && (
+                <Button
+                  variant="outline"
+                  onClick={() => setLeaveDialogOpen(true)}
+                  className="border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Leave Group
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="glass border-violet-200/50 dark:border-violet-800/30">
-            <CardHeader className="pb-3">
-              <CardDescription className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-violet-500" />
-                Total Members
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold gradient-text">
-                {group.stats?.memberCount || 0}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass border-fuchsia-200/50 dark:border-fuchsia-800/30">
-            <CardHeader className="pb-3">
-              <CardDescription className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-fuchsia-500" />
-                Total Expenses
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold gradient-text">
-                {group.stats?.expenseCount || 0}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass border-violet-200/50 dark:border-violet-800/30">
-            <CardHeader className="pb-3">
-              <CardDescription className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-violet-500" />
-                Total Amount
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold gradient-text">
-                ${(group.stats?.totalAmount || 0).toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Stats - Mobile: Compact, Desktop: Cards */}
+        <div className="space-y-3 md:grid md:grid-cols-3 md:gap-6 md:space-y-0">
+          <CompactStatCard
+            icon={<Users className="h-5 w-5 md:h-6 md:w-6 text-violet-500" />}
+            label="Total Members"
+            value={group.stats?.memberCount || 0}
+          />
+          <CompactStatCard
+            icon={<DollarSign className="h-5 w-5 md:h-6 md:w-6 text-fuchsia-500" />}
+            label="Total Expenses"
+            value={group.stats?.expenseCount || 0}
+          />
+          <CompactStatCard
+            icon={<TrendingUp className="h-5 w-5 md:h-6 md:w-6 text-violet-500" />}
+            label="Total Amount"
+            value={`$${(group.stats?.totalAmount || 0).toFixed(2)}`}
+          />
         </div>
 
         {/* Expenses Section */}
