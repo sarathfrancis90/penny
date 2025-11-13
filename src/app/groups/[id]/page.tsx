@@ -4,6 +4,7 @@ import { use } from "react";
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
+import { InviteMemberDialog } from "@/components/groups";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -200,10 +201,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                 <CardDescription>Manage group members and their roles</CardDescription>
               </div>
               {canManageMembers && (
-                <Button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Invite Member
-                </Button>
+                <InviteMemberDialog groupId={groupId} />
               )}
             </div>
           </CardHeader>
