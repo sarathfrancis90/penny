@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useGroups } from "@/hooks/useGroups";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, TrendingUp, DollarSign, Tag, Filter, Calendar, AlertTriangle, Trash2 } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, Tag, Filter, Calendar, AlertTriangle, Trash2, Users } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -50,6 +51,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Color palette for the chart
 const COLORS = [
@@ -68,15 +76,17 @@ const COLORS = [
 export default function DashboardPage() {
   const { user } = useAuth();
   const { expenses, loading, error, deleteExpense, updateExpense, deleteAllExpenses } = useExpenses(user?.uid);
+  const { groups } = useGroups();
   
   // State for filters
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | "all" | "personal">("all");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
-  // Filter expenses based on date range and categories
+  // Filter expenses based on date range, categories, and groups
   const filteredExpenses = useMemo<Expense[]>(() => {
     return expenses.filter((expense) => {
       // Filter by date range
@@ -99,9 +109,23 @@ export default function DashboardPage() {
         return false;
       }
 
+      // Filter by group
+      if (selectedGroupId === "personal") {
+        // Show only personal expenses (no groupId or groupId is null)
+        if (expense.groupId) {
+          return false;
+        }
+      } else if (selectedGroupId !== "all") {
+        // Show only expenses for the selected group
+        if (expense.groupId !== selectedGroupId) {
+          return false;
+        }
+      }
+      // If "all" is selected, show all expenses (no group filtering)
+
       return true;
     });
-  }, [expenses, dateRange, selectedCategories]);
+  }, [expenses, dateRange, selectedCategories, selectedGroupId]);
 
   // Process expenses to calculate category summaries
   const categorySummaries = useMemo<ExpenseSummary[]>(() => {
@@ -172,6 +196,7 @@ export default function DashboardPage() {
   const resetFilters = () => {
     setDateRange(undefined);
     setSelectedCategories([]);
+    setSelectedGroupId("all");
   };
 
   // Reset all expenses
@@ -342,8 +367,9 @@ export default function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Date Range Filter */}
+                  <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Date Range:</span>
@@ -354,7 +380,8 @@ export default function DashboardPage() {
                     />
                   </div>
                   
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center">
+                  {/* Category Filter */}
+                  <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
                       <Tag className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm font-medium">Categories:</span>
@@ -364,17 +391,53 @@ export default function DashboardPage() {
                       onCategoriesChange={setSelectedCategories}
                     />
                   </div>
+
+                  {/* Group Filter */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Group:</span>
+                    </div>
+                    <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="All Expenses" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Expenses</SelectItem>
+                        <SelectItem value="personal">
+                          <div className="flex items-center gap-2">
+                            <span>Personal Only</span>
+                          </div>
+                        </SelectItem>
+                        {groups.map((group) => (
+                          <SelectItem key={group.id} value={group.id}>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: group.color }}
+                              />
+                              <span>{group.icon}</span>
+                              <span>{group.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Filter Results Summary */}
-            {(dateRange?.from || dateRange?.to || selectedCategories.length > 0) && (
+            {(dateRange?.from || dateRange?.to || selectedCategories.length > 0 || selectedGroupId !== "all") && (
               <div className="mb-6 px-2">
                 <p className="text-sm text-muted-foreground">
                   Showing {filteredExpenses.length} of {expenses.length} expenses
                   {dateRange?.from && ` from ${dateRange.from.toLocaleDateString()}`}
                   {dateRange?.to && ` to ${dateRange.to.toLocaleDateString()}`}
+                  {selectedGroupId === "personal" && ` (Personal only)`}
+                  {selectedGroupId !== "all" && selectedGroupId !== "personal" && 
+                    ` (Group: ${groups.find(g => g.id === selectedGroupId)?.name || "Unknown"})`}
                   {selectedCategories.length > 0 && 
                     ` in ${selectedCategories.length} selected ${
                       selectedCategories.length === 1 ? "category" : "categories"
