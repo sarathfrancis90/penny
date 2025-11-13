@@ -314,14 +314,34 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon (Emoji)</Label>
-                <Input
-                  id="icon"
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value)}
-                  placeholder="👥"
-                  maxLength={2}
-                  disabled={!canEditSettings}
-                />
+                <div className="space-y-2">
+                  <Input
+                    id="icon"
+                    value={icon}
+                    onChange={(e) => setIcon(e.target.value)}
+                    placeholder="👥"
+                    maxLength={2}
+                    disabled={!canEditSettings}
+                    className="text-3xl text-center"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Tap the field above, then use your device&apos;s emoji keyboard to select an emoji
+                  </p>
+                  {/* Quick emoji presets */}
+                  <div className="flex flex-wrap gap-2">
+                    {["👥", "🏠", "💼", "🎉", "✈️", "🍔", "🏃", "📚", "💰", "🎯"].map((emoji) => (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setIcon(emoji)}
+                        disabled={!canEditSettings}
+                        className="text-2xl p-2 hover:bg-accent rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">

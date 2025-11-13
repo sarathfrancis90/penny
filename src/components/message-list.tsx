@@ -8,9 +8,11 @@ import { Bot, User, Sparkles, Check } from "lucide-react";
 
 interface MessageListProps {
   messages: ChatMessage[];
+  onUploadClick?: () => void;
+  onDescribeClick?: () => void;
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, onUploadClick, onDescribeClick }: MessageListProps) {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {messages.length === 0 ? (
@@ -37,28 +39,27 @@ export function MessageList({ messages }: MessageListProps) {
                 Gemini AI
               </span>
             </p>
-            <div className="grid md:grid-cols-3 gap-4 mt-8 text-sm">
-              <div className="p-4 rounded-xl glass hover:scale-105 transition-all duration-300 animate-in slide-in-from-bottom-4 duration-700">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">📸</span>
+            <div className="grid md:grid-cols-2 gap-4 mt-8 text-sm max-w-xl mx-auto">
+              <button
+                onClick={onUploadClick}
+                className="p-6 rounded-xl glass hover:scale-105 active:scale-95 transition-all duration-300 animate-in slide-in-from-bottom-4 duration-700 group cursor-pointer border-2 border-transparent hover:border-violet-500/50"
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-3xl">📸</span>
                 </div>
-                <p className="font-semibold mb-1">Upload Receipt</p>
+                <p className="font-semibold mb-1 group-hover:gradient-text transition-colors">Upload Receipt</p>
                 <p className="text-xs text-muted-foreground">Take a photo or upload an image</p>
-              </div>
-              <div className="p-4 rounded-xl glass hover:scale-105 transition-all duration-300 animate-in slide-in-from-bottom-4 duration-700 delay-100">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">💬</span>
+              </button>
+              <button
+                onClick={onDescribeClick}
+                className="p-6 rounded-xl glass hover:scale-105 active:scale-95 transition-all duration-300 animate-in slide-in-from-bottom-4 duration-700 delay-100 group cursor-pointer border-2 border-transparent hover:border-fuchsia-500/50"
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                  <span className="text-3xl">💬</span>
                 </div>
-                <p className="font-semibold mb-1">Describe Expense</p>
+                <p className="font-semibold mb-1 group-hover:gradient-text transition-colors">Describe Expense</p>
                 <p className="text-xs text-muted-foreground">Type your expense details</p>
-              </div>
-              <div className="p-4 rounded-xl glass hover:scale-105 transition-all duration-300 animate-in slide-in-from-bottom-4 duration-700 delay-200">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl">✨</span>
-                </div>
-                <p className="font-semibold mb-1">AI Analysis</p>
-                <p className="text-xs text-muted-foreground">Get instant categorization</p>
-              </div>
+              </button>
             </div>
           </div>
         </div>

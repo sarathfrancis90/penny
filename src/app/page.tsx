@@ -27,6 +27,24 @@ export default function Home() {
   const { user } = useAuth();
   const { analyzeExpense, saveExpense } = useOfflineSync(user?.uid);
 
+  // Handlers for welcome tiles
+  const handleUploadClick = () => {
+    // Scroll to bottom and focus on file input
+    document.querySelector('[type="file"]')?.scrollIntoView({ behavior: "smooth", block: "end" });
+    setTimeout(() => {
+      (document.querySelector('[type="file"]') as HTMLInputElement)?.click();
+    }, 300);
+  };
+
+  const handleDescribeClick = () => {
+    // Scroll to bottom and focus on text input
+    const textInput = document.querySelector('[placeholder*="Describe"]') as HTMLInputElement;
+    textInput?.scrollIntoView({ behavior: "smooth", block: "end" });
+    setTimeout(() => {
+      textInput?.focus();
+    }, 300);
+  };
+
   // Convert File to base64 string
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -231,11 +249,15 @@ export default function Home() {
 
   return (
     <AppLayout>
-      <div className="h-full flex flex-col">
+      <div className="fixed inset-0 top-[57px] flex flex-col md:top-[65px]">
         {/* Chat Messages Area - Scrollable */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="p-4">
-            <MessageList messages={messages} />
+          <div className="p-4 pb-24">
+            <MessageList 
+              messages={messages}
+              onUploadClick={handleUploadClick}
+              onDescribeClick={handleDescribeClick}
+            />
             
             {/* Show confirmation card if there's a pending expense */}
             {pendingExpense && (
@@ -257,7 +279,7 @@ export default function Home() {
         </div>
 
         {/* Chat Input - Fixed at bottom */}
-        <div className="shrink-0 border-t">
+        <div className="shrink-0 border-t bg-background">
           <ChatInput onSendMessage={handleSendMessage} isProcessing={isProcessing} />
         </div>
       </div>
