@@ -11,11 +11,15 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Expense } from "@/lib/types";
+import { useGroupMembers } from "./useGroupMembers";
+import { useGroups } from "./useGroups";
 
 export function useExpenses(userId: string | undefined) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { groups } = useGroups(); // Get user's groups
+  const userGroupIds = groups.map(g => g.id);
 
   // Delete expense
   const deleteExpense = async (expenseId: string): Promise<{ success: boolean; error?: string }> => {
@@ -111,51 +115,127 @@ export function useExpenses(userId: string | undefined) {
     setError(null);
 
     try {
-      // Create query for user's expenses
-      // Note: We order in memory to avoid requiring a composite index
-      const expensesQuery = query(
-        collection(db, "expenses"),
-        where("userId", "==", userId)
-      );
+      const allExpenses = new Map<string, Expense>();
+      let personalLoaded = false;
+      let groupsLoaded = false;
 
-      // Set up real-time listener
-      const unsubscribe = onSnapshot(
-        expensesQuery,
-        (snapshot: QuerySnapshot<DocumentData>) => {
-          const expensesData: Expense[] = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-            } as Expense;
-          });
-
-          // Sort by date in memory (descending - newest first)
-          expensesData.sort((a, b) => {
-            // Handle Firestore Timestamp objects
+      const checkAllLoaded = () => {
+        if (personalLoaded && groupsLoaded) {
+          // Combine and sort all expenses
+          const combinedExpenses = Array.from(allExpenses.values());
+          combinedExpenses.sort((a, b) => {
             const dateA = a.date?.toMillis ? a.date.toMillis() : 0;
             const dateB = b.date?.toMillis ? b.date.toMillis() : 0;
             return dateB - dateA;
           });
-
-          setExpenses(expensesData);
+          setExpenses(combinedExpenses);
           setLoading(false);
+        }
+      };
+
+      // Query 1: Personal expenses (userId == currentUser)
+      const personalQuery = query(
+        collection(db, "expenses"),
+        where("userId", "==", userId)
+      );
+
+      const unsubscribePersonal = onSnapshot(
+        personalQuery,
+        (snapshot: QuerySnapshot<DocumentData>) => {
+          snapshot.docs.forEach((doc) => {
+            const data = doc.data();
+            allExpenses.set(doc.id, {
+              id: doc.id,
+              ...data,
+            } as Expense);
+          });
+
+          // Remove deleted docs
+          const currentIds = new Set(snapshot.docs.map(d => d.id));
+          Array.from(allExpenses.keys()).forEach(id => {
+            const expense = allExpenses.get(id);
+            if (expense?.userId === userId && !currentIds.has(id)) {
+              allExpenses.delete(id);
+            }
+          });
+
+          personalLoaded = true;
+          checkAllLoaded();
         },
         (err) => {
-          console.error("Error fetching expenses:", err);
+          console.error("Error fetching personal expenses:", err);
           setError(err.message || "Failed to fetch expenses");
           setLoading(false);
         }
       );
 
-      // Cleanup listener on unmount
-      return () => unsubscribe();
+      // Query 2: Group expenses (where user is a member)
+      let unsubscribeGroup: (() => void) | null = null;
+      if (userGroupIds.length > 0) {
+        const groupQuery = query(
+          collection(db, "expenses"),
+          where("expenseType", "==", "group")
+        );
+
+        unsubscribeGroup = onSnapshot(
+          groupQuery,
+          (snapshot: QuerySnapshot<DocumentData>) => {
+            snapshot.docs.forEach((doc) => {
+              const data = doc.data();
+              // Only include if user is a member of this group
+              if (data.groupId && userGroupIds.includes(data.groupId)) {
+                allExpenses.set(doc.id, {
+                  id: doc.id,
+                  ...data,
+                } as Expense);
+              }
+            });
+
+            // Remove group expenses user no longer has access to
+            const currentGroupExpenseIds = new Set(
+              snapshot.docs
+                .filter(d => {
+                  const data = d.data();
+                  return data.groupId && userGroupIds.includes(data.groupId);
+                })
+                .map(d => d.id)
+            );
+            
+            Array.from(allExpenses.keys()).forEach(id => {
+              const expense = allExpenses.get(id);
+              if (expense?.expenseType === "group" && !currentGroupExpenseIds.has(id)) {
+                allExpenses.delete(id);
+              }
+            });
+
+            groupsLoaded = true;
+            checkAllLoaded();
+          },
+          (err) => {
+            console.error("Error fetching group expenses:", err);
+            // Don't fail completely, just log the error
+            groupsLoaded = true;
+            checkAllLoaded();
+          }
+        );
+      } else {
+        groupsLoaded = true;
+        checkAllLoaded();
+      }
+
+      // Cleanup listeners on unmount
+      return () => {
+        unsubscribePersonal();
+        if (unsubscribeGroup) {
+          unsubscribeGroup();
+        }
+      };
     } catch (err) {
       console.error("Error setting up expenses listener:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch expenses");
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, userGroupIds.join(",")]);
 
   return {
     expenses,

@@ -371,17 +371,17 @@ export default function DashboardPage() {
                 </TabsTrigger>
               </TabsList>
             
-            {/* Collapsible Filters */}
+            {/* Filters - Collapsible on mobile, always open on desktop */}
             <Card className="mb-6 glass border-2 border-slate-200/50 dark:border-slate-800/30 shadow-lg animate-in slide-in-from-bottom-4 duration-500">
-              <CardHeader className="pb-2 cursor-pointer" onClick={() => setFiltersOpen(!filtersOpen)}>
+              <CardHeader className="pb-2 cursor-pointer md:cursor-default" onClick={() => setFiltersOpen(!filtersOpen)}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Filter className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                     <CardTitle className="text-lg gradient-text">
-                      Filter Expenses {filtersOpen ? "▼" : "▶"}
+                      Filter Expenses <span className="md:hidden">{filtersOpen ? "▼" : "▶"}</span>
                     </CardTitle>
                   </div>
-                  {filtersOpen && (
+                  {(filtersOpen || typeof window !== 'undefined' && window.innerWidth >= 768) && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -396,8 +396,7 @@ export default function DashboardPage() {
                   )}
                 </div>
               </CardHeader>
-              {filtersOpen && (
-              <CardContent>
+              <CardContent className="block md:block" style={{ display: filtersOpen || (typeof window !== 'undefined' && window.innerWidth >= 768) ? 'block' : 'none' }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Date Range Filter */}
                   <div className="flex flex-col gap-2">
@@ -457,7 +456,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </CardContent>
-              )}
             </Card>
 
             {/* Filter Results Summary */}

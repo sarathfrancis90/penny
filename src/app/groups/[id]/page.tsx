@@ -6,7 +6,6 @@ import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useGroupExpenses } from "@/hooks/useGroupExpenses";
-import { InviteMemberDialog } from "@/components/groups";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -103,7 +102,6 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
     }
   };
 
-  const canManageMembers = myMembership?.permissions.canInviteMembers;
   const canManageSettings = myMembership?.permissions.canManageSettings;
   const isOwner = myMembership?.role === "owner";
 
@@ -247,61 +245,6 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             </CardContent>
           </Card>
         </div>
-
-        {/* Members Section */}
-        <Card className="glass">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-violet-500" />
-                  Members ({members.length})
-                </CardTitle>
-                <CardDescription>Manage group members and their roles</CardDescription>
-              </div>
-              {canManageMembers && (
-                <InviteMemberDialog groupId={groupId} />
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {members.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                No members found
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {members.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-violet-500/50 transition-all hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-semibold">
-                        {member.userName?.[0] || member.userEmail[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-semibold">{member.userName || member.userEmail}</p>
-                        <p className="text-sm text-muted-foreground">{member.userEmail}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={member.role === "owner" ? "default" : "secondary"}>
-                        {getRoleIcon(member.role)}
-                        <span className="ml-1 capitalize">{member.role}</span>
-                      </Badge>
-                      {member.joinedAt && (
-                        <span className="text-xs text-muted-foreground hidden sm:block">
-                          Joined {formatDistanceToNow(member.joinedAt.toDate(), { addSuffix: true })}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Expenses Section */}
         <Card className="glass">
