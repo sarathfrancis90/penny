@@ -84,13 +84,25 @@ export function useConversation(
                 isPinned: data.metadata?.isPinned || false,
               },
             });
+            setLoading(false);
           } else {
-            setError("Conversation not found");
+            // Conversation was deleted or doesn't exist - clear state without error
+            setConversation(null);
+            setMessages([]);
+            setLoading(false);
+            // Don't set error - this is expected when conversation is deleted
           }
         },
         (err) => {
-          console.error("Error fetching conversation:", err);
-          setError("Failed to load conversation");
+          // Only log permission errors if the document still exists
+          // Ignore "not found" errors as they occur when conversation is deleted
+          if (err.code !== 'permission-denied') {
+            console.error("Error fetching conversation:", err);
+          }
+          // Don't set error state - let the UI handle missing conversation gracefully
+          setConversation(null);
+          setMessages([]);
+          setLoading(false);
         }
       );
 
@@ -121,12 +133,14 @@ export function useConversation(
           });
 
           setMessages(fetchedMessages);
-          setLoading(false);
         },
         (err) => {
-          console.error("Error fetching messages:", err);
-          setError("Failed to load messages");
-          setLoading(false);
+          // Only log permission errors if it's not a "conversation deleted" case
+          if (err.code !== 'permission-denied') {
+            console.error("Error fetching messages:", err);
+          }
+          // Don't set error - conversation might have been deleted
+          setMessages([]);
         }
       );
 
