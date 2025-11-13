@@ -324,27 +324,27 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                 {expenses.map((expense) => (
                   <div
                     key={expense.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border/50 hover:border-fuchsia-500/50 transition-all hover:shadow-md"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 hover:border-fuchsia-500/50 transition-all hover:shadow-md gap-3"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <p className="font-semibold">{expense.vendor}</p>
-                        <Badge variant="secondary" className="text-xs">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <p className="font-semibold truncate">{expense.vendor}</p>
+                        <Badge variant="secondary" className="text-xs shrink-0">
                           {expense.category}
                         </Badge>
                       </div>
                       {expense.description && (
-                        <p className="text-sm text-muted-foreground">{expense.description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{expense.description}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
+                        <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
                         <span className="text-xs text-muted-foreground">
                           {expense.date.toDate().toLocaleDateString()}
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xl font-bold gradient-text">
+                    <div className="text-right sm:text-right shrink-0">
+                      <p className="text-2xl sm:text-xl font-bold gradient-text whitespace-nowrap">
                         ${expense.amount.toFixed(2)}
                       </p>
                     </div>

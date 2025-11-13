@@ -133,16 +133,16 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
   return (
     <>
-      <div className="rounded-md border overflow-auto">
+      <div className="rounded-md border overflow-auto max-h-[600px]">
         <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
+          <TableHeader className="sticky top-0 bg-background z-20">
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Vendor</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead className="hidden md:table-cell">Description</TableHead>
+              <TableHead className="text-center sticky right-0 bg-background shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)] z-10">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,13 +153,13 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
                 </TableCell>
                 <TableCell className="font-medium">{expense.vendor}</TableCell>
                 <TableCell className="max-w-[200px] truncate">{expense.category}</TableCell>
-                <TableCell className="text-right font-semibold">
+                <TableCell className="text-right font-semibold whitespace-nowrap">
                   ${expense.amount.toFixed(2)}
                 </TableCell>
-                <TableCell className="max-w-[200px] truncate">
+                <TableCell className="max-w-[200px] truncate hidden md:table-cell">
                   {expense.description || "-"}
                 </TableCell>
-                <TableCell>
+                <TableCell className="sticky right-0 bg-background shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
                   <div className="flex items-center justify-center gap-2">
                     <Button
                       variant="ghost"
