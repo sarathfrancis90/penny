@@ -26,6 +26,7 @@ import {
   MessageSquare,
   LogOut,
   Sparkles,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +108,21 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Dashboard
                   {pathname === "/dashboard" && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
+                </Link>
+              </Button>
+              <Button
+                variant={pathname?.startsWith("/groups") ? "default" : "ghost"}
+                size="sm"
+                asChild
+                className={cn(
+                  "transition-all duration-300 hover:scale-105",
+                  pathname?.startsWith("/groups") && "bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30"
+                )}
+              >
+                <Link href="/groups">
+                  <Users className="h-4 w-4 mr-2" />
+                  Groups
+                  {pathname?.startsWith("/groups") && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
                 </Link>
               </Button>
             </nav>
@@ -196,6 +212,19 @@ export function AppLayout({ children }: AppLayoutProps) {
                       <BarChart3 className="h-4 w-4 mr-2 text-fuchsia-500" />
                       <span>Dashboard</span>
                       {pathname === "/dashboard" && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-fuchsia-500" />}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link 
+                      href="/groups" 
+                      className={cn(
+                        "transition-all duration-200",
+                        pathname?.startsWith("/groups") && "bg-violet-50 dark:bg-violet-950/30"
+                      )}
+                    >
+                      <Users className="h-4 w-4 mr-2 text-violet-500" />
+                      <span>Groups</span>
+                      {pathname?.startsWith("/groups") && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-violet-500" />}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />

@@ -10,13 +10,14 @@ interface CreateExpenseRequest {
   description?: string;
   userId: string;
   receiptUrl?: string;
+  groupId?: string | null;
 }
 
 export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: CreateExpenseRequest = await request.json();
-    const { vendor, amount, date, category, description, userId, receiptUrl } =
+    const { vendor, amount, date, category, description, userId, receiptUrl, groupId } =
       body;
 
     // Validate required fields
@@ -51,6 +52,9 @@ export async function POST(request: NextRequest) {
     const expenseDate = Timestamp.fromDate(new Date(date));
     const now = Timestamp.now();
 
+    // Determine expense type
+    const expenseType = groupId ? "group" : "personal";
+
     // Create expense document
     const expenseData = {
       vendor,
@@ -60,13 +64,52 @@ export async function POST(request: NextRequest) {
       description: description || "",
       userId,
       receiptUrl: receiptUrl || null,
+      groupId: groupId || null,
+      expenseType,
       createdAt: now,
       updatedAt: now,
       syncStatus: "synced",
+      // Add audit trail
+      history: [
+        {
+          action: "created",
+          by: userId,
+          at: now,
+        },
+      ],
     };
 
     // Save to Firestore using Admin SDK (bypasses security rules)
     const docRef = await adminDb.collection("expenses").add(expenseData);
+
+    // Update group stats if this is a group expense
+    if (groupId) {
+      const groupRef = adminDb.collection("groups").doc(groupId);
+      const groupDoc = await groupRef.get();
+      
+      if (groupDoc.exists) {
+        const currentExpenseCount = groupDoc.data()?.stats?.expenseCount || 0;
+        const currentTotalAmount = groupDoc.data()?.stats?.totalAmount || 0;
+
+        await groupRef.update({
+          "stats.expenseCount": currentExpenseCount + 1,
+          "stats.totalAmount": currentTotalAmount + amount,
+          "stats.lastActivityAt": now,
+          updatedAt: now,
+        });
+
+        // Log activity
+        await adminDb.collection("groupActivities").add({
+          groupId,
+          userId,
+          userName: "Member", // TODO: Get from user profile
+          action: "expense_added",
+          details: `Added expense: $${amount.toFixed(2)} at ${vendor}`,
+          metadata: { expenseId: docRef.id, vendor, amount, category },
+          createdAt: now,
+        });
+      }
+    }
 
     // Return success with the document ID
     return NextResponse.json({
