@@ -3,40 +3,250 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is authenticated
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if the user is the owner
+    // Check if the user is the owner
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Expenses collection
-    match /expenses/{expenseId} {
-      // Allow read if the user is the owner
-      allow read: if isAuthenticated() && 
-                     resource.data.userId == request.auth.uid;
-      
-      // Allow create if user is authenticated and userId matches
-      allow create: if isAuthenticated() && 
-                       request.resource.data.userId == request.auth.uid &&
-                       request.resource.data.keys().hasAll(['vendor', 'amount', 'date', 'category', 'userId']) &&
-                       request.resource.data.amount is number &&
-                       request.resource.data.amount > 0;
-      
-      // Allow update if user is the owner
-      allow update: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid &&
-                       request.resource.data.userId == request.auth.uid;
-      
-      // Allow delete if user is the owner
-      allow delete: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid;
+    // Check if user is a member of a group with specific status
+    function isGroupMember(groupId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)) &&
+             get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.status == 'active';
     }
     
-    // User profiles collection (for future use)
+    // Get user's role in a group
+    function getGroupRole(groupId) {
+      return get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.role;
+    }
+    
+    // Check if user has specific role in group
+    function hasGroupRole(groupId, role) {
+      return isGroupMember(groupId) && getGroupRole(groupId) == role;
+    }
+    
+    // Check if user is owner or admin of group
+    function isGroupAdmin(groupId) {
+      return isGroupMember(groupId) && 
+             (getGroupRole(groupId) == 'owner' || getGroupRole(groupId) == 'admin');
+    }
+    
+    // Check if user is group owner
+    function isGroupOwner(groupId) {
+      return hasGroupRole(groupId, 'owner');
+    }
+    
+    // Check if user can add expenses to group
+    function canAddGroupExpenses(groupId) {
+      return isGroupMember(groupId) && 
+             get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.permissions.canAddExpenses == true;
+    }
+    
+    // Check if user can approve expenses in group
+    function canApproveExpenses(groupId) {
+      return isGroupMember(groupId) && 
+             get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.permissions.canApproveExpenses == true;
+    }
+    
+    // ============================================
+    // EXPENSES COLLECTION (Enhanced for Groups)
+    // ============================================
+    
+    match /expenses/{expenseId} {
+      // Read rules
+      allow read: if isAuthenticated() && (
+        // Personal expense: owner can read
+        (resource.data.expenseType == 'personal' && resource.data.userId == request.auth.uid) ||
+        // Group expense: group member can read
+        (resource.data.expenseType == 'group' && isGroupMember(resource.data.groupId))
+      );
+      
+      // Create rules
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['vendor', 'amount', 'date', 'category', 'userId', 'expenseType']) &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 &&
+        // Validate expense type
+        (request.resource.data.expenseType in ['personal', 'group']) &&
+        // If personal expense, no groupId required
+        (
+          (request.resource.data.expenseType == 'personal' && 
+           (!request.resource.data.keys().hasAny(['groupId']) || request.resource.data.groupId == null))
+          ||
+          // If group expense, must be member with permission
+          (request.resource.data.expenseType == 'group' && 
+           request.resource.data.keys().hasAll(['groupId']) &&
+           request.resource.data.groupId is string &&
+           canAddGroupExpenses(request.resource.data.groupId))
+        );
+      
+      // Update rules
+      allow update: if isAuthenticated() && (
+        // Personal expense: owner can update
+        (resource.data.expenseType == 'personal' && 
+         resource.data.userId == request.auth.uid &&
+         request.resource.data.userId == request.auth.uid &&
+         request.resource.data.expenseType == 'personal') ||
+        // Group expense: creator or admin can update
+        (resource.data.expenseType == 'group' &&
+         request.resource.data.expenseType == 'group' &&
+         request.resource.data.groupId == resource.data.groupId && // Can't change group
+         (
+           // Owner can edit their own expense
+           (resource.data.userId == request.auth.uid && 
+            get(/databases/$(database)/documents/groupMembers/$(resource.data.groupId + '_' + request.auth.uid)).data.permissions.canEditOwnExpenses == true) ||
+           // Admin can edit any expense
+           (get(/databases/$(database)/documents/groupMembers/$(resource.data.groupId + '_' + request.auth.uid)).data.permissions.canEditAllExpenses == true)
+         )) ||
+        // Approval action: only approvers
+        (resource.data.expenseType == 'group' &&
+         request.resource.data.keys().hasOnly(['groupMetadata']) &&
+         request.resource.data.groupMetadata.keys().hasAny(['approvalStatus', 'approvedBy', 'approvedAt']) &&
+         canApproveExpenses(resource.data.groupId))
+      );
+      
+      // Delete rules
+      allow delete: if isAuthenticated() && (
+        // Personal expense: owner can delete
+        (resource.data.expenseType == 'personal' && resource.data.userId == request.auth.uid) ||
+        // Group expense: creator or admin with permission can delete
+        (resource.data.expenseType == 'group' && (
+          (resource.data.userId == request.auth.uid) ||
+          (get(/databases/$(database)/documents/groupMembers/$(resource.data.groupId + '_' + request.auth.uid)).data.permissions.canDeleteExpenses == true)
+        ))
+      );
+    }
+    
+    // ============================================
+    // GROUPS COLLECTION
+    // ============================================
+    
+    match /groups/{groupId} {
+      // Anyone can read groups they're a member of
+      allow read: if isAuthenticated() && isGroupMember(groupId);
+      
+      // Any authenticated user can create a group
+      allow create: if isAuthenticated() &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.keys().hasAll(['name', 'createdBy', 'createdAt', 'status', 'settings', 'stats']) &&
+        request.resource.data.status == 'active' &&
+        request.resource.data.stats.memberCount == 1;
+      
+      // Only owner can update group settings
+      allow update: if isAuthenticated() && (
+        // Owner can update anything
+        (isGroupOwner(groupId) && request.resource.data.createdBy == resource.data.createdBy) ||
+        // Admin can update non-critical fields
+        (isGroupAdmin(groupId) && 
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdBy', 'status', 'settings.requireApproval', 'settings.allowMemberInvites']))
+      );
+      
+      // Only owner can delete/archive groups
+      allow delete: if isAuthenticated() && isGroupOwner(groupId);
+    }
+    
+    // ============================================
+    // GROUP MEMBERS COLLECTION
+    // ============================================
+    
+    match /groupMembers/{membershipId} {
+      // Members can read all members of their group
+      allow read: if isAuthenticated() && 
+        isGroupMember(resource.data.groupId);
+      
+      // System creates membership when group is created or invitation accepted
+      // Must be done via server-side (admin SDK) for security
+      allow create: if false; // Only server-side
+      
+      // Only owner/admin can update member roles
+      allow update: if isAuthenticated() && (
+        // Owner can update anyone (except can't change own status)
+        (isGroupOwner(resource.data.groupId) && 
+         resource.data.userId != request.auth.uid) ||
+        // Admin can update members (not owner or other admins)
+        (isGroupAdmin(resource.data.groupId) && 
+         resource.data.role != 'owner' &&
+         resource.data.role != 'admin' &&
+         request.resource.data.role != 'owner') ||
+        // Member can update their own lastActivityAt
+        (resource.data.userId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt']))
+      );
+      
+      // Members can leave (soft delete by changing status)
+      // Admins can remove members
+      allow update: if isAuthenticated() && (
+        // Member leaving voluntarily
+        (resource.data.userId == request.auth.uid &&
+         request.resource.data.status == 'left' &&
+         resource.data.role != 'owner') || // Owner can't leave
+        // Admin removing a member
+        (isGroupAdmin(resource.data.groupId) &&
+         request.resource.data.status == 'removed' &&
+         resource.data.role != 'owner') // Can't remove owner
+      );
+      
+      // Only server-side can hard delete
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // GROUP INVITATIONS COLLECTION
+    // ============================================
+    
+    match /groupInvitations/{invitationId} {
+      // Only invitee or group members can read
+      allow read: if isAuthenticated() && (
+        resource.data.invitedEmail == request.auth.token.email ||
+        isGroupMember(resource.data.groupId)
+      );
+      
+      // Only server-side can create (to generate secure token)
+      allow create: if false;
+      
+      // Invitee can accept/reject
+      // Inviter can cancel
+      allow update: if isAuthenticated() && (
+        // Invitee accepting/rejecting
+        (resource.data.invitedEmail == request.auth.token.email &&
+         request.resource.data.status in ['accepted', 'rejected'] &&
+         resource.data.status == 'pending') ||
+        // Admin canceling
+        (isGroupAdmin(resource.data.groupId) &&
+         request.resource.data.status == 'cancelled')
+      );
+      
+      // Only server-side can delete
+      allow delete: if false;
+    }
+    
+    // ============================================
+    // GROUP ACTIVITIES COLLECTION (Audit Log)
+    // ============================================
+    
+    match /groupActivities/{activityId} {
+      // Members can read activity log
+      allow read: if isAuthenticated() && 
+        isGroupMember(resource.data.groupId);
+      
+      // Only server-side can write (for security & consistency)
+      allow create, update, delete: if false;
+    }
+    
+    // ============================================
+    // USER PROFILES COLLECTION
+    // ============================================
+    
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -44,7 +254,37 @@ service cloud.firestore {
       allow delete: if false; // Never allow deletion
     }
     
-    // Deny all other access
+    // ============================================
+    // PASSKEYS COLLECTION
+    // ============================================
+    
+    match /passkeys/{passkeyId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
+    // ============================================
+    // CHALLENGES COLLECTION (for passkey auth)
+    // ============================================
+    
+    match /challenges/{challengeId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // ============================================
+    // ANALYTICS COLLECTION (server-side only)
+    // ============================================
+    
+    match /analytics/{analyticsId} {
+      allow read: if false; // Only server-side reads
+      allow write: if false; // Only server-side writes
+    }
+    
+    // ============================================
+    // DENY ALL OTHER ACCESS
+    // ============================================
+    
     match /{document=**} {
       allow read, write: if false;
     }

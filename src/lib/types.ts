@@ -18,6 +18,27 @@ export interface Expense {
   // Offline sync fields
   syncStatus?: "pending" | "synced" | "error";
   localId?: string; // For offline-first functionality
+  
+  // Group tracking (NEW)
+  groupId?: string | null; // null or undefined = personal expense
+  expenseType: "personal" | "group";
+  
+  // Group-specific metadata (NEW)
+  groupMetadata?: {
+    approvedBy?: string;
+    approvedAt?: Timestamp;
+    approvalStatus?: "pending" | "approved" | "rejected";
+    rejectedReason?: string;
+    rejectedAt?: Timestamp;
+  };
+  
+  // Audit trail (NEW)
+  history?: Array<{
+    action: "created" | "updated" | "deleted" | "approved" | "rejected";
+    by: string;
+    at: Timestamp;
+    changes?: Record<string, unknown>;
+  }>;
 }
 
 /**
@@ -75,4 +96,240 @@ export interface ExpenseFormData {
   date: string;
   description?: string;
   notes?: string;
+  groupId?: string; // NEW: Optional group assignment
+}
+
+// ============================================
+// GROUP MANAGEMENT TYPES (NEW)
+// ============================================
+
+/**
+ * Group role types with hierarchical permissions
+ */
+export type GroupRole = "owner" | "admin" | "member" | "viewer";
+
+/**
+ * Group member status
+ */
+export type GroupMemberStatus = "active" | "invited" | "left" | "removed";
+
+/**
+ * Group status
+ */
+export type GroupStatus = "active" | "archived" | "deleted";
+
+/**
+ * Expense approval status
+ */
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
+/**
+ * Group data structure
+ */
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string; // Hex color for UI differentiation
+  icon?: string; // Emoji or icon name
+  
+  // Ownership
+  createdBy: string; // userId
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  
+  // Settings
+  settings: {
+    defaultCategory?: string;
+    budget?: number;
+    budgetPeriod?: "monthly" | "quarterly" | "yearly";
+    requireApproval: boolean;
+    allowMemberInvites: boolean;
+    currency?: string;
+  };
+  
+  // Status
+  status: GroupStatus;
+  archivedAt?: Timestamp;
+  archivedBy?: string;
+  
+  // Statistics (denormalized for performance)
+  stats: {
+    memberCount: number;
+    expenseCount: number;
+    totalAmount: number;
+    lastActivityAt: Timestamp;
+  };
+}
+
+/**
+ * Granular permissions for group members
+ */
+export interface GroupPermissions {
+  canAddExpenses: boolean;
+  canEditOwnExpenses: boolean;
+  canEditAllExpenses: boolean;
+  canDeleteExpenses: boolean;
+  canApproveExpenses: boolean;
+  canInviteMembers: boolean;
+  canRemoveMembers: boolean;
+  canViewReports: boolean;
+  canExportData: boolean;
+  canManageSettings: boolean;
+}
+
+/**
+ * Group member data structure
+ */
+export interface GroupMember {
+  id: string;
+  groupId: string;
+  userId: string;
+  userEmail: string;
+  userName?: string;
+  
+  // Role-based permissions
+  role: GroupRole;
+  
+  // Status
+  status: GroupMemberStatus;
+  
+  // Timestamps
+  invitedAt: Timestamp;
+  invitedBy: string; // userId
+  joinedAt?: Timestamp;
+  leftAt?: Timestamp;
+  removedBy?: string;
+  
+  // Permissions (computed from role)
+  permissions: GroupPermissions;
+  
+  // Activity tracking
+  lastActivityAt?: Timestamp;
+}
+
+/**
+ * Group invitation data structure
+ */
+export interface GroupInvitation {
+  id: string;
+  groupId: string;
+  groupName: string; // Denormalized for email template
+  invitedEmail: string;
+  invitedBy: string; // userId
+  invitedByName?: string; // Denormalized for email template
+  role: Exclude<GroupRole, "owner">; // Can't invite as owner
+  
+  status: "pending" | "accepted" | "rejected" | "expired" | "cancelled";
+  
+  token: string; // Secure invitation token (hashed)
+  expiresAt: Timestamp;
+  
+  createdAt: Timestamp;
+  respondedAt?: Timestamp;
+  
+  // Metadata
+  metadata?: {
+    emailSent: boolean;
+    emailSentAt?: Timestamp;
+    reminderSent?: boolean;
+    reminderSentAt?: Timestamp;
+  };
+}
+
+/**
+ * Group activity log entry
+ */
+export interface GroupActivity {
+  id: string;
+  groupId: string;
+  userId: string;
+  userName?: string;
+  
+  action: 
+    | "group_created"
+    | "group_updated"
+    | "group_archived"
+    | "group_deleted"
+    | "member_invited"
+    | "member_joined"
+    | "member_left"
+    | "member_removed"
+    | "member_role_changed"
+    | "expense_added"
+    | "expense_updated"
+    | "expense_deleted"
+    | "expense_approved"
+    | "expense_rejected"
+    | "settings_updated";
+  
+  details?: string;
+  metadata?: Record<string, unknown>;
+  
+  createdAt: Timestamp;
+}
+
+/**
+ * Default permissions for each role
+ */
+export const DEFAULT_ROLE_PERMISSIONS: Record<GroupRole, GroupPermissions> = {
+  owner: {
+    canAddExpenses: true,
+    canEditOwnExpenses: true,
+    canEditAllExpenses: true,
+    canDeleteExpenses: true,
+    canApproveExpenses: true,
+    canInviteMembers: true,
+    canRemoveMembers: true,
+    canViewReports: true,
+    canExportData: true,
+    canManageSettings: true,
+  },
+  admin: {
+    canAddExpenses: true,
+    canEditOwnExpenses: true,
+    canEditAllExpenses: true,
+    canDeleteExpenses: true,
+    canApproveExpenses: true,
+    canInviteMembers: true,
+    canRemoveMembers: true,
+    canViewReports: true,
+    canExportData: true,
+    canManageSettings: false,
+  },
+  member: {
+    canAddExpenses: true,
+    canEditOwnExpenses: true,
+    canEditAllExpenses: false,
+    canDeleteExpenses: false,
+    canApproveExpenses: false,
+    canInviteMembers: false,
+    canRemoveMembers: false,
+    canViewReports: true,
+    canExportData: false,
+    canManageSettings: false,
+  },
+  viewer: {
+    canAddExpenses: false,
+    canEditOwnExpenses: false,
+    canEditAllExpenses: false,
+    canDeleteExpenses: false,
+    canApproveExpenses: false,
+    canInviteMembers: false,
+    canRemoveMembers: false,
+    canViewReports: true,
+    canExportData: false,
+    canManageSettings: false,
+  },
+};
+
+/**
+ * Group summary for dashboard
+ */
+export interface GroupSummary {
+  group: Group;
+  memberCount: number;
+  myRole: GroupRole;
+  pendingExpenses: number;
+  recentActivity: GroupActivity[];
 }
