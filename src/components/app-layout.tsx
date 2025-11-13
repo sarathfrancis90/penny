@@ -29,6 +29,7 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -282,6 +283,18 @@ export function AppLayout({ children }: AppLayoutProps) {
           {children}
         </div>
       </main>
+
+      {/* Toast Notifications */}
+      <Toaster
+        position="top-center"
+        expand={true}
+        richColors
+        closeButton
+        toastOptions={{
+          className: "glass",
+          duration: 4000,
+        }}
+      />
     </div>
   );
 }

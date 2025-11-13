@@ -46,8 +46,13 @@ export function useGroupMembers(groupId: string | null) {
         setLoading(false);
       },
       (err) => {
-        console.error("Error listening to group members:", err);
-        setError(err.message);
+        // Suppress permission errors (group was likely deleted)
+        if (err.code !== 'permission-denied') {
+          console.error("Error listening to group members:", err);
+        }
+        // Clear state silently when group is deleted
+        setMembers([]);
+        setMyMembership(null);
         setLoading(false);
       }
     );

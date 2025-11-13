@@ -42,8 +42,12 @@ export function useGroupExpenses(groupId: string | null) {
         setLoading(false);
       },
       (err) => {
-        console.error("Error listening to group expenses:", err);
-        setError(err.message);
+        // Suppress permission errors (group was likely deleted)
+        if (err.code !== 'permission-denied') {
+          console.error("Error listening to group expenses:", err);
+        }
+        // Clear state silently when group is deleted
+        setExpenses([]);
         setLoading(false);
       }
     );

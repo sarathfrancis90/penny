@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Expense } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -91,17 +92,17 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
     const parsedAmount = parseFloat(editAmount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      alert("Please enter a valid amount");
+      toast.error("Please enter a valid amount");
       return;
     }
 
     if (!editVendor.trim()) {
-      alert("Please enter a vendor name");
+      toast.error("Please enter a vendor name");
       return;
     }
 
     if (!editCategory) {
-      alert("Please select a category");
+      toast.error("Please select a category");
       return;
     }
 
@@ -120,8 +121,9 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
     if (result.success) {
       setEditingExpense(null);
+      toast.success("Expense updated successfully");
     } else {
-      alert(`Failed to update expense: ${result.error}`);
+      toast.error(`Failed to update expense: ${result.error}`);
     }
   };
 
@@ -132,8 +134,9 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
     if (result.success) {
       setDeleteConfirm(null);
+      toast.success("Expense deleted successfully");
     } else {
-      alert(`Failed to delete expense: ${result.error}`);
+      toast.error(`Failed to delete expense: ${result.error}`);
     }
   };
 
@@ -176,7 +179,9 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
     setSelectedExpenses(new Set());
 
     if (failCount > 0) {
-      alert(`Deleted ${successCount} expenses. Failed to delete ${failCount} expenses.`);
+      toast.error(`Deleted ${successCount} expenses. Failed to delete ${failCount} expenses.`);
+    } else if (successCount > 0) {
+      toast.success(`Successfully deleted ${successCount} expense${successCount !== 1 ? 's' : ''}`);
     }
   };
 

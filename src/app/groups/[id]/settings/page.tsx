@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
@@ -149,12 +150,12 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      alert("Group name is required");
+      toast.error("Group name is required");
       return;
     }
 
     if (!user) {
-      alert("You must be logged in to update group settings");
+      toast.error("You must be logged in to update group settings");
       return;
     }
 
@@ -186,12 +187,11 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
         throw new Error(error.error || "Failed to update group");
       }
 
-      // Show success (could use toast here)
-      alert("Group settings updated successfully!");
+      toast.success("Group settings updated successfully!");
       router.push(`/groups/${groupId}`);
     } catch (error) {
       console.error("Error updating group:", error);
-      alert(error instanceof Error ? error.message : "Failed to update group");
+      toast.error(error instanceof Error ? error.message : "Failed to update group");
     } finally {
       setSaving(false);
     }
@@ -199,7 +199,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
   const handleArchive = async () => {
     if (!user) {
-      alert("You must be logged in to archive a group");
+      toast.error("You must be logged in to archive a group");
       return;
     }
 
@@ -216,11 +216,11 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
         throw new Error(error.error || "Failed to archive group");
       }
 
-      alert("Group archived successfully!");
+      toast.success("Group archived successfully!");
       router.push("/groups");
     } catch (error) {
       console.error("Error archiving group:", error);
-      alert(error instanceof Error ? error.message : "Failed to archive group");
+      toast.error(error instanceof Error ? error.message : "Failed to archive group");
     } finally {
       setActionLoading(false);
       setArchiveDialogOpen(false);
@@ -229,12 +229,12 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
   const handleDelete = async () => {
     if (deleteConfirmation !== group.name) {
-      alert("Please type the group name to confirm deletion");
+      toast.error("Please type the group name to confirm deletion");
       return;
     }
 
     if (!user) {
-      alert("You must be logged in to delete a group");
+      toast.error("You must be logged in to delete a group");
       return;
     }
 
@@ -249,11 +249,11 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
         throw new Error(error.error || "Failed to delete group");
       }
 
-      alert("Group deleted successfully!");
+      toast.success("Group deleted successfully!");
       router.push("/groups");
     } catch (error) {
       console.error("Error deleting group:", error);
-      alert(error instanceof Error ? error.message : "Failed to delete group");
+      toast.error(error instanceof Error ? error.message : "Failed to delete group");
     } finally {
       setActionLoading(false);
       setDeleteDialogOpen(false);
