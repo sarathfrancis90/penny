@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { expenseCategories } from "@/lib/categories";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GroupSettingsPageProps {
   params: Promise<{
@@ -55,6 +56,7 @@ const budgetPeriods = [
 export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const { id: groupId } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const { groups, loading: groupsLoading } = useGroups();
   const { myMembership, loading: membersLoading } = useGroupMembers(groupId);
 
@@ -151,6 +153,11 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       return;
     }
 
+    if (!user) {
+      alert("You must be logged in to update group settings");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -158,6 +165,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          userId: user.uid,
           name: name.trim(),
           description: description.trim() || undefined,
           icon: icon || undefined,
@@ -190,10 +198,17 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   };
 
   const handleArchive = async () => {
+    if (!user) {
+      alert("You must be logged in to archive a group");
+      return;
+    }
+
     setActionLoading(true);
     try {
       const response = await fetch(`/api/groups/${groupId}/archive`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.uid }),
       });
 
       if (!response.ok) {
@@ -218,9 +233,14 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       return;
     }
 
+    if (!user) {
+      alert("You must be logged in to delete a group");
+      return;
+    }
+
     setActionLoading(true);
     try {
-      const response = await fetch(`/api/groups/${groupId}`, {
+      const response = await fetch(`/api/groups/${groupId}?userId=${user.uid}`, {
         method: "DELETE",
       });
 

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
-import { auth } from "@/lib/firebase";
 import { Group } from "@/lib/types";
 
 /**
@@ -86,17 +85,19 @@ export async function PATCH(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { groupId } = await params;
     const body = await request.json();
-    const { name, description, color, icon, settings } = body;
+    const { name, description, color, icon, settings, userId } = body;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 401 }
+      );
+    }
 
     // Check membership and permissions
-    const membershipId = `${groupId}_${currentUser.uid}`;
+    const membershipId = `${groupId}_${userId}`;
     const membershipDoc = await adminDb
       .collection("groupMembers")
       .doc(membershipId)
@@ -184,8 +185,8 @@ export async function PATCH(
     // Log activity
     await adminDb.collection("groupActivity").add({
       groupId,
-      userId: currentUser.uid,
-      userName: currentUser.displayName || currentUser.email || "Unknown User",
+      userId: userId,
+      userName: membershipData.userName || membershipData.userEmail || "Unknown User",
       action: "group_updated",
       details: "Updated group details",
       metadata: { changes: Object.keys(updateData) },
@@ -219,15 +220,19 @@ export async function DELETE(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { groupId } = await params;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 401 }
+      );
     }
 
-    const { groupId } = await params;
-
     // Check membership and permissions
-    const membershipId = `${groupId}_${currentUser.uid}`;
+    const membershipId = `${groupId}_${userId}`;
     const membershipDoc = await adminDb
       .collection("groupMembers")
       .doc(membershipId)
@@ -292,10 +297,10 @@ export async function DELETE(
     // Log activity
     await adminDb.collection("groupActivity").add({
       groupId,
-      userId: currentUser.uid,
-      userName: currentUser.displayName || currentUser.email || "Unknown User",
+      userId: userId,
+      userName: membershipData.userName || membershipData.userEmail || "Unknown User",
       action: "group_deleted",
-      details: `Group permanently deleted by ${currentUser.displayName || currentUser.email}`,
+      details: `Group permanently deleted by ${membershipData.userName || membershipData.userEmail}`,
       createdAt: Timestamp.now(),
     });
 

@@ -1,24 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
-import { auth } from "@/lib/firebase";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { groupId } = await params;
+    const body = await request.json();
+    const { userId } = body;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 401 }
+      );
+    }
 
     // Verify user is owner or admin
     const memberDoc = await adminDb
       .collection("groupMembers")
-      .doc(`${groupId}_${currentUser.uid}`)
+      .doc(`${groupId}_${userId}`)
       .get();
 
     if (!memberDoc.exists) {
@@ -43,17 +46,17 @@ export async function POST(
     await adminDb.collection("groups").doc(groupId).update({
       status: "archived",
       archivedAt: Timestamp.now(),
-      archivedBy: currentUser.uid,
+      archivedBy: userId,
       updatedAt: Timestamp.now(),
     });
 
     // Log activity
     await adminDb.collection("groupActivity").add({
       groupId,
-      userId: currentUser.uid,
-      userName: currentUser.displayName || currentUser.email || "Unknown User",
+      userId: userId,
+      userName: memberData.userName || memberData.userEmail || "Unknown User",
       action: "group_archived",
-      details: `Group archived by ${currentUser.displayName || currentUser.email}`,
+      details: `Group archived by ${memberData.userName || memberData.userEmail}`,
       createdAt: Timestamp.now(),
     });
 
