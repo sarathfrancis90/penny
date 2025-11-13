@@ -358,15 +358,15 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
             <div className="space-y-2">
               <Label htmlFor="defaultCategory">Default Category</Label>
               <Select
-                value={defaultCategory}
-                onValueChange={setDefaultCategory}
+                value={defaultCategory || "none"}
+                onValueChange={(value) => setDefaultCategory(value === "none" ? "" : value)}
                 disabled={!canEditExpenseSettings}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select default category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {expenseCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
