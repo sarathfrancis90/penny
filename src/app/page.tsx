@@ -95,12 +95,13 @@ export default function Home() {
     }
   }, [conversationMessages, conversationIdFromUrl]);
 
-  // Update last accessed when viewing a conversation
+  // Update last accessed when conversation ID changes (not on every conversation update)
   useEffect(() => {
-    if (conversationIdFromUrl && conversation) {
+    if (conversationIdFromUrl) {
       updateLastAccessed();
     }
-  }, [conversationIdFromUrl, conversation, updateLastAccessed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationIdFromUrl]); // Only run when conversation ID changes
 
   // Auto-generate conversation title from first message
   const generateTitle = (message: string): string => {
