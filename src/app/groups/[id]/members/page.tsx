@@ -24,10 +24,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft, Crown, Shield, User, Eye, UserX, Loader2 } from "lucide-react";
+import { ArrowLeft, Crown, Shield, User, Eye, UserX, Loader2, UserPlus } from "lucide-react";
 import { GroupRole } from "@/lib/types";
 
 interface MembersPageProps {
@@ -45,6 +55,11 @@ export default function MembersPage({ params }: MembersPageProps) {
   const [removingRole, setRemovingRole] = useState<string>("");
   const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  
+  // Invite member state
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   const group = groups.find((g) => g.id === groupId);
   const currentUserMembership = members.find((m) => m.userId === user?.uid);
@@ -67,7 +82,7 @@ export default function MembersPage({ params }: MembersPageProps) {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ newRole }),
+          body: JSON.stringify({ newRole, userId: user.uid }),
         }
       );
 
@@ -88,13 +103,13 @@ export default function MembersPage({ params }: MembersPageProps) {
   };
 
   const handleRemoveMember = async () => {
-    if (!removingMemberId) return;
+    if (!removingMemberId || !user) return;
 
     setActionLoading(true);
 
     try {
       const response = await fetch(
-        `/api/groups/${groupId}/members/${removingMemberId}?action=remove`,
+        `/api/groups/${groupId}/members/${removingMemberId}?action=remove&userId=${user.uid}`,
         {
           method: "DELETE",
         }
@@ -114,6 +129,39 @@ export default function MembersPage({ params }: MembersPageProps) {
       alert(err instanceof Error ? err.message : "Failed to remove member");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleInviteMember = async () => {
+    if (!inviteEmail.trim() || !user) return;
+
+    setInviting(true);
+
+    try {
+      const response = await fetch(`/api/groups/${groupId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail.trim(),
+          userId: user.uid,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send invitation");
+      }
+
+      console.log("Invitation sent successfully");
+      setInviteDialogOpen(false);
+      setInviteEmail("");
+      alert("Invitation sent successfully!");
+    } catch (err) {
+      console.error("Error inviting member:", err);
+      alert(err instanceof Error ? err.message : "Failed to send invitation");
+    } finally {
+      setInviting(false);
     }
   };
 
@@ -213,7 +261,7 @@ export default function MembersPage({ params }: MembersPageProps) {
     <AppLayout>
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href={`/groups/${groupId}`}>
@@ -227,6 +275,17 @@ export default function MembersPage({ params }: MembersPageProps) {
               </p>
             </div>
           </div>
+          
+          {/* Invite Member Button - Only for admins/owners */}
+          {(isOwner || isAdmin) && (
+            <Button
+              onClick={() => setInviteDialogOpen(true)}
+              className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite Member
+            </Button>
+          )}
         </div>
 
         {/* Members List */}
@@ -462,6 +521,65 @@ export default function MembersPage({ params }: MembersPageProps) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Invite Member Dialog */}
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Invite Member</DialogTitle>
+              <DialogDescription>
+                Send an invitation to join {group?.name}. They will receive an email with an invitation link.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="invite-email">Email Address</Label>
+                <Input
+                  id="invite-email"
+                  type="email"
+                  placeholder="member@example.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  disabled={inviting}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && inviteEmail.trim()) {
+                      handleInviteMember();
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setInviteDialogOpen(false);
+                  setInviteEmail("");
+                }}
+                disabled={inviting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleInviteMember}
+                disabled={inviting || !inviteEmail.trim()}
+                className="bg-gradient-to-r from-violet-500 to-fuchsia-500"
+              >
+                {inviting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Send Invitation
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
