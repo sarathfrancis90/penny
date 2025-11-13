@@ -290,6 +290,39 @@ service cloud.firestore {
     }
     
     // ============================================
+    // CONVERSATIONS COLLECTION (NEW)
+    // ============================================
+    
+    match /conversations/{conversationId} {
+      // Users can only access their own conversations
+      allow read, delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Any authenticated user can create a conversation
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'title', 'createdAt', 'updatedAt', 'status', 'messageCount', 'lastMessagePreview', 'metadata']) &&
+        request.resource.data.status == 'active' &&
+        request.resource.data.messageCount >= 0;
+      
+      // Users can update their own conversations
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Users can read messages from their own conversations
+        allow read, create: if isAuthenticated() && 
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+        
+        // Users can update/delete messages in their own conversations
+        allow delete, update: if isAuthenticated() && 
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
+      }
+    }
+    
+    // ============================================
     // DENY ALL OTHER ACCESS
     // ============================================
     

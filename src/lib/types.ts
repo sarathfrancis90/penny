@@ -333,3 +333,83 @@ export interface GroupSummary {
   pendingExpenses: number;
   recentActivity: GroupActivity[];
 }
+
+// ============================================
+// CONVERSATION HISTORY TYPES (NEW)
+// ============================================
+
+/**
+ * Conversation status
+ */
+export type ConversationStatus = "active" | "archived";
+
+/**
+ * Message status
+ */
+export type MessageStatus = "sending" | "sent" | "error";
+
+/**
+ * Conversation data structure
+ */
+export interface Conversation {
+  id: string;
+  userId: string;
+  title: string; // Auto-generated from first message
+  summary?: string; // AI-generated summary (optional)
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  lastMessagePreview: string; // Last 100 chars
+  messageCount: number;
+  status: ConversationStatus;
+  totalExpensesCreated: number;
+  metadata: {
+    firstMessageTimestamp: Timestamp;
+    lastAccessedAt: Timestamp;
+    isPinned: boolean;
+  };
+}
+
+/**
+ * Message attachment data structure
+ */
+export interface MessageAttachment {
+  type: "image" | "file";
+  url: string;
+  fileName: string;
+  mimeType: string;
+}
+
+/**
+ * Expense data in message (when message resulted in expense)
+ */
+export interface MessageExpenseData {
+  expenseId: string;
+  vendor: string;
+  amount: number;
+  category: string;
+  confirmed: boolean;
+}
+
+/**
+ * Message metadata
+ */
+export interface MessageMetadata {
+  tokenCount?: number;
+  model?: string;
+  processingTime?: number;
+}
+
+/**
+ * Message data structure (stored in Firestore subcollection)
+ */
+export interface ConversationMessage {
+  id: string;
+  conversationId: string; // Parent reference
+  role: "user" | "assistant" | "system";
+  content: string;
+  timestamp: Timestamp;
+  attachments?: MessageAttachment[];
+  expenseData?: MessageExpenseData; // If message resulted in expense
+  metadata?: MessageMetadata;
+  status: MessageStatus;
+}
