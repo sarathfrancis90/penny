@@ -25,9 +25,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { expenseCategories } from "@/lib/categories";
-import { Pencil, Trash2, Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Calendar as CalendarIcon, Loader2, CheckSquare, Square } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ExpenseListViewProps {
   expenses: Expense[];
@@ -48,6 +49,11 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Multi-select state
+  const [selectedExpenses, setSelectedExpenses] = useState<Set<string>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   // Edit form state
   const [editVendor, setEditVendor] = useState("");
@@ -131,12 +137,97 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
     }
   };
 
+  // Multi-select handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = new Set(expenses.map(e => e.id!).filter(Boolean));
+      setSelectedExpenses(allIds);
+    } else {
+      setSelectedExpenses(new Set());
+    }
+  };
+
+  const handleSelectExpense = (expenseId: string, checked: boolean) => {
+    const newSelection = new Set(selectedExpenses);
+    if (checked) {
+      newSelection.add(expenseId);
+    } else {
+      newSelection.delete(expenseId);
+    }
+    setSelectedExpenses(newSelection);
+  };
+
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const expenseId of Array.from(selectedExpenses)) {
+      const result = await onDelete(expenseId);
+      if (result.success) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    setIsBulkDeleting(false);
+    setBulkDeleteDialogOpen(false);
+    setSelectedExpenses(new Set());
+
+    if (failCount > 0) {
+      alert(`Deleted ${successCount} expenses. Failed to delete ${failCount} expenses.`);
+    }
+  };
+
+  const allSelected = expenses.length > 0 && selectedExpenses.size === expenses.length;
+  const someSelected = selectedExpenses.size > 0 && selectedExpenses.size < expenses.length;
+
   return (
     <>
+      {/* Bulk Actions Bar */}
+      {selectedExpenses.size > 0 && (
+        <div className="mb-4 flex items-center justify-between p-4 bg-violet-50 dark:bg-violet-950/30 rounded-lg border-2 border-violet-200 dark:border-violet-800 animate-in slide-in-from-top duration-300">
+          <div className="flex items-center gap-3">
+            <CheckSquare className="h-5 w-5 text-violet-600" />
+            <span className="font-semibold text-violet-900 dark:text-violet-100">
+              {selectedExpenses.size} {selectedExpenses.size === 1 ? "expense" : "expenses"} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedExpenses(new Set())}
+              disabled={isBulkDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setBulkDeleteDialogOpen(true)}
+              disabled={isBulkDeleting}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-md border overflow-auto max-h-[600px]">
         <Table>
           <TableHeader className="sticky top-0 bg-background z-20">
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all"
+                  className={cn(someSelected && "data-[state=checked]:bg-violet-500")}
+                />
+              </TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Vendor</TableHead>
               <TableHead>Category</TableHead>
@@ -147,7 +238,14 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
           </TableHeader>
           <TableBody>
             {expenses.map((expense) => (
-              <TableRow key={expense.id}>
+              <TableRow key={expense.id} className={cn(selectedExpenses.has(expense.id!) && "bg-violet-50 dark:bg-violet-950/20")}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedExpenses.has(expense.id!)}
+                    onCheckedChange={(checked) => handleSelectExpense(expense.id!, checked as boolean)}
+                    aria-label={`Select ${expense.vendor}`}
+                  />
+                </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {parseLocalDate(expense.date).toLocaleDateString()}
                 </TableCell>
@@ -357,6 +455,44 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
                 </>
               ) : (
                 "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Multiple Expenses?</DialogTitle>
+            <DialogDescription>
+              You are about to permanently delete <strong>{selectedExpenses.size}</strong> {selectedExpenses.size === 1 ? "expense" : "expenses"}. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBulkDeleteDialogOpen(false)}
+              disabled={isBulkDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+            >
+              {isBulkDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting {selectedExpenses.size} expenses...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete {selectedExpenses.size} Expenses
+                </>
               )}
             </Button>
           </DialogFooter>
