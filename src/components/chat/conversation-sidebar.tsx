@@ -6,7 +6,18 @@ import { ConversationCard } from "./conversation-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Plus, Search, Loader2, CheckSquare, Trash2, X } from "lucide-react";
 import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 
 interface ConversationSidebarProps {
@@ -53,6 +64,10 @@ export function ConversationSidebar({
   onDelete,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedConversations, setSelectedConversations] = useState<Set<string>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Filter conversations by search query
   const filteredConversations = conversations.filter((conv) =>
@@ -70,33 +85,136 @@ export function ConversationSidebar({
     return groups;
   }, {} as Record<DateGroup, Conversation[]>);
 
+  // Selection handlers
+  const handleSelectConversation = (conversationId: string) => {
+    const newSelected = new Set(selectedConversations);
+    if (newSelected.has(conversationId)) {
+      newSelected.delete(conversationId);
+    } else {
+      newSelected.add(conversationId);
+    }
+    setSelectedConversations(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedConversations.size === filteredConversations.length) {
+      setSelectedConversations(new Set());
+    } else {
+      setSelectedConversations(new Set(filteredConversations.map((c) => c.id)));
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedConversations(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    try {
+      // Delete all selected conversations
+      for (const conversationId of selectedConversations) {
+        await onDelete(conversationId);
+      }
+      setSelectedConversations(new Set());
+      setSelectionMode(false);
+    } catch (error) {
+      console.error("Error deleting conversations:", error);
+    } finally {
+      setIsBulkDeleting(false);
+      setBulkDeleteDialogOpen(false);
+    }
+  };
+
+  const allSelected = filteredConversations.length > 0 && selectedConversations.size === filteredConversations.length;
+  const someSelected = selectedConversations.size > 0 && selectedConversations.size < filteredConversations.length;
+
   return (
     <div className="w-80 border-r bg-background flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold gradient-text">Chat History</h2>
-          <Button
-            size="icon"
-            variant="default"
-            className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
-            onClick={onNewConversation}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {!selectionMode ? (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => setSelectionMode(true)}
+                  title="Select conversations"
+                >
+                  <CheckSquare className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="default"
+                  className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                  onClick={onNewConversation}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleCancelSelection}
+                title="Cancel selection"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
 
+        {/* Selection mode header */}
+        {selectionMode && (
+          <div className="flex items-center gap-2 mb-3 pb-3 border-b">
+            <Checkbox
+              checked={allSelected}
+              onCheckedChange={handleSelectAll}
+              className="data-[state=indeterminate]:bg-violet-600"
+              {...(someSelected ? { "data-state": "indeterminate" } : {})}
+            />
+            <span className="text-sm font-medium">
+              {selectedConversations.size === 0
+                ? "Select conversations"
+                : `${selectedConversations.size} selected`}
+            </span>
+          </div>
+        )}
+
         {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {!selectionMode && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
       </div>
+
+      {/* Bulk Actions Bar */}
+      {selectionMode && selectedConversations.size > 0 && (
+        <div className="px-4 py-3 bg-violet-50 dark:bg-violet-950/30 border-b flex items-center justify-between">
+          <span className="text-sm font-medium">
+            {selectedConversations.size} conversation{selectedConversations.size !== 1 ? "s" : ""} selected
+          </span>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => setBulkDeleteDialogOpen(true)}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </div>
+      )}
 
       {/* Conversations List */}
       <ScrollArea className="flex-1">
@@ -125,8 +243,11 @@ export function ConversationSidebar({
                         <ConversationCard
                           key={conversation.id}
                           conversation={conversation}
-                          isActive={conversation.id === currentConversationId}
-                          onClick={() => onConversationSelect(conversation.id)}
+                          isActive={conversation.id === currentConversationId && !selectionMode}
+                          isSelected={selectedConversations.has(conversation.id)}
+                          showCheckbox={selectionMode}
+                          onClick={() => selectionMode ? handleSelectConversation(conversation.id) : onConversationSelect(conversation.id)}
+                          onSelect={handleSelectConversation}
                           onPin={onPin}
                           onArchive={onArchive}
                           onDelete={onDelete}
@@ -140,6 +261,37 @@ export function ConversationSidebar({
           )}
         </div>
       </ScrollArea>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversations?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedConversations.size} conversation
+              {selectedConversations.size !== 1 ? "s" : ""}? This will permanently delete all messages in{" "}
+              {selectedConversations.size === 1 ? "this conversation" : "these conversations"}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBulkDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              disabled={isBulkDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isBulkDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
