@@ -142,6 +142,7 @@ export default function Home() {
     date: string;
     category: string;
     description?: string;
+    groupId?: string | null;
   }) => {
     if (!pendingMessageId || !user) return;
 
@@ -156,6 +157,7 @@ export default function Home() {
         category: editedData.category,
         description: editedData.description,
         userId: user.uid,
+        groupId: editedData.groupId,
       });
 
       if (!result.success) {

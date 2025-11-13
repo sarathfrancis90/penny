@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Expense } from "@/lib/types";
 
@@ -18,12 +18,11 @@ export function useGroupExpenses(groupId: string | null) {
     setLoading(true);
     setError(null);
 
-    // Query expenses for this group
+    // Query expenses for this group (no orderBy to avoid composite index requirement)
     const expensesQuery = query(
       collection(db, "expenses"),
       where("groupId", "==", groupId),
-      where("expenseType", "==", "group"),
-      orderBy("date", "desc")
+      where("expenseType", "==", "group")
     );
 
     const unsubscribe = onSnapshot(
@@ -33,6 +32,11 @@ export function useGroupExpenses(groupId: string | null) {
           id: doc.id,
           ...doc.data(),
         })) as Expense[];
+
+        // Sort in memory by date descending
+        expensesData.sort((a, b) => {
+          return b.date.toMillis() - a.date.toMillis();
+        });
 
         setExpenses(expensesData);
         setLoading(false);

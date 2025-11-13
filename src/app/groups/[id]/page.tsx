@@ -13,7 +13,6 @@ import {
   Loader2, 
   Users, 
   Settings, 
-  UserPlus, 
   DollarSign, 
   Calendar,
   ArrowLeft,

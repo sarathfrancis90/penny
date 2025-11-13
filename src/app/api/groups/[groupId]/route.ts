@@ -170,7 +170,7 @@ export async function PATCH(
       
       // Filter out undefined values from settings (Firestore doesn't allow undefined)
       const cleanedSettings = Object.fromEntries(
-        Object.entries(settings).filter(([_, value]) => value !== undefined)
+        Object.entries(settings).filter(([, value]) => value !== undefined)
       );
       
       updateData.settings = {

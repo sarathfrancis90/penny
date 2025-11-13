@@ -30,6 +30,7 @@ interface OfflineSyncResult {
       date: string;
       category: string;
       description?: string;
+      groupId?: string | null;
     }
   ) => Promise<number>;
   analyzeExpense: (
@@ -43,6 +44,7 @@ interface OfflineSyncResult {
     category: string;
     description?: string;
     userId: string;
+    groupId?: string | null;
   }) => Promise<{ success: boolean; id?: string; error?: string }>;
 }
 
@@ -314,6 +316,7 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
       category: string;
       description?: string;
       userId: string;
+      groupId?: string | null;
     }): Promise<{ success: boolean; id?: string; error?: string }> => {
       if (isOnline) {
         // Try online first
