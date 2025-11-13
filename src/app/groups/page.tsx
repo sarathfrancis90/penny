@@ -2,6 +2,7 @@
 
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
+import { useGroupStats } from "@/hooks/useGroupStats";
 import { CreateGroupDialog } from "@/components/groups";
 import { GroupInvitations } from "@/components/groups";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 
 export default function GroupsPage() {
   const { groups, loading, error } = useGroups();
+  const groupStats = useGroupStats(); // Real-time stats for all groups
 
   if (loading) {
     return (
@@ -116,11 +118,11 @@ export default function GroupsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <DollarSign className="h-4 w-4" />
-                          <span>{group.stats?.expenseCount || 0} expenses</span>
+                          <span>{groupStats[group.id]?.expenseCount || 0} expenses</span>
                         </div>
                       </div>
 
-                      {group.stats && group.stats.totalAmount > 0 && (
+                      {groupStats[group.id] && groupStats[group.id].totalAmount > 0 && (
                         <div className="pt-3 border-t border-border/50">
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-muted-foreground flex items-center gap-1">
@@ -128,7 +130,7 @@ export default function GroupsPage() {
                               Total
                             </span>
                             <span className="text-lg font-bold gradient-text">
-                              ${group.stats.totalAmount.toFixed(2)}
+                              ${groupStats[group.id].totalAmount.toFixed(2)}
                             </span>
                           </div>
                         </div>
