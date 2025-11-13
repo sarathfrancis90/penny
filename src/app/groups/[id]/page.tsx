@@ -6,10 +6,13 @@ import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useGroupExpenses } from "@/hooks/useGroupExpenses";
+import { useExpenses } from "@/hooks/useExpenses";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CompactStatCard } from "@/components/mobile-first";
+import { ExpenseListView } from "@/components/dashboard/expense-list-view";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,9 +56,11 @@ interface GroupDetailPageProps {
 export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const { id: groupId } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
   const { groups, loading: groupsLoading } = useGroups();
   const { members, myMembership, loading: membersLoading } = useGroupMembers(groupId);
   const { expenses, loading: expensesLoading } = useGroupExpenses(groupId);
+  const { deleteExpense, updateExpense } = useExpenses(user?.uid);
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -317,7 +322,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
               <DollarSign className="h-5 w-5 text-fuchsia-500" />
               Group Expenses ({expenses.length})
             </CardTitle>
-            <CardDescription>View and manage expenses for this group</CardDescription>
+            <CardDescription>View, edit, and manage expenses for this group. Select multiple expenses to delete them in bulk.</CardDescription>
           </CardHeader>
           <CardContent>
             {expensesLoading ? (
@@ -335,37 +340,11 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {expenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border/50 hover:border-fuchsia-500/50 transition-all hover:shadow-md gap-3"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <p className="font-semibold truncate">{expense.vendor}</p>
-                        <Badge variant="secondary" className="text-xs shrink-0">
-                          {expense.category}
-                        </Badge>
-                      </div>
-                      {expense.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">{expense.description}</p>
-                      )}
-                      <div className="flex items-center gap-2 mt-2">
-                        <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
-                        <span className="text-xs text-muted-foreground">
-                          {expense.date.toDate().toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right sm:text-right shrink-0">
-                      <p className="text-2xl sm:text-xl font-bold gradient-text whitespace-nowrap">
-                        ${expense.amount.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ExpenseListView
+                expenses={expenses}
+                onDelete={deleteExpense}
+                onUpdate={updateExpense}
+              />
             )}
           </CardContent>
         </Card>
