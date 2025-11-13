@@ -110,11 +110,12 @@ export async function POST(request: NextRequest) {
       createdAt: now,
       updatedAt: now,
       settings: {
-        defaultCategory: settings?.defaultCategory || undefined,
-        budget: settings?.budget || undefined,
+        // Only include optional fields if they have values (Firestore doesn't allow undefined)
+        ...(settings?.defaultCategory && { defaultCategory: settings.defaultCategory }),
+        ...(settings?.budget && { budget: settings.budget }),
         budgetPeriod: settings?.budgetPeriod || "monthly",
-        requireApproval: settings?.requireApproval || false,
-        allowMemberInvites: settings?.allowMemberInvites || true,
+        requireApproval: settings?.requireApproval ?? false,
+        allowMemberInvites: settings?.allowMemberInvites ?? true,
         currency: settings?.currency || "CAD",
       },
       status: "active",

@@ -168,9 +168,14 @@ export async function PATCH(
       const groupDoc = await adminDb.collection("groups").doc(groupId).get();
       const currentSettings = groupDoc.data()?.settings || {};
       
+      // Filter out undefined values from settings (Firestore doesn't allow undefined)
+      const cleanedSettings = Object.fromEntries(
+        Object.entries(settings).filter(([_, value]) => value !== undefined)
+      );
+      
       updateData.settings = {
         ...currentSettings,
-        ...settings,
+        ...cleanedSettings,
       };
     }
 
