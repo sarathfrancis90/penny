@@ -21,7 +21,7 @@ export function EmptyConversation({ onUploadClick, onDescribeClick }: EmptyConve
         </h1>
         <p className="text-muted-foreground text-sm md:text-base max-w-md">
           Your smart expense tracking assistant. Upload receipts or describe your expenses,
-          and I'll help you track them effortlessly.
+          and I&apos;ll help you track them effortlessly.
         </p>
       </div>
 
@@ -32,7 +32,7 @@ export function EmptyConversation({ onUploadClick, onDescribeClick }: EmptyConve
           onClick={onUploadClick}
         >
           <CardContent className="p-6 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-900 mb-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-900 mb-3" role="img" aria-label="Upload receipt">
               <Image className="h-6 w-6 text-violet-600 dark:text-violet-400" />
             </div>
             <h3 className="font-semibold mb-1">Upload Receipt</h3>

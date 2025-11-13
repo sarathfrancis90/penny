@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { expenseCategories } from "@/lib/categories";
-import { Pencil, Trash2, Calendar as CalendarIcon, Loader2, CheckSquare, Square } from "lucide-react";
+import { Pencil, Trash2, Calendar as CalendarIcon, Loader2, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";

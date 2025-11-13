@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Timestamp } from "firebase/firestore";
 import { useAuth } from "./useAuth";
 
 interface CreateConversationData {

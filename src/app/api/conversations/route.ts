@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
     const limitParam = searchParams.get("limit");
-    const offsetParam = searchParams.get("offset");
     const includeArchived = searchParams.get("includeArchived") === "true";
 
     if (!userId) {
@@ -22,7 +21,6 @@ export async function GET(request: NextRequest) {
     }
 
     const limit = limitParam ? parseInt(limitParam, 10) : 20;
-    const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
     // Build query
     let query = adminDb

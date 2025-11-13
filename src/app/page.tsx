@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 
 interface PendingExpense {
   vendor: string;
@@ -61,9 +60,8 @@ export default function Home() {
 
   // Conversation hooks
   const { conversations, loading: conversationsLoading, refetch: refetchConversations } = useConversations();
-  const { conversation, messages: conversationMessages, loading: conversationLoading, updateLastAccessed } = useConversation(conversationIdFromUrl);
+  const { conversation, messages: conversationMessages, updateLastAccessed } = useConversation(conversationIdFromUrl);
   const {
-    creating,
     updating,
     deleting,
     createConversation,

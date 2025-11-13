@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Search, Loader2 } from "lucide-react";
-import { formatDistanceToNow, isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
+import { isToday, isYesterday, isThisWeek, isThisMonth } from "date-fns";
 
 interface ConversationSidebarProps {
   conversations: Conversation[];

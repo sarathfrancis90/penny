@@ -176,11 +176,6 @@ export default function DashboardPage() {
     [categorySummaries]
   );
 
-  const topCategory = useMemo(
-    () => (categorySummaries.length > 0 ? categorySummaries[0] : null),
-    [categorySummaries]
-  );
-
   // Prepare data for the chart (top 10 categories)
   const chartData = useMemo(
     () =>

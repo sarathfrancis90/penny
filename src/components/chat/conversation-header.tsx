@@ -17,7 +17,6 @@ import {
   Pin,
   Menu,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface ConversationHeaderProps {
   conversation: Conversation | null;

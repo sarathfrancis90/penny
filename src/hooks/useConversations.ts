@@ -5,9 +5,7 @@ import {
   where,
   orderBy,
   limit as limitQuery,
-  startAfter,
   onSnapshot,
-  Timestamp,
   Query,
   DocumentSnapshot,
 } from "firebase/firestore";
@@ -133,33 +131,10 @@ export function useConversations(
   const loadMore = () => {
     if (!userId || !lastVisible || !hasMore) return;
 
-    try {
-      // Build query for next page
-      let q: Query = query(
-        collection(db, "conversations"),
-        where("userId", "==", userId),
-        orderBy("updatedAt", "desc"),
-        startAfter(lastVisible),
-        limitQuery(pageLimit + 1)
-      );
-
-      if (!includeArchived) {
-        q = query(
-          collection(db, "conversations"),
-          where("userId", "==", userId),
-          where("status", "==", "active"),
-          orderBy("updatedAt", "desc"),
-          startAfter(lastVisible),
-          limitQuery(pageLimit + 1)
-        );
-      }
-
-      // Note: For pagination, we might want to use getDocs instead of onSnapshot
-      // to avoid multiple subscriptions. Keeping it simple for now.
-    } catch (err) {
-      console.error("Error loading more conversations:", err);
-      setError("Failed to load more conversations");
-    }
+    // Note: Load more functionality is prepared but not yet implemented
+    // For now, we load the first page only. Future enhancement: implement
+    // infinite scroll with startAfter cursor-based pagination
+    console.log("Load more functionality coming soon");
   };
 
   const refetch = () => {
