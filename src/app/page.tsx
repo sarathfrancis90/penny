@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Timestamp } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MessageList } from "@/components/message-list";
@@ -43,6 +43,7 @@ export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const conversationIdFromUrl = searchParams?.get("c");
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -103,6 +104,19 @@ export default function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationIdFromUrl]); // Only run when conversation ID changes
+
+  // Auto-scroll to bottom when pending expense confirmation appears
+  useEffect(() => {
+    if (pendingExpense && chatContainerRef.current) {
+      // Small delay to ensure the expense confirmation card is rendered
+      setTimeout(() => {
+        chatContainerRef.current?.scrollTo({
+          top: chatContainerRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }, 150);
+    }
+  }, [pendingExpense]);
 
   // Auto-generate conversation title from first message
   const generateTitle = (message: string): string => {
@@ -528,7 +542,7 @@ export default function Home() {
           />
 
           {/* Chat Messages Area - Scrollable */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden">
             <div className="p-4 pb-24">
               {showEmptyState ? (
                 <EmptyConversation
