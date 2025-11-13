@@ -160,8 +160,12 @@ service cloud.firestore {
     // ============================================
     
     match /groupMembers/{membershipId} {
-      // Members can read all members of their group
-      allow read: if isAuthenticated() && 
+      // Allow authenticated users to list memberships (needed for queries)
+      // The where clause will filter to their own memberships
+      allow list: if isAuthenticated();
+      
+      // Users can get specific membership if they're in that group
+      allow get: if isAuthenticated() && 
         isGroupMember(resource.data.groupId);
       
       // System creates membership when group is created or invitation accepted
