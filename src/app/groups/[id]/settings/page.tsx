@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
@@ -82,7 +82,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const [actionLoading, setActionLoading] = useState(false);
 
   // Update form when group loads
-  useState(() => {
+  useEffect(() => {
     if (group) {
       setName(group.name);
       setDescription(group.description || "");
@@ -95,7 +95,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       setBudget(group.settings.budget?.toString() || "");
       setBudgetPeriod(group.settings.budgetPeriod || "monthly");
     }
-  });
+  }, [group]);
 
   const isOwner = myMembership?.role === "owner";
   const isAdmin = myMembership?.role === "admin";
