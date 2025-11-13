@@ -169,8 +169,8 @@ export default function Home() {
     let currentConversationId = conversationIdFromUrl;
 
     // Create new conversation if none exists
-    if (!currentConversationId && message) {
-      const title = generateTitle(message);
+    if (!currentConversationId && (message || image)) {
+      const title = message ? generateTitle(message) : "Receipt Upload";
       const newConversationId = await createConversation({
         title,
         firstMessage: message || "📷 Uploaded a receipt",
@@ -180,6 +180,8 @@ export default function Home() {
       if (newConversationId) {
         currentConversationId = newConversationId;
         router.push(`/?c=${newConversationId}`);
+        // Small delay to ensure conversation is created before adding messages
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
@@ -214,6 +216,9 @@ export default function Home() {
 
     setMessages((prev) => [...prev, userMessage]);
     setIsProcessing(true);
+
+    // Note: First message is already saved by createConversation,
+    // so we don't need to save the user message again
 
     // Add "thinking" message
     const thinkingMessage: ChatMessage = {
