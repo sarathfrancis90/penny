@@ -59,121 +59,125 @@ export function ViewExpenseModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle className="text-2xl">Expense Details</DialogTitle>
           <DialogDescription>
             View complete information about this expense
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Amount - Large and Prominent */}
-          <div className="flex items-center justify-center p-6 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950 dark:to-fuchsia-950 rounded-2xl border-2 border-violet-200 dark:border-violet-800">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <DollarSign className="h-8 w-8 text-violet-600 dark:text-violet-400" />
-                <span className="text-5xl font-bold gradient-text">
-                  ${expense.amount.toFixed(2)}
-                </span>
+        {/* Scrollable Content */}
+        <div className="overflow-y-auto px-6 py-2 flex-1">
+          <div className="space-y-4">
+            {/* Amount - Compact and Prominent */}
+            <div className="flex items-center justify-center p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950 dark:to-fuchsia-950 rounded-xl border-2 border-violet-200 dark:border-violet-800">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <DollarSign className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                  <span className="text-4xl font-bold gradient-text">
+                    ${expense.amount.toFixed(2)}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">Total Amount</p>
               </div>
-              <p className="text-sm text-muted-foreground">Total Amount</p>
             </div>
-          </div>
 
-          <Separator />
+            <Separator />
 
-          {/* Vendor */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <Store className="h-4 w-4" />
-              <span>Vendor</span>
-            </div>
-            <p className="text-lg font-semibold pl-6">{expense.vendor}</p>
-          </div>
-
-          {/* Date */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>Date</span>
-            </div>
-            <p className="text-lg pl-6">
-              {format(expenseDate, "EEEE, MMMM d, yyyy")}
-            </p>
-          </div>
-
-          {/* Category */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <Tag className="h-4 w-4" />
-              <span>Category</span>
-            </div>
-            <div className="pl-6">
-              <Badge variant="secondary" className="text-base px-4 py-1">
-                {expense.category}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Description */}
-          {expense.description && (
-            <div className="space-y-2">
+            {/* Vendor */}
+            <div className="space-y-1">
               <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                <FileText className="h-4 w-4" />
-                <span>Description</span>
+                <Store className="h-4 w-4" />
+                <span>Vendor</span>
               </div>
-              <p className="text-base pl-6 text-muted-foreground leading-relaxed">
-                {expense.description}
+              <p className="text-lg font-semibold pl-6">{expense.vendor}</p>
+            </div>
+
+            {/* Date */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Calendar className="h-4 w-4" />
+                <span>Date</span>
+              </div>
+              <p className="text-base pl-6">
+                {format(expenseDate, "EEEE, MMMM d, yyyy")}
               </p>
             </div>
-          )}
 
-          {/* Group Info */}
-          {expense.groupId && (
-            <>
-              <Separator />
-              <div className="space-y-2">
+            {/* Category */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Tag className="h-4 w-4" />
+                <span>Category</span>
+              </div>
+              <div className="pl-6">
+                <Badge variant="secondary" className="text-sm px-3 py-0.5">
+                  {expense.category}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Description */}
+            {expense.description && (
+              <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                  <Users className="h-4 w-4" />
-                  <span>Group Expense</span>
+                  <FileText className="h-4 w-4" />
+                  <span>Description</span>
                 </div>
-                <div className="pl-6">
-                  <Badge variant="outline" className="text-sm">
-                    {expense.expenseType === "group" ? "Shared Expense" : "Personal Expense"}
-                  </Badge>
-                </div>
+                <p className="text-sm pl-6 text-muted-foreground leading-relaxed">
+                  {expense.description}
+                </p>
               </div>
-            </>
-          )}
+            )}
 
-          {/* Metadata - Created/Updated */}
-          {(expense.createdAt || expense.updatedAt) && (
-            <>
-              <Separator />
-              <div className="space-y-3 pl-6">
-                {expense.createdAt && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>
-                      Created {format(parseLocalDate(expense.createdAt), "MMM d, yyyy 'at' h:mm a")}
-                    </span>
+            {/* Group Info */}
+            {expense.groupId && (
+              <>
+                <Separator />
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>Group Expense</span>
                   </div>
-                )}
-                {expense.updatedAt && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    <span>
-                      Updated {format(parseLocalDate(expense.updatedAt), "MMM d, yyyy 'at' h:mm a")}
-                    </span>
+                  <div className="pl-6">
+                    <Badge variant="outline" className="text-xs">
+                      {expense.expenseType === "group" ? "Shared Expense" : "Personal Expense"}
+                    </Badge>
                   </div>
-                )}
-              </div>
-            </>
-          )}
+                </div>
+              </>
+            )}
+
+            {/* Metadata - Created/Updated */}
+            {(expense.createdAt || expense.updatedAt) && (
+              <>
+                <Separator />
+                <div className="space-y-2 pl-6">
+                  {expense.createdAt && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        Created {format(parseLocalDate(expense.createdAt), "MMM d, yyyy 'at' h:mm a")}
+                      </span>
+                    </div>
+                  )}
+                  {expense.updatedAt && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        Updated {format(parseLocalDate(expense.updatedAt), "MMM d, yyyy 'at' h:mm a")}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        {/* Sticky Footer */}
+        <DialogFooter className="flex-col sm:flex-row gap-2 px-6 py-4 border-t bg-background/95 backdrop-blur-sm sticky bottom-0">
           <Button
             variant="outline"
             onClick={onClose}
