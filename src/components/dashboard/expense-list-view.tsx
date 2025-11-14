@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Expense } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { ViewExpenseModal } from "./view-expense-modal";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { expenseCategories } from "@/lib/categories";
-import { Pencil, Trash2, Calendar as CalendarIcon, Loader2, CheckSquare } from "lucide-react";
+import { Trash2, Calendar as CalendarIcon, Loader2, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -47,6 +48,7 @@ interface ExpenseListViewProps {
 }
 
 export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListViewProps) {
+  const [viewingExpense, setViewingExpense] = useState<Expense | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -76,6 +78,10 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
     // Handle regular Date or string
     const date = new Date(timestamp as string | Date);
     return isNaN(date.getTime()) ? new Date() : date;
+  };
+
+  const handleRowClick = (expense: Expense) => {
+    setViewingExpense(expense);
   };
 
   const handleEditClick = (expense: Expense) => {
@@ -190,6 +196,14 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
   return (
     <>
+      {/* View Expense Modal */}
+      <ViewExpenseModal
+        expense={viewingExpense}
+        open={!!viewingExpense}
+        onClose={() => setViewingExpense(null)}
+        onEdit={handleEditClick}
+        onDelete={(expenseId) => setDeleteConfirm(expenseId)}
+      />
       {/* Bulk Actions Bar */}
       {selectedExpenses.size > 0 && (
         <div className="mb-4 flex items-center justify-between p-4 bg-violet-50 dark:bg-violet-950/30 rounded-lg border-2 border-violet-200 dark:border-violet-800 animate-in slide-in-from-top duration-300">
@@ -238,13 +252,21 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
               <TableHead>Category</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead className="hidden md:table-cell">Description</TableHead>
-              <TableHead className="text-center sticky right-0 bg-background shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)] z-10">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {expenses.map((expense) => (
-              <TableRow key={expense.id} className={cn(selectedExpenses.has(expense.id!) && "bg-violet-50 dark:bg-violet-950/20")}>
-                <TableCell>
+              <TableRow 
+                key={expense.id} 
+                className={cn(
+                  "cursor-pointer transition-colors",
+                  selectedExpenses.has(expense.id!) 
+                    ? "bg-violet-50 dark:bg-violet-950/20" 
+                    : "hover:bg-muted/50"
+                )}
+                onClick={() => handleRowClick(expense)}
+              >
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={selectedExpenses.has(expense.id!)}
                     onCheckedChange={(checked) => handleSelectExpense(expense.id!, checked as boolean)}
@@ -261,29 +283,6 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
                 </TableCell>
                 <TableCell className="max-w-[200px] truncate hidden md:table-cell">
                   {expense.description || "-"}
-                </TableCell>
-                <TableCell className="sticky right-0 bg-background shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)]">
-                  <div className="flex items-center justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditClick(expense)}
-                      disabled={isProcessing}
-                      title="Edit expense"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteConfirm(expense.id!)}
-                      disabled={isProcessing}
-                      title="Delete expense"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
                 </TableCell>
               </TableRow>
             ))}
