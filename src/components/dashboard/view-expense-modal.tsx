@@ -60,7 +60,7 @@ export function ViewExpenseModal({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
+        <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
           <DialogTitle className="text-2xl">Expense Details</DialogTitle>
           <DialogDescription>
             View complete information about this expense
@@ -68,7 +68,7 @@ export function ViewExpenseModal({
         </DialogHeader>
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto px-6 py-2 flex-1">
+        <div className="overflow-y-auto px-6 py-2 pb-4 flex-1">
           <div className="space-y-4">
             {/* Amount - Compact and Prominent */}
             <div className="flex items-center justify-center p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950 dark:to-fuchsia-950 rounded-xl border-2 border-violet-200 dark:border-violet-800">
@@ -176,8 +176,8 @@ export function ViewExpenseModal({
           </div>
         </div>
 
-        {/* Sticky Footer */}
-        <DialogFooter className="flex-col sm:flex-row gap-2 px-6 py-4 border-t bg-background/95 backdrop-blur-sm sticky bottom-0">
+        {/* Fixed Footer */}
+        <DialogFooter className="flex-col sm:flex-row gap-2 px-6 py-4 border-t bg-background flex-shrink-0">
           <Button
             variant="outline"
             onClick={onClose}
