@@ -301,7 +301,7 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
       <Dialog open={!!editingExpense} onOpenChange={() => setEditingExpense(null)}>
         <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Expense</DialogTitle>
+            <DialogTitle className="text-2xl">Edit Expense</DialogTitle>
             <DialogDescription>
               Make changes to your expense details here.
             </DialogDescription>
@@ -310,46 +310,47 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
           <div className="space-y-4 py-4">
             {/* Vendor */}
             <div className="space-y-2">
-              <Label htmlFor="edit-vendor">Vendor</Label>
+              <Label htmlFor="edit-vendor" className="text-sm font-semibold">Vendor</Label>
               <Input
                 id="edit-vendor"
                 value={editVendor}
                 onChange={(e) => setEditVendor(e.target.value)}
                 placeholder="Enter vendor name"
                 disabled={isProcessing}
+                className="text-base"
               />
             </div>
 
-            {/* Amount */}
+            {/* Amount - Highlighted */}
             <div className="space-y-2">
-              <Label htmlFor="edit-amount">Amount (CAD)</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  $
-                </span>
-                <Input
-                  id="edit-amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={editAmount}
-                  onChange={(e) => setEditAmount(e.target.value)}
-                  placeholder="0.00"
-                  className="pl-7"
-                  disabled={isProcessing}
-                />
+              <Label htmlFor="edit-amount" className="text-sm font-semibold">Amount (CAD)</Label>
+              <div className="relative p-4 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-950/30 dark:to-fuchsia-950/30 rounded-xl border-2 border-violet-200 dark:border-violet-800">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-violet-600 dark:text-violet-400">$</span>
+                  <Input
+                    id="edit-amount"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="text-2xl font-bold border-0 bg-transparent p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+                    disabled={isProcessing}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Date */}
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label className="text-sm font-semibold">Date</Label>
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal text-base h-11",
                       !editDate && "text-muted-foreground"
                     )}
                     disabled={isProcessing}
@@ -376,13 +377,13 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
             {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="edit-category">Category</Label>
+              <Label htmlFor="edit-category" className="text-sm font-semibold">Category</Label>
               <Select
                 value={editCategory}
                 onValueChange={setEditCategory}
                 disabled={isProcessing}
               >
-                <SelectTrigger id="edit-category">
+                <SelectTrigger id="edit-category" className="h-11">
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
@@ -397,26 +398,32 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description (Optional)</Label>
+              <Label htmlFor="edit-description" className="text-sm font-semibold">Description (Optional)</Label>
               <Input
                 id="edit-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 placeholder="Add a note about this expense"
                 disabled={isProcessing}
+                className="text-base"
               />
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setEditingExpense(null)}
               disabled={isProcessing}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button onClick={handleEditSave} disabled={isProcessing}>
+            <Button 
+              onClick={handleEditSave} 
+              disabled={isProcessing}
+              className="w-full sm:w-auto bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white"
+            >
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -434,16 +441,17 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Expense</DialogTitle>
+            <DialogTitle className="text-2xl">Delete Expense</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this expense? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setDeleteConfirm(null)}
               disabled={isProcessing}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -451,6 +459,7 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
               variant="destructive"
               onClick={() => deleteConfirm && handleDeleteClick(deleteConfirm)}
               disabled={isProcessing}
+              className="w-full sm:w-auto"
             >
               {isProcessing ? (
                 <>
@@ -469,16 +478,17 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
       <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Multiple Expenses?</DialogTitle>
+            <DialogTitle className="text-2xl">Delete Multiple Expenses?</DialogTitle>
             <DialogDescription>
               You are about to permanently delete <strong>{selectedExpenses.size}</strong> {selectedExpenses.size === 1 ? "expense" : "expenses"}. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               variant="outline"
               onClick={() => setBulkDeleteDialogOpen(false)}
               disabled={isBulkDeleting}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -486,6 +496,7 @@ export function ExpenseListView({ expenses, onDelete, onUpdate }: ExpenseListVie
               variant="destructive"
               onClick={handleBulkDelete}
               disabled={isBulkDeleting}
+              className="w-full sm:w-auto"
             >
               {isBulkDeleting ? (
                 <>
