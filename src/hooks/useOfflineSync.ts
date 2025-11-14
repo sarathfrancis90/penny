@@ -45,6 +45,8 @@ interface OfflineSyncResult {
     description?: string;
     userId: string;
     groupId?: string | null;
+    receiptUrl?: string;
+    receiptPath?: string;
   }) => Promise<{ success: boolean; id?: string; error?: string }>;
 }
 
@@ -317,6 +319,8 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
       description?: string;
       userId: string;
       groupId?: string | null;
+      receiptUrl?: string;
+      receiptPath?: string;
     }): Promise<{ success: boolean; id?: string; error?: string }> => {
       if (isOnline) {
         // Try online first

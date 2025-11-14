@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Timestamp } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
+import { uploadReceipt } from "@/lib/storageService";
 import { MessageList } from "@/components/message-list";
 import { ChatInput } from "@/components/chat-input";
 import { ExpenseConfirmationCard } from "@/components/expense-confirmation-card";
@@ -49,6 +50,7 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingExpense, setPendingExpense] = useState<PendingExpense | null>(null);
   const [pendingMessageId, setPendingMessageId] = useState<string | null>(null);
+  const [currentReceiptFile, setCurrentReceiptFile] = useState<File | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
@@ -274,6 +276,10 @@ export default function Home() {
       setMessages((prev) => [...prev, confirmationMessage]);
       setPendingExpense(expenseData);
       setPendingMessageId(confirmationMessageId);
+      // Store the receipt file for later upload
+      if (image) {
+        setCurrentReceiptFile(image);
+      }
 
       // Save messages to conversation
       if (currentConversationId) {
@@ -316,6 +322,22 @@ export default function Home() {
     setIsProcessing(true);
 
     try {
+      // Upload receipt image if available
+      let receiptUrl: string | undefined;
+      let receiptPath: string | undefined;
+      
+      if (currentReceiptFile) {
+        try {
+          const uploadResult = await uploadReceipt(currentReceiptFile, user.uid);
+          receiptUrl = uploadResult.url;
+          receiptPath = uploadResult.path;
+          console.log("Receipt uploaded successfully:", uploadResult);
+        } catch (uploadError) {
+          console.error("Failed to upload receipt:", uploadError);
+          // Continue saving expense even if receipt upload fails
+        }
+      }
+
       const result = await saveExpense({
         vendor: editedData.vendor,
         amount: editedData.amount,
@@ -324,6 +346,8 @@ export default function Home() {
         description: editedData.description,
         userId: user.uid,
         groupId: editedData.groupId,
+        receiptUrl,
+        receiptPath,
       });
 
       if (!result.success) {
@@ -350,6 +374,7 @@ export default function Home() {
       setMessages((prev) => [...prev, successMessage]);
       setPendingExpense(null);
       setPendingMessageId(null);
+      setCurrentReceiptFile(null); // Clear receipt file
 
       // Save success message to conversation with expense data
       if (conversationIdFromUrl && result.id) {
@@ -409,6 +434,7 @@ export default function Home() {
     setMessages((prev) => [...prev, cancelMessage]);
     setPendingExpense(null);
     setPendingMessageId(null);
+    setCurrentReceiptFile(null); // Clear receipt file
 
     // Save cancel message to conversation
     if (conversationIdFromUrl) {
@@ -422,6 +448,7 @@ export default function Home() {
     setMessages([]);
     setPendingExpense(null);
     setPendingMessageId(null);
+    setCurrentReceiptFile(null);
   };
 
   const handleConversationSelect = (conversationId: string) => {

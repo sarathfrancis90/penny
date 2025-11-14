@@ -23,6 +23,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import { ReceiptDisplay } from "@/components/receipt/ReceiptDisplay";
 import { format } from "date-fns";
 
 interface ViewExpenseModalProps {
@@ -129,6 +130,14 @@ export function ViewExpenseModal({
                   {expense.description}
                 </p>
               </div>
+            )}
+
+            {/* Receipt Image */}
+            {expense.receiptUrl && (
+              <>
+                <Separator />
+                <ReceiptDisplay receiptUrl={expense.receiptUrl} />
+              </>
             )}
 
             {/* Group Info */}

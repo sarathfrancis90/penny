@@ -10,6 +10,7 @@ interface CreateExpenseRequest {
   description?: string;
   userId: string;
   receiptUrl?: string;
+  receiptPath?: string;
   groupId?: string | null;
 }
 
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: CreateExpenseRequest = await request.json();
-    const { vendor, amount, date, category, description, userId, receiptUrl, groupId } =
+    const { vendor, amount, date, category, description, userId, receiptUrl, receiptPath, groupId } =
       body;
 
     // Validate required fields
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       description: description || "",
       userId,
       receiptUrl: receiptUrl || null,
+      receiptPath: receiptPath || null,
       groupId: groupId || null,
       expenseType,
       createdAt: now,

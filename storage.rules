@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the resource
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Helper function to validate image file
+    function isValidImage() {
+      return request.resource.size < 10 * 1024 * 1024 // 10 MB max
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    // Receipts storage: /receipts/{userId}/{fileName}
+    match /receipts/{userId}/{fileName} {
+      // Allow read if authenticated and owner
+      allow read: if isAuthenticated() && isOwner(userId);
+      
+      // Allow write if authenticated, owner, and valid image
+      allow write: if isAuthenticated() 
+        && isOwner(userId) 
+        && isValidImage();
+      
+      // Allow delete if authenticated and owner
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // Conversation attachments: /conversations/{userId}/{conversationId}/{fileName}
+    match /conversations/{userId}/{conversationId}/{fileName} {
+      // Allow read if authenticated and owner
+      allow read: if isAuthenticated() && isOwner(userId);
+      
+      // Allow write if authenticated, owner, and valid image
+      allow write: if isAuthenticated() 
+        && isOwner(userId) 
+        && isValidImage();
+      
+      // Allow delete if authenticated and owner
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+    
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

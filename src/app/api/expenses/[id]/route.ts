@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { deleteReceipt } from "@/lib/storageService";
 
 interface UpdateExpenseRequest {
   vendor?: string;
@@ -23,6 +24,21 @@ export async function DELETE(
         { error: "Expense ID is required" },
         { status: 400 }
       );
+    }
+
+    // Get the expense document first to check for receipt
+    const expenseDoc = await adminDb.collection("expenses").doc(id).get();
+    const expenseData = expenseDoc.data();
+
+    // Delete the receipt image if it exists
+    if (expenseData?.receiptPath) {
+      try {
+        await deleteReceipt(expenseData.receiptPath);
+        console.log("Receipt deleted:", expenseData.receiptPath);
+      } catch (receiptError) {
+        console.error("Failed to delete receipt:", receiptError);
+        // Continue with expense deletion even if receipt deletion fails
+      }
     }
 
     // Delete the expense document using Admin SDK (bypasses security rules)
