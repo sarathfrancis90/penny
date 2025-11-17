@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import {
-  calculateBudgetUsage,
+  calculateSimpleBudgetUsage,
   calculateTrend,
   getCurrentPeriod,
 } from "@/lib/budgetCalculations";
@@ -83,7 +83,6 @@ export async function GET(
       const budget = doc.data();
       const category = budget.category;
       const budgetLimit = budget.monthlyLimit;
-      const alertThreshold = budget.settings?.alertThreshold || 80;
 
       // Filter expenses for this category
       const categoryExpenses = expenses.filter(
@@ -95,7 +94,7 @@ export async function GET(
       );
 
       // Calculate basic usage
-      const usage = calculateBudgetUsage(budgetLimit, totalSpent, alertThreshold);
+      const usage = calculateSimpleBudgetUsage(budgetLimit, totalSpent);
 
       // Calculate trend (requires previous month's data)
       const previousMonth = month === 1 ? 12 : month - 1;
@@ -112,7 +111,7 @@ export async function GET(
         .get()
         .then((prevSnapshot) => {
           const prevExpenses = prevSnapshot.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
+            .map((d) => ({ id: d.id, ...d.data() } as Expense))
             .filter((exp) => exp.category === category);
 
           const prevTotalSpent = prevExpenses.reduce(

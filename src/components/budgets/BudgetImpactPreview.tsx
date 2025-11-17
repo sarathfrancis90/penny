@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
 import { useGroupBudgets } from "@/hooks/useGroupBudgets";
 import { useBudgetUsage } from "@/hooks/useBudgetUsage";
-import { getCurrentPeriod, calculateBudgetUsage, formatCurrency } from "@/lib/budgetCalculations";
+import { getCurrentPeriod, calculateSimpleBudgetUsage, formatCurrency } from "@/lib/budgetCalculations";
 import { BudgetProgressBar } from "./BudgetProgressBar";
 import { BudgetStatusBadge } from "./BudgetStatusBadge";
 import { AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
@@ -92,10 +92,9 @@ export function BudgetImpactPreview({
       ((currentUsage.totalSpent + amount) / relevantBudget.monthlyLimit) * 100,
   };
 
-  const newUsage = calculateBudgetUsage(
+  const newUsage = calculateSimpleBudgetUsage(
     relevantBudget.monthlyLimit,
-    afterExpense.totalSpent,
-    relevantBudget.settings?.alertThreshold || 80
+    afterExpense.totalSpent
   );
 
   const statusChanged = newUsage.status !== currentUsage.status;

@@ -11,8 +11,6 @@ import type {
   BudgetUsage,
   BudgetPeriod,
   Expense,
-  PersonalBudget,
-  GroupBudget,
 } from "./types";
 
 /**
@@ -72,6 +70,25 @@ export function getBudgetStatus(percentageUsed: number): BudgetStatus {
 }
 
 /**
+ * Calculate simple budget usage from totals (for API routes)
+ */
+export function calculateSimpleBudgetUsage(
+  budgetLimit: number,
+  totalSpent: number
+) {
+  const percentageUsed = budgetLimit > 0 ? (totalSpent / budgetLimit) * 100 : 0;
+  const remainingAmount = budgetLimit - totalSpent;
+  const status = getBudgetStatus(percentageUsed);
+
+  return {
+    totalSpent,
+    remainingAmount,
+    percentageUsed,
+    status,
+  };
+}
+
+/**
  * Calculate budget usage from expenses
  */
 export function calculateBudgetUsage(
@@ -95,11 +112,15 @@ export function calculateBudgetUsage(
   const status = getBudgetStatus(percentageUsed);
   
   // Calculate trend data
+  const previousTotalSpent = (previousMonthExpenses || []).reduce(
+    (sum, exp) => sum + exp.amount,
+    0
+  );
   const trend = calculateTrend(
-    relevantExpenses,
-    previousMonthExpenses || [],
-    period,
-    budgetLimit
+    totalSpent,
+    previousTotalSpent,
+    budgetLimit,
+    period
   );
   
   return {
@@ -117,15 +138,12 @@ export function calculateBudgetUsage(
 /**
  * Calculate spending trends and projections
  */
-function calculateTrend(
-  currentExpenses: Expense[],
-  previousExpenses: Expense[],
-  period: BudgetPeriod,
-  budgetLimit: number
+export function calculateTrend(
+  currentTotal: number,
+  previousTotal: number,
+  budgetLimit: number,
+  period: BudgetPeriod
 ) {
-  const currentTotal = currentExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const previousTotal = previousExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  
   // Month-over-month comparison
   const comparedToPreviousMonth = previousTotal > 0
     ? ((currentTotal - previousTotal) / previousTotal) * 100

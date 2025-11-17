@@ -198,7 +198,7 @@ export function BudgetWidget({ userId, className }: BudgetWidgetProps) {
                     onClick={() => setSelectedGroupId(group.id)}
                     className="flex-shrink-0"
                   >
-                    {group.emoji} {group.name}
+                    {group.icon} {group.name}
                   </Button>
                 ))}
               </div>

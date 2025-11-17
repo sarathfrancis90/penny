@@ -77,7 +77,17 @@ export function ExpenseConfirmationCard({
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [willExceedBudget, setWillExceedBudget] = useState(false);
   const [showOverBudgetModal, setShowOverBudgetModal] = useState(false);
-  const [pendingConfirmData, setPendingConfirmData] = useState<typeof editedData | null>(null);
+
+  type EditedData = {
+    vendor: string;
+    amount: number;
+    date: string;
+    category: string;
+    description?: string;
+    groupId?: string | null;
+  };
+  
+  const [pendingConfirmData, setPendingConfirmData] = useState<EditedData | null>(null);
 
   const { user } = useAuth();
   const { groups } = useGroups();
@@ -119,15 +129,6 @@ export function ExpenseConfirmationCard({
     ? groupUsage.find((u) => u.category === category)
     : personalUsage.find((u) => u.category === category);
   const selectedGroup = groups?.find((g) => g.id === groupId);
-
-  type EditedData = {
-    vendor: string;
-    amount: number;
-    date: string;
-    category: string;
-    description?: string;
-    groupId?: string | null;
-  };
 
   useEffect(() => {
     setVendor(initialVendor);

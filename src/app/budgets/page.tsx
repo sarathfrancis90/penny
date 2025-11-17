@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
 import { useGroupBudgets } from "@/hooks/useGroupBudgets";
@@ -131,7 +131,7 @@ export default function BudgetsPage() {
   const isGroupAdmin = useMemo(() => {
     if (!displayGroupId || !groups) return false;
     const group = groups.find((g) => g.id === displayGroupId);
-    return group?.role === "admin" || group?.role === "owner";
+    return group?.myRole === "admin" || group?.myRole === "owner";
   }, [displayGroupId, groups]);
 
   const resetForm = () => {
@@ -211,14 +211,16 @@ export default function BudgetsPage() {
     setCategory(budget.category);
     setMonthlyLimit(budget.monthlyLimit.toString());
 
-    if (selectedTab === "personal" && "settings" in budget) {
-      setRollover(budget.settings?.rollover || false);
-      setAlertThreshold(budget.settings?.alertThreshold?.toString() || "80");
-      setNotificationsEnabled(budget.settings?.notificationsEnabled || true);
-    } else if (selectedTab === "group" && "settings" in budget) {
-      setAlertMembers(budget.settings?.alertMembers || true);
-      setRequireApproval(budget.settings?.requireApprovalWhenOver || false);
-      setAlertThreshold(budget.settings?.alertThreshold?.toString() || "80");
+    if (selectedTab === "personal") {
+      const personalBudget = budget as typeof personalBudgets[0];
+      setRollover(personalBudget.settings?.rollover || false);
+      setAlertThreshold(personalBudget.settings?.alertThreshold?.toString() || "80");
+      setNotificationsEnabled(personalBudget.settings?.notificationsEnabled || true);
+    } else if (selectedTab === "group") {
+      const groupBudget = budget as typeof groupBudgets[0];
+      setAlertMembers(groupBudget.settings?.alertMembers || true);
+      setRequireApproval(groupBudget.settings?.requireApprovalWhenOver || false);
+      setAlertThreshold(groupBudget.settings?.alertThreshold?.toString() || "80");
     }
 
     setShowEditDialog(true);
@@ -421,7 +423,7 @@ export default function BudgetsPage() {
                         onClick={() => setSelectedGroupId(group.id)}
                         className="flex-shrink-0"
                       >
-                        {group.emoji} {group.name}
+                        {group.icon} {group.name}
                       </Button>
                     ))}
                   </div>

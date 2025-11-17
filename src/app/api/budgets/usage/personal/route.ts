@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import {
-  calculateBudgetUsage,
+  calculateSimpleBudgetUsage,
   calculateTrend,
   getCurrentPeriod,
 } from "@/lib/budgetCalculations";
@@ -59,15 +59,14 @@ export async function GET(request: NextRequest) {
       .map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      }))
-      .filter((expense) => !expense.groupId) as Expense[]; // Only personal expenses
+      } as Expense))
+      .filter((expense) => !expense.groupId); // Only personal expenses
 
     // Calculate usage for each budget
     const usageData = budgetsSnapshot.docs.map((doc) => {
       const budget = doc.data();
       const category = budget.category;
       const budgetLimit = budget.monthlyLimit;
-      const alertThreshold = budget.settings?.alertThreshold || 80;
 
       // Filter expenses for this category
       const categoryExpenses = expenses.filter(
@@ -79,7 +78,7 @@ export async function GET(request: NextRequest) {
       );
 
       // Calculate basic usage
-      const usage = calculateBudgetUsage(budgetLimit, totalSpent, alertThreshold);
+      const usage = calculateSimpleBudgetUsage(budgetLimit, totalSpent);
 
       // Calculate trend (requires previous month's data)
       const previousMonth = month === 1 ? 12 : month - 1;
@@ -98,7 +97,7 @@ export async function GET(request: NextRequest) {
         .get()
         .then((prevSnapshot) => {
           const prevExpenses = prevSnapshot.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
+            .map((d) => ({ id: d.id, ...d.data() } as Expense))
             .filter((exp) => !exp.groupId && exp.category === category);
 
           const prevTotalSpent = prevExpenses.reduce(
