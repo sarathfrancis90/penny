@@ -6,8 +6,12 @@ import { useIncome } from '@/hooks/useIncome';
 import { useIncomeAllocation } from '@/hooks/useIncomeAllocation';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PageContainer } from '@/components/ui/page-container';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IncomeSourceForm } from '@/components/income/IncomeSourceForm';
 import { IncomeSourceCard } from '@/components/income/IncomeSourceCard';
@@ -141,65 +145,41 @@ export default function IncomePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <PageContainer>
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Income Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Track all your income sources and plan your budget
-            </p>
-          </div>
-          <Button onClick={() => setShowCreateDialog(true)} size="lg">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Add Income Source
-          </Button>
-        </div>
+        <PageHeader
+          title="Income Management"
+          subtitle="Track all your income sources and plan your budget"
+          action={
+            <Button onClick={() => setShowCreateDialog(true)} size="lg">
+              <PlusCircle className="mr-2 h-5 w-5" />
+              Add Income Source
+            </Button>
+          }
+        />
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Income</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(totalMonthlyIncome, 'USD')}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                From {activeSourcesCount} active source{activeSourcesCount !== 1 ? 's' : ''}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Annual Income</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {formatCurrency(totalAnnualIncome, 'USD')}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Projected for the year
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Income Sources</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalSourcesCount}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {activeSourcesCount} active, {totalSourcesCount - activeSourcesCount} inactive
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Monthly Income"
+            value={formatCurrency(totalMonthlyIncome, 'USD')}
+            subtitle={`From ${activeSourcesCount} active source${activeSourcesCount !== 1 ? 's' : ''}`}
+            icon={<DollarSign className="h-4 w-4" />}
+          />
+          
+          <StatCard
+            title="Annual Income"
+            value={formatCurrency(totalAnnualIncome, 'USD')}
+            subtitle="Projected for the year"
+            icon={<TrendingUp className="h-4 w-4" />}
+          />
+          
+          <StatCard
+            title="Income Sources"
+            value={totalSourcesCount}
+            subtitle={`${activeSourcesCount} active, ${totalSourcesCount - activeSourcesCount} inactive`}
+            icon={<Calendar className="h-4 w-4" />}
+          />
         </div>
 
         {/* Income Sources List */}
@@ -216,17 +196,18 @@ export default function IncomePage() {
           <TabsContent value="active" className="space-y-4 mt-6">
             {activeSourcesCount === 0 ? (
               <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Active Income Sources</h3>
-                  <p className="text-muted-foreground text-center mb-4 max-w-md">
-                    Add your first income source to start tracking your earnings and planning
-                    your budget.
-                  </p>
-                  <Button onClick={() => setShowCreateDialog(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Income Source
-                  </Button>
+                <CardContent>
+                  <EmptyState
+                    icon={<DollarSign className="h-12 w-12" />}
+                    title="No Active Income Sources"
+                    description="Add your first income source to start tracking your earnings and planning your budget."
+                    action={
+                      <Button onClick={() => setShowCreateDialog(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Income Source
+                      </Button>
+                    }
+                  />
                 </CardContent>
               </Card>
             ) : (
@@ -247,8 +228,12 @@ export default function IncomePage() {
           <TabsContent value="inactive" className="space-y-4 mt-6">
             {displayedSources.length === 0 ? (
               <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-muted-foreground">No inactive income sources</p>
+                <CardContent>
+                  <EmptyState
+                    icon={<DollarSign className="h-12 w-12" />}
+                    title="No Inactive Income Sources"
+                    description="All your income sources are currently active."
+                  />
                 </CardContent>
               </Card>
             ) : (
@@ -316,7 +301,7 @@ export default function IncomePage() {
             }}
           />
         )}
-      </div>
+      </PageContainer>
     </AppLayout>
   );
 }
