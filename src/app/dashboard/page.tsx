@@ -372,109 +372,114 @@ export default function DashboardPage() {
                 </TabsTrigger>
               </TabsList>
             
-            {/* Filters - Collapsible on mobile, always open on desktop */}
-            <Card className="mb-6 glass border-2 border-slate-200/50 dark:border-slate-800/30 shadow-lg animate-in slide-in-from-bottom-4 duration-500">
-              <CardHeader className="pb-2 cursor-pointer md:cursor-default" onClick={() => setFiltersOpen(!filtersOpen)}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-                    <CardTitle className="text-lg gradient-text">
-                      Filter Expenses <span className="md:hidden">{filtersOpen ? "▼" : "▶"}</span>
-                    </CardTitle>
-                  </div>
-                  {(filtersOpen || typeof window !== 'undefined' && window.innerWidth >= 768) && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        resetFilters();
-                      }}
-                      className="hover:bg-violet-50 dark:hover:bg-violet-950/30"
-                    >
-                      Reset
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="block md:block" style={{ display: filtersOpen || (typeof window !== 'undefined' && window.innerWidth >= 768) ? 'block' : 'none' }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Date Range Filter */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Date Range:</span>
+            {/* Filters - Only show on expense-related tabs */}
+            {activeTab !== "budgets" && (
+              <>
+                {/* Filters - Collapsible on mobile, always open on desktop */}
+                <Card className="mb-6 glass border-2 border-slate-200/50 dark:border-slate-800/30 shadow-lg animate-in slide-in-from-bottom-4 duration-500">
+                  <CardHeader className="pb-2 cursor-pointer md:cursor-default" onClick={() => setFiltersOpen(!filtersOpen)}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                        <CardTitle className="text-lg gradient-text">
+                          Filter Expenses <span className="md:hidden">{filtersOpen ? "▼" : "▶"}</span>
+                        </CardTitle>
+                      </div>
+                      {(filtersOpen || typeof window !== 'undefined' && window.innerWidth >= 768) && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            resetFilters();
+                          }}
+                          className="hover:bg-violet-50 dark:hover:bg-violet-950/30"
+                        >
+                          Reset
+                        </Button>
+                      )}
                     </div>
-                    <DateRangePicker 
-                      dateRange={dateRange} 
-                      onDateRangeChange={setDateRange} 
-                    />
-                  </div>
-                  
-                  {/* Category Filter */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Categories:</span>
-                    </div>
-                    <CategoryFilter
-                      selectedCategories={selectedCategories}
-                      onCategoriesChange={setSelectedCategories}
-                    />
-                  </div>
+                  </CardHeader>
+                  <CardContent className="block md:block" style={{ display: filtersOpen || (typeof window !== 'undefined' && window.innerWidth >= 768) ? 'block' : 'none' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Date Range Filter */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">Date Range:</span>
+                        </div>
+                        <DateRangePicker 
+                          dateRange={dateRange} 
+                          onDateRangeChange={setDateRange} 
+                        />
+                      </div>
+                      
+                      {/* Category Filter */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">Categories:</span>
+                        </div>
+                        <CategoryFilter
+                          selectedCategories={selectedCategories}
+                          onCategoriesChange={setSelectedCategories}
+                        />
+                      </div>
 
-                  {/* Group Filter */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">Group:</span>
+                      {/* Group Filter */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">Group:</span>
+                        </div>
+                        <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="All Expenses" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Expenses</SelectItem>
+                            <SelectItem value="personal">
+                              <div className="flex items-center gap-2">
+                                <span>Personal Only</span>
+                              </div>
+                            </SelectItem>
+                            {groups.map((group) => (
+                              <SelectItem key={group.id} value={group.id}>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: group.color }}
+                                  />
+                                  <span>{group.icon}</span>
+                                  <span>{group.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
-                    <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="All Expenses" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Expenses</SelectItem>
-                        <SelectItem value="personal">
-                          <div className="flex items-center gap-2">
-                            <span>Personal Only</span>
-                          </div>
-                        </SelectItem>
-                        {groups.map((group) => (
-                          <SelectItem key={group.id} value={group.id}>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: group.color }}
-                              />
-                              <span>{group.icon}</span>
-                              <span>{group.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Filter Results Summary */}
-            {(dateRange?.from || dateRange?.to || selectedCategories.length > 0 || selectedGroupId !== "all") && (
-              <div className="mb-6 px-2">
-                <p className="text-sm text-muted-foreground">
-                  Showing {filteredExpenses.length} of {expenses.length} expenses
-                  {dateRange?.from && ` from ${dateRange.from.toLocaleDateString()}`}
-                  {dateRange?.to && ` to ${dateRange.to.toLocaleDateString()}`}
-                  {selectedGroupId === "personal" && ` (Personal only)`}
-                  {selectedGroupId !== "all" && selectedGroupId !== "personal" && 
-                    ` (Group: ${groups.find(g => g.id === selectedGroupId)?.name || "Unknown"})`}
-                  {selectedCategories.length > 0 && 
-                    ` in ${selectedCategories.length} selected ${
-                      selectedCategories.length === 1 ? "category" : "categories"
-                    }`}
-                </p>
-              </div>
+                {/* Filter Results Summary */}
+                {(dateRange?.from || dateRange?.to || selectedCategories.length > 0 || selectedGroupId !== "all") && (
+                  <div className="mb-6 px-2">
+                    <p className="text-sm text-muted-foreground">
+                      Showing {filteredExpenses.length} of {expenses.length} expenses
+                      {dateRange?.from && ` from ${dateRange.from.toLocaleDateString()}`}
+                      {dateRange?.to && ` to ${dateRange.to.toLocaleDateString()}`}
+                      {selectedGroupId === "personal" && ` (Personal only)`}
+                      {selectedGroupId !== "all" && selectedGroupId !== "personal" && 
+                        ` (Group: ${groups.find(g => g.id === selectedGroupId)?.name || "Unknown"})`}
+                      {selectedCategories.length > 0 && 
+                        ` in ${selectedCategories.length} selected ${
+                          selectedCategories.length === 1 ? "category" : "categories"
+                        }`}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
               {/* Tab Content */}
