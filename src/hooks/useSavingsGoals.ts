@@ -1,142 +1,117 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PersonalSavingsGoal, GoalStatus } from '@/lib/types/savings';
+import { PersonalSavingsGoal, GoalStatus, CreatePersonalSavingsGoal, UpdatePersonalSavingsGoal } from '@/lib/types/savings';
 import { calculateTotalMonthlySavings } from '@/lib/utils/incomeCalculations';
+import { PersonalSavingsGoalService } from '@/lib/services/savingsService';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Hook to manage personal savings goals
  */
 export function useSavingsGoals() {
+  const { user } = useAuth();
   const [savingsGoals, setSavingsGoals] = useState<PersonalSavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch all savings goals
   const fetchSavingsGoals = useCallback(async (includeInactive: boolean = false) => {
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      if (includeInactive) {
-        params.append('includeInactive', 'true');
-      }
-
-      const response = await fetch(`/api/savings-goals?${params.toString()}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch savings goals');
-      }
-
-      const data = await response.json();
-      setSavingsGoals(data.data || []);
+      const goals = await PersonalSavingsGoalService.getAllForUser(user.uid, includeInactive);
+      setSavingsGoals(goals);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching savings goals:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.uid]);
 
   // Fetch only active savings goals
   const fetchActiveGoals = useCallback(async () => {
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      params.append('activeOnly', 'true');
-
-      const response = await fetch(`/api/savings-goals?${params.toString()}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch savings goals');
-      }
-
-      const data = await response.json();
-      setSavingsGoals(data.data || []);
+      const goals = await PersonalSavingsGoalService.getAllForUser(user.uid, false);
+      setSavingsGoals(goals);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching savings goals:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.uid]);
 
   // Create a new savings goal
   const createGoal = useCallback(async (goalData: Partial<PersonalSavingsGoal>) => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch('/api/savings-goals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(goalData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create savings goal');
-      }
-
-      const data = await response.json();
+      // Add userId to the data
+      const dataWithUserId: CreatePersonalSavingsGoal = {
+        ...goalData,
+        userId: user.uid,
+      } as CreatePersonalSavingsGoal;
+      const newGoal = await PersonalSavingsGoalService.create(dataWithUserId);
       
       // Refresh the list
       await fetchSavingsGoals();
       
-      return data.data;
+      return newGoal;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error creating savings goal:', err);
       throw err;
     }
-  }, [fetchSavingsGoals]);
+  }, [user?.uid, fetchSavingsGoals]);
 
   // Update a savings goal
   const updateGoal = useCallback(async (goalId: string, updates: Partial<PersonalSavingsGoal>) => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch(`/api/savings-goals/${goalId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update savings goal');
-      }
-
-      const data = await response.json();
+      await PersonalSavingsGoalService.update(goalId, updates as UpdatePersonalSavingsGoal);
       
       // Refresh the list
       await fetchSavingsGoals();
-      
-      return data.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error updating savings goal:', err);
       throw err;
     }
-  }, [fetchSavingsGoals]);
+  }, [user?.uid, fetchSavingsGoals]);
 
   // Delete a savings goal
   const deleteGoal = useCallback(async (goalId: string) => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch(`/api/savings-goals/${goalId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete savings goal');
-      }
+      await PersonalSavingsGoalService.delete(goalId);
 
       // Refresh the list
       await fetchSavingsGoals();
@@ -145,7 +120,7 @@ export function useSavingsGoals() {
       console.error('Error deleting savings goal:', err);
       throw err;
     }
-  }, [fetchSavingsGoals]);
+  }, [user?.uid, fetchSavingsGoals]);
 
   // Pause a goal
   const pauseGoal = useCallback(async (goalId: string) => {
@@ -230,14 +205,8 @@ export function useSavingsGoal(goalId: string | null) {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/savings-goals/${goalId}`);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch savings goal');
-        }
-
-        const data = await response.json();
-        setSavingsGoal(data.data);
+        const goal = await PersonalSavingsGoalService.getById(goalId);
+        setSavingsGoal(goal);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
         console.error('Error fetching savings goal:', err);

@@ -1,117 +1,96 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PersonalIncomeSource } from '@/lib/types/income';
+import { PersonalIncomeSource, CreatePersonalIncomeSource, UpdatePersonalIncomeSource } from '@/lib/types/income';
 import { calculateTotalMonthlyIncome } from '@/lib/utils/incomeCalculations';
+import { PersonalIncomeService } from '@/lib/services/incomeService';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Hook to manage personal income sources
  */
 export function useIncome() {
+  const { user } = useAuth();
   const [incomeSources, setIncomeSources] = useState<PersonalIncomeSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch all income sources
   const fetchIncomeSources = useCallback(async (includeInactive: boolean = false) => {
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      if (includeInactive) {
-        params.append('includeInactive', 'true');
-      }
-
-      const response = await fetch(`/api/income?${params.toString()}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch income sources');
-      }
-
-      const data = await response.json();
-      setIncomeSources(data.data || []);
+      const sources = await PersonalIncomeService.getAllForUser(user.uid, includeInactive);
+      setIncomeSources(sources);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching income sources:', err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.uid]);
 
   // Create a new income source
   const createIncome = useCallback(async (incomeData: Partial<PersonalIncomeSource>) => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch('/api/income', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(incomeData),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create income source');
-      }
-
-      const data = await response.json();
+      // Add userId to the data
+      const dataWithUserId: CreatePersonalIncomeSource = {
+        ...incomeData,
+        userId: user.uid,
+      } as CreatePersonalIncomeSource;
+      const newIncome = await PersonalIncomeService.create(dataWithUserId);
       
       // Refresh the list
       await fetchIncomeSources();
       
-      return data.data;
+      return newIncome;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error creating income source:', err);
       throw err;
     }
-  }, [fetchIncomeSources]);
+  }, [user?.uid, fetchIncomeSources]);
 
   // Update an income source
   const updateIncome = useCallback(async (incomeId: string, updates: Partial<PersonalIncomeSource>) => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch(`/api/income/${incomeId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update income source');
-      }
-
-      const data = await response.json();
+      await PersonalIncomeService.update(incomeId, updates as UpdatePersonalIncomeSource);
       
       // Refresh the list
       await fetchIncomeSources();
-      
-      return data.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error updating income source:', err);
       throw err;
     }
-  }, [fetchIncomeSources]);
+  }, [user?.uid, fetchIncomeSources]);
 
   // Delete an income source
   const deleteIncome = useCallback(async (incomeId: string) => {
+    if (!user?.uid) {
+      throw new Error('User not authenticated');
+    }
+
     try {
       setError(null);
 
-      const response = await fetch(`/api/income/${incomeId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete income source');
-      }
+      await PersonalIncomeService.delete(incomeId);
 
       // Refresh the list
       await fetchIncomeSources();
@@ -120,7 +99,7 @@ export function useIncome() {
       console.error('Error deleting income source:', err);
       throw err;
     }
-  }, [fetchIncomeSources]);
+  }, [user?.uid, fetchIncomeSources]);
 
   // Calculate total monthly income
   const totalMonthlyIncome = calculateTotalMonthlyIncome(incomeSources);
@@ -165,14 +144,8 @@ export function useIncomeSource(incomeId: string | null) {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/income/${incomeId}`);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch income source');
-        }
-
-        const data = await response.json();
-        setIncomeSource(data.data);
+        const source = await PersonalIncomeService.getById(incomeId);
+        setIncomeSource(source);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
         console.error('Error fetching income source:', err);
