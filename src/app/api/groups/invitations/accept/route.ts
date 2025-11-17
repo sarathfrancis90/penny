@@ -116,6 +116,68 @@ export async function POST(request: NextRequest) {
       createdAt: Timestamp.now(),
     });
 
+    // Create notifications for existing group members
+    try {
+      const groupData = groupDoc.data();
+      const groupName = groupData?.name || 'Unknown Group';
+
+      // Get new member info
+      const newMemberDoc = await adminDb.collection("users").doc(userId).get();
+      const newMemberData = newMemberDoc.exists ? newMemberDoc.data() : null;
+      const newMemberName = newMemberData?.displayName || userName || userEmail;
+      const newMemberAvatar = newMemberData?.photoURL;
+
+      // Get all existing active members (admins and owner get notified)
+      const membersSnapshot = await adminDb
+        .collection("groupMembers")
+        .where("groupId", "==", invitation.groupId)
+        .where("status", "==", "active")
+        .get();
+
+      const notificationPromises = membersSnapshot.docs
+        .filter(doc => {
+          const memberData = doc.data();
+          // Only notify admins and owner
+          return memberData.userId !== userId && 
+                 (memberData.role === 'owner' || memberData.role === 'admin');
+        })
+        .map(async (memberDoc) => {
+          const memberId = memberDoc.data().userId;
+
+          return adminDb.collection("notifications").add({
+            userId: memberId,
+            type: "group_member_joined",
+            title: "New member joined",
+            body: `${newMemberName} joined ${groupName}`,
+            icon: "👋",
+            priority: "low",
+            category: "group",
+            read: false,
+            delivered: false,
+            isGrouped: false,
+            actionUrl: `/groups/${invitation.groupId}/members`,
+            relatedId: userId,
+            relatedType: "member",
+            groupId: invitation.groupId,
+            actorId: userId,
+            actorName: newMemberName,
+            actorAvatar: newMemberAvatar,
+            metadata: {
+              groupName: groupName,
+              memberEmail: userEmail,
+              role: invitation.role,
+            },
+            createdAt: Timestamp.now(),
+          });
+        });
+
+      await Promise.all(notificationPromises);
+      console.log(`[Notifications] Created ${notificationPromises.length} member joined notifications`);
+    } catch (notifError) {
+      // Don't fail the join if notification fails
+      console.error("[Notifications] Error creating member joined notifications:", notifError);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Successfully joined the group",
