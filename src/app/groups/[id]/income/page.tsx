@@ -1,0 +1,204 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { use } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { AppLayout } from '@/components/app-layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { GroupIncomeSource } from '@/lib/types/income';
+import { formatCurrency, calculateMonthlyIncome } from '@/lib/utils/incomeCalculations';
+import { DollarSign, PlusCircle, Info } from 'lucide-react';
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function GroupIncomePage({ params }: PageProps) {
+  const resolvedParams = use(params);
+  const groupId = resolvedParams.id;
+  const { user, loading: authLoading } = useAuth();
+  const [groupName, setGroupName] = useState('');
+  const [incomeSources, setIncomeSources] = useState<GroupIncomeSource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user || !groupId) return;
+
+      try {
+        setLoading(true);
+
+        // Fetch group details
+        const groupDoc = await getDoc(doc(db, 'groups', groupId));
+        if (groupDoc.exists()) {
+          setGroupName(groupDoc.data().name);
+        }
+
+        // Check if user is admin
+        const membershipDoc = await getDoc(doc(db, 'groupMembers', `${groupId}_${user.uid}`));
+        if (membershipDoc.exists()) {
+          const role = membershipDoc.data().role;
+          setIsAdmin(role === 'admin' || role === 'owner');
+        }
+
+        // Fetch group income sources
+        const q = query(
+          collection(db, 'income_sources_group'),
+          where('groupId', '==', groupId),
+          where('isActive', '==', true)
+        );
+        const querySnapshot = await getDocs(q);
+        const sources: GroupIncomeSource[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as GroupIncomeSource[];
+
+        setIncomeSources(sources);
+      } catch (error) {
+        console.error('Error fetching group income:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user, groupId]);
+
+  if (authLoading || loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading group income...</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!user) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+          <p className="text-lg">Please sign in to view group income.</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const totalMonthlyIncome = incomeSources.reduce((sum, source) => {
+    return sum + calculateMonthlyIncome(source.amount, source.frequency);
+  }, 0);
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{groupName} - Income</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage group income sources
+          </p>
+        </div>
+
+        {/* Info Alert */}
+        {!isAdmin && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Only group admins and owners can manage income sources.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Summary Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Monthly Group Income</CardTitle>
+            <CardDescription>Combined income from all active sources</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {formatCurrency(totalMonthlyIncome, 'USD')}
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              From {incomeSources.length} source{incomeSources.length !== 1 ? 's' : ''}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Income Sources List */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Income Sources</h2>
+            {isAdmin && (
+              <Button disabled>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Income Source (Coming Soon)
+              </Button>
+            )}
+          </div>
+
+          {incomeSources.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Group Income Sources</h3>
+                <p className="text-muted-foreground text-center mb-4 max-w-md">
+                  {isAdmin
+                    ? 'Add income sources to track your group\'s combined income.'
+                    : 'Admins can add income sources for the group.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {incomeSources.map((source) => (
+                <Card key={source.id}>
+                  <CardHeader>
+                    <CardTitle>{source.name}</CardTitle>
+                    <CardDescription>
+                      {source.category.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Amount:</span>
+                        <span className="font-medium">
+                          {formatCurrency(source.amount, source.currency)} / {source.frequency}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-muted-foreground">Monthly Equivalent:</span>
+                        <span className="font-semibold">
+                          {formatCurrency(
+                            calculateMonthlyIncome(source.amount, source.frequency),
+                            source.currency
+                          )}
+                        </span>
+                      </div>
+                      {source.contributedBy && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Contributed By:</span>
+                          <span className="text-sm">{source.contributedBy}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </AppLayout>
+  );
+}
+
