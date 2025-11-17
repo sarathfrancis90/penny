@@ -21,6 +21,7 @@ import {
   NotificationCategory,
   NotificationAction
 } from '@/lib/types/notifications';
+import { processNotificationGrouping, isGroupable } from './notificationGrouping';
 
 /**
  * Data for creating a notification
@@ -106,7 +107,7 @@ export class NotificationService {
         }
       }
 
-      // Create the notification
+      // Create the notification object
       const notification: Omit<Notification, 'id'> = {
         userId: data.userId,
         type: data.type,
@@ -130,9 +131,31 @@ export class NotificationService {
         metadata: data.metadata,
       };
 
+      // Try to group with existing notifications (if type is groupable)
+      if (isGroupable(data.type)) {
+        const groupedNotificationId = await processNotificationGrouping(notification);
+        
+        if (groupedNotificationId === null) {
+          // Notification was added to an existing group, no new notification created
+          console.log('[NotificationService] Notification grouped with existing group');
+          return null; // Return null to indicate it was grouped
+        } else {
+          // New group notification was created
+          console.log('[NotificationService] New grouped notification created:', groupedNotificationId);
+          
+          // TODO: Send push notification if enabled (Phase 5)
+          // if (typePrefs?.push) {
+          //   await this.sendPush(data.userId, { ...notification, id: groupedNotificationId });
+          // }
+          
+          return groupedNotificationId;
+        }
+      }
+
+      // Not groupable, create regular notification
       const docRef = await addDoc(collection(db, 'notifications'), notification);
       
-      console.log('[NotificationService] Notification created:', {
+      console.log('[NotificationService] Regular notification created:', {
         id: docRef.id,
         type: data.type,
         userId: data.userId
