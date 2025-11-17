@@ -420,6 +420,129 @@ service cloud.firestore {
     }
     
     // ============================================
+    // NOTIFICATIONS SYSTEM (NEW)
+    // ============================================
+    
+    // Notifications Collection
+    match /notifications/{notificationId} {
+      // Users can list their own notifications
+      allow list: if isAuthenticated();
+      
+      // Users can read their own notifications
+      allow get: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Only server-side can create notifications (for security & consistency)
+      allow create: if false;
+      
+      // Users can update their own notifications (mark as read, update metadata)
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid &&
+        // Can only update read, readAt, delivered, deliveredAt
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt', 'delivered', 'deliveredAt']);
+      
+      // Users can delete their own notifications
+      allow delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // User Notification Settings (Global)
+    match /userNotificationSettings/{userId} {
+      // Users can read their own settings
+      allow read: if isAuthenticated() && userId == request.auth.uid;
+      
+      // Users can create their own settings
+      allow create: if isAuthenticated() && 
+        userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own settings
+      allow update: if isAuthenticated() && 
+        userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own settings
+      allow delete: if isAuthenticated() && userId == request.auth.uid;
+    }
+    
+    // Notification Preferences (Per-Type)
+    match /users/{userId}/notificationPreferences/{preferencesId} {
+      // Users can read their own preferences
+      allow read: if isAuthenticated() && userId == request.auth.uid;
+      
+      // Users can create their own preferences
+      allow create: if isAuthenticated() && userId == request.auth.uid;
+      
+      // Users can update their own preferences
+      allow update: if isAuthenticated() && userId == request.auth.uid;
+      
+      // Users can delete their own preferences
+      allow delete: if isAuthenticated() && userId == request.auth.uid;
+    }
+    
+    // Alternative: If using root collection for preferences
+    match /notificationPreferences/{userId} {
+      // Users can read their own preferences
+      allow read: if isAuthenticated() && userId == request.auth.uid;
+      
+      // Users can create their own preferences
+      allow create: if isAuthenticated() && 
+        userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own preferences
+      allow update: if isAuthenticated() && 
+        userId == request.auth.uid;
+      
+      // Users can delete their own preferences
+      allow delete: if isAuthenticated() && userId == request.auth.uid;
+    }
+    
+    // Push Subscriptions
+    match /pushSubscriptions/{subscriptionId} {
+      // Users can list their own subscriptions
+      allow list: if isAuthenticated();
+      
+      // Users can read their own subscriptions
+      allow get: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can create their own push subscriptions
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own subscriptions
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own subscriptions
+      allow delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Budget Notification Trackers (NEW)
+    match /budgetNotificationTrackers/{trackerId} {
+      // Users can read their own trackers
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Only server-side can create/update/delete trackers (for consistency)
+      allow create, update, delete: if false;
+    }
+    
+    // Notification Groups (for grouping logic)
+    match /notificationGroups/{groupKey} {
+      // Users can read their own notification groups
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Only server-side can create/update/delete notification groups
+      allow create, update, delete: if false;
+    }
+    
+    // ============================================
     // DENY ALL OTHER ACCESS
     // ============================================
     
