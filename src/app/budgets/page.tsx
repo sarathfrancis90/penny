@@ -135,7 +135,7 @@ function BudgetsPageContent() {
 
   const currentBudgets = selectedTab === "personal" ? personalBudgets : groupBudgets;
   const currentUsage = selectedTab === "personal" ? personalUsage : groupUsage;
-  const isLoading = selectedTab === "personal" ? personalLoading : groupLoading;
+  // const isLoading = selectedTab === "personal" ? personalLoading : groupLoading;
 
   // Get used categories to filter available options
   const usedCategories = useMemo(
@@ -334,6 +334,7 @@ function BudgetsPageContent() {
     console.log("🔍 [Budgets Page] User:", user?.email);
     console.log("🔍 [Budgets Page] Auth loading:", authLoading);
     console.log("🔍 [Budgets Page] Search params:", searchParams?.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Show loading while auth is initializing
