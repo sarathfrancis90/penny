@@ -413,3 +413,164 @@ export interface ConversationMessage {
   metadata?: MessageMetadata;
   status: MessageStatus;
 }
+
+// ============================================
+// BUDGETING TYPES (NEW)
+// ============================================
+
+/**
+ * Budget status based on percentage used
+ */
+export type BudgetStatus = "safe" | "warning" | "critical" | "over";
+
+/**
+ * Budget period (month and year)
+ */
+export interface BudgetPeriod {
+  month: number; // 1-12
+  year: number;  // e.g., 2025
+}
+
+/**
+ * Personal budget for a specific category and period
+ */
+export interface PersonalBudget {
+  id: string;
+  userId: string;
+  category: string;
+  monthlyLimit: number;
+  period: BudgetPeriod;
+  
+  // Settings
+  settings: {
+    rollover: boolean;              // Carry over unused budget
+    alertThreshold: number;         // Alert at % (default 80)
+    notificationsEnabled: boolean;  // Enable/disable alerts
+  };
+  
+  // Metadata
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * Group budget for a specific category and period
+ */
+export interface GroupBudget {
+  id: string;
+  groupId: string;
+  category: string;
+  monthlyLimit: number;
+  period: BudgetPeriod;
+  
+  // Management
+  setBy: string;              // userId who set it
+  setByRole: GroupRole;       // owner/admin
+  
+  // Settings
+  settings: {
+    requireApprovalWhenOver: boolean; // Require approval if exceeded
+    alertMembers: boolean;             // Alert all members at threshold
+    alertThreshold: number;            // Default 80%
+  };
+  
+  // Metadata
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * Budget usage statistics (calculated in real-time)
+ */
+export interface BudgetUsage {
+  category: string;
+  budgetLimit: number;
+  totalSpent: number;
+  remainingAmount: number;
+  percentageUsed: number;
+  status: BudgetStatus;
+  expenseCount: number;
+  
+  // Trend data
+  trend?: {
+    comparedToPreviousMonth: number;  // +/- percentage
+    averageSpendingRate: number;      // per day
+    projectedEndOfMonthTotal: number; // prediction
+    daysUntilOverBudget?: number;     // if at current rate
+  };
+}
+
+/**
+ * Budget usage cache (for performance)
+ */
+export interface BudgetUsageCache {
+  id: string;
+  userId?: string;           // For personal budgets
+  groupId?: string;          // For group budgets
+  category: string;
+  period: BudgetPeriod;
+  
+  // Calculated values (synced with real data)
+  budgetLimit: number;
+  totalSpent: number;
+  remainingAmount: number;
+  percentageUsed: number;
+  status: BudgetStatus;
+  expenseCount: number;
+  
+  // Trend
+  trend: {
+    comparedToPreviousMonth: number;
+    averageSpendingRate: number;
+    projectedEndOfMonthTotal: number;
+    daysUntilOverBudget?: number;
+  };
+  
+  // Cache metadata
+  lastCalculated: Timestamp;
+  lastExpenseAt?: Timestamp;
+}
+
+/**
+ * Budget summary for a user or group
+ */
+export interface BudgetSummary {
+  totalBudget: number;
+  totalSpent: number;
+  percentageUsed: number;
+  status: BudgetStatus;
+  categoriesCount: number;
+  categoriesOverBudget: number;
+  categoriesAtRisk: number;  // warning or critical
+}
+
+/**
+ * Budget impact preview (shown before expense confirmation)
+ */
+export interface BudgetImpact {
+  category: string;
+  currentBudget: BudgetUsage;
+  afterExpense: {
+    totalSpent: number;
+    percentageUsed: number;
+    status: BudgetStatus;
+    willExceedBudget: boolean;
+    amountOverBudget?: number;
+  };
+}
+
+/**
+ * Budget alert
+ */
+export interface BudgetAlert {
+  id: string;
+  userId: string;
+  category: string;
+  type: "threshold" | "exceeded" | "projection";
+  severity: "info" | "warning" | "error";
+  message: string;
+  budgetUsage: BudgetUsage;
+  createdAt: Timestamp;
+  readAt?: Timestamp;
+  dismissedAt?: Timestamp;
+}

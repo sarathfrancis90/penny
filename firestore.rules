@@ -329,6 +329,95 @@ service cloud.firestore {
     }
     
     // ============================================
+    // BUDGETS COLLECTION (NEW)
+    // ============================================
+    
+    // Personal Budgets
+    match /budgets_personal/{budgetId} {
+      // Allow list queries for user's own budgets
+      allow list: if isAuthenticated();
+      
+      // Users can read their own budgets
+      allow get: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can create their own budgets
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'category', 'monthlyLimit', 'period', 'settings']) &&
+        request.resource.data.monthlyLimit is number &&
+        request.resource.data.monthlyLimit > 0 &&
+        request.resource.data.period.month >= 1 &&
+        request.resource.data.period.month <= 12 &&
+        request.resource.data.period.year >= 2020;
+      
+      // Users can update their own budgets
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own budgets
+      allow delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Group Budgets
+    match /budgets_group/{budgetId} {
+      // Allow list queries for group budgets
+      allow list: if isAuthenticated();
+      
+      // Group members can read group budgets
+      allow get: if isAuthenticated() && 
+        isGroupMember(resource.data.groupId);
+      
+      // Only admin or owner can create group budgets
+      allow create: if isAuthenticated() && 
+        isGroupAdmin(request.resource.data.groupId) &&
+        request.resource.data.keys().hasAll(['groupId', 'category', 'monthlyLimit', 'period', 'setBy', 'setByRole', 'settings']) &&
+        request.resource.data.setBy == request.auth.uid &&
+        request.resource.data.monthlyLimit is number &&
+        request.resource.data.monthlyLimit > 0;
+      
+      // Only admin or owner can update group budgets
+      allow update: if isAuthenticated() && 
+        isGroupAdmin(resource.data.groupId) &&
+        resource.data.groupId == request.resource.data.groupId; // Can't change group
+      
+      // Only admin or owner can delete group budgets
+      allow delete: if isAuthenticated() && 
+        isGroupAdmin(resource.data.groupId);
+    }
+    
+    // Budget Usage Cache (calculated data)
+    match /budget_usage_cache/{cacheId} {
+      // Users can read their own cache or group cache they're member of
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
+      );
+      
+      // Only server-side can write (for consistency)
+      allow create, update, delete: if false;
+    }
+    
+    // Budget Alerts
+    match /budget_alerts/{alertId} {
+      // Users can read their own alerts
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can update their own alerts (mark as read/dismissed)
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid &&
+        // Can only update readAt and dismissedAt
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readAt', 'dismissedAt']);
+      
+      // Only server-side can create/delete alerts
+      allow create, delete: if false;
+    }
+    
+    // ============================================
     // DENY ALL OTHER ACCESS
     // ============================================
     
