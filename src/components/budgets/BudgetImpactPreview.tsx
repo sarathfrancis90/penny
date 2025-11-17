@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
 import { useGroupBudgets } from "@/hooks/useGroupBudgets";
 import { useBudgetUsage } from "@/hooks/useBudgetUsage";
@@ -68,42 +68,58 @@ export function BudgetImpactPreview({
     ? groupUsage.find((u) => u.category === category)
     : personalUsage.find((u) => u.category === category);
 
-  // Calculate impact
+  // Memoize calculations to ensure they update when amount changes
+  const calculations = useMemo(() => {
+    if (!relevantBudget || !currentUsage) {
+      return null;
+    }
+
+    const afterExpense = {
+      totalSpent: currentUsage.totalSpent + amount,
+      percentageUsed:
+        ((currentUsage.totalSpent + amount) / relevantBudget.monthlyLimit) * 100,
+    };
+
+    const newUsage = calculateSimpleBudgetUsage(
+      relevantBudget.monthlyLimit,
+      afterExpense.totalSpent
+    );
+
+    const newTotal = currentUsage.totalSpent + amount;
+    const exceedsBudget = newTotal > relevantBudget.monthlyLimit;
+    const statusChanged = newUsage.status !== currentUsage.status;
+
+    return {
+      afterExpense,
+      newUsage,
+      exceedsBudget,
+      statusChanged,
+    };
+  }, [relevantBudget, currentUsage, amount]);
+
+  // Update parent component when budget impact changes
   useEffect(() => {
-    if (relevantBudget && currentUsage) {
-      const newTotal = currentUsage.totalSpent + amount;
-      const exceedsBudget = newTotal > relevantBudget.monthlyLimit;
-      setWillExceedBudget(exceedsBudget);
-      onImpactCalculated?.(exceedsBudget);
+    if (calculations) {
+      setWillExceedBudget(calculations.exceedsBudget);
+      onImpactCalculated?.(calculations.exceedsBudget);
     } else {
       setWillExceedBudget(false);
       onImpactCalculated?.(false);
     }
-  }, [relevantBudget, currentUsage, amount, onImpactCalculated]);
+  }, [calculations, onImpactCalculated]);
 
   // If no budget exists for this category, don't show anything
-  if (!relevantBudget || !currentUsage) {
+  if (!relevantBudget || !currentUsage || !calculations) {
     return null;
   }
 
-  const afterExpense = {
-    totalSpent: currentUsage.totalSpent + amount,
-    percentageUsed:
-      ((currentUsage.totalSpent + amount) / relevantBudget.monthlyLimit) * 100,
-  };
-
-  const newUsage = calculateSimpleBudgetUsage(
-    relevantBudget.monthlyLimit,
-    afterExpense.totalSpent
-  );
-
-  const statusChanged = newUsage.status !== currentUsage.status;
+  const { afterExpense, newUsage, exceedsBudget, statusChanged } = calculations;
 
   return (
     <div
       className={cn(
         "p-4 rounded-lg border-2 space-y-3 animate-in slide-in-from-top-2 fade-in-50",
-        willExceedBudget
+        exceedsBudget
           ? "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30"
           : statusChanged && newUsage.status === "critical"
           ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
@@ -113,7 +129,7 @@ export function BudgetImpactPreview({
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          {willExceedBudget ? (
+          {exceedsBudget ? (
             <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
           ) : (
             <TrendingUp className="h-5 w-5 text-violet-600 dark:text-violet-400 flex-shrink-0" />
@@ -178,7 +194,7 @@ export function BudgetImpactPreview({
       </div>
 
       {/* Warning Message */}
-      {willExceedBudget && (
+      {exceedsBudget && (
         <div className="flex items-start gap-2 pt-2 border-t border-red-200 dark:border-red-800">
           <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-red-700 dark:text-red-300 font-medium">
@@ -189,7 +205,7 @@ export function BudgetImpactPreview({
       )}
 
       {/* Status Change Warning */}
-      {statusChanged && !willExceedBudget && newUsage.status === "critical" && (
+      {statusChanged && !exceedsBudget && newUsage.status === "critical" && (
         <div className="flex items-start gap-2 pt-2 border-t border-amber-200 dark:border-amber-800">
           <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">

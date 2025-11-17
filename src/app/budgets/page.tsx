@@ -429,27 +429,29 @@ function BudgetsPageContent() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentUsage.map((usage) => (
-                      <div key={usage.category} className="relative group">
+                      <div key={usage.category} className="relative">
                         <BudgetCard budget={usage} />
-                        <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="absolute top-3 right-3 flex gap-2 z-10">
                           <Button
                             size="icon"
                             variant="secondary"
-                            className="h-8 w-8"
-                            onClick={() => {
+                            className="h-9 w-9 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-violet-100 dark:hover:bg-violet-900 border border-violet-200 dark:border-violet-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
                               const budget = currentBudgets.find(
                                 (b) => b.category === usage.category
                               );
                               if (budget) handleEdit(budget.id);
                             }}
                           >
-                            <Pencil size={14} />
+                            <Pencil size={15} className="text-violet-600 dark:text-violet-400" />
                           </Button>
                           <Button
                             size="icon"
                             variant="destructive"
-                            className="h-8 w-8"
-                            onClick={() => {
+                            className="h-9 w-9 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900 border border-red-200 dark:border-red-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
                               const budget = currentBudgets.find(
                                 (b) => b.category === usage.category
                               );
@@ -459,7 +461,7 @@ function BudgetsPageContent() {
                               }
                             }}
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={15} className="text-red-600 dark:text-red-400" />
                           </Button>
                         </div>
                       </div>
@@ -511,28 +513,30 @@ function BudgetsPageContent() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentUsage.map((usage) => (
-                      <div key={usage.category} className="relative group">
+                      <div key={usage.category} className="relative">
                         <BudgetCard budget={usage} />
                         {isGroupAdmin && (
-                          <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-3 right-3 flex gap-2 z-10">
                             <Button
                               size="icon"
                               variant="secondary"
-                              className="h-8 w-8"
-                              onClick={() => {
+                              className="h-9 w-9 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-violet-100 dark:hover:bg-violet-900 border border-violet-200 dark:border-violet-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 const budget = currentBudgets.find(
                                   (b) => b.category === usage.category
                                 );
                                 if (budget) handleEdit(budget.id);
                               }}
                             >
-                              <Pencil size={14} />
+                              <Pencil size={15} className="text-violet-600 dark:text-violet-400" />
                             </Button>
                             <Button
                               size="icon"
                               variant="destructive"
-                              className="h-8 w-8"
-                              onClick={() => {
+                              className="h-9 w-9 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-red-100 dark:hover:bg-red-900 border border-red-200 dark:border-red-800 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 const budget = currentBudgets.find(
                                   (b) => b.category === usage.category
                                 );
@@ -542,7 +546,7 @@ function BudgetsPageContent() {
                                 }
                               }}
                             >
-                              <Trash2 size={14} />
+                              <Trash2 size={15} className="text-red-600 dark:text-red-400" />
                             </Button>
                           </div>
                         )}
