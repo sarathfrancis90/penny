@@ -45,7 +45,8 @@ import { Switch } from "@/components/ui/switch";
 import { BudgetCard } from "@/components/budgets/BudgetCard";
 import { AllocationWarningDialog } from "@/components/allocation/AllocationWarningDialog";
 import { AllocationStatusBadge } from "@/components/allocation/AllocationStatusBadge";
-import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft, Target } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { AppLayout } from "@/components/app-layout";
@@ -513,14 +514,17 @@ function BudgetsPageContent() {
                     <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
                   </div>
                 ) : currentUsage.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground mb-4">
-                      No personal budgets set for this month
-                    </p>
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      Create Your First Budget
-                    </Button>
-                  </div>
+                  <EmptyState
+                    icon={<Target className="h-12 w-12" />}
+                    title="No Personal Budgets"
+                    description="No personal budgets set for this month. Create one to start tracking your spending."
+                    action={
+                      <Button onClick={() => setShowCreateDialog(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create Your First Budget
+                      </Button>
+                    }
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentUsage.map((usage) => (
@@ -595,16 +599,23 @@ function BudgetsPageContent() {
                     <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
                   </div>
                 ) : currentUsage.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground mb-4">
-                      No group budgets set for this month
-                    </p>
-                    {isGroupAdmin && (
-                      <Button onClick={() => setShowCreateDialog(true)}>
-                        Create Group Budget
-                      </Button>
-                    )}
-                  </div>
+                  <EmptyState
+                    icon={<Target className="h-12 w-12" />}
+                    title="No Group Budgets"
+                    description={
+                      isGroupAdmin
+                        ? "No group budgets set for this month. Create one to help your group track shared expenses."
+                        : "No group budgets set for this month. Group admins can create budgets for shared expense tracking."
+                    }
+                    action={
+                      isGroupAdmin && (
+                        <Button onClick={() => setShowCreateDialog(true)}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Create Group Budget
+                        </Button>
+                      )
+                    }
+                  />
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentUsage.map((usage) => (
