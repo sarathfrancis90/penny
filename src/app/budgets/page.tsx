@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
@@ -46,7 +46,7 @@ import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
-export default function BudgetsPage() {
+function BudgetsPageContent() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -736,6 +736,21 @@ export default function BudgetsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+export default function BudgetsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
+          <p className="text-muted-foreground">Loading budgets...</p>
+        </div>
+      </div>
+    }>
+      <BudgetsPageContent />
+    </Suspense>
   );
 }
 
