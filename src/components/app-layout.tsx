@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -30,6 +31,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { NotificationPanel } from "@/components/notifications/notification-panel";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -40,6 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const { isOnline, pendingCount, isSyncing } = useOfflineSync(user?.uid);
+  const [notificationPanelOpen, setNotificationPanelOpen] = useState(false);
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -158,6 +167,29 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Moon className="absolute h-5 w-5 rotate-180 scale-0 transition-all duration-500 dark:rotate-0 dark:scale-100 text-violet-400" />
               <span className="sr-only">Toggle theme</span>
             </Button>
+
+            {/* Notification Bell */}
+            <Popover open={notificationPanelOpen} onOpenChange={setNotificationPanelOpen}>
+              <PopoverTrigger asChild>
+                <div>
+                  <NotificationBell 
+                    userId={user?.uid}
+                    onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
+                    className="hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-all duration-300 hover:scale-110"
+                  />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent 
+                align="end" 
+                className="p-0 w-auto border-slate-200 dark:border-slate-800 shadow-2xl"
+                sideOffset={8}
+              >
+                <NotificationPanel 
+                  userId={user?.uid}
+                  onClose={() => setNotificationPanelOpen(false)}
+                />
+              </PopoverContent>
+            </Popover>
 
             {/* User Menu with Beautiful Dropdown */}
             <DropdownMenu>
