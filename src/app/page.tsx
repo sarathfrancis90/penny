@@ -192,6 +192,107 @@ export default function Home() {
     });
   };
 
+  // Helper: Detect if message is a query vs expense creation
+  const isQueryMessage = (msg: string): boolean => {
+    const queryPatterns = [
+      /^(how|what|when|where|why|show|tell|compare|find|search|list|get)/i,
+      /\?(.*)?$/i, // Ends with question mark
+      /(budget|spent|spending|expenses|recent|last|this month|analysis)/i,
+    ];
+    
+    // If message has a dollar sign or number + expense keywords, it's likely an expense
+    const hasAmount = /\$?\d+(\.\d{2})?/.test(msg);
+    const hasExpenseKeywords = /(spent|bought|paid|cost|purchase)/i.test(msg);
+    
+    if (hasAmount && hasExpenseKeywords) {
+      return false; // It's an expense
+    }
+    
+    // Check if it matches query patterns
+    return queryPatterns.some(pattern => pattern.test(msg));
+  };
+
+  // Handle conversational query
+  const handleQueryMessage = async (message: string, conversationId: string | null) => {
+    if (!user) return;
+
+    // Add thinking message
+    const thinkingMessage: ChatMessage = {
+      id: `thinking-${Date.now()}`,
+      role: "assistant",
+      content: "🤔 Let me check that for you...",
+      timestamp: Timestamp.now(),
+    };
+    setMessages((prev) => [...prev, thinkingMessage]);
+
+    try {
+      // Build conversation history from current messages
+      const conversationHistory = messages
+        .filter(m => m.role !== "system" && !m.id.startsWith("thinking"))
+        .map(m => ({ role: m.role, content: m.content }));
+
+      const response = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          userId: user.uid,
+          conversationHistory,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response from AI");
+      }
+
+      const data = await response.json();
+
+      // Remove thinking message
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessage.id));
+
+      // Add AI response
+      const aiMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: "assistant",
+        content: data.message,
+        timestamp: Timestamp.now(),
+        metadata: {
+          functionCalled: data.functionCalled,
+          functionResult: data.functionResult,
+        },
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+
+      // Save messages to conversation
+      if (conversationId) {
+        await saveMessageToConversation(conversationId, "assistant", aiMessage.content);
+      }
+
+    } catch (error) {
+      console.error("Error in query:", error);
+
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessage.id));
+
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: `Sorry, I encountered an error. ${
+          error instanceof Error ? error.message : "Please try again."
+        }`,
+        timestamp: Timestamp.now(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+
+      // Save error message
+      if (conversationId) {
+        await saveMessageToConversation(conversationId, "assistant", errorMessage.content);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleSendMessage = async (message: string, image?: File) => {
     let currentConversationId = conversationIdFromUrl;
 
@@ -244,9 +345,16 @@ export default function Home() {
     setMessages((prev) => [...prev, userMessage]);
     setIsProcessing(true);
 
-    // Note: First message is already saved by createConversation,
-    // so we don't need to save the user message again
+    // Detect intent: Query vs Expense Creation
+    const isQuery = !image && message && isQueryMessage(message);
 
+    if (isQuery) {
+      // Handle conversational query
+      await handleQueryMessage(message, currentConversationId);
+      return;
+    }
+
+    // Handle expense creation (existing flow)
     // Add "thinking" message
     const thinkingMessage: ChatMessage = {
       id: `thinking-${Date.now()}`,
