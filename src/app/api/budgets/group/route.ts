@@ -189,8 +189,13 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating group budget:", error);
+    console.error("Error details:", error instanceof Error ? error.message : String(error));
+    console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return NextResponse.json(
-      { error: "Failed to create budget" },
+      { 
+        error: "Failed to create budget",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

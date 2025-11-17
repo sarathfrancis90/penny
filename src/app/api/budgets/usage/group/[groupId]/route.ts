@@ -146,8 +146,13 @@ export async function GET(
     return NextResponse.json({ usage: resolvedUsage }, { status: 200 });
   } catch (error) {
     console.error("Error calculating group budget usage:", error);
+    console.error("Error details:", error instanceof Error ? error.message : String(error));
+    console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return NextResponse.json(
-      { error: "Failed to calculate budget usage" },
+      { 
+        error: "Failed to calculate budget usage",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }
