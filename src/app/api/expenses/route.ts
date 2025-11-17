@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { BudgetNotificationService } from "@/lib/services/budgetNotificationService";
 
 interface CreateExpenseRequest {
   vendor: string;
@@ -172,6 +173,128 @@ export async function POST(request: NextRequest) {
           console.error("[Notifications] Error creating expense notifications:", notifError);
         }
       }
+    }
+
+    // Check budget impact and trigger budget notifications
+    try {
+      console.log(`[Budget] Checking budget impact for expense ${docRef.id}`);
+      const expenseMonth = expenseDate.toDate().getMonth() + 1;
+      const expenseYear = expenseDate.toDate().getFullYear();
+
+      if (groupId) {
+        // Check group budget
+        console.log(`[Budget] Checking group budget for ${groupId}, category: ${category}`);
+        const groupBudgetSnapshot = await adminDb
+          .collection("budgets_group")
+          .where("groupId", "==", groupId)
+          .where("category", "==", category)
+          .where("period.month", "==", expenseMonth)
+          .where("period.year", "==", expenseYear)
+          .get();
+
+        if (!groupBudgetSnapshot.empty) {
+          const budgetDoc = groupBudgetSnapshot.docs[0];
+          const budget = budgetDoc.data();
+          const budgetLimit = budget.limit || 0;
+
+          // Calculate total spent in this category for this group
+          const startDate = new Date(expenseYear, expenseMonth - 1, 1);
+          const endDate = new Date(expenseYear, expenseMonth, 0, 23, 59, 59, 999);
+
+          const expensesSnapshot = await adminDb
+            .collection("expenses")
+            .where("groupId", "==", groupId)
+            .where("category", "==", category)
+            .where("date", ">=", Timestamp.fromDate(startDate))
+            .where("date", "<=", Timestamp.fromDate(endDate))
+            .get();
+
+          const totalSpent = expensesSnapshot.docs.reduce(
+            (sum, doc) => sum + (doc.data().amount || 0),
+            0
+          );
+
+          // Get all group members for notifications
+          const membersSnapshot = await adminDb
+            .collection("groupMembers")
+            .where("groupId", "==", groupId)
+            .where("status", "==", "active")
+            .get();
+
+          const memberIds = membersSnapshot.docs.map(doc => doc.data().userId);
+          const groupDoc = await adminDb.collection("groups").doc(groupId).get();
+          const groupName = groupDoc.exists ? groupDoc.data()?.name : 'Unknown Group';
+
+          console.log(`[Budget] Group budget check: ${totalSpent}/${budgetLimit} (${Math.round((totalSpent / budgetLimit) * 100)}%)`);
+
+          // Trigger budget notifications
+          await BudgetNotificationService.checkAndNotify({
+            budgetId: budgetDoc.id,
+            userId: userId, // Will send to all members
+            category,
+            totalSpent,
+            budgetLimit,
+            period: { month: expenseMonth, year: expenseYear },
+            isGroupBudget: true,
+            groupId,
+            groupName,
+            groupMembers: memberIds,
+          });
+        } else {
+          console.log(`[Budget] No group budget found for ${groupId}, category: ${category}`);
+        }
+      } else {
+        // Check personal budget
+        console.log(`[Budget] Checking personal budget for ${userId}, category: ${category}`);
+        const personalBudgetSnapshot = await adminDb
+          .collection("budgets_personal")
+          .where("userId", "==", userId)
+          .where("category", "==", category)
+          .where("period.month", "==", expenseMonth)
+          .where("period.year", "==", expenseYear)
+          .get();
+
+        if (!personalBudgetSnapshot.empty) {
+          const budgetDoc = personalBudgetSnapshot.docs[0];
+          const budget = budgetDoc.data();
+          const budgetLimit = budget.limit || 0;
+
+          // Calculate total spent in this category for this user (personal only)
+          const startDate = new Date(expenseYear, expenseMonth - 1, 1);
+          const endDate = new Date(expenseYear, expenseMonth, 0, 23, 59, 59, 999);
+
+          const expensesSnapshot = await adminDb
+            .collection("expenses")
+            .where("userId", "==", userId)
+            .where("category", "==", category)
+            .where("date", ">=", Timestamp.fromDate(startDate))
+            .where("date", "<=", Timestamp.fromDate(endDate))
+            .get();
+
+          // Filter to only personal expenses (no groupId)
+          const totalSpent = expensesSnapshot.docs
+            .filter(doc => !doc.data().groupId)
+            .reduce((sum, doc) => sum + (doc.data().amount || 0), 0);
+
+          console.log(`[Budget] Personal budget check: ${totalSpent}/${budgetLimit} (${Math.round((totalSpent / budgetLimit) * 100)}%)`);
+
+          // Trigger budget notifications
+          await BudgetNotificationService.checkAndNotify({
+            budgetId: budgetDoc.id,
+            userId,
+            category,
+            totalSpent,
+            budgetLimit,
+            period: { month: expenseMonth, year: expenseYear },
+            isGroupBudget: false,
+          });
+        } else {
+          console.log(`[Budget] No personal budget found for ${userId}, category: ${category}`);
+        }
+      }
+    } catch (budgetError) {
+      // Don't fail the expense creation if budget notifications fail
+      console.error("[Budget] Error checking budget:", budgetError);
     }
 
     // Return success with the document ID
