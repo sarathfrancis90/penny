@@ -17,7 +17,6 @@ import { db } from '@/lib/firebase';
 import {
   Notification,
   NotificationType,
-  NotificationPreferences,
   NotificationPriority,
   NotificationCategory,
   NotificationAction
@@ -59,29 +58,50 @@ export class NotificationService {
    */
   static async create(data: CreateNotificationData): Promise<string | null> {
     try {
-      // Check if user has preferences
-      const prefsDoc = await getDoc(doc(db, 'notificationPreferences', data.userId));
+      // Check global mute settings
+      const settingsDoc = await getDoc(doc(db, 'userNotificationSettings', data.userId));
       
-      if (prefsDoc.exists()) {
-        const prefs = prefsDoc.data() as NotificationPreferences;
+      if (settingsDoc.exists()) {
+        const settings = settingsDoc.data();
         
-        // Check if notifications are enabled globally
-        if (!prefs.enabled) {
-          console.log('[NotificationService] Notifications disabled for user:', data.userId);
-          return null;
-        }
-
-        // Check if this notification type is enabled
-        const typePrefs = prefs.types?.[data.type];
-        if (!typePrefs || !typePrefs.inApp) {
-          console.log('[NotificationService] Notification type disabled:', data.type);
+        // Check if notifications are globally muted
+        if (settings.globalMute) {
+          console.log('[NotificationService] Notifications globally muted for user:', data.userId);
           return null;
         }
 
         // Check quiet hours (skip for critical notifications)
-        if (data.priority !== 'critical' && !this.shouldDeliverNow(data.priority, prefs)) {
-          console.log('[NotificationService] In quiet hours or DND, skipping notification');
-          // TODO: Queue for later delivery
+        if (data.priority !== 'critical') {
+          const isInQuietHours = this.isInQuietHours(
+            settings.quietHoursStart || '22:00',
+            settings.quietHoursEnd || '08:00'
+          );
+          
+          if (isInQuietHours) {
+            console.log('[NotificationService] In quiet hours, skipping notification');
+            // TODO: Queue for later delivery
+            return null;
+          }
+        }
+      }
+
+      // Check type-specific preferences
+      const prefsDoc = await getDoc(doc(db, 'users', data.userId, 'notificationPreferences', 'default'));
+      
+      if (prefsDoc.exists()) {
+        const prefs = prefsDoc.data();
+        const typePref = prefs[data.type];
+        
+        // Check if this notification type is enabled for in-app
+        if (typePref && !typePref.inApp) {
+          console.log('[NotificationService] In-app notifications disabled for type:', data.type);
+          return null;
+        }
+
+        // Check frequency (if not realtime, queue for digest)
+        if (typePref && typePref.frequency !== 'realtime' && data.priority !== 'critical') {
+          console.log('[NotificationService] Non-realtime notification, queuing for digest');
+          // TODO: Queue for digest delivery
           return null;
         }
       }
@@ -119,7 +139,7 @@ export class NotificationService {
       });
 
       // TODO: Send push notification if enabled (Phase 5)
-      // if (typePrefs?.push && prefs.pushEnabled) {
+      // if (typePrefs?.push) {
       //   await this.sendPush(data.userId, { ...notification, id: docRef.id });
       // }
 
@@ -142,58 +162,31 @@ export class NotificationService {
   }
 
   /**
-   * Check if notification should be delivered now based on quiet hours and DND
+   * Check if current time is within quiet hours
    * 
-   * @param priority - Notification priority
-   * @param prefs - User preferences
-   * @returns true if should deliver now
+   * @param startTime - Start time in HH:MM format (e.g., "22:00")
+   * @param endTime - End time in HH:MM format (e.g., "08:00")
+   * @returns true if currently in quiet hours
    */
-  private static shouldDeliverNow(
-    priority: NotificationPriority | undefined,
-    prefs: NotificationPreferences
-  ): boolean {
-    // Critical notifications always deliver
-    if (priority === 'critical') {
-      return true;
+  private static isInQuietHours(startTime: string, endTime: string): boolean {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+
+    const startTimeMinutes = startHour * 60 + startMin;
+    const endTimeMinutes = endHour * 60 + endMin;
+
+    // Handle overnight quiet hours (e.g., 22:00 - 08:00)
+    if (startTimeMinutes > endTimeMinutes) {
+      return currentTime >= startTimeMinutes || currentTime <= endTimeMinutes;
     }
-
-    // Check DND mode
-    if (prefs.dnd?.enabled) {
-      if (prefs.dnd.until) {
-        const now = Timestamp.now();
-        if (now.toMillis() < prefs.dnd.until.toMillis()) {
-          return false; // Still in DND period
-        }
-      }
-    }
-
-    // Check quiet hours
-    if (prefs.quietHours?.enabled) {
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const currentTime = currentHour * 60 + currentMinute;
-
-      const [startHour, startMin] = prefs.quietHours.start.split(':').map(Number);
-      const [endHour, endMin] = prefs.quietHours.end.split(':').map(Number);
-
-      const startTime = startHour * 60 + startMin;
-      const endTime = endHour * 60 + endMin;
-
-      if (startTime < endTime) {
-        // Normal case: e.g., 22:00 to 08:00 next day
-        if (currentTime >= startTime && currentTime < endTime) {
-          return false; // In quiet hours
-        }
-      } else {
-        // Spans midnight: e.g., 22:00 to 02:00
-        if (currentTime >= startTime || currentTime < endTime) {
-          return false; // In quiet hours
-        }
-      }
-    }
-
-    return true;
+    
+    // Normal case (e.g., 08:00 - 17:00)
+    return currentTime >= startTimeMinutes && currentTime <= endTimeMinutes;
   }
 
   /**

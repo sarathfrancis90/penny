@@ -49,7 +49,7 @@ export type NotificationCategory = 'group' | 'budget' | 'system' | 'social';
 /**
  * Frequency Options
  */
-export type NotificationFrequency = 'realtime' | 'hourly' | 'daily' | 'weekly' | 'never';
+export type NotificationFrequency = 'realtime' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'never';
 
 /**
  * Notification Action
