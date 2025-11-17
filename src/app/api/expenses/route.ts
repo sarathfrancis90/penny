@@ -110,6 +110,67 @@ export async function POST(request: NextRequest) {
           metadata: { expenseId: docRef.id, vendor, amount, category },
           createdAt: now,
         });
+
+        // Create notifications for other group members
+        try {
+          const groupData = groupDoc.data();
+          const groupName = groupData?.name || 'Unknown Group';
+          const groupIcon = groupData?.icon || '👥';
+
+          // Get user info
+          const userDoc = await adminDb.collection("users").doc(userId).get();
+          const userData = userDoc.exists ? userDoc.data() : null;
+          const actorName = userData?.displayName || userData?.email || 'Someone';
+          const actorAvatar = userData?.photoURL;
+
+          // Get all group members except the current user
+          const membersSnapshot = await adminDb
+            .collection("groupMembers")
+            .where("groupId", "==", groupId)
+            .where("status", "==", "active")
+            .get();
+
+          const notificationPromises = membersSnapshot.docs
+            .filter(doc => doc.data().userId !== userId) // Exclude the user who added the expense
+            .map(async (memberDoc) => {
+              const memberId = memberDoc.data().userId;
+
+              // Create notification
+              return adminDb.collection("notifications").add({
+                userId: memberId,
+                type: "group_expense_added",
+                title: "New expense added",
+                body: `${actorName} added $${amount.toFixed(2)} at ${vendor}`,
+                icon: "💰",
+                priority: "medium",
+                category: "group",
+                read: false,
+                delivered: false,
+                isGrouped: false,
+                actionUrl: `/groups/${groupId}`,
+                relatedId: docRef.id,
+                relatedType: "expense",
+                groupId: groupId,
+                actorId: userId,
+                actorName: actorName,
+                actorAvatar: actorAvatar,
+                metadata: {
+                  groupName: groupName,
+                  groupIcon: groupIcon,
+                  vendor: vendor,
+                  amount: amount,
+                  category: category,
+                },
+                createdAt: now,
+              });
+            });
+
+          await Promise.all(notificationPromises);
+          console.log(`[Notifications] Created ${notificationPromises.length} expense notifications for group ${groupId}`);
+        } catch (notifError) {
+          // Don't fail the expense creation if notifications fail
+          console.error("[Notifications] Error creating expense notifications:", notifError);
+        }
       }
     }
 

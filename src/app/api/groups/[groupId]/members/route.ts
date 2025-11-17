@@ -189,6 +189,74 @@ export async function POST(
       createdAt: Timestamp.now(),
     });
 
+    // Create notification for the invited user (if they're registered)
+    try {
+      const usersSnapshot = await adminDb
+        .collection("users")
+        .where("email", "==", email.toLowerCase())
+        .limit(1)
+        .get();
+
+      if (!usersSnapshot.empty) {
+        const invitedUserDoc = usersSnapshot.docs[0];
+        const invitedUserId = invitedUserDoc.id;
+        
+        // Get inviter info
+        const inviterDoc = await adminDb.collection("users").doc(userId).get();
+        const inviterUserData = inviterDoc.exists ? inviterDoc.data() : null;
+        const inviterName = inviterUserData?.displayName || inviterUserData?.email || 'Someone';
+        const inviterAvatar = inviterUserData?.photoURL;
+
+        await adminDb.collection("notifications").add({
+          userId: invitedUserId,
+          type: "group_invitation",
+          title: "Group invitation",
+          body: `${inviterName} invited you to join ${groupData.icon || '👥'} ${groupData.name}`,
+          icon: "📨",
+          priority: "high",
+          category: "group",
+          read: false,
+          delivered: false,
+          isGrouped: false,
+          actions: [
+            {
+              id: "accept",
+              label: "Accept",
+              variant: "primary",
+              action: "accept_group_invitation",
+            },
+            {
+              id: "decline",
+              label: "Decline",
+              variant: "default",
+              action: "decline_group_invitation",
+            },
+          ],
+          actionUrl: `/groups/${groupId}`,
+          relatedId: groupId,
+          relatedType: "group",
+          groupId: groupId,
+          actorId: userId,
+          actorName: inviterName,
+          actorAvatar: inviterAvatar,
+          metadata: {
+            groupName: groupData.name,
+            groupIcon: groupData.icon || '👥',
+            invitationId: invitationRef.id,
+            invitationToken: invitationToken,
+          },
+          createdAt: Timestamp.now(),
+        });
+
+        console.log(`[Notifications] Created invitation notification for user ${invitedUserId}`);
+      } else {
+        console.log(`[Notifications] User with email ${email} not registered yet, skipping notification`);
+      }
+    } catch (notifError) {
+      // Don't fail the invitation if notification fails
+      console.error("[Notifications] Error creating invitation notification:", notifError);
+    }
+
     // TODO: Send invitation email (implement in separate email service)
 
     return NextResponse.json({
