@@ -207,6 +207,19 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem asChild>
+                <Link href={`/groups/${groupId}/income`}>
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Group Income
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/groups/${groupId}/savings`}>
+                  <PiggyBank className="mr-2 h-4 w-4" />
+                  Group Savings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               {(isOwner || myMembership?.role === "admin") && (
                 <DropdownMenuItem asChild>
                   <Link href={`/groups/${groupId}/members`}>
@@ -290,12 +303,24 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             </div>
             
             {/* Desktop Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
+              <Button variant="outline" asChild>
+                <Link href={`/groups/${groupId}/income`}>
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Income
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={`/groups/${groupId}/savings`}>
+                  <PiggyBank className="mr-2 h-4 w-4" />
+                  Savings
+                </Link>
+              </Button>
               {(isOwner || myMembership?.role === "admin") && (
                 <Button variant="outline" asChild>
                   <Link href={`/groups/${groupId}/members`}>
                     <Users className="mr-2 h-4 w-4" />
-                    Manage Members
+                    Members
                   </Link>
                 </Button>
               )}
