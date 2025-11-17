@@ -39,6 +39,8 @@ Detailed documentation for all major features.
 | [Passkey Authentication](features/IMPLEMENTATION_SUMMARY_PASSKEYS.md) | Passwordless auth with passkeys |
 | [Receipt Storage](features/RECEIPT_STORAGE_IMPLEMENTATION.md) | Receipt upload and OCR |
 | [View Expense Modal](features/VIEW_EXPENSE_MODAL_IMPLEMENTATION.md) | Expense viewing UI |
+| [Income & Budgeting System](features/INCOME_BUDGETING_SYSTEM_DESIGN.md) | Income tracking & smart allocation |
+| [Income Budgeting Summary](features/INCOME_BUDGETING_SUMMARY.md) | Quick reference for income feature |
 
 ---
 
