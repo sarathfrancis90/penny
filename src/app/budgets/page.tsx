@@ -45,6 +45,7 @@ import { BudgetCard } from "@/components/budgets/BudgetCard";
 import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { AppLayout } from "@/components/app-layout";
 
 function BudgetsPageContent() {
   const { user, loading: authLoading } = useAuth();
@@ -339,12 +340,14 @@ function BudgetsPageContent() {
   if (authLoading) {
     console.log("⏳ [Budgets Page] Waiting for auth to load...");
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
-          <p className="text-muted-foreground">Loading...</p>
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
@@ -358,21 +361,19 @@ function BudgetsPageContent() {
   console.log("✅ [Budgets Page] User authenticated:", user.email);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4 animate-in slide-in-from-top-4 fade-in-50 duration-500">
+        <div className="flex items-center gap-4">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon" className="hover:bg-violet-100 dark:hover:bg-violet-900">
-              <ArrowLeft size={20} />
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-              Budget Management
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {new Date(currentPeriod.year, currentPeriod.month - 1).toLocaleDateString("en-US", {
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold gradient-text">Budget Management</h1>
+            <p className="text-muted-foreground">
+              Set monthly spending limits and track your budget usage for {new Date(currentPeriod.year, currentPeriod.month - 1).toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
               })}
@@ -815,7 +816,7 @@ function BudgetsPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </AppLayout>
   );
 }
 
