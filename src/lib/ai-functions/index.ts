@@ -6,7 +6,6 @@
  */
 
 import { adminDb } from "@/lib/firebase-admin";
-import { Timestamp } from "firebase-admin/firestore";
 import { Expense } from "@/lib/types";
 import {
   BudgetStatusParams,

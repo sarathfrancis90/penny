@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
 import { useGroupBudgets } from "@/hooks/useGroupBudgets";
 import { useBudgetUsage } from "@/hooks/useBudgetUsage";
 import { getCurrentPeriod, calculateSimpleBudgetUsage, formatCurrency } from "@/lib/budgetCalculations";
 import { BudgetProgressBar } from "./BudgetProgressBar";
 import { BudgetStatusBadge } from "./BudgetStatusBadge";
-import { AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BudgetImpactPreviewProps {
@@ -29,7 +29,6 @@ export function BudgetImpactPreview({
   onImpactCalculated,
 }: BudgetImpactPreviewProps) {
   const currentPeriod = getCurrentPeriod();
-  const [willExceedBudget, setWillExceedBudget] = useState(false);
 
   // Fetch the relevant budget
   const { budgets: personalBudgets } = usePersonalBudgets(
@@ -100,10 +99,8 @@ export function BudgetImpactPreview({
   // Update parent component when budget impact changes
   useEffect(() => {
     if (calculations) {
-      setWillExceedBudget(calculations.exceedsBudget);
       onImpactCalculated?.(calculations.exceedsBudget);
     } else {
-      setWillExceedBudget(false);
       onImpactCalculated?.(false);
     }
   }, [calculations, onImpactCalculated]);

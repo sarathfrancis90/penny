@@ -43,11 +43,6 @@ interface PendingExpense {
   groupName?: string | null;
 }
 
-interface MultiPendingExpense {
-  expenses: PendingExpense[];
-  messageId: string;
-}
-
 export default function Home() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -256,10 +251,6 @@ export default function Home() {
         role: "assistant",
         content: data.message,
         timestamp: Timestamp.now(),
-        metadata: {
-          functionCalled: data.functionCalled,
-          functionResult: data.functionResult,
-        },
       };
 
       setMessages((prev) => [...prev, aiMessage]);

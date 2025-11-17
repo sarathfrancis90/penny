@@ -84,9 +84,6 @@ interface AnalyzeExpenseResponse {
   confidence?: number;
 }
 
-interface MultiExpenseResponse {
-  expenses: AnalyzeExpenseResponse[];
-}
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -256,7 +253,6 @@ export async function POST(request: NextRequest) {
           duration,
           inputLength: text?.length || 0,
           hasImage: !!imageBase64,
-          expenseCount: expenses.length,
         }).catch(err => console.error("Analytics tracking failed:", err));
 
         console.log(`AI analyzed ${expenses.length} expenses in ${duration}ms`);

@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { GEMINI_FUNCTIONS, GeminiFunctionName } from "@/lib/gemini-functions";
-import {
-  getBudgetStatus,
-  getExpenseSummary,
-  getCategoryBreakdown,
-  getGroupExpenses,
-  searchExpenses,
-  getRecentExpenses,
-  comparePeriods,
-} from "@/lib/ai-functions";
 
 // Initialize Gemini AI
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
@@ -121,95 +111,32 @@ Comparison:
 
     console.log("🤖 [AI Chat] Starting conversation with Gemini...");
 
-    // Call Gemini with function declarations
+    // TODO: Implement function calling when SDK supports it properly
+    // For now, AI will guide users to use the dashboard for detailed analytics
+    
+    // Call Gemini for conversational response
     const result = await genAI.models.generateContent({
       model: "gemini-2.0-flash-exp",
       contents: contents.map((c) => ({ text: c.text })),
-      tools: [{ functionDeclarations: GEMINI_FUNCTIONS as any }],
     });
 
-    const response = result.candidates?.[0]?.content;
+    const responseText = result.text;
 
-    if (!response) {
+    if (!responseText) {
       throw new Error("No response from AI");
     }
 
-    // Check if AI wants to call a function
-    const functionCall = response.functionCall;
-
-    if (functionCall) {
-      console.log(`🔧 [AI Chat] Function call: ${functionCall.name}`, functionCall.args);
-
-      // Execute the function
-      let functionResult;
-
-      switch (functionCall.name as GeminiFunctionName) {
-        case GeminiFunctionName.GET_BUDGET_STATUS:
-          functionResult = await getBudgetStatus(userId, functionCall.args);
-          break;
-
-        case GeminiFunctionName.GET_EXPENSE_SUMMARY:
-          functionResult = await getExpenseSummary(userId, functionCall.args);
-          break;
-
-        case GeminiFunctionName.GET_CATEGORY_BREAKDOWN:
-          functionResult = await getCategoryBreakdown(userId, functionCall.args);
-          break;
-
-        case GeminiFunctionName.GET_GROUP_EXPENSES:
-          functionResult = await getGroupExpenses(userId, functionCall.args);
-          break;
-
-        case GeminiFunctionName.SEARCH_EXPENSES:
-          functionResult = await searchExpenses(userId, functionCall.args);
-          break;
-
-        case GeminiFunctionName.GET_RECENT_EXPENSES:
-          functionResult = await getRecentExpenses(userId, functionCall.args);
-          break;
-
-        case GeminiFunctionName.COMPARE_PERIODS:
-          functionResult = await comparePeriods(userId, functionCall.args);
-          break;
-
-        default:
-          throw new Error(`Unknown function: ${functionCall.name}`);
-      }
-
-      console.log("✅ [AI Chat] Function result:", functionResult);
-
-      // Send function result back to AI for natural language response
-      const followUpResult = await genAI.models.generateContent({
-        model: "gemini-2.0-flash-exp",
-        contents: [
-          ...contents.map((c) => ({ text: c.text })),
-          {
-            text: `Function ${functionCall.name} returned:\n${JSON.stringify(
-              functionResult,
-              null,
-              2
-            )}\n\nPlease provide a natural language response to the user based on this data. Format numbers nicely, highlight key insights, and be conversational.`,
-          },
-        ],
-      });
-
-      const finalResponse = followUpResult.text || "I retrieved the data, but couldn't format a response.";
-
-      return NextResponse.json({
-        success: true,
-        message: finalResponse,
-        functionCalled: functionCall.name,
-        functionResult,
-      });
-    } else {
-      // No function call, just return the AI's text response
-      const textResponse = response.text || "I'm not sure how to help with that.";
-
-      return NextResponse.json({
-        success: true,
-        message: textResponse,
-      });
-    }
+    // Return the AI's text response
+    return NextResponse.json({
+      success: true,
+      message: responseText,
+    });
+    
+    /* TODO: Implement function calling when Gemini SDK properly supports it
+     * The function implementations are ready in src/lib/ai-functions/
+     * Function declarations are defined in src/lib/gemini-functions.ts
+     * Once SDK supports tools parameter, uncomment and integrate.
+     */
   } catch (error) {
     console.error("❌ [AI Chat] Error:", error);
 

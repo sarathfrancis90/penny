@@ -38,7 +38,7 @@ interface OfflineSyncResult {
   analyzeExpense: (
     text?: string,
     imageBase64?: string
-  ) => Promise<{ success: boolean; data?: ExpenseData; error?: string }>;
+  ) => Promise<{ success: boolean; data?: ExpenseData | ExpenseData[]; error?: string; multiExpense?: boolean }>;
   saveExpense: (expenseData: {
     vendor: string;
     amount: number;
