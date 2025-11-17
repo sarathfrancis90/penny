@@ -16,9 +16,23 @@ import { Switch } from '@/components/ui/switch';
 import { IncomeCategory, IncomeFrequency, PersonalIncomeSource } from '@/lib/types/income';
 import { toast } from 'sonner';
 
+interface IncomeSourceFormSubmitData {
+  name: string;
+  category: IncomeCategory;
+  amount: number;
+  frequency: IncomeFrequency;
+  isRecurring: boolean;
+  recurringDate?: number;
+  taxable: boolean;
+  netAmount?: number;
+  description?: string;
+  currency: string;
+  isActive: boolean;
+}
+
 interface IncomeSourceFormProps {
   initialData?: PersonalIncomeSource;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: IncomeSourceFormSubmitData) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }

@@ -16,7 +16,7 @@ import { Target, PlusCircle, TrendingUp, Award } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SavingsPage() {
-  const { user, authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const {
     savingsGoals,
     activeGoals,
@@ -62,23 +62,45 @@ export default function SavingsPage() {
     );
   }
 
-  const handleCreate = async (data: any) => {
+  const handleCreate = async (data: {
+    name: string;
+    category: string;
+    targetAmount: number;
+    currentAmount: number;
+    monthlyContribution: number;
+    targetDate?: string;
+    priority: string;
+    description?: string;
+    emoji?: string;
+    currency: string;
+  }) => {
     try {
-      await createGoal(data);
+      await createGoal(data as unknown as Partial<PersonalSavingsGoal>);
       setShowCreateDialog(false);
       toast.success('Savings goal created successfully');
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: {
+    name: string;
+    category: string;
+    targetAmount: number;
+    currentAmount: number;
+    monthlyContribution: number;
+    targetDate?: string;
+    priority: string;
+    description?: string;
+    emoji?: string;
+    currency: string;
+  }) => {
     if (!editingGoal) return;
     try {
-      await updateGoal(editingGoal.id, data);
+      await updateGoal(editingGoal.id, data as unknown as Partial<PersonalSavingsGoal>);
       setEditingGoal(null);
       toast.success('Savings goal updated successfully');
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };

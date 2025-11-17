@@ -38,7 +38,7 @@ export function useIncome() {
   }, []);
 
   // Create a new income source
-  const createIncome = useCallback(async (incomeData: any) => {
+  const createIncome = useCallback(async (incomeData: Partial<PersonalIncomeSource>) => {
     try {
       setError(null);
 
@@ -69,7 +69,7 @@ export function useIncome() {
   }, [fetchIncomeSources]);
 
   // Update an income source
-  const updateIncome = useCallback(async (incomeId: string, updates: any) => {
+  const updateIncome = useCallback(async (incomeId: string, updates: Partial<PersonalIncomeSource>) => {
     try {
       setError(null);
 

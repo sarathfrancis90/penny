@@ -16,7 +16,7 @@ import { PlusCircle, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function IncomePage() {
-  const { user, authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const {
     incomeSources,
     activeIncomeSources,
@@ -56,23 +56,47 @@ export default function IncomePage() {
     );
   }
 
-  const handleCreate = async (data: any) => {
+  const handleCreate = async (data: {
+    name: string;
+    category: string;
+    amount: number;
+    frequency: string;
+    isRecurring: boolean;
+    recurringDate?: number;
+    taxable: boolean;
+    netAmount?: number;
+    description?: string;
+    currency: string;
+    isActive: boolean;
+  }) => {
     try {
-      await createIncome(data);
+      await createIncome(data as unknown as Partial<PersonalIncomeSource>);
       setShowCreateDialog(false);
       toast.success('Income source created successfully');
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (data: {
+    name: string;
+    category: string;
+    amount: number;
+    frequency: string;
+    isRecurring: boolean;
+    recurringDate?: number;
+    taxable: boolean;
+    netAmount?: number;
+    description?: string;
+    currency: string;
+    isActive: boolean;
+  }) => {
     if (!editingIncome) return;
     try {
-      await updateIncome(editingIncome.id, data);
+      await updateIncome(editingIncome.id, data as unknown as Partial<PersonalIncomeSource>);
       setEditingIncome(null);
       toast.success('Income source updated successfully');
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };

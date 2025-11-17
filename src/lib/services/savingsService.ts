@@ -159,7 +159,7 @@ export const PersonalSavingsGoalService = {
     const docRef = doc(db, PERSONAL_SAVINGS_COLLECTION, goalId);
 
     // Recalculate progress if amounts changed
-    const updates: any = {
+    const updates: Record<string, unknown> = {
       ...data,
       updatedAt: Timestamp.now(),
     };
@@ -416,7 +416,7 @@ export const GroupSavingsGoalService = {
   ): Promise<void> {
     const docRef = doc(db, GROUP_SAVINGS_COLLECTION, goalId);
 
-    const updates: any = {
+    const updates: Record<string, unknown> = {
       ...data,
       updatedAt: Timestamp.now(),
     };

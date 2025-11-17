@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { PersonalSavingsGoal } from '@/lib/types/savings';
+import { PersonalSavingsGoal, GoalStatus } from '@/lib/types/savings';
 import { calculateTotalMonthlySavings } from '@/lib/utils/incomeCalculations';
 
 /**
@@ -63,7 +63,7 @@ export function useSavingsGoals() {
   }, []);
 
   // Create a new savings goal
-  const createGoal = useCallback(async (goalData: any) => {
+  const createGoal = useCallback(async (goalData: Partial<PersonalSavingsGoal>) => {
     try {
       setError(null);
 
@@ -94,7 +94,7 @@ export function useSavingsGoals() {
   }, [fetchSavingsGoals]);
 
   // Update a savings goal
-  const updateGoal = useCallback(async (goalId: string, updates: any) => {
+  const updateGoal = useCallback(async (goalId: string, updates: Partial<PersonalSavingsGoal>) => {
     try {
       setError(null);
 
@@ -149,12 +149,12 @@ export function useSavingsGoals() {
 
   // Pause a goal
   const pauseGoal = useCallback(async (goalId: string) => {
-    return updateGoal(goalId, { status: 'paused', isActive: false });
+    return updateGoal(goalId, { status: GoalStatus.PAUSED, isActive: false } as Partial<PersonalSavingsGoal>);
   }, [updateGoal]);
 
   // Resume a goal
   const resumeGoal = useCallback(async (goalId: string) => {
-    return updateGoal(goalId, { status: 'active', isActive: true });
+    return updateGoal(goalId, { status: GoalStatus.ACTIVE, isActive: true } as Partial<PersonalSavingsGoal>);
   }, [updateGoal]);
 
   // Calculate total monthly savings allocation
