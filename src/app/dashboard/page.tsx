@@ -8,6 +8,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { useGroups } from "@/hooks/useGroups";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/ui/page-container";
 import {
   Table,
   TableBody,
