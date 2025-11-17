@@ -17,6 +17,7 @@ import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { useConversations } from "@/hooks/useConversations";
 import { useConversation } from "@/hooks/useConversation";
 import { useConversationHistory } from "@/hooks/useConversationHistory";
+import { useDefaultGroup } from "@/hooks/useDefaultGroup";
 import { AppLayout } from "@/components/app-layout";
 import {
   AlertDialog,
@@ -38,6 +39,7 @@ interface PendingExpense {
   category: string;
   description?: string;
   confidence?: number;
+  groupId?: string | null;
 }
 
 export default function Home() {
@@ -60,6 +62,7 @@ export default function Home() {
   const [conversationIdToEdit, setConversationIdToEdit] = useState<string | null>(null);
 
   const { user } = useAuth();
+  const { defaultGroupId } = useDefaultGroup(user?.uid);
   const { analyzeExpense, saveExpense } = useOfflineSync(user?.uid);
 
   // Conversation hooks
@@ -274,7 +277,10 @@ export default function Home() {
       };
 
       setMessages((prev) => [...prev, confirmationMessage]);
-      setPendingExpense(expenseData);
+      setPendingExpense({
+        ...expenseData,
+        groupId: expenseData.groupId || defaultGroupId || null,
+      });
       setPendingMessageId(confirmationMessageId);
       // Store the receipt file for later upload
       if (image) {

@@ -73,6 +73,7 @@ export interface UserProfile {
     currency?: string;
     fiscalYearEnd?: string;
     defaultCategories?: string[];
+    defaultGroupId?: string; // Default group for new expenses
   };
 }
 

@@ -40,6 +40,7 @@ import {
 import Link from "next/link";
 import { expenseCategories } from "@/lib/categories";
 import { useAuth } from "@/hooks/useAuth";
+import { useDefaultGroup } from "@/hooks/useDefaultGroup";
 
 interface GroupSettingsPageProps {
   params: Promise<{
@@ -60,9 +61,11 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
   const { user } = useAuth();
   const { groups, loading: groupsLoading } = useGroups();
   const { myMembership, loading: membersLoading } = useGroupMembers(groupId);
+  const { defaultGroupId, setDefault, loading: defaultGroupLoading } = useDefaultGroup(user?.uid);
 
   const group = groups.find((g) => g.id === groupId);
   const loading = groupsLoading || membersLoading;
+  const isDefaultGroup = defaultGroupId === groupId;
 
   // Form state
   const [name, setName] = useState(group?.name || "");
@@ -198,6 +201,25 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
       toast.error(error instanceof Error ? error.message : "Failed to update group");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDefaultGroupToggle = async (checked: boolean) => {
+    if (!user) {
+      toast.error("You must be logged in");
+      return;
+    }
+
+    const success = await setDefault(checked ? groupId : null);
+    
+    if (success) {
+      if (checked) {
+        toast.success(`${group?.name} is now your default group for new expenses`);
+      } else {
+        toast.success("Default group removed");
+      }
+    } else {
+      toast.error("Failed to update default group");
     }
   };
 
@@ -507,6 +529,34 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
             <p className="text-sm text-muted-foreground">
               Leave empty to disable budget tracking
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Personal Preferences */}
+        <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30">
+          <CardHeader>
+            <CardTitle>Your Personal Preferences</CardTitle>
+            <CardDescription>Settings that only affect your experience with this group</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5 flex-1">
+                <Label className="text-base font-semibold">Set as Default Group</Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically pre-select this group when creating new expenses in chat
+                </p>
+                {isDefaultGroup && (
+                  <p className="text-xs text-violet-600 dark:text-violet-400 font-medium mt-1">
+                    ✓ This is currently your default group
+                  </p>
+                )}
+              </div>
+              <Switch
+                checked={isDefaultGroup}
+                onCheckedChange={handleDefaultGroupToggle}
+                disabled={defaultGroupLoading}
+              />
+            </div>
           </CardContent>
         </Card>
 
