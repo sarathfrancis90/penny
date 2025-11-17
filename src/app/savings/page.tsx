@@ -8,6 +8,9 @@ import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PageContainer } from '@/components/ui/page-container';
+import { StatCard } from '@/components/ui/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm';
 import { SavingsGoalCard } from '@/components/savings/SavingsGoalCard';
@@ -180,12 +183,12 @@ export default function SavingsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <PageContainer>
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-3xl font-bold tracking-tight">Savings Goals</h1>
+              <h1 className="text-3xl font-bold gradient-text">Savings Goals</h1>
               {!allocation.loading && (
                 <AllocationStatusBadge
                   unallocated={allocation.unallocated}
@@ -206,65 +209,32 @@ export default function SavingsPage() {
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Saved</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {formatCurrency(totalSaved, 'USD')}
-                  </p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Total Saved"
+            value={formatCurrency(totalSaved, 'USD')}
+            icon={<TrendingUp className="h-4 w-4" />}
+            valueClassName="text-green-600 dark:text-green-400"
+          />
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Target Amount</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {formatCurrency(totalTarget, 'USD')}
-                  </p>
-                </div>
-                <Target className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Target Amount"
+            value={formatCurrency(totalTarget, 'USD')}
+            icon={<Target className="h-4 w-4" />}
+          />
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Overall Progress</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {overallProgress.toFixed(1)}%
-                  </p>
-                </div>
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-bold">
-                    {Math.round(overallProgress)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Overall Progress"
+            value={`${overallProgress.toFixed(1)}%`}
+            subtitle={`${achievedGoals.length} goals achieved`}
+            icon={<Award className="h-4 w-4" />}
+          />
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Monthly Savings</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {formatCurrency(totalMonthlySavings, 'USD')}
-                  </p>
-                </div>
-                <Award className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Monthly Savings"
+            value={formatCurrency(totalMonthlySavings, 'USD')}
+            subtitle={`From ${activeGoals.length} active goals`}
+            icon={<Award className="h-4 w-4" />}
+          />
         </div>
 
         {/* Savings Goals List */}
@@ -279,30 +249,30 @@ export default function SavingsPage() {
           <TabsContent value={activeTab} className="space-y-4 mt-6">
             {displayedGoals.length === 0 ? (
               <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Target className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    {activeTab === 'active' && 'No Active Goals'}
-                    {activeTab === 'achieved' && 'No Achieved Goals Yet'}
-                    {activeTab === 'paused' && 'No Paused Goals'}
-                    {activeTab === 'cancelled' && 'No Cancelled Goals'}
-                  </h3>
-                  <p className="text-muted-foreground text-center mb-4 max-w-md">
-                    {activeTab === 'active' &&
-                      'Create your first savings goal to start tracking your financial progress.'}
-                    {activeTab === 'achieved' &&
-                      'Keep working on your active goals to celebrate your achievements!'}
-                    {activeTab === 'paused' &&
-                      'Resume any paused goals to get back on track.'}
-                    {activeTab === 'cancelled' &&
-                      'Cancelled goals are archived here for your records.'}
-                  </p>
-                  {activeTab === 'active' && (
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Create Savings Goal
-                    </Button>
-                  )}
+                <CardContent>
+                  <EmptyState
+                    icon={<Target className="h-12 w-12" />}
+                    title={
+                      activeTab === 'active' ? 'No Active Goals' :
+                      activeTab === 'achieved' ? 'No Achieved Goals Yet' :
+                      activeTab === 'paused' ? 'No Paused Goals' :
+                      'No Cancelled Goals'
+                    }
+                    description={
+                      activeTab === 'active' ? 'Create your first savings goal to start tracking your financial progress.' :
+                      activeTab === 'achieved' ? 'Keep working on your active goals to celebrate your achievements!' :
+                      activeTab === 'paused' ? 'Resume any paused goals to get back on track.' :
+                      'Cancelled goals are archived here for your records.'
+                    }
+                    action={
+                      activeTab === 'active' && (
+                        <Button onClick={() => setShowCreateDialog(true)}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Create Savings Goal
+                        </Button>
+                      )
+                    }
+                  />
                 </CardContent>
               </Card>
             ) : (
@@ -371,7 +341,7 @@ export default function SavingsPage() {
             setPendingGoalData(null);
           }}
         />
-      </div>
+      </PageContainer>
     </AppLayout>
   );
 }
