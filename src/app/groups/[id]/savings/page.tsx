@@ -191,6 +191,16 @@ export default function GroupSavingsPage({ params }: PageProps) {
             </AlertDescription>
           </Alert>
         )}
+        
+        {/* Debug: Show admin status (remove after testing) */}
+        {isAdmin && (
+          <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+            <Info className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              ✓ You are an admin - Edit/delete buttons should be visible on goal cards
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-4">
