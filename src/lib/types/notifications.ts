@@ -26,6 +26,9 @@ export enum NotificationType {
   BUDGET_EXCEEDED = 'budget_exceeded',         // >100%
   BUDGET_RESET = 'budget_reset',               // Monthly reset
   
+  // Income & Savings
+  MILESTONE = 'milestone',                     // Savings/Income milestones
+  
   // System
   WEEKLY_SUMMARY = 'weekly_summary',
   MONTHLY_SUMMARY = 'monthly_summary',
@@ -44,7 +47,7 @@ export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical';
 /**
  * Notification Categories
  */
-export type NotificationCategory = 'group' | 'budget' | 'system' | 'social';
+export type NotificationCategory = 'group' | 'budget' | 'system' | 'social' | 'income' | 'savings';
 
 /**
  * Frequency Options
@@ -364,6 +367,15 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: Omit<NotificationPreferences, 'us
       email: false,
       frequency: 'realtime',
       priority: 'medium',
+    },
+    
+    // Income & Savings
+    [NotificationType.MILESTONE]: {
+      inApp: true,
+      push: true,
+      email: false,
+      frequency: 'realtime',
+      priority: 'high',
     },
     
     // System

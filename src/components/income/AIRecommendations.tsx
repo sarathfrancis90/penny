@@ -74,12 +74,13 @@ export function AIRecommendations({
         });
         score += 5;
       } else {
+        const recommendedSavings = (totalIncome * 0.2) - totalSavings;
         recs.push({
           type: 'warning',
           category: 'Savings',
           title: 'Low Savings Rate - Action Needed',
           description: `At ${formatPercentage(savingsRate)}, your savings rate is below healthy levels. This could impact your financial security and long-term goals.`,
-          action: 'Aim to save at least ${formatCurrency((totalIncome * 0.2) - totalSavings, 'USD')} more per month',
+          action: `Aim to save at least ${formatCurrency(recommendedSavings, 'USD')} more per month`,
           priority: 'high',
         });
         score -= 10;
@@ -251,7 +252,7 @@ export function AIRecommendations({
               </div>
               <div className="text-sm text-muted-foreground">
                 {healthScore >= 80 && 'Your finances are in great shape! Keep up the excellent habits.'}
-                {healthScore >= 60 && healthScore < 80 && 'You're doing well, but there's room for improvement.'}
+                {healthScore >= 60 && healthScore < 80 && 'You\'re doing well, but there\'s room for improvement.'}
                 {healthScore >= 40 && healthScore < 60 && 'Your finances need attention. Follow the recommendations below.'}
                 {healthScore < 40 && 'Your finances need significant improvements. Take action on high-priority items.'}
               </div>

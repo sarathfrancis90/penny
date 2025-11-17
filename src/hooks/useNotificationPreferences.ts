@@ -25,6 +25,9 @@ const DEFAULT_PREFERENCES: Record<NotificationType, {
   'budget_exceeded': { inApp: true, push: true, frequency: 'realtime' },
   'budget_reset': { inApp: true, push: false, frequency: 'realtime' },
   
+  // Income & Savings milestones
+  'milestone': { inApp: true, push: true, frequency: 'realtime' },
+  
   // System notifications - Lower priority, can be digest
   'weekly_summary': { inApp: true, push: false, frequency: 'weekly' },
   'monthly_summary': { inApp: true, push: false, frequency: 'monthly' },
