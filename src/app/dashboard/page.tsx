@@ -43,6 +43,7 @@ import { CategoryPieChart } from "@/components/dashboard/category-pie-chart";
 import { ExpenseListView } from "@/components/dashboard/expense-list-view";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BudgetWidget } from "@/components/budgets/BudgetWidget";
 import {
   Dialog,
   DialogContent,
@@ -515,6 +516,14 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Budget Widget */}
+                {user && (
+                  <BudgetWidget 
+                    userId={user.uid} 
+                    className="animate-in slide-in-from-bottom-4 fade-in-50 duration-500 delay-200"
+                  />
+                )}
 
                 {/* Overview Charts */}
                 {/* Bar Chart */}

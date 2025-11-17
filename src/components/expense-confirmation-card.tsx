@@ -13,6 +13,14 @@ import { cn } from "@/lib/utils";
 import { expenseCategories } from "@/lib/categories";
 import { format } from "date-fns";
 import { GroupSelector } from "@/components/groups";
+import { BudgetImpactPreview } from "@/components/budgets/BudgetImpactPreview";
+import { OverBudgetWarningModal } from "@/components/budgets/OverBudgetWarningModal";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
+import { useGroupBudgets } from "@/hooks/useGroupBudgets";
+import { useBudgetUsage } from "@/hooks/useBudgetUsage";
+import { getCurrentPeriod } from "@/lib/budgetCalculations";
+import { useGroups } from "@/hooks/useGroups";
 
 // Helper function to parse date string in local timezone
 const parseLocalDate = (dateString: string): Date => {
@@ -67,6 +75,59 @@ export function ExpenseConfirmationCard({
   const [groupId, setGroupId] = useState<string | null>(initialGroupId || null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [willExceedBudget, setWillExceedBudget] = useState(false);
+  const [showOverBudgetModal, setShowOverBudgetModal] = useState(false);
+  const [pendingConfirmData, setPendingConfirmData] = useState<typeof editedData | null>(null);
+
+  const { user } = useAuth();
+  const { groups } = useGroups();
+  const currentPeriod = getCurrentPeriod();
+
+  // Fetch budget data for the modal
+  const { budgets: personalBudgets } = usePersonalBudgets(
+    groupId ? undefined : user?.uid,
+    category,
+    currentPeriod.month,
+    currentPeriod.year
+  );
+
+  const { budgets: groupBudgets } = useGroupBudgets(
+    groupId || undefined,
+    category,
+    currentPeriod.month,
+    currentPeriod.year
+  );
+
+  const { usage: personalUsage } = useBudgetUsage(
+    groupId ? undefined : user?.uid,
+    "personal",
+    undefined,
+    currentPeriod.month,
+    currentPeriod.year
+  );
+
+  const { usage: groupUsage } = useBudgetUsage(
+    groupId ? user?.uid : undefined,
+    "group",
+    groupId || undefined,
+    currentPeriod.month,
+    currentPeriod.year
+  );
+
+  const relevantBudget = groupId ? groupBudgets[0] : personalBudgets[0];
+  const currentUsage = groupId
+    ? groupUsage.find((u) => u.category === category)
+    : personalUsage.find((u) => u.category === category);
+  const selectedGroup = groups?.find((g) => g.id === groupId);
+
+  type EditedData = {
+    vendor: string;
+    amount: number;
+    date: string;
+    category: string;
+    description?: string;
+    groupId?: string | null;
+  };
 
   useEffect(() => {
     setVendor(initialVendor);
@@ -101,14 +162,36 @@ export function ExpenseConfirmationCard({
     if (!validate()) return;
 
     const formattedDate = format(date, "yyyy-MM-dd");
-    onConfirm({
+    const editedData: EditedData = {
       vendor: vendor.trim(),
       amount: parseFloat(amount),
       date: formattedDate,
       category,
       description: description?.trim(),
       groupId,
-    });
+    };
+
+    // Check if this will exceed budget and show modal if needed
+    if (willExceedBudget && relevantBudget && currentUsage) {
+      setPendingConfirmData(editedData);
+      setShowOverBudgetModal(true);
+    } else {
+      // No budget issue, confirm immediately
+      onConfirm(editedData);
+    }
+  };
+
+  const handleOverBudgetConfirm = () => {
+    if (pendingConfirmData) {
+      onConfirm(pendingConfirmData);
+      setShowOverBudgetModal(false);
+      setPendingConfirmData(null);
+    }
+  };
+
+  const handleOverBudgetCancel = () => {
+    setShowOverBudgetModal(false);
+    setPendingConfirmData(null);
   };
 
   const getConfidenceColor = () => {
@@ -332,6 +415,17 @@ export function ExpenseConfirmationCard({
             placeholder="Additional notes..."
           />
         </div>
+
+        {/* Budget Impact Preview */}
+        {user && category && parseFloat(amount) > 0 && (
+          <BudgetImpactPreview
+            userId={user.uid}
+            category={category}
+            amount={parseFloat(amount)}
+            groupId={groupId}
+            onImpactCalculated={setWillExceedBudget}
+          />
+        )}
       </CardContent>
 
       {/* Action Buttons */}
@@ -363,6 +457,22 @@ export function ExpenseConfirmationCard({
           )}
         </Button>
       </CardFooter>
+
+      {/* Over Budget Warning Modal */}
+      {relevantBudget && currentUsage && (
+        <OverBudgetWarningModal
+          open={showOverBudgetModal}
+          onOpenChange={setShowOverBudgetModal}
+          category={category}
+          budgetLimit={relevantBudget.monthlyLimit}
+          currentSpent={currentUsage.totalSpent}
+          expenseAmount={parseFloat(amount) || 0}
+          overBudgetAmount={Math.abs(currentUsage.totalSpent + parseFloat(amount) - relevantBudget.monthlyLimit)}
+          groupName={selectedGroup?.name}
+          onConfirm={handleOverBudgetConfirm}
+          onCancel={handleOverBudgetCancel}
+        />
+      )}
     </Card>
   );
 }
