@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavingsGoals } from '@/hooks/useSavingsGoals';
+import { useIncomeAllocation } from '@/hooks/useIncomeAllocation';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm';
 import { SavingsGoalCard } from '@/components/savings/SavingsGoalCard';
+import { AllocationWarningDialog } from '@/components/allocation/AllocationWarningDialog';
+import { AllocationStatusBadge } from '@/components/allocation/AllocationStatusBadge';
 import { PersonalSavingsGoal, GoalStatus } from '@/lib/types/savings';
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
 import { Target, PlusCircle, TrendingUp, Award } from 'lucide-react';
@@ -37,6 +40,16 @@ export default function SavingsPage() {
   const [editingGoal, setEditingGoal] = useState<PersonalSavingsGoal | null>(null);
   const [activeTab, setActiveTab] = useState<string>('active');
 
+  // Allocation validation
+  const allocation = useIncomeAllocation(user?.uid);
+  const [showAllocationWarning, setShowAllocationWarning] = useState(false);
+  const [pendingGoalData, setPendingGoalData] = useState<{
+    goalData: Partial<PersonalSavingsGoal>;
+    goalName: string;
+    monthlyContribution: number;
+    isEdit: boolean;
+  } | null>(null);
+
   if (authLoading || loading) {
     return (
       <AppLayout>
@@ -63,9 +76,32 @@ export default function SavingsPage() {
   }
 
   const handleCreate = async (data: Partial<PersonalSavingsGoal>) => {
+    const monthlyContribution = data.monthlyContribution || 0;
+    
+    // Validate allocation before creating
+    const validation = allocation.validateAllocation(0, monthlyContribution);
+    if (!validation.isValid) {
+      // Show warning dialog
+      setPendingGoalData({
+        goalData: data,
+        goalName: data.name || 'New Goal',
+        monthlyContribution,
+        isEdit: false,
+      });
+      setShowAllocationWarning(true);
+      return;
+    }
+
+    // Proceed with creation
+    await proceedWithGoalCreation(data);
+  };
+
+  const proceedWithGoalCreation = async (data: Partial<PersonalSavingsGoal>) => {
     try {
       await createGoal(data);
       setShowCreateDialog(false);
+      setShowAllocationWarning(false);
+      setPendingGoalData(null);
       toast.success('Savings goal created successfully');
     } catch {
       // Error already handled in hook
@@ -74,12 +110,50 @@ export default function SavingsPage() {
 
   const handleUpdate = async (data: Partial<PersonalSavingsGoal>) => {
     if (!editingGoal) return;
+    
+    const newMonthlyContribution = data.monthlyContribution || 0;
+    const oldMonthlyContribution = editingGoal.monthlyContribution || 0;
+    const difference = newMonthlyContribution - oldMonthlyContribution;
+
+    // Validate allocation if increasing the monthly contribution
+    if (difference > 0) {
+      const validation = allocation.validateAllocation(0, difference);
+      if (!validation.isValid) {
+        // Show warning dialog
+        setPendingGoalData({
+          goalData: data,
+          goalName: data.name || editingGoal.name,
+          monthlyContribution: newMonthlyContribution,
+          isEdit: true,
+        });
+        setShowAllocationWarning(true);
+        return;
+      }
+    }
+
+    // Proceed with update
+    await proceedWithGoalUpdate(editingGoal.id, data);
+  };
+
+  const proceedWithGoalUpdate = async (goalId: string, data: Partial<PersonalSavingsGoal>) => {
     try {
-      await updateGoal(editingGoal.id, data);
+      await updateGoal(goalId, data);
       setEditingGoal(null);
+      setShowAllocationWarning(false);
+      setPendingGoalData(null);
       toast.success('Savings goal updated successfully');
     } catch {
       // Error already handled in hook
+    }
+  };
+
+  const handleConfirmOverAllocation = () => {
+    if (pendingGoalData) {
+      if (pendingGoalData.isEdit && editingGoal) {
+        proceedWithGoalUpdate(editingGoal.id, pendingGoalData.goalData);
+      } else {
+        proceedWithGoalCreation(pendingGoalData.goalData);
+      }
     }
   };
 
@@ -110,7 +184,16 @@ export default function SavingsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Savings Goals</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl font-bold tracking-tight">Savings Goals</h1>
+              {!allocation.loading && (
+                <AllocationStatusBadge
+                  unallocated={allocation.unallocated}
+                  isOverAllocated={allocation.isOverAllocated}
+                  totalIncome={allocation.totalMonthlyIncome}
+                />
+              )}
+            </div>
             <p className="text-muted-foreground mt-1">
               Track your progress and achieve your financial dreams
             </p>
@@ -269,6 +352,25 @@ export default function SavingsPage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Allocation Warning Dialog */}
+        <AllocationWarningDialog
+          open={showAllocationWarning}
+          income={allocation.totalMonthlyIncome}
+          currentBudgets={allocation.totalBudgets}
+          currentSavings={allocation.totalSavings}
+          newAmount={pendingGoalData?.monthlyContribution || 0}
+          type="savings"
+          itemName={pendingGoalData?.goalName}
+          overAllocation={
+            allocation.validateAllocation(0, pendingGoalData?.monthlyContribution || 0).overAllocation
+          }
+          onConfirm={handleConfirmOverAllocation}
+          onCancel={() => {
+            setShowAllocationWarning(false);
+            setPendingGoalData(null);
+          }}
+        />
       </div>
     </AppLayout>
   );
