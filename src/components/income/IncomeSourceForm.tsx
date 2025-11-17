@@ -49,7 +49,7 @@ export function IncomeSourceForm({
     amount: initialData?.amount.toString() || '',
     frequency: initialData?.frequency || IncomeFrequency.MONTHLY,
     isRecurring: initialData?.isRecurring ?? true,
-    recurringDate: initialData?.recurringDate?.toString() || '',
+    recurringDate: initialData?.recurringDate?.toString() || '1', // Default to 1st of month
     taxable: initialData?.taxable ?? true,
     netAmount: initialData?.netAmount?.toString() || '',
     description: initialData?.description || '',
@@ -226,7 +226,7 @@ export function IncomeSourceForm({
               }
             />
             <p className="text-sm text-muted-foreground">
-              Which day of the month do you receive this income?
+              Which day of the month do you receive this income? (Defaults to 1st)
             </p>
           </div>
         )}
