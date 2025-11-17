@@ -84,6 +84,10 @@ export function IncomeSourceForm({
         taxable: formData.taxable,
         currency: formData.currency,
         isActive: true,
+        // Required field for creation
+        ...(!initialData && {
+          startDate: new Date(),
+        }),
       };
 
       // Only add optional fields if they have values (Firestore doesn't accept undefined)

@@ -117,6 +117,12 @@ export function SavingsGoalForm({
         priority: formData.priority,
         emoji: formData.emoji || SAVINGS_CATEGORY_EMOJIS[formData.category],
         currency: formData.currency,
+        // Required fields for creation
+        ...(!initialData && {
+          startDate: new Date(),
+          status: 'active',
+          isActive: true,
+        }),
       };
 
       // Only add optional fields if they have values (Firestore doesn't accept undefined)
