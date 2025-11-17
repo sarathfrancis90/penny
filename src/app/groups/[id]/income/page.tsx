@@ -9,6 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PageContainer } from '@/components/ui/page-container';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { GroupIncomeSource, CreateGroupIncomeSource, UpdateGroupIncomeSource } from '@/lib/types/income';
@@ -180,14 +183,21 @@ export default function GroupIncomePage({ params }: PageProps) {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <PageContainer>
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{groupName} - Income</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage group income sources
-          </p>
-        </div>
+        <PageHeader
+          title={`${groupName} - Income`}
+          subtitle="Manage group income sources"
+          backHref={`/groups/${groupId}`}
+          action={
+            isAdmin && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Income Source
+              </Button>
+            )
+          }
+        />
 
         {/* Info Alert */}
         {!isAdmin && (
@@ -195,16 +205,6 @@ export default function GroupIncomePage({ params }: PageProps) {
             <Info className="h-4 w-4" />
             <AlertDescription>
               Only group admins and owners can manage income sources.
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {/* Debug: Show admin status (remove after testing) */}
-        {isAdmin && (
-          <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-            <Info className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800 dark:text-green-200">
-              ✓ You are an admin - Edit/delete buttons should be visible on income cards
             </AlertDescription>
           </Alert>
         )}
@@ -226,30 +226,36 @@ export default function GroupIncomePage({ params }: PageProps) {
         </Card>
 
         {/* Income Sources List */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Income Sources</h2>
-            {isAdmin && (
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Income Source
-              </Button>
-            )}
-          </div>
-
-          {incomeSources.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Group Income Sources</h3>
-                <p className="text-muted-foreground text-center mb-4 max-w-md">
-                  {isAdmin
-                    ? 'Add income sources to track your group\'s combined income.'
-                    : 'Admins can add income sources for the group.'}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Income Sources ({incomeSources.length})
+            </CardTitle>
+            <CardDescription>
+              Manage your group&apos;s income sources
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {incomeSources.length === 0 ? (
+              <EmptyState
+                icon={<DollarSign className="h-12 w-12" />}
+                title="No Group Income Sources"
+                description={
+                  isAdmin
+                    ? "Add income sources to track your group's combined income."
+                    : 'Admins can add income sources for the group.'
+                }
+                action={
+                  isAdmin && (
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Income Source
+                    </Button>
+                  )
+                }
+              />
+            ) : (
             <div className="grid gap-4 md:grid-cols-2">
               {incomeSources.map((source) => (
                 <Card key={source.id}>
@@ -310,8 +316,9 @@ export default function GroupIncomePage({ params }: PageProps) {
               ))}
             </div>
           )}
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </PageContainer>
 
       {/* Create Income Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

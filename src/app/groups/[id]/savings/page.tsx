@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PageContainer } from '@/components/ui/page-container';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS, CreateGroupSavingsGoal, UpdateGroupSavingsGoal } from '@/lib/types/savings';
@@ -184,14 +187,21 @@ export default function GroupSavingsPage({ params }: PageProps) {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <PageContainer>
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{groupName} - Savings Goals</h1>
-          <p className="text-muted-foreground mt-1">
-            Track and achieve shared financial goals
-          </p>
-        </div>
+        <PageHeader
+          title={`${groupName} - Savings Goals`}
+          subtitle="Track and achieve shared financial goals"
+          backHref={`/groups/${groupId}`}
+          action={
+            isAdmin && (
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Goal
+              </Button>
+            )
+          }
+        />
 
         {/* Info Alert */}
         {!isAdmin && (
@@ -199,16 +209,6 @@ export default function GroupSavingsPage({ params }: PageProps) {
             <Info className="h-4 w-4" />
             <AlertDescription>
               Only group admins and owners can manage savings goals. All members can contribute.
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        {/* Debug: Show admin status (remove after testing) */}
-        {isAdmin && (
-          <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-            <Info className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800 dark:text-green-200">
-              ✓ You are an admin - Edit/delete buttons should be visible on goal cards
             </AlertDescription>
           </Alert>
         )}
@@ -253,30 +253,36 @@ export default function GroupSavingsPage({ params }: PageProps) {
         </div>
 
         {/* Savings Goals List */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Active Goals</h2>
-            {isAdmin && (
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create Goal
-              </Button>
-            )}
-          </div>
-
-          {savingsGoals.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Target className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Group Savings Goals</h3>
-                <p className="text-muted-foreground text-center mb-4 max-w-md">
-                  {isAdmin
-                    ? 'Create savings goals to work towards shared financial objectives together.'
-                    : 'Admins can create savings goals for the group.'}
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
+        <Card className="glass">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Savings Goals ({savingsGoals.length})
+            </CardTitle>
+            <CardDescription>
+              Track progress towards your group&apos;s financial goals
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {savingsGoals.length === 0 ? (
+              <EmptyState
+                icon={<Target className="h-12 w-12" />}
+                title="No Group Savings Goals"
+                description={
+                  isAdmin
+                    ? "Create savings goals to work towards shared financial objectives together."
+                    : 'Admins can create savings goals for the group.'
+                }
+                action={
+                  isAdmin && (
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Create Goal
+                    </Button>
+                  )
+                }
+              />
+            ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {savingsGoals.map((goal) => (
                 <Card key={goal.id}>
@@ -361,8 +367,9 @@ export default function GroupSavingsPage({ params }: PageProps) {
               ))}
             </div>
           )}
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </PageContainer>
 
       {/* Create Goal Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

@@ -185,7 +185,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             </Button>
             <div
               className="w-10 h-10 rounded-lg flex items-center justify-center text-2xl shrink-0"
-              style={{ backgroundColor: group.color || "#8B5CF6" }}
+              style={{ backgroundColor: group.color || 'hsl(var(--violet))' }}
             >
               {group.icon || "👥"}
             </div>
@@ -275,7 +275,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             <div className="flex gap-6">
               <div
                 className="w-24 h-24 rounded-2xl flex items-center justify-center text-5xl shadow-2xl animate-in fade-in-50 zoom-in-95 duration-500"
-                style={{ backgroundColor: group.color || "#8B5CF6" }}
+                style={{ backgroundColor: group.color || 'hsl(var(--violet))' }}
               >
                 {group.icon || "👥"}
               </div>

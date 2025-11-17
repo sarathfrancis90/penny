@@ -78,7 +78,7 @@ export default function GroupsPage() {
                         <div
                           className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg"
                           style={{
-                            backgroundColor: group.color || "#8B5CF6",
+                            backgroundColor: group.color || 'hsl(var(--violet))',
                           }}
                         >
                           {group.icon || "👥"}
