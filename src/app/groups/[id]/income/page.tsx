@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { GroupIncomeSource, CreateGroupIncomeSource } from '@/lib/types/income';
+import { GroupIncomeSource, CreateGroupIncomeSource, UpdateGroupIncomeSource } from '@/lib/types/income';
 import { formatCurrency, calculateMonthlyIncome } from '@/lib/utils/incomeCalculations';
 import { GroupIncomeService } from '@/lib/services/incomeService';
 import { GroupIncomeForm } from '@/components/income/GroupIncomeForm';
@@ -117,7 +117,7 @@ export default function GroupIncomePage({ params }: PageProps) {
     if (!editingIncome) return;
 
     try {
-      await GroupIncomeService.update(editingIncome.id, data as any);
+      await GroupIncomeService.update(editingIncome.id, data as UpdateGroupIncomeSource);
       setEditingIncome(null);
       toast.success('Income source updated successfully');
       await refreshIncomeSources();

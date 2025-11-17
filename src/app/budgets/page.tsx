@@ -45,7 +45,6 @@ import { Switch } from "@/components/ui/switch";
 import { BudgetCard } from "@/components/budgets/BudgetCard";
 import { AllocationWarningDialog } from "@/components/allocation/AllocationWarningDialog";
 import { AllocationStatusBadge } from "@/components/allocation/AllocationStatusBadge";
-import { AllocationPreview } from "@/components/allocation/AllocationPreview";
 import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";

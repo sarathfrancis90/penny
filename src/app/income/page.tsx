@@ -6,7 +6,7 @@ import { useIncome } from '@/hooks/useIncome';
 import { useIncomeAllocation } from '@/hooks/useIncomeAllocation';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IncomeSourceForm } from '@/components/income/IncomeSourceForm';
@@ -115,7 +115,6 @@ export default function IncomePage() {
 
     // Check if deleting would cause over-allocation
     if (newIncome < currentAllocations) {
-      const shortfall = currentAllocations - newIncome;
       setPendingDeleteIncome(incomeToDelete);
       setShowIncomeWarning(true);
       return;

@@ -5,9 +5,7 @@ import { useIncome } from './useIncome';
 import { useSavingsGoals } from './useSavingsGoals';
 import { usePersonalBudgets } from './usePersonalBudgets';
 import { useGroupBudgets } from './useGroupBudgets';
-import { calculateTotalMonthlyIncome, calculateTotalMonthlySavings } from '@/lib/utils/incomeCalculations';
 import { getCurrentPeriod } from '@/lib/budgetCalculations';
-import { PersonalBudget, GroupBudget } from '@/lib/types';
 
 interface ValidationResult {
   isValid: boolean;
@@ -42,15 +40,12 @@ export function useIncomeAllocation(userId: string | undefined): IncomeAllocatio
   
   // Fetch all financial data
   const { 
-    incomeSources, 
     totalMonthlyIncome, 
     loading: incomeLoading, 
     error: incomeError 
   } = useIncome();
   
   const { 
-    savingsGoals, 
-    activeGoals,
     totalMonthlySavings,
     loading: savingsLoading, 
     error: savingsError 

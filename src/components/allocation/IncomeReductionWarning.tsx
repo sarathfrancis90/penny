@@ -3,7 +3,6 @@
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -11,7 +10,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, XCircle } from 'lucide-react';
+import { XCircle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
 
 interface IncomeReductionWarningProps {

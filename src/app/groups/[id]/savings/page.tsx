@@ -11,7 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS, CreateGroupSavingsGoal } from '@/lib/types/savings';
+import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS, CreateGroupSavingsGoal, UpdateGroupSavingsGoal } from '@/lib/types/savings';
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
 import { GroupSavingsGoalService } from '@/lib/services/savingsService';
 import { GroupSavingsForm } from '@/components/savings/GroupSavingsForm';
@@ -120,7 +120,7 @@ export default function GroupSavingsPage({ params }: PageProps) {
     if (!editingGoal) return;
 
     try {
-      await GroupSavingsGoalService.update(editingGoal.id, data as any);
+      await GroupSavingsGoalService.update(editingGoal.id, data as UpdateGroupSavingsGoal);
       setEditingGoal(null);
       toast.success('Savings goal updated successfully');
       await refreshSavingsGoals();
