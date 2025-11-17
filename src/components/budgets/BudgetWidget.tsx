@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ interface BudgetWidgetProps {
  * Dashboard widget for displaying budget overview
  */
 export function BudgetWidget({ userId, className }: BudgetWidgetProps) {
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<"personal" | "group">("personal");
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(undefined);
   
@@ -175,10 +177,7 @@ export function BudgetWidget({ userId, className }: BudgetWidgetProps) {
                   <BudgetCard
                     key={budget.category}
                     budget={budget}
-                    onClick={() => {
-                      // Navigate to budget management page
-                      window.location.href = "/budgets";
-                    }}
+                    onClick={() => router.push("/budgets")}
                   />
                 ))}
               </div>
@@ -235,10 +234,7 @@ export function BudgetWidget({ userId, className }: BudgetWidgetProps) {
                   <BudgetCard
                     key={budget.category}
                     budget={budget}
-                    onClick={() => {
-                      // Navigate to budget management page
-                      window.location.href = "/budgets";
-                    }}
+                    onClick={() => router.push("/budgets?tab=group")}
                   />
                 ))}
               </div>

@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CompactStatCard } from "@/components/mobile-first";
 import { ExpenseListView } from "@/components/dashboard/expense-list-view";
+import { useBudgetUsage } from "@/hooks/useBudgetUsage";
+import { BudgetCard } from "@/components/budgets/BudgetCard";
+import { getCurrentPeriod } from "@/lib/budgetCalculations";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +47,7 @@ import {
   Eye,
   LogOut,
   MoreVertical,
+  PiggyBank,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -65,6 +69,17 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
 
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  
+  const currentPeriod = getCurrentPeriod();
+  
+  // Fetch budget usage for this group
+  const { usage: budgetUsage, loading: budgetLoading } = useBudgetUsage(
+    user?.uid,
+    "group",
+    groupId,
+    currentPeriod.month,
+    currentPeriod.year
+  );
 
   const group = groups.find((g) => g.id === groupId);
   const loading = groupsLoading || membersLoading;
@@ -319,6 +334,70 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             value={`$${totalAmount.toFixed(2)}`}
           />
         </div>
+
+        {/* Group Budgets Section */}
+        <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <PiggyBank className="h-5 w-5 text-violet-500" />
+                <CardTitle>Group Budgets</CardTitle>
+              </div>
+              {(isOwner || myMembership?.role === "admin") && (
+                <Button size="sm" asChild>
+                  <Link href={`/budgets?tab=group&groupId=${groupId}`}>
+                    Manage Budgets
+                  </Link>
+                </Button>
+              )}
+            </div>
+            <CardDescription>
+              {(isOwner || myMembership?.role === "admin")
+                ? "Set monthly spending limits for each expense category"
+                : "View monthly spending limits set by group admins"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {budgetLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-violet-500" />
+              </div>
+            ) : budgetUsage.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-950 flex items-center justify-center mx-auto mb-4">
+                  <PiggyBank className="h-8 w-8 text-violet-500" />
+                </div>
+                <p className="text-muted-foreground mb-2">No budgets set</p>
+                {(isOwner || myMembership?.role === "admin") ? (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Set monthly budgets to track group spending
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Group admins haven&apos;t set any budgets yet
+                  </p>
+                )}
+                {(isOwner || myMembership?.role === "admin") && (
+                  <Button size="sm" variant="outline" asChild>
+                    <Link href={`/budgets?tab=group&groupId=${groupId}`}>
+                      Create First Budget
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {budgetUsage.map((budget) => (
+                  <BudgetCard
+                    key={budget.category}
+                    budget={budget}
+                    onClick={() => router.push(`/budgets?tab=group&groupId=${groupId}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Expenses Section */}
         <Card className="glass">

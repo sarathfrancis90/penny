@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
 import { useGroupBudgets } from "@/hooks/useGroupBudgets";
 import { useGroups } from "@/hooks/useGroups";
@@ -49,10 +49,26 @@ import Link from "next/link";
 export default function BudgetsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const currentPeriod = getCurrentPeriod();
 
   const [selectedTab, setSelectedTab] = useState<"personal" | "group">("personal");
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(undefined);
+
+  // Handle tab and groupId query parameters
+  useEffect(() => {
+    const tabParam = searchParams?.get("tab");
+    const groupIdParam = searchParams?.get("groupId");
+    
+    if (tabParam === "group") {
+      setSelectedTab("group");
+    }
+    
+    if (groupIdParam) {
+      setSelectedGroupId(groupIdParam);
+      setSelectedTab("group"); // Also switch to group tab
+    }
+  }, [searchParams]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
