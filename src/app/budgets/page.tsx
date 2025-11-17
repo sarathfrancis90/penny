@@ -347,15 +347,17 @@ function BudgetsPageContent() {
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 animate-in slide-in-from-top-4 fade-in-50 duration-500">
           <Link href="/dashboard">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="hover:bg-violet-100 dark:hover:bg-violet-900">
               <ArrowLeft size={20} />
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Budget Management</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+              Budget Management
+            </h1>
+            <p className="text-muted-foreground mt-1">
               {new Date(currentPeriod.year, currentPeriod.month - 1).toLocaleDateString("en-US", {
                 month: "long",
                 year: "numeric",
@@ -365,10 +367,12 @@ function BudgetsPageContent() {
         </div>
 
         {/* Main Content */}
-        <Card>
-          <CardHeader>
+        <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30 shadow-2xl shadow-violet-500/10 animate-in slide-in-from-bottom-4 fade-in-50 duration-500 delay-100">
+          <CardHeader className="border-b border-violet-100 dark:border-violet-900/20 bg-gradient-to-r from-violet-50/50 to-fuchsia-50/50 dark:from-violet-950/20 dark:to-fuchsia-950/20">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <CardTitle>Your Budgets</CardTitle>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                Your Budgets
+              </CardTitle>
               <Button
                 onClick={() => {
                   resetForm();
@@ -378,6 +382,7 @@ function BudgetsPageContent() {
                   (selectedTab === "group" && !isGroupAdmin) ||
                   availableCategories.length === 0
                 }
+                className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105"
               >
                 <PlusCircle size={16} className="mr-2" />
                 Create Budget
@@ -390,9 +395,18 @@ function BudgetsPageContent() {
               value={selectedTab}
               onValueChange={(v) => setSelectedTab(v as "personal" | "group")}
             >
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="personal">Personal</TabsTrigger>
-                <TabsTrigger value="group" disabled={groups.length === 0}>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-violet-100/50 dark:bg-violet-900/20 p-1 rounded-lg">
+                <TabsTrigger 
+                  value="personal"
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                >
+                  Personal
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="group" 
+                  disabled={groups.length === 0}
+                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300"
+                >
                   Group {groups.length > 0 && `(${groups.length})`}
                 </TabsTrigger>
               </TabsList>
@@ -652,11 +666,19 @@ function BudgetsPageContent() {
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+          <DialogFooter className="border-t border-violet-100 dark:border-violet-900/20 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCreateDialog(false)}
+              className="border-violet-200 hover:bg-violet-50 dark:border-violet-800 dark:hover:bg-violet-950"
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={managementLoading}>
+            <Button 
+              onClick={handleCreate} 
+              disabled={managementLoading}
+              className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300"
+            >
               {managementLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Budget
             </Button>
