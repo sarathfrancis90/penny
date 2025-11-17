@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIncome } from '@/hooks/useIncome';
+import { useIncomeAllocation } from '@/hooks/useIncomeAllocation';
 import { AppLayout } from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IncomeSourceForm } from '@/components/income/IncomeSourceForm';
 import { IncomeSourceCard } from '@/components/income/IncomeSourceCard';
+import { IncomeReductionWarning } from '@/components/allocation/IncomeReductionWarning';
 import { PersonalIncomeSource } from '@/lib/types/income';
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
 import { PlusCircle, DollarSign, TrendingUp, Calendar } from 'lucide-react';
@@ -30,6 +32,11 @@ export default function IncomePage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingIncome, setEditingIncome] = useState<PersonalIncomeSource | null>(null);
   const [activeTab, setActiveTab] = useState('active');
+
+  // Income deletion validation
+  const allocation = useIncomeAllocation(user?.uid);
+  const [showIncomeWarning, setShowIncomeWarning] = useState(false);
+  const [pendingDeleteIncome, setPendingDeleteIncome] = useState<PersonalIncomeSource | null>(null);
 
   if (authLoading || loading) {
     return (
@@ -79,6 +86,48 @@ export default function IncomePage() {
 
   const handleToggleActive = async (incomeId: string, isActive: boolean) => {
     await updateIncome(incomeId, { isActive });
+  };
+
+  const calculateMonthlyAmount = (income: PersonalIncomeSource): number => {
+    switch (income.frequency) {
+      case 'monthly':
+        return income.amount;
+      case 'biweekly':
+        return income.amount * (26 / 12);
+      case 'weekly':
+        return income.amount * (52 / 12);
+      case 'yearly':
+        return income.amount / 12;
+      case 'once':
+        return 0; // One-time income doesn't affect monthly budget
+      default:
+        return 0;
+    }
+  };
+
+  const handleDelete = async (incomeId: string) => {
+    const incomeToDelete = incomeSources.find((s) => s.id === incomeId);
+    if (!incomeToDelete) return;
+
+    const monthlyAmount = calculateMonthlyAmount(incomeToDelete);
+    const newIncome = allocation.totalMonthlyIncome - monthlyAmount;
+    const currentAllocations = allocation.totalBudgets + allocation.totalSavings;
+
+    // Check if deleting would cause over-allocation
+    if (newIncome < currentAllocations) {
+      const shortfall = currentAllocations - newIncome;
+      setPendingDeleteIncome(incomeToDelete);
+      setShowIncomeWarning(true);
+      return;
+    }
+
+    // Safe to delete
+    try {
+      await deleteIncome(incomeId);
+      toast.success('Income source deleted successfully');
+    } catch {
+      // Error already handled
+    }
   };
 
   const displayedSources =
@@ -188,7 +237,7 @@ export default function IncomePage() {
                     key={income.id}
                     income={income}
                     onEdit={setEditingIncome}
-                    onDelete={deleteIncome}
+                    onDelete={handleDelete}
                     onToggleActive={handleToggleActive}
                   />
                 ))}
@@ -210,7 +259,7 @@ export default function IncomePage() {
                     key={income.id}
                     income={income}
                     onEdit={setEditingIncome}
-                    onDelete={deleteIncome}
+                    onDelete={handleDelete}
                     onToggleActive={handleToggleActive}
                   />
                 ))}
@@ -249,6 +298,25 @@ export default function IncomePage() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Income Reduction Warning Dialog */}
+        {pendingDeleteIncome && (
+          <IncomeReductionWarning
+            open={showIncomeWarning}
+            currentIncome={allocation.totalMonthlyIncome}
+            newIncome={allocation.totalMonthlyIncome - calculateMonthlyAmount(pendingDeleteIncome)}
+            totalAllocations={allocation.totalBudgets + allocation.totalSavings}
+            shortfall={
+              (allocation.totalBudgets + allocation.totalSavings) -
+              (allocation.totalMonthlyIncome - calculateMonthlyAmount(pendingDeleteIncome))
+            }
+            incomeName={pendingDeleteIncome.name}
+            onCancel={() => {
+              setShowIncomeWarning(false);
+              setPendingDeleteIncome(null);
+            }}
+          />
+        )}
       </div>
     </AppLayout>
   );
