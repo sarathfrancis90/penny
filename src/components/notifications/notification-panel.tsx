@@ -8,7 +8,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Check, Settings, Trash2, ExternalLink } from 'lucide-react';
+import { Bell, Check, Settings, Trash2, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -142,15 +142,25 @@ export function NotificationPanel({ userId, onClose }: NotificationPanelProps) {
 
             {!loading && notifications.length > 0 && (
               <div className="divide-y">
-                {notifications.map((notification) => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                    onClick={() => handleNotificationClick(notification)}
-                    onDelete={(e) => handleDelete(e, notification.id)}
-                    formatTime={formatTime}
-                  />
-                ))}
+                {notifications.map((notification) =>
+                  notification.isGrouped ? (
+                    <GroupedNotificationItem
+                      key={notification.id}
+                      notification={notification}
+                      onClick={() => handleNotificationClick(notification)}
+                      onDelete={(e) => handleDelete(e, notification.id)}
+                      formatTime={formatTime}
+                    />
+                  ) : (
+                    <NotificationItem
+                      key={notification.id}
+                      notification={notification}
+                      onClick={() => handleNotificationClick(notification)}
+                      onDelete={(e) => handleDelete(e, notification.id)}
+                      formatTime={formatTime}
+                    />
+                  )
+                )}
               </div>
             )}
           </ScrollArea>
@@ -230,6 +240,123 @@ function NotificationItem({ notification, onClick, onDelete, formatTime }: Notif
                 >
                   {action.label}
                 </Button>
+              ))}
+            </div>
+          )}
+
+          {/* Timestamp */}
+          <p className="text-xs text-muted-foreground mt-2">
+            {formatTime(notification.createdAt)}
+          </p>
+        </div>
+
+        {/* Unread indicator & Delete button */}
+        <div className="flex-shrink-0 flex flex-col items-end justify-between">
+          {!notification.read && (
+            <div className="h-2 w-2 rounded-full bg-violet-600" />
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Grouped Notification Item Component
+ * Shows multiple notifications grouped together with expand/collapse
+ */
+interface GroupedNotificationItemProps {
+  notification: Notification;
+  onClick: () => void;
+  onDelete: (e: React.MouseEvent) => void;
+  formatTime: (timestamp: { toDate: () => Date } | undefined) => string;
+}
+
+function GroupedNotificationItem({ notification, onClick, onDelete, formatTime }: GroupedNotificationItemProps) {
+  const [expanded, setExpanded] = useState(false);
+  const groupCount = notification.groupCount || 0;
+  const groupedActors = notification.groupedNotifications || [];
+
+  // Get unique actor names from metadata
+  const actorNames = groupedActors.filter(Boolean) as string[];
+  const displayActors = actorNames.slice(0, 3);
+  const remainingCount = Math.max(0, actorNames.length - 3);
+
+  return (
+    <div
+      className={cn(
+        "p-4 hover:bg-accent transition-colors cursor-pointer group relative",
+        !notification.read && "bg-violet-50 dark:bg-violet-950/20"
+      )}
+    >
+      <div className="flex gap-3" onClick={onClick}>
+        {/* Stacked Avatars */}
+        <div className="flex-shrink-0">
+          {displayActors.length > 0 ? (
+            <div className="flex -space-x-2">
+              {displayActors.slice(0, 2).map((actor, index) => (
+                <div
+                  key={index}
+                  className="h-10 w-10 rounded-full bg-violet-200 dark:bg-violet-800 flex items-center justify-center text-xs font-medium border-2 border-white dark:border-slate-900 text-violet-900 dark:text-violet-100"
+                >
+                  {actor[0]?.toUpperCase()}
+                </div>
+              ))}
+              {(displayActors.length > 2 || remainingCount > 0) && (
+                <div className="h-10 w-10 rounded-full bg-violet-400 dark:bg-violet-600 flex items-center justify-center text-xs font-bold border-2 border-white dark:border-slate-900 text-white">
+                  +{remainingCount + (displayActors.length > 2 ? displayActors.length - 2 : 0)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="h-10 w-10 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center text-lg">
+              {notification.icon || '🔔'}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium line-clamp-2">{notification.title}</p>
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{notification.body}</p>
+
+          {/* Expand/Collapse button */}
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-xs text-violet-600 dark:text-violet-400 hover:no-underline mt-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+          >
+            {expanded ? (
+              <>
+                Hide details <ChevronUp className="ml-1 h-3 w-3" />
+              </>
+            ) : (
+              <>
+                Show all {groupCount} <ChevronDown className="ml-1 h-3 w-3" />
+              </>
+            )}
+          </Button>
+
+          {/* Expanded Details */}
+          {expanded && (
+            <div className="mt-3 space-y-2 pl-3 border-l-2 border-violet-200 dark:border-violet-800">
+              {actorNames.map((actor, index) => (
+                <div key={index} className="text-xs text-muted-foreground">
+                  • {actor}
+                </div>
               ))}
             </div>
           )}
