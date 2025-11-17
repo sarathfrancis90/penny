@@ -124,7 +124,7 @@ export default function IncomePage() {
     // Safe to delete
     try {
       await deleteIncome(incomeId);
-      toast.success('Income source deleted successfully');
+      // Toast is shown by IncomeSourceCard component
     } catch {
       // Error already handled
     }
