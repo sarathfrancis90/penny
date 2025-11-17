@@ -60,11 +60,15 @@ function BudgetsPageContent() {
     const tabParam = searchParams?.get("tab");
     const groupIdParam = searchParams?.get("groupId");
     
+    console.log("🔍 [Budgets Page] Query params:", { tabParam, groupIdParam });
+    
     if (tabParam === "group") {
+      console.log("✅ [Budgets Page] Setting tab to group");
       setSelectedTab("group");
     }
     
     if (groupIdParam) {
+      console.log("✅ [Budgets Page] Setting groupId:", groupIdParam);
       setSelectedGroupId(groupIdParam);
       setSelectedTab("group"); // Also switch to group tab
     }
@@ -310,7 +314,14 @@ function BudgetsPageContent() {
     }
   };
 
+  useEffect(() => {
+    console.log("🔍 [Budgets Page] Component mounted");
+    console.log("🔍 [Budgets Page] User:", user?.email);
+    console.log("🔍 [Budgets Page] Search params:", searchParams?.toString());
+  }, []);
+
   if (!user) {
+    console.log("❌ [Budgets Page] No user, redirecting to login");
     router.push("/login");
     return null;
   }

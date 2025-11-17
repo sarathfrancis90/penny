@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/app-layout";
@@ -63,6 +63,11 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const router = useRouter();
   const { user } = useAuth();
   const { groups, loading: groupsLoading } = useGroups();
+  
+  useEffect(() => {
+    console.log("🔍 [Group Detail Page] Mounted with groupId:", groupId);
+    console.log("🔍 [Group Detail Page] Budget link would be:", `/budgets?tab=group&groupId=${groupId}`);
+  }, [groupId]);
   const { members, myMembership, loading: membersLoading } = useGroupMembers(groupId);
   const { expenses, loading: expensesLoading } = useGroupExpenses(groupId);
   const { deleteExpense, updateExpense } = useExpenses(user?.uid);
@@ -344,10 +349,15 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                 <CardTitle>Group Budgets</CardTitle>
               </div>
               {(isOwner || myMembership?.role === "admin") && (
-                <Button size="sm" asChild>
-                  <Link href={`/budgets?tab=group&groupId=${groupId}`}>
-                    Manage Budgets
-                  </Link>
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    const url = `/budgets?tab=group&groupId=${groupId}`;
+                    console.log("🔗 [Group Detail Page] Manage Budgets - Navigating to:", url);
+                    router.push(url);
+                  }}
+                >
+                  Manage Budgets
                 </Button>
               )}
             </div>
@@ -378,10 +388,17 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                   </p>
                 )}
                 {(isOwner || myMembership?.role === "admin") && (
-                  <Button size="sm" variant="outline" asChild>
-                    <Link href={`/budgets?tab=group&groupId=${groupId}`}>
-                      Create First Budget
-                    </Link>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      const url = `/budgets?tab=group&groupId=${groupId}`;
+                      console.log("🔗 [Group Detail Page] Navigating to:", url);
+                      console.log("🔗 [Group Detail Page] GroupId:", groupId);
+                      router.push(url);
+                    }}
+                  >
+                    Create First Budget
                   </Button>
                 )}
               </div>

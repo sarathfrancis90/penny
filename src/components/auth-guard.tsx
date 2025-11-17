@@ -19,13 +19,22 @@ export function AuthGuard({ children }: AuthGuardProps) {
     if (!loading) {
       const isPublicRoute = publicRoutes.includes(pathname);
 
+      console.log("🔍 [AuthGuard]", { 
+        pathname, 
+        hasUser: !!user, 
+        isPublicRoute, 
+        loading 
+      });
+
       // Redirect to login if not authenticated and on a protected route
       if (!user && !isPublicRoute) {
+        console.log("❌ [AuthGuard] Redirecting to /login");
         router.push("/login");
       }
 
       // Redirect to home if authenticated and on an auth page
       if (user && isPublicRoute) {
+        console.log("✅ [AuthGuard] Redirecting to /");
         router.push("/");
       }
     }
