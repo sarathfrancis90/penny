@@ -558,12 +558,12 @@ function BudgetsPageContent() {
 
       {/* Create Budget Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-[500px] glass border-2 border-violet-200/50 dark:border-violet-800/30 shadow-2xl">
+          <DialogHeader className="border-b border-violet-100 dark:border-violet-900/20 pb-4">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
               Create {selectedTab === "personal" ? "Personal" : "Group"} Budget
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base">
               Set a monthly budget limit for a category
             </DialogDescription>
           </DialogHeader>
@@ -688,10 +688,14 @@ function BudgetsPageContent() {
 
       {/* Edit Budget Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit Budget</DialogTitle>
-            <DialogDescription>Update budget settings for {category}</DialogDescription>
+        <DialogContent className="sm:max-w-[500px] glass border-2 border-violet-200/50 dark:border-violet-800/30 shadow-2xl">
+          <DialogHeader className="border-b border-violet-100 dark:border-violet-900/20 pb-4">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+              Edit Budget
+            </DialogTitle>
+            <DialogDescription className="text-base">
+              Update budget settings for {category}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -752,11 +756,19 @@ function BudgetsPageContent() {
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+          <DialogFooter className="border-t border-violet-100 dark:border-violet-900/20 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowEditDialog(false)}
+              className="border-violet-200 hover:bg-violet-50 dark:border-violet-800 dark:hover:bg-violet-950"
+            >
               Cancel
             </Button>
-            <Button onClick={handleUpdate} disabled={managementLoading}>
+            <Button 
+              onClick={handleUpdate} 
+              disabled={managementLoading}
+              className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300"
+            >
               {managementLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
