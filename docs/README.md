@@ -43,6 +43,8 @@ Detailed documentation for all major features.
 | [Income Budgeting Summary](features/INCOME_BUDGETING_SUMMARY.md) | Quick reference for income feature |
 | [Savings Goals Integration](features/SAVINGS_GOALS_INTEGRATION.md) | Savings goals as first-class budget items |
 | [Income + Savings Redesign Complete](features/INCOME_SAVINGS_REDESIGN_COMPLETE.md) | v2.0 redesign completion summary |
+| [Income Allocation Validation](features/INCOME_ALLOCATION_VALIDATION.md) | Validation system design document |
+| [Income Allocation Complete](features/INCOME_ALLOCATION_IMPLEMENTATION_COMPLETE.md) | ✅ Implementation complete & deployed |
 
 ---
 
