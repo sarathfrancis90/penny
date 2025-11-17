@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { GroupSelector } from "@/components/groups";
 import { BudgetImpactPreview } from "@/components/budgets/BudgetImpactPreview";
 import { OverBudgetWarningModal } from "@/components/budgets/OverBudgetWarningModal";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { usePersonalBudgets } from "@/hooks/usePersonalBudgets";
 import { useGroupBudgets } from "@/hooks/useGroupBudgets";
 import { useBudgetUsage } from "@/hooks/useBudgetUsage";
