@@ -8,11 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS } from '@/lib/types/savings';
+import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS, CreateGroupSavingsGoal } from '@/lib/types/savings';
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
+import { GroupSavingsGoalService } from '@/lib/services/savingsService';
+import { GroupSavingsForm } from '@/components/savings/GroupSavingsForm';
 import { Target, PlusCircle, Info, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -26,6 +30,7 @@ export default function GroupSavingsPage({ params }: PageProps) {
   const [savingsGoals, setSavingsGoals] = useState<GroupSavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +75,38 @@ export default function GroupSavingsPage({ params }: PageProps) {
 
     fetchData();
   }, [user, groupId]);
+
+  const handleCreateGoal = async (data: Partial<GroupSavingsGoal>) => {
+    if (!user?.uid) return;
+
+    try {
+      const dataWithCreatedBy: CreateGroupSavingsGoal = {
+        ...data,
+        createdBy: user.uid,
+      } as CreateGroupSavingsGoal;
+
+      await GroupSavingsGoalService.create(dataWithCreatedBy);
+      setShowCreateDialog(false);
+      toast.success('Group savings goal created successfully');
+      
+      // Refresh the list
+      const q = query(
+        collection(db, 'savings_goals_group'),
+        where('groupId', '==', groupId),
+        where('isActive', '==', true),
+        where('status', '==', GoalStatus.ACTIVE)
+      );
+      const querySnapshot = await getDocs(q);
+      const goals: GroupSavingsGoal[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as GroupSavingsGoal[];
+      setSavingsGoals(goals);
+    } catch (error) {
+      console.error('Error creating group savings goal:', error);
+      toast.error('Failed to create savings goal');
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -164,9 +201,9 @@ export default function GroupSavingsPage({ params }: PageProps) {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Active Goals</h2>
             {isAdmin && (
-              <Button disabled>
+              <Button onClick={() => setShowCreateDialog(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Create Goal (Coming Soon)
+                Create Goal
               </Button>
             )}
           </div>
@@ -250,6 +287,24 @@ export default function GroupSavingsPage({ params }: PageProps) {
           )}
         </div>
       </div>
+
+      {/* Create Goal Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Group Savings Goal</DialogTitle>
+            <DialogDescription>
+              Create a new savings goal for {groupName}. All group members can contribute to this goal.
+            </DialogDescription>
+          </DialogHeader>
+          <GroupSavingsForm
+            groupId={groupId}
+            onSubmit={handleCreateGoal}
+            onCancel={() => setShowCreateDialog(false)}
+            submitLabel="Create Goal"
+          />
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

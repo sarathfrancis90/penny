@@ -7,11 +7,15 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { GroupIncomeSource } from '@/lib/types/income';
+import { GroupIncomeSource, CreateGroupIncomeSource } from '@/lib/types/income';
 import { formatCurrency, calculateMonthlyIncome } from '@/lib/utils/incomeCalculations';
+import { GroupIncomeService } from '@/lib/services/incomeService';
+import { GroupIncomeForm } from '@/components/income/GroupIncomeForm';
 import { DollarSign, PlusCircle, Info } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -25,6 +29,7 @@ export default function GroupIncomePage({ params }: PageProps) {
   const [incomeSources, setIncomeSources] = useState<GroupIncomeSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +73,37 @@ export default function GroupIncomePage({ params }: PageProps) {
 
     fetchData();
   }, [user, groupId]);
+
+  const handleCreateIncome = async (data: Partial<GroupIncomeSource>) => {
+    if (!user?.uid) return;
+
+    try {
+      const dataWithCreatedBy: CreateGroupIncomeSource = {
+        ...data,
+        createdBy: user.uid,
+      } as CreateGroupIncomeSource;
+
+      await GroupIncomeService.create(dataWithCreatedBy);
+      setShowCreateDialog(false);
+      toast.success('Group income source created successfully');
+      
+      // Refresh the list
+      const q = query(
+        collection(db, 'income_sources_group'),
+        where('groupId', '==', groupId),
+        where('isActive', '==', true)
+      );
+      const querySnapshot = await getDocs(q);
+      const sources: GroupIncomeSource[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as GroupIncomeSource[];
+      setIncomeSources(sources);
+    } catch (error) {
+      console.error('Error creating group income:', error);
+      toast.error('Failed to create income source');
+    }
+  };
 
   if (authLoading || loading) {
     return (
@@ -138,9 +174,9 @@ export default function GroupIncomePage({ params }: PageProps) {
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Income Sources</h2>
             {isAdmin && (
-              <Button disabled>
+              <Button onClick={() => setShowCreateDialog(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Income Source (Coming Soon)
+                Add Income Source
               </Button>
             )}
           </div>
@@ -198,6 +234,24 @@ export default function GroupIncomePage({ params }: PageProps) {
           )}
         </div>
       </div>
+
+      {/* Create Income Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Group Income Source</DialogTitle>
+            <DialogDescription>
+              Add a new income source for {groupName}. All group admins can manage income sources.
+            </DialogDescription>
+          </DialogHeader>
+          <GroupIncomeForm
+            groupId={groupId}
+            onSubmit={handleCreateIncome}
+            onCancel={() => setShowCreateDialog(false)}
+            submitLabel="Create Income Source"
+          />
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
