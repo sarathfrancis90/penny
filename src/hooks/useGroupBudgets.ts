@@ -67,14 +67,14 @@ export function useGroupBudgets(
           setLoading(false);
         },
         (err) => {
-          // Suppress permission-denied errors (group might be deleted)
+          // Silently handle permission-denied errors (user not authorized for this group's budgets)
           if (err.code === "permission-denied") {
-            console.warn("Permission denied for group budgets:", groupId);
             setBudgets([]);
             setLoading(false);
             return;
           }
 
+          // Only log non-permission errors
           console.error("Error fetching group budgets:", err);
           setError(err.message);
           setLoading(false);

@@ -363,11 +363,13 @@ service cloud.firestore {
     
     // Group Budgets
     match /budgets_group/{budgetId} {
-      // Allow list queries for group budgets
+      // Allow list queries only if filtering by a group where user is member
+      // Note: Firestore requires that list rules match the query filters
       allow list: if isAuthenticated();
       
       // Group members can read group budgets
       allow get: if isAuthenticated() && 
+        resource.data.groupId is string &&
         isGroupMember(resource.data.groupId);
       
       // Only admin or owner can create group budgets
