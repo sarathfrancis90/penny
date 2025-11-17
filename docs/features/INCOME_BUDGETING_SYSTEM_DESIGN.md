@@ -1,23 +1,25 @@
 # 💰 Income & Budget Allocation System - Design Document
 
-**Feature**: Comprehensive Income Tracking & Budget Allocation  
-**Version**: 1.0  
+**Feature**: Comprehensive Income Tracking, Budget Allocation & Savings Goals  
+**Version**: 2.0  
 **Date**: November 17, 2025  
-**Status**: 📝 Design Phase  
+**Status**: 📝 Design Phase - Enhanced with Savings Integration  
 
 ---
 
 ## 🎯 Executive Summary
 
-Transform Penny from an expense tracker into a **complete financial management system** by adding income tracking and income-based budget allocation. Users will set income sources, allocate budgets based on available income, and get intelligent recommendations for budget planning.
+Transform Penny from an expense tracker into a **complete financial management system** by adding income tracking, income-based budget allocation, and **comprehensive savings goal tracking**. Users will set income sources, allocate budgets for both expenses AND savings, and track progress toward financial goals.
 
 ### Key Value Propositions
 - 💰 **Income-Based Budgeting**: Set budgets based on actual income
-- 📊 **Budget Allocation Tracking**: Know how much income is allocated vs available
-- 🔄 **Smart Monthly Setup**: Auto-copy budgets with income confirmation
-- 📈 **Income Analytics**: Track income trends and YTD summaries
-- 👥 **Group Income**: Manage shared income for families/roommates
-- 🤖 **AI Recommendations**: Get budget suggestions based on income
+- 🎯 **Savings Goals Integration**: Treat savings as first-class budget items (travel, education, emergency fund)
+- 📊 **Total Allocation Tracking**: Income = Expense Budgets + Savings Goals
+- 🔄 **Smart Monthly Setup**: Auto-copy budgets and savings with confirmation
+- 📈 **Comprehensive Analytics**: Track income, expenses, AND savings progress
+- 💎 **Savings Milestones**: Celebrate when goals are reached
+- 👥 **Group Savings**: Manage shared savings goals (family vacation, kids' education)
+- 🤖 **AI Recommendations**: Get budget AND savings suggestions based on income
 
 ---
 
@@ -41,13 +43,19 @@ Transform Penny from an expense tracker into a **complete financial management s
 ### Current Limitations
 1. ❌ **No Income Tracking**: Users can't record income
 2. ❌ **Arbitrary Budgets**: Budgets set without knowing actual income
-3. ❌ **No Budget Allocation View**: Don't know if over-budgeting
-4. ❌ **Monthly Repetition**: Users re-enter same budgets every month
-5. ❌ **No Financial Overview**: Missing income vs expenses comparison
+3. ❌ **No Savings Goals**: Can't set or track savings (travel, education, emergency fund)
+4. ❌ **No Budget Allocation View**: Don't know if over-budgeting
+5. ❌ **Savings Not in Allocation**: Savings treated as "whatever's left" instead of planned
+6. ❌ **Monthly Repetition**: Users re-enter same budgets every month
+7. ❌ **No Financial Overview**: Missing income vs expenses vs savings comparison
 
 ### User Pain Points
 - "I set a $5,000 budget but only earn $4,000/month" (Over-allocation)
+- "I want to save for vacation but don't track it properly" (No savings goals)
+- "Don't know how much I've saved year-to-date" (No YTD savings tracking)
+- "Can't see if I'm on track for my savings goals" (No progress tracking)
 - "I don't know how much I have left to budget" (No visibility)
+- "Should I save more or spend more?" (No guidance)
 - "I have to set the same budgets every month" (Tedious)
 - "Can't track if my income is growing" (No analytics)
 - "Need to split income with roommates" (No group income)
@@ -62,9 +70,12 @@ Transform Penny from an expense tracker into a **complete financial management s
 **Use Cases**:
 - Add monthly salary of $8,000
 - Allocate budgets: Housing ($2,000), Food ($800), Transport ($300)
-- See remaining $4,900 unallocated
+- **Set savings goals**: Emergency Fund ($500/month), Vacation ($300/month), Retirement ($1,200/month)
+- Total allocation: $5,100 expenses + $2,000 savings = $7,100
+- See remaining $900 unallocated
 - Track bonus income separately
-- View year-to-date income growth
+- View year-to-date savings progress per goal
+- Celebrate when vacation savings goal reached
 
 ### Persona 2: Mike - Freelancer
 **Profile**: 34, graphic designer, variable income
@@ -73,8 +84,11 @@ Transform Penny from an expense tracker into a **complete financial management s
 - Add multiple income sources (Client A, B, C)
 - Income varies monthly ($4,000 - $8,000)
 - Need conservative budget allocation
+- **Set flexible savings**: Emergency Fund ($400/month min), Equipment Upgrade ($200/month)
+- Allocate based on minimum expected income
 - Track average income over 3-6 months
-- Get AI suggestions for budget limits
+- Get AI suggestions for budget AND savings limits
+- Adjust savings allocation in high-income months
 
 ### Persona 3: The Johnsons - Family Group
 **Profile**: Married couple, shared expenses
@@ -83,8 +97,12 @@ Transform Penny from an expense tracker into a **complete financial management s
 - Both add income to "Family" group
 - Combined income: $12,000/month
 - Allocate group budgets: Groceries ($1,200), Utilities ($400)
+- **Set family savings goals**: Kids' Education ($600/month), Family Vacation ($400/month), Home Down Payment ($1,000/month)
+- Track savings progress together
+- See if savings goals are met each month
+- View YTD family savings by category
 - Track who contributed what income
-- See family budget allocation dashboard
+- See family budget + savings allocation dashboard
 
 ### Persona 4: College Roommates - Shared Living
 **Profile**: 3 roommates sharing apartment
@@ -368,11 +386,22 @@ interface MonthlyIncomeRecord {
     receivedAt: Timestamp;
   }>;
   
-  // Budget allocation
-  totalBudgeted: number;
-  budgetByCategory: Record<string, number>;
+  // ⭐ Budget allocation (EXPENSES)
+  totalExpenseBudgeted: number;
+  expenseBudgetByCategory: Record<string, number>;
+  
+  // ⭐ Savings allocation (NEW)
+  totalSavingsAllocated: number;
+  savingsGoalsAllocated: Array<{
+    goalId: string;
+    goalName: string;
+    amount: number;
+  }>;
+  
+  // ⭐ Total allocation (Expenses + Savings)
+  totalAllocated: number;          // totalExpenseBudgeted + totalSavingsAllocated
   unallocatedIncome: number;
-  allocationPercentage: number;    // totalBudgeted / totalIncome * 100
+  allocationPercentage: number;    // totalAllocated / totalIncome * 100
   
   // Status
   isOverAllocated: boolean;
@@ -453,6 +482,180 @@ interface BudgetAllocationHistory {
 }
 ```
 
+#### 6. `savings_goals_personal` ⭐ NEW
+```typescript
+interface PersonalSavingsGoal {
+  id: string;
+  userId: string;
+  name: string;                    // "Emergency Fund", "Japan Trip", "New Car"
+  category: SavingsCategory;       // emergency, travel, education, health, custom
+  
+  // Goal details
+  targetAmount: number;            // Total goal (e.g., $10,000)
+  currentAmount: number;           // How much saved so far
+  monthlyContribution: number;     // Planned monthly allocation
+  
+  // Timeline
+  targetDate?: Timestamp;          // When goal should be reached
+  startDate: Timestamp;
+  achievedDate?: Timestamp;        // When goal was reached
+  
+  // Status
+  status: GoalStatus;              // active, achieved, paused, cancelled
+  isActive: boolean;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  
+  // Progress tracking
+  progressPercentage: number;      // (currentAmount / targetAmount) * 100
+  monthsToGoal?: number;           // Estimated months to reach goal
+  onTrack: boolean;                // Is monthly contribution being met?
+  
+  // Metadata
+  description?: string;
+  emoji?: string;                  // ✈️ 🏠 🎓 💰
+  currency: string;
+  
+  // Tracking
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  lastContributionAt?: Timestamp;
+}
+
+enum SavingsCategory {
+  EMERGENCY_FUND = 'emergency_fund',
+  TRAVEL = 'travel',
+  EDUCATION = 'education',
+  HEALTH = 'health',
+  HOUSE_DOWN_PAYMENT = 'house_down_payment',
+  CAR = 'car',
+  WEDDING = 'wedding',
+  RETIREMENT = 'retirement',
+  INVESTMENT = 'investment',
+  CUSTOM = 'custom'
+}
+
+enum GoalStatus {
+  ACTIVE = 'active',
+  ACHIEVED = 'achieved',
+  PAUSED = 'paused',
+  CANCELLED = 'cancelled'
+}
+```
+
+#### 7. `savings_goals_group` ⭐ NEW
+```typescript
+interface GroupSavingsGoal {
+  id: string;
+  groupId: string;
+  createdBy: string;               // User ID who created
+  
+  name: string;
+  category: SavingsCategory;
+  
+  // Goal details
+  targetAmount: number;
+  currentAmount: number;
+  monthlyContribution: number;
+  
+  // Timeline
+  targetDate?: Timestamp;
+  startDate: Timestamp;
+  achievedDate?: Timestamp;
+  
+  // Status
+  status: GoalStatus;
+  isActive: boolean;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  
+  // Progress tracking
+  progressPercentage: number;
+  monthsToGoal?: number;
+  onTrack: boolean;
+  
+  // Group-specific
+  contributionType: 'equal' | 'proportional' | 'custom';
+  contributions: Array<{
+    userId: string;
+    userName: string;
+    monthlyAmount: number;
+    totalContributed: number;
+  }>;
+  
+  // Metadata
+  description?: string;
+  emoji?: string;
+  currency: string;
+  
+  // Tracking
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  lastContributionAt?: Timestamp;
+}
+```
+
+#### 8. `savings_contributions` ⭐ NEW
+```typescript
+interface SavingsContribution {
+  id: string;
+  userId?: string;
+  groupId?: string;
+  goalId: string;
+  goalName: string;
+  
+  amount: number;
+  date: Timestamp;
+  period: {
+    month: number;
+    year: number;
+  };
+  
+  // Type
+  contributionType: 'manual' | 'auto' | 'from_expense_savings';
+  source?: string;                 // Where money came from
+  
+  // Metadata
+  note?: string;
+  currency: string;
+  
+  createdAt: Timestamp;
+}
+```
+
+#### 9. `monthly_savings_summary` ⭐ NEW
+```typescript
+interface MonthlySavingsSummary {
+  id: string;
+  userId?: string;
+  groupId?: string;
+  period: {
+    month: number;
+    year: number;
+  };
+  
+  // Savings allocation
+  totalSavingsAllocated: number;   // Total monthly savings budget
+  totalSavingsContributed: number; // Actual amount saved
+  savingsGoalsMet: boolean;        // All goals contributions met?
+  
+  // By goal
+  goalContributions: Array<{
+    goalId: string;
+    goalName: string;
+    plannedAmount: number;
+    actualAmount: number;
+    met: boolean;
+  }>;
+  
+  // YTD (Year-to-Date)
+  ytdSavings: number;
+  ytdByCategory: Record<SavingsCategory, number>;
+  
+  // Tracking
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
 ### Modified Collections
 
 #### Updated: `budgets_personal` / `budgets_group`
@@ -506,11 +709,11 @@ interface BudgetWithAllocation {
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Step 2 of 3: Set Budgets                                   │
+│  Step 2 of 4: Set Expense Budgets                          │
 │                                                              │
 │  Income Available: $9,500                                   │
-│  Currently Allocated: $7,800 (82%)                          │
-│  Unallocated: $1,700                                        │
+│  Currently Allocated: $5,600 (59% - expenses only)          │
+│  Remaining: $3,900                                          │
 │                                                              │
 │  ┌────────────────────────────────────────────────────┐    │
 │  │ 🍔 Food              $1,000  [▓▓▓▓▓░░░░░] 11%     │    │
@@ -521,11 +724,10 @@ interface BudgetWithAllocation {
 │  │ 👕 Shopping          $  400  [▓▓░░░░░░░░]  4%     │    │
 │  │ 💊 Healthcare        $  500  [▓▓▓░░░░░░░]  5%     │    │
 │  │ 📚 Education         $  300  [▓▓░░░░░░░░]  3%     │    │
-│  │ 💰 Savings          $2,200  [▓▓▓▓▓▓▓▓░░] 23%     │    │
 │  └────────────────────────────────────────────────────┘    │
 │                                                              │
-│  💡 Smart Tip: You have $1,700 unallocated. Consider       │
-│     increasing your Savings budget to meet 25% goal.       │
+│  💡 Smart Tip: Following 50/30/20 rule, aim for 50% needs, │
+│     30% wants, 20% savings. Next: Set your savings goals!  │
 │                                                              │
 │  [Use AI Recommendations]  [Edit Manually]                  │
 │                                                              │
@@ -535,28 +737,73 @@ interface BudgetWithAllocation {
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Step 3 of 3: Review & Confirm                              │
+│  Step 3 of 4: Set Savings Goals ⭐                          │
+│                                                              │
+│  Income Available: $9,500                                   │
+│  Expenses Budgeted: $5,600 (59%)                           │
+│  Savings Allocated: $2,000 (21%)                           │
+│  Remaining: $1,900                                          │
+│                                                              │
+│  ┌────────────────────────────────────────────────────┐    │
+│  │ Active Savings Goals            [+ Add New Goal]   │    │
+│  │                                                     │    │
+│  │ ✈️  Japan Trip 2026                                 │    │
+│  │     $300/month • $3,600 saved • 40% complete      │    │
+│  │     [▓▓▓▓░░░░░░] Target: $9,000                    │    │
+│  │     [Edit] [Pause]                                │    │
+│  │                                                     │    │
+│  │ 💰 Emergency Fund                                  │    │
+│  │     $500/month • $8,000 saved • 53% complete      │    │
+│  │     [▓▓▓▓▓░░░░░] Target: $15,000                   │    │
+│  │     [Edit] [Pause]                                │    │
+│  │                                                     │    │
+│  │ 🎓 Kids College Fund                                │    │
+│  │     $1,200/month • $14,400 saved • 12% complete   │    │
+│  │     [▓▓░░░░░░░░] Target: $120,000                  │    │
+│  │     [Edit] [Pause]                                │    │
+│  └────────────────────────────────────────────────────┘    │
+│                                                              │
+│  💡 Great! You're allocating 21% to savings. Consider      │
+│     increasing to 25% for optimal financial health.        │
+│                                                              │
+│  Total Monthly Savings: $2,000                             │
+│  Savings Rate: 21% of income                               │
+│                                                              │
+│  [← Back]                [Continue →]                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Step 4 of 4: Review & Confirm ⭐                           │
 │                                                              │
 │  📊 Your November 2025 Financial Plan                       │
 │                                                              │
 │  ┌────────────────────────────────────────────────────┐    │
-│  │ 💰 Total Income:     $9,500                        │    │
-│  │ 📊 Total Budgeted:   $9,500 (100%)                │    │
-│  │ 💵 Unallocated:      $    0                        │    │
+│  │ 💰 Total Income:        $9,500                     │    │
+│  │ 📊 Expense Budgets:     $5,600 (59%)              │    │
+│  │ 🎯 Savings Goals:       $3,400 (36%) ← Increased! │    │
+│  │ 💵 Unallocated:         $  500 ( 5%)              │    │
 │  │                                                     │    │
 │  │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━    │    │
 │  │                                                     │    │
-│  │ Budget Breakdown:                                  │    │
+│  │ Expense Budget Breakdown:                          │    │
 │  │ • Housing (26%) ........... $2,500                │    │
-│  │ • Savings (26%) ........... $2,500  ← Increased!  │    │
 │  │ • Food (11%) .............. $1,000                │    │
 │  │ • Healthcare (5%) ......... $  500                │    │
 │  │ • Transportation (4%) ..... $  400                │    │
-│  │ • Other (28%) ............. $2,600                │    │
+│  │ • Other (13%) ............. $1,200                │    │
+│  │                                                     │    │
+│  │ Savings Goals Breakdown:                           │    │
+│  │ • Kids College (13%) ...... $1,200                │    │
+│  │ • Emergency Fund (11%) .... $1,000  ← Increased!  │    │
+│  │ • Home Down Pay (11%) ..... $1,000  ← New!        │    │
+│  │ • Japan Trip (2%) ......... $  200                │    │
 │  └────────────────────────────────────────────────────┘    │
 │                                                              │
 │  ✅ Your budget is balanced!                                │
-│  🎯 Following 50/30/20 rule: 52% needs, 28% wants, 26% save│
+│  🎯 Following 50/30/20 rule: 59% needs, 5% wants, 36% save │
+│  ⭐ Excellent savings rate! On track for financial success! │
 │                                                              │
 │  [← Edit]                [Confirm & Start Month →]          │
 └─────────────────────────────────────────────────────────────┘
