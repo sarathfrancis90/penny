@@ -78,12 +78,13 @@ export default function GroupIncomePage({ params }: PageProps) {
     if (!user?.uid) return;
 
     try {
-      const dataWithCreatedBy: CreateGroupIncomeSource = {
+      const dataWithAddedBy: CreateGroupIncomeSource = {
         ...data,
-        createdBy: user.uid,
+        addedBy: user.uid,
+        splitType: 'equal', // Default split type for group income
       } as CreateGroupIncomeSource;
 
-      await GroupIncomeService.create(dataWithCreatedBy);
+      await GroupIncomeService.create(dataWithAddedBy);
       setShowCreateDialog(false);
       toast.success('Group income source created successfully');
       

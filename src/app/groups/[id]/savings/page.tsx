@@ -83,6 +83,7 @@ export default function GroupSavingsPage({ params }: PageProps) {
       const dataWithCreatedBy: CreateGroupSavingsGoal = {
         ...data,
         createdBy: user.uid,
+        contributionType: 'equal', // Default contribution type for group savings
       } as CreateGroupSavingsGoal;
 
       await GroupSavingsGoalService.create(dataWithCreatedBy);
