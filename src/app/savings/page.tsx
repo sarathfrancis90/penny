@@ -62,20 +62,9 @@ export default function SavingsPage() {
     );
   }
 
-  const handleCreate = async (data: {
-    name: string;
-    category: string;
-    targetAmount: number;
-    currentAmount: number;
-    monthlyContribution: number;
-    targetDate?: string;
-    priority: string;
-    description?: string;
-    emoji?: string;
-    currency: string;
-  }) => {
+  const handleCreate = async (data: Partial<PersonalSavingsGoal>) => {
     try {
-      await createGoal(data as unknown as Partial<PersonalSavingsGoal>);
+      await createGoal(data);
       setShowCreateDialog(false);
       toast.success('Savings goal created successfully');
     } catch {
@@ -83,21 +72,10 @@ export default function SavingsPage() {
     }
   };
 
-  const handleUpdate = async (data: {
-    name: string;
-    category: string;
-    targetAmount: number;
-    currentAmount: number;
-    monthlyContribution: number;
-    targetDate?: string;
-    priority: string;
-    description?: string;
-    emoji?: string;
-    currency: string;
-  }) => {
+  const handleUpdate = async (data: Partial<PersonalSavingsGoal>) => {
     if (!editingGoal) return;
     try {
-      await updateGoal(editingGoal.id, data as unknown as Partial<PersonalSavingsGoal>);
+      await updateGoal(editingGoal.id, data);
       setEditingGoal(null);
       toast.success('Savings goal updated successfully');
     } catch {

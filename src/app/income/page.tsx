@@ -56,21 +56,9 @@ export default function IncomePage() {
     );
   }
 
-  const handleCreate = async (data: {
-    name: string;
-    category: string;
-    amount: number;
-    frequency: string;
-    isRecurring: boolean;
-    recurringDate?: number;
-    taxable: boolean;
-    netAmount?: number;
-    description?: string;
-    currency: string;
-    isActive: boolean;
-  }) => {
+  const handleCreate = async (data: Partial<PersonalIncomeSource>) => {
     try {
-      await createIncome(data as unknown as Partial<PersonalIncomeSource>);
+      await createIncome(data);
       setShowCreateDialog(false);
       toast.success('Income source created successfully');
     } catch {
@@ -78,22 +66,10 @@ export default function IncomePage() {
     }
   };
 
-  const handleUpdate = async (data: {
-    name: string;
-    category: string;
-    amount: number;
-    frequency: string;
-    isRecurring: boolean;
-    recurringDate?: number;
-    taxable: boolean;
-    netAmount?: number;
-    description?: string;
-    currency: string;
-    isActive: boolean;
-  }) => {
+  const handleUpdate = async (data: Partial<PersonalIncomeSource>) => {
     if (!editingIncome) return;
     try {
-      await updateIncome(editingIncome.id, data as unknown as Partial<PersonalIncomeSource>);
+      await updateIncome(editingIncome.id, data);
       setEditingIncome(null);
       toast.success('Income source updated successfully');
     } catch {

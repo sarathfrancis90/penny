@@ -32,7 +32,7 @@ interface IncomeSourceFormSubmitData {
 
 interface IncomeSourceFormProps {
   initialData?: PersonalIncomeSource;
-  onSubmit: (data: IncomeSourceFormSubmitData) => Promise<void>;
+  onSubmit: (data: Partial<PersonalIncomeSource>) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }
@@ -75,21 +75,31 @@ export function IncomeSourceForm({
     try {
       setIsSubmitting(true);
 
-      const submitData = {
+      const submitData: Record<string, unknown> = {
         name: formData.name.trim(),
         category: formData.category,
         amount: parseFloat(formData.amount),
         frequency: formData.frequency,
         isRecurring: formData.isRecurring,
-        recurringDate: formData.recurringDate ? parseInt(formData.recurringDate) : undefined,
         taxable: formData.taxable,
-        netAmount: formData.netAmount ? parseFloat(formData.netAmount) : undefined,
-        description: formData.description.trim() || undefined,
         currency: formData.currency,
         isActive: true,
       };
 
-      await onSubmit(submitData);
+      // Only add optional fields if they have values (Firestore doesn't accept undefined)
+      if (formData.recurringDate && !isNaN(parseInt(formData.recurringDate))) {
+        submitData.recurringDate = parseInt(formData.recurringDate);
+      }
+      
+      if (formData.netAmount && !isNaN(parseFloat(formData.netAmount))) {
+        submitData.netAmount = parseFloat(formData.netAmount);
+      }
+      
+      if (formData.description.trim()) {
+        submitData.description = formData.description.trim();
+      }
+
+      await onSubmit(submitData as Partial<PersonalIncomeSource>);
       toast.success(
         initialData ? 'Income source updated successfully' : 'Income source created successfully'
       );

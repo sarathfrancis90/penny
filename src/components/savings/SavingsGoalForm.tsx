@@ -36,7 +36,7 @@ interface SavingsGoalFormSubmitData {
 
 interface SavingsGoalFormProps {
   initialData?: PersonalSavingsGoal;
-  onSubmit: (data: SavingsGoalFormSubmitData) => Promise<void>;
+  onSubmit: (data: Partial<PersonalSavingsGoal>) => Promise<void>;
   onCancel?: () => void;
   submitLabel?: string;
 }
@@ -108,20 +108,27 @@ export function SavingsGoalForm({
     try {
       setIsSubmitting(true);
 
-      const submitData = {
+      const submitData: Record<string, unknown> = {
         name: formData.name.trim(),
         category: formData.category,
         targetAmount: parseFloat(formData.targetAmount),
         currentAmount: parseFloat(formData.currentAmount) || 0,
         monthlyContribution: parseFloat(formData.monthlyContribution),
-        targetDate: formData.targetDate ? formData.targetDate : undefined,
         priority: formData.priority,
-        description: formData.description.trim() || undefined,
         emoji: formData.emoji || SAVINGS_CATEGORY_EMOJIS[formData.category],
         currency: formData.currency,
       };
 
-      await onSubmit(submitData);
+      // Only add optional fields if they have values (Firestore doesn't accept undefined)
+      if (formData.targetDate) {
+        submitData.targetDate = formData.targetDate;
+      }
+      
+      if (formData.description.trim()) {
+        submitData.description = formData.description.trim();
+      }
+
+      await onSubmit(submitData as Partial<PersonalSavingsGoal>);
       toast.success(
         initialData ? 'Savings goal updated successfully' : 'Savings goal created successfully'
       );
