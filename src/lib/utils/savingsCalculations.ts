@@ -290,6 +290,7 @@ export function calculateSavingsVelocity(
 export function formatGoalProgress(
   goal: PersonalSavingsGoal | GroupSavingsGoal
 ): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { percentageComplete, amountRemaining, monthsRemaining } =
     getGoalCompletionStatus(goal);
 

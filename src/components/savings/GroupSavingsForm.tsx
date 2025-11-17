@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { GroupSavingsGoal, SavingsCategory, GoalPriority, SAVINGS_CATEGORY_LABELS, SAVINGS_CATEGORY_EMOJIS } from '@/lib/types/savings';
+import { GroupSavingsGoal, SavingsCategory, GoalPriority, SAVINGS_CATEGORY_EMOJIS } from '@/lib/types/savings';
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
 import { toast } from 'sonner';
 import { TrendingUp } from 'lucide-react';

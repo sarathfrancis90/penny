@@ -230,7 +230,7 @@ export async function uploadMessageAttachment(
         }
       );
     });
-  } catch (error) {
+  } catch {
     throw new Error('Failed to upload message attachment');
   }
 }

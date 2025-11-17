@@ -168,7 +168,7 @@ export function MonthlySetupWizard({
 
       await onComplete(data);
       toast.success('Monthly setup completed successfully!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to complete setup. Please try again.');
     } finally {
       setIsSubmitting(false);

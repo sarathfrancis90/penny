@@ -380,10 +380,12 @@ export const IncomeBatchService = {
     const batch = writeBatch(db);
 
     if (isGroup && groupId) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const sources = await GroupIncomeService.getActiveForGroup(groupId);
       // Group income typically doesn't auto-copy, admins manage it
       // This is here for future use if needed
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const sources = await PersonalIncomeService.getActiveForUser(userId);
       // Personal recurring income continues automatically
       // No action needed as they're already marked as recurring

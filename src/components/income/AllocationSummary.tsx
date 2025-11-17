@@ -32,6 +32,7 @@ export function AllocationSummary({
 
   // 50/30/20 rule check
   const isSavingsHealthy = savingsPercentage >= 20;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const areExpensesReasonable = expensePercentage <= 80;
 
   return (

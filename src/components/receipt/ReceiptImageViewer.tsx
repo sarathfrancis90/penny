@@ -113,6 +113,7 @@ export function ReceiptImageViewer({
 
         {/* Image with lazy loading */}
         {!hasError && (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={imageUrl}
             alt={alt}
@@ -206,6 +207,7 @@ export function ReceiptImageViewer({
 
           {/* Image Container */}
           <div className="w-full h-full flex items-center justify-center overflow-auto p-16">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={imageUrl}
               alt={alt}

@@ -1,7 +1,6 @@
 import { NotificationService } from './notificationService';
 import { NotificationType } from '../types/notifications';
 import { PersonalSavingsGoal, GroupSavingsGoal } from '../types/savings';
-import { MonthlyIncomeRecord } from '../types/income';
 
 /**
  * Notification service for Income & Savings milestones

@@ -21,19 +21,6 @@ import {
 } from '@/lib/types/savings';
 import { toast } from 'sonner';
 
-interface SavingsGoalFormSubmitData {
-  name: string;
-  category: SavingsCategory;
-  targetAmount: number;
-  currentAmount: number;
-  monthlyContribution: number;
-  targetDate?: string;
-  priority: GoalPriority;
-  description?: string;
-  emoji?: string;
-  currency: string;
-}
-
 interface SavingsGoalFormProps {
   initialData?: PersonalSavingsGoal;
   onSubmit: (data: Partial<PersonalSavingsGoal>) => Promise<void>;

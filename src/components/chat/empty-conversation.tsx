@@ -35,6 +35,7 @@ export function EmptyConversation({ onUploadClick, onDescribeClick, onQueryClick
         >
           <CardContent className="p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-violet-100 dark:bg-violet-900 mb-3" role="img" aria-label="Upload receipt">
+              {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image className="h-6 w-6 text-violet-600 dark:text-violet-400" />
             </div>
             <h3 className="font-semibold mb-1">Upload Receipt</h3>

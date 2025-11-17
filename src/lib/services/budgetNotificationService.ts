@@ -6,7 +6,7 @@
  */
 
 import { NotificationService } from './notificationService';
-import { getBudgetStatus, calculateSimpleBudgetUsage } from '../budgetCalculations';
+import { calculateSimpleBudgetUsage } from '../budgetCalculations';
 import { adminDb } from '../firebase-admin';
 import { NotificationType } from '../types/notifications';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -209,6 +209,7 @@ export class BudgetNotificationService {
       remainingAmount: number;
     }
   ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const percentage = Math.round(usage.percentageUsed);
 
     // Send to all members

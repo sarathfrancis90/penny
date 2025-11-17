@@ -195,6 +195,7 @@ function generateGroupBody(
   type: NotificationType,
   actors: string[],
   count: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   metadata?: Record<string, unknown>
 ): string {
   const uniqueActors = [...new Set(actors)].slice(-3); // Last 3 unique actors

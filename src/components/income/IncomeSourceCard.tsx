@@ -80,7 +80,7 @@ export function IncomeSourceCard({
       await onDelete(income.id);
       toast.success('Income source deleted successfully');
       setShowDeleteDialog(false);
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete income source');
     } finally {
       setIsDeleting(false);
@@ -97,7 +97,7 @@ export function IncomeSourceCard({
           ? 'Income source deactivated'
           : 'Income source activated'
       );
-    } catch (error) {
+    } catch {
       toast.error('Failed to update income source');
     }
   };

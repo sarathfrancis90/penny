@@ -56,7 +56,7 @@ export function SavingsGoalCard({
       await onDelete(goal.id);
       toast.success('Savings goal deleted successfully');
       setShowDeleteDialog(false);
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete savings goal');
     } finally {
       setIsDeleting(false);
@@ -70,7 +70,7 @@ export function SavingsGoalCard({
       setIsActionPending(true);
       await onPause(goal.id);
       toast.success('Savings goal paused');
-    } catch (error) {
+    } catch {
       toast.error('Failed to pause savings goal');
     } finally {
       setIsActionPending(false);
@@ -84,7 +84,7 @@ export function SavingsGoalCard({
       setIsActionPending(true);
       await onResume(goal.id);
       toast.success('Savings goal resumed');
-    } catch (error) {
+    } catch {
       toast.error('Failed to resume savings goal');
     } finally {
       setIsActionPending(false);
