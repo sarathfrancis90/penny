@@ -543,6 +543,200 @@ service cloud.firestore {
     }
     
     // ============================================
+    // INCOME & SAVINGS SYSTEM (NEW)
+    // ============================================
+    
+    // Personal Income Sources
+    match /income_sources_personal/{incomeId} {
+      // Users can list their own income sources
+      allow list: if isAuthenticated();
+      
+      // Users can read their own income sources
+      allow get: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can create their own income sources
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'name', 'category', 'amount', 'frequency', 'isRecurring', 'isActive', 'currency', 'taxable']) &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0;
+      
+      // Users can update their own income sources
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own income sources
+      allow delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Group Income Sources
+    match /income_sources_group/{incomeId} {
+      // Allow list queries for group members
+      allow list: if isAuthenticated();
+      
+      // Group members can read group income sources
+      allow get: if isAuthenticated() && 
+        resource.data.groupId is string &&
+        isGroupMember(resource.data.groupId);
+      
+      // Only admin or owner can create group income sources
+      allow create: if isAuthenticated() && 
+        isGroupAdmin(request.resource.data.groupId) &&
+        request.resource.data.keys().hasAll(['groupId', 'addedBy', 'name', 'category', 'amount', 'frequency', 'isRecurring', 'isActive', 'currency', 'taxable']) &&
+        request.resource.data.addedBy == request.auth.uid &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0;
+      
+      // Only admin or owner can update group income sources
+      allow update: if isAuthenticated() && 
+        isGroupAdmin(resource.data.groupId) &&
+        resource.data.groupId == request.resource.data.groupId;
+      
+      // Only admin or owner can delete group income sources
+      allow delete: if isAuthenticated() && 
+        isGroupAdmin(resource.data.groupId);
+    }
+    
+    // Monthly Income Records
+    match /monthly_income_records/{recordId} {
+      // Users can read their own records or group records they're member of
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
+      );
+      
+      // Only server-side can create/update records (for consistency)
+      allow create, update, delete: if false;
+    }
+    
+    // Monthly Setup Status
+    match /monthly_setup_status/{statusId} {
+      // Users can read their own status or group status they're member of
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
+      );
+      
+      // Users can update their own status or admins can update group status
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupAdmin(resource.data.groupId))
+      );
+      
+      // Only server-side can create/delete status records
+      allow create, delete: if false;
+    }
+    
+    // Budget Allocation History
+    match /budget_allocation_history/{historyId} {
+      // Users can read their own history or group history they're member of
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
+      );
+      
+      // Only server-side can write history (for consistency)
+      allow create, update, delete: if false;
+    }
+    
+    // Personal Savings Goals
+    match /savings_goals_personal/{goalId} {
+      // Users can list their own savings goals
+      allow list: if isAuthenticated();
+      
+      // Users can read their own savings goals
+      allow get: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can create their own savings goals
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.keys().hasAll(['userId', 'name', 'category', 'targetAmount', 'currentAmount', 'monthlyContribution', 'status', 'isActive', 'priority', 'currency']) &&
+        request.resource.data.targetAmount is number &&
+        request.resource.data.targetAmount > 0 &&
+        request.resource.data.currentAmount is number &&
+        request.resource.data.currentAmount >= 0 &&
+        request.resource.data.monthlyContribution is number &&
+        request.resource.data.monthlyContribution >= 0;
+      
+      // Users can update their own savings goals
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own savings goals
+      allow delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Group Savings Goals
+    match /savings_goals_group/{goalId} {
+      // Allow list queries for group members
+      allow list: if isAuthenticated();
+      
+      // Group members can read group savings goals
+      allow get: if isAuthenticated() && 
+        resource.data.groupId is string &&
+        isGroupMember(resource.data.groupId);
+      
+      // Only admin or owner can create group savings goals
+      allow create: if isAuthenticated() && 
+        isGroupAdmin(request.resource.data.groupId) &&
+        request.resource.data.keys().hasAll(['groupId', 'createdBy', 'name', 'category', 'targetAmount', 'currentAmount', 'monthlyContribution', 'status', 'isActive', 'priority', 'contributionType', 'currency']) &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.targetAmount is number &&
+        request.resource.data.targetAmount > 0 &&
+        request.resource.data.currentAmount is number &&
+        request.resource.data.currentAmount >= 0 &&
+        request.resource.data.monthlyContribution is number &&
+        request.resource.data.monthlyContribution >= 0;
+      
+      // Only admin or owner can update group savings goals
+      allow update: if isAuthenticated() && 
+        isGroupAdmin(resource.data.groupId) &&
+        resource.data.groupId == request.resource.data.groupId;
+      
+      // Only admin or owner can delete group savings goals
+      allow delete: if isAuthenticated() && 
+        isGroupAdmin(resource.data.groupId);
+    }
+    
+    // Savings Contributions
+    match /savings_contributions/{contributionId} {
+      // Users can read their own contributions or group contributions they're member of
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
+      );
+      
+      // Users can create their own contributions or group members can contribute to group goals
+      allow create: if isAuthenticated() && (
+        (request.resource.data.keys().hasAny(['userId']) && 
+         request.resource.data.userId == request.auth.uid) ||
+        (request.resource.data.keys().hasAny(['groupId']) && 
+         isGroupMember(request.resource.data.groupId))
+      );
+      
+      // Only server-side can update/delete contributions (for consistency)
+      allow update, delete: if false;
+    }
+    
+    // Monthly Savings Summary
+    match /monthly_savings_summary/{summaryId} {
+      // Users can read their own summaries or group summaries they're member of
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
+      );
+      
+      // Only server-side can write summaries (for consistency)
+      allow create, update, delete: if false;
+    }
+    
+    // ============================================
     // DENY ALL OTHER ACCESS
     // ============================================
     
