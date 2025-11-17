@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { BudgetUsage } from "@/lib/types";
 
 /**
@@ -21,6 +21,12 @@ export function useBudgetUsage(
   const [usage, setUsage] = useState<BudgetUsage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Expose refetch function
+  const refetch = useCallback(() => {
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     if (!userId) {
@@ -67,8 +73,8 @@ export function useBudgetUsage(
     };
 
     fetchUsage();
-  }, [userId, type, groupId, month, year]);
+  }, [userId, type, groupId, month, year, refreshTrigger]);
 
-  return { usage, loading, error };
+  return { usage, loading, error, refetch };
 }
 

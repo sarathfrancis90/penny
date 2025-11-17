@@ -106,7 +106,7 @@ function BudgetsPageContent() {
     currentPeriod.year
   );
 
-  const { usage: personalUsage } = useBudgetUsage(
+  const { usage: personalUsage, refetch: refetchPersonalUsage } = useBudgetUsage(
     user?.uid,
     "personal",
     undefined,
@@ -114,7 +114,7 @@ function BudgetsPageContent() {
     currentPeriod.year
   );
 
-  const { usage: groupUsage } = useBudgetUsage(
+  const { usage: groupUsage, refetch: refetchGroupUsage } = useBudgetUsage(
     user?.uid,
     "group",
     displayGroupId,
@@ -192,6 +192,8 @@ function BudgetsPageContent() {
         toast.success("Personal budget created successfully!");
         setShowCreateDialog(false);
         resetForm();
+        // Refetch usage data to update the UI
+        refetchPersonalUsage();
       } else {
         toast.error("Failed to create budget");
       }
@@ -217,6 +219,8 @@ function BudgetsPageContent() {
         toast.success("Group budget created successfully!");
         setShowCreateDialog(false);
         resetForm();
+        // Refetch usage data to update the UI
+        refetchGroupUsage();
       } else {
         toast.error("Failed to create group budget");
       }
@@ -273,6 +277,8 @@ function BudgetsPageContent() {
         setShowEditDialog(false);
         resetForm();
         setEditingBudgetId(null);
+        // Refetch usage data to update the UI
+        refetchPersonalUsage();
       } else {
         toast.error("Failed to update budget");
       }
@@ -291,6 +297,8 @@ function BudgetsPageContent() {
         setShowEditDialog(false);
         resetForm();
         setEditingBudgetId(null);
+        // Refetch usage data to update the UI
+        refetchGroupUsage();
       } else {
         toast.error("Failed to update group budget");
       }
@@ -309,6 +317,12 @@ function BudgetsPageContent() {
       toast.success("Budget deleted successfully!");
       setShowDeleteDialog(false);
       setDeletingBudgetId(null);
+      // Refetch usage data to update the UI
+      if (selectedTab === "personal") {
+        refetchPersonalUsage();
+      } else {
+        refetchGroupUsage();
+      }
     } else {
       toast.error("Failed to delete budget");
     }
@@ -431,7 +445,7 @@ function BudgetsPageContent() {
                     {currentUsage.map((usage) => (
                       <div key={usage.category} className="relative">
                         <BudgetCard budget={usage} />
-                        <div className="absolute top-3 right-3 flex gap-2 z-10">
+                        <div className="absolute top-14 right-3 flex gap-2 z-10">
                           <Button
                             size="icon"
                             variant="secondary"
@@ -516,7 +530,7 @@ function BudgetsPageContent() {
                       <div key={usage.category} className="relative">
                         <BudgetCard budget={usage} />
                         {isGroupAdmin && (
-                          <div className="absolute top-3 right-3 flex gap-2 z-10">
+                          <div className="absolute top-14 right-3 flex gap-2 z-10">
                             <Button
                               size="icon"
                               variant="secondary"

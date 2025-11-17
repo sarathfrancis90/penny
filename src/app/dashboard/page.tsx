@@ -354,12 +354,15 @@ export default function DashboardPage() {
               onValueChange={setActiveTab} 
               className="mb-6"
             >
-              <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-6 glass border-2 border-violet-200/50 dark:border-violet-800/30 p-1 h-auto gap-1 w-full">
+              <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-6 glass border-2 border-violet-200/50 dark:border-violet-800/30 p-1 h-auto gap-1 w-full">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Overview
                 </TabsTrigger>
                 <TabsTrigger value="list" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Expenses
+                </TabsTrigger>
+                <TabsTrigger value="budgets" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
+                  Budgets
                 </TabsTrigger>
                 <TabsTrigger value="charts" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-fuchsia-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 text-sm md:text-base py-2 md:py-3">
                   Charts
@@ -516,14 +519,6 @@ export default function DashboardPage() {
                     </CardContent>
                   </Card>
                 </div>
-
-                {/* Budget Widget */}
-                {user && (
-                  <BudgetWidget 
-                    userId={user.uid} 
-                    className="animate-in slide-in-from-bottom-4 fade-in-50 duration-500 delay-200"
-                  />
-                )}
 
                 {/* Overview Charts */}
                 {/* Bar Chart */}
@@ -700,6 +695,15 @@ export default function DashboardPage() {
                     />
                   </CardContent>
                 </Card>
+              </TabsContent>
+              
+              <TabsContent value="budgets">
+                {user && (
+                  <BudgetWidget 
+                    userId={user.uid} 
+                    className="animate-in slide-in-from-bottom-4 fade-in-50 duration-500"
+                  />
+                )}
               </TabsContent>
               
               <TabsContent value="categories">
