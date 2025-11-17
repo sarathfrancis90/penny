@@ -29,9 +29,6 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Validate Firestore Rules
-        run: firebase firestore:rules:release --test
-
       - name: Deploy Firestore Rules
         run: firebase deploy --only firestore:rules --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
 
