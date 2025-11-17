@@ -735,6 +735,7 @@ export default function Home() {
                 <EmptyConversation
                   onUploadClick={handleUploadClick}
                   onDescribeClick={handleDescribeClick}
+                  onQueryClick={(query) => handleSendMessage(query)}
                 />
               ) : (
                 <MessageList

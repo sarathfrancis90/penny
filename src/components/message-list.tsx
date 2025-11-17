@@ -5,6 +5,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChatMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Bot, User, Sparkles, Check } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MessageListProps {
   messages: ChatMessage[];
@@ -129,9 +131,31 @@ export function MessageList({ messages, onUploadClick, onDescribeClick }: Messag
                 )}
                 
                 {/* Message text */}
-                <p className="whitespace-pre-wrap break-words leading-relaxed">
-                  {message.content}
-                </p>
+                {message.role === "assistant" ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        // Customize markdown components for better styling
+                        p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
+                        strong: ({ children }) => <strong className="font-bold text-violet-600 dark:text-violet-400">{children}</strong>,
+                        ul: ({ children }) => <ul className="list-none space-y-1 my-2">{children}</ul>,
+                        li: ({ children }) => <li className="flex items-start gap-2"><span className="mt-0.5">•</span><span>{children}</span></li>,
+                        h1: ({ children }) => <h1 className="text-xl font-bold mb-2 gradient-text">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-lg font-bold mb-2 gradient-text">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-base font-semibold mb-1">{children}</h3>,
+                        code: ({ children }) => <code className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 text-xs">{children}</code>,
+                        blockquote: ({ children }) => <blockquote className="border-l-4 border-violet-500 pl-4 italic my-2">{children}</blockquote>,
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-wrap break-words leading-relaxed">
+                    {message.content}
+                  </p>
+                )}
 
                 {/* Expense data preview with modern styling */}
                 {message.expenseData && (
