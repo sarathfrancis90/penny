@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - 'firestore.rules'
-      - 'firestore.indexes.json'
-      - 'storage.rules'
+      - 'database/firestore.rules'
+      - 'database/firestore.indexes.json'
+      - 'database/storage.rules'
       - 'firebase.json'
   workflow_dispatch: # Allow manual triggers
 
