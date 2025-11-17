@@ -14,7 +14,7 @@ import { GroupIncomeSource, CreateGroupIncomeSource } from '@/lib/types/income';
 import { formatCurrency, calculateMonthlyIncome } from '@/lib/utils/incomeCalculations';
 import { GroupIncomeService } from '@/lib/services/incomeService';
 import { GroupIncomeForm } from '@/components/income/GroupIncomeForm';
-import { DollarSign, PlusCircle, Info } from 'lucide-react';
+import { DollarSign, PlusCircle, Info, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PageProps {
@@ -30,6 +30,7 @@ export default function GroupIncomePage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingIncome, setEditingIncome] = useState<GroupIncomeSource | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,6 +75,24 @@ export default function GroupIncomePage({ params }: PageProps) {
     fetchData();
   }, [user, groupId]);
 
+  const refreshIncomeSources = async () => {
+    try {
+      const q = query(
+        collection(db, 'income_sources_group'),
+        where('groupId', '==', groupId),
+        where('isActive', '==', true)
+      );
+      const querySnapshot = await getDocs(q);
+      const sources: GroupIncomeSource[] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as GroupIncomeSource[];
+      setIncomeSources(sources);
+    } catch (error) {
+      console.error('Error refreshing income sources:', error);
+    }
+  };
+
   const handleCreateIncome = async (data: Partial<GroupIncomeSource>) => {
     if (!user?.uid) return;
 
@@ -87,22 +106,37 @@ export default function GroupIncomePage({ params }: PageProps) {
       await GroupIncomeService.create(dataWithAddedBy);
       setShowCreateDialog(false);
       toast.success('Group income source created successfully');
-      
-      // Refresh the list
-      const q = query(
-        collection(db, 'income_sources_group'),
-        where('groupId', '==', groupId),
-        where('isActive', '==', true)
-      );
-      const querySnapshot = await getDocs(q);
-      const sources: GroupIncomeSource[] = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as GroupIncomeSource[];
-      setIncomeSources(sources);
+      await refreshIncomeSources();
     } catch (error) {
       console.error('Error creating group income:', error);
       toast.error('Failed to create income source');
+    }
+  };
+
+  const handleUpdateIncome = async (data: Partial<GroupIncomeSource>) => {
+    if (!editingIncome) return;
+
+    try {
+      await GroupIncomeService.update(editingIncome.id, data as any);
+      setEditingIncome(null);
+      toast.success('Income source updated successfully');
+      await refreshIncomeSources();
+    } catch (error) {
+      console.error('Error updating group income:', error);
+      toast.error('Failed to update income source');
+    }
+  };
+
+  const handleDeleteIncome = async (incomeId: string) => {
+    if (!confirm('Are you sure you want to delete this income source?')) return;
+
+    try {
+      await GroupIncomeService.delete(incomeId);
+      toast.success('Income source deleted successfully');
+      await refreshIncomeSources();
+    } catch (error) {
+      console.error('Error deleting group income:', error);
+      toast.error('Failed to delete income source');
     }
   };
 
@@ -199,10 +233,32 @@ export default function GroupIncomePage({ params }: PageProps) {
               {incomeSources.map((source) => (
                 <Card key={source.id}>
                   <CardHeader>
-                    <CardTitle>{source.name}</CardTitle>
-                    <CardDescription>
-                      {source.category.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </CardDescription>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle>{source.name}</CardTitle>
+                        <CardDescription>
+                          {source.category.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                        </CardDescription>
+                      </div>
+                      {isAdmin && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingIncome(source)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteIncome(source.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -251,6 +307,27 @@ export default function GroupIncomePage({ params }: PageProps) {
             onCancel={() => setShowCreateDialog(false)}
             submitLabel="Create Income Source"
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Income Dialog */}
+      <Dialog open={!!editingIncome} onOpenChange={(open) => !open && setEditingIncome(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Group Income Source</DialogTitle>
+            <DialogDescription>
+              Update the income source details for {groupName}.
+            </DialogDescription>
+          </DialogHeader>
+          {editingIncome && (
+            <GroupIncomeForm
+              groupId={groupId}
+              initialData={editingIncome}
+              onSubmit={handleUpdateIncome}
+              onCancel={() => setEditingIncome(null)}
+              submitLabel="Update Income Source"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </AppLayout>

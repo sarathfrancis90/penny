@@ -15,7 +15,7 @@ import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS, CreateGroupSavin
 import { formatCurrency } from '@/lib/utils/incomeCalculations';
 import { GroupSavingsGoalService } from '@/lib/services/savingsService';
 import { GroupSavingsForm } from '@/components/savings/GroupSavingsForm';
-import { Target, PlusCircle, Info, TrendingUp } from 'lucide-react';
+import { Target, PlusCircle, Info, TrendingUp, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PageProps {
@@ -31,6 +31,7 @@ export default function GroupSavingsPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<GroupSavingsGoal | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,21 +77,8 @@ export default function GroupSavingsPage({ params }: PageProps) {
     fetchData();
   }, [user, groupId]);
 
-  const handleCreateGoal = async (data: Partial<GroupSavingsGoal>) => {
-    if (!user?.uid) return;
-
+  const refreshSavingsGoals = async () => {
     try {
-      const dataWithCreatedBy: CreateGroupSavingsGoal = {
-        ...data,
-        createdBy: user.uid,
-        contributionType: 'equal', // Default contribution type for group savings
-      } as CreateGroupSavingsGoal;
-
-      await GroupSavingsGoalService.create(dataWithCreatedBy);
-      setShowCreateDialog(false);
-      toast.success('Group savings goal created successfully');
-      
-      // Refresh the list
       const q = query(
         collection(db, 'savings_goals_group'),
         where('groupId', '==', groupId),
@@ -104,8 +92,54 @@ export default function GroupSavingsPage({ params }: PageProps) {
       })) as GroupSavingsGoal[];
       setSavingsGoals(goals);
     } catch (error) {
+      console.error('Error refreshing savings goals:', error);
+    }
+  };
+
+  const handleCreateGoal = async (data: Partial<GroupSavingsGoal>) => {
+    if (!user?.uid) return;
+
+    try {
+      const dataWithCreatedBy: CreateGroupSavingsGoal = {
+        ...data,
+        createdBy: user.uid,
+        contributionType: 'equal', // Default contribution type for group savings
+      } as CreateGroupSavingsGoal;
+
+      await GroupSavingsGoalService.create(dataWithCreatedBy);
+      setShowCreateDialog(false);
+      toast.success('Group savings goal created successfully');
+      await refreshSavingsGoals();
+    } catch (error) {
       console.error('Error creating group savings goal:', error);
       toast.error('Failed to create savings goal');
+    }
+  };
+
+  const handleUpdateGoal = async (data: Partial<GroupSavingsGoal>) => {
+    if (!editingGoal) return;
+
+    try {
+      await GroupSavingsGoalService.update(editingGoal.id, data as any);
+      setEditingGoal(null);
+      toast.success('Savings goal updated successfully');
+      await refreshSavingsGoals();
+    } catch (error) {
+      console.error('Error updating group savings goal:', error);
+      toast.error('Failed to update savings goal');
+    }
+  };
+
+  const handleDeleteGoal = async (goalId: string) => {
+    if (!confirm('Are you sure you want to delete this savings goal?')) return;
+
+    try {
+      await GroupSavingsGoalService.delete(goalId);
+      toast.success('Savings goal deleted successfully');
+      await refreshSavingsGoals();
+    } catch (error) {
+      console.error('Error deleting group savings goal:', error);
+      toast.error('Failed to delete savings goal');
     }
   };
 
@@ -226,14 +260,34 @@ export default function GroupSavingsPage({ params }: PageProps) {
               {savingsGoals.map((goal) => (
                 <Card key={goal.id}>
                   <CardHeader>
-                    <div className="flex items-center gap-2">
-                      {goal.emoji && <span className="text-2xl">{goal.emoji}</span>}
-                      <div>
-                        <CardTitle>{goal.name}</CardTitle>
-                        <CardDescription>
-                          {SAVINGS_CATEGORY_LABELS[goal.category]}
-                        </CardDescription>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2 flex-1">
+                        {goal.emoji && <span className="text-2xl">{goal.emoji}</span>}
+                        <div>
+                          <CardTitle>{goal.name}</CardTitle>
+                          <CardDescription>
+                            {SAVINGS_CATEGORY_LABELS[goal.category]}
+                          </CardDescription>
+                        </div>
                       </div>
+                      {isAdmin && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditingGoal(goal)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteGoal(goal.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -304,6 +358,27 @@ export default function GroupSavingsPage({ params }: PageProps) {
             onCancel={() => setShowCreateDialog(false)}
             submitLabel="Create Goal"
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Goal Dialog */}
+      <Dialog open={!!editingGoal} onOpenChange={(open) => !open && setEditingGoal(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Group Savings Goal</DialogTitle>
+            <DialogDescription>
+              Update the savings goal details for {groupName}.
+            </DialogDescription>
+          </DialogHeader>
+          {editingGoal && (
+            <GroupSavingsForm
+              groupId={groupId}
+              initialData={editingGoal}
+              onSubmit={handleUpdateGoal}
+              onCancel={() => setEditingGoal(null)}
+              submitLabel="Update Goal"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </AppLayout>
