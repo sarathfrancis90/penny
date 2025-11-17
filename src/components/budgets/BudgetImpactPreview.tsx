@@ -105,8 +105,24 @@ export function BudgetImpactPreview({
     }
   }, [calculations, onImpactCalculated]);
 
-  // If no budget exists for this category, don't show anything
-  if (!relevantBudget || !currentUsage || !calculations) {
+  // If no budget exists for this category, show a helpful message
+  if (!relevantBudget || !currentUsage) {
+    return (
+      <div className="p-3 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/30 animate-in fade-in-50">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <AlertTriangle className="h-4 w-4" />
+          <div>
+            <p className="font-medium text-foreground">No budget set for {category}</p>
+            <p className="text-xs mt-0.5">
+              {groupId ? "Group admins can set budgets" : "Set a budget in the Budgets page"} to track spending for this category.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!calculations) {
     return null;
   }
 
