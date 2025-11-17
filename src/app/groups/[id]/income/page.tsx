@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { use } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useConfirm } from '@/hooks/useConfirm';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,8 @@ export default function GroupIncomePage({ params }: PageProps) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingIncome, setEditingIncome] = useState<GroupIncomeSource | null>(null);
+  
+  const { confirm, ConfirmDialog } = useConfirm();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,7 +131,15 @@ export default function GroupIncomePage({ params }: PageProps) {
   };
 
   const handleDeleteIncome = async (incomeId: string) => {
-    if (!confirm('Are you sure you want to delete this income source?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Income Source',
+      description: 'Are you sure you want to delete this income source? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) return;
 
     try {
       await GroupIncomeService.delete(incomeId);
@@ -340,6 +351,9 @@ export default function GroupIncomePage({ params }: PageProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog />
     </AppLayout>
   );
 }

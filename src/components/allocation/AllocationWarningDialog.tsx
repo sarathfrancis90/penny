@@ -40,8 +40,6 @@ export function AllocationWarningDialog({
   onCancel,
 }: AllocationWarningDialogProps) {
   const newTotal = currentBudgets + currentSavings + newAmount;
-  const newBudgets = type === 'budget' ? currentBudgets + newAmount : currentBudgets;
-  const newSavings = type === 'savings' ? currentSavings + newAmount : currentSavings;
 
   return (
     <AlertDialog open={open}>

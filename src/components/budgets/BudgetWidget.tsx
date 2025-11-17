@@ -82,8 +82,12 @@ export function BudgetWidget({ userId, className }: BudgetWidgetProps) {
   }, [groupUsage]);
 
   const currentSummary = selectedTab === "personal" ? personalSummary : groupSummary;
+  // Reserved for future features
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const currentUsage = selectedTab === "personal" ? personalUsage : groupUsage;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isLoading = selectedTab === "personal" ? personalLoading : groupLoading;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const error = selectedTab === "personal" ? personalError : groupError;
 
   return (

@@ -1,0 +1,37 @@
+---
+description: Build & Lint gate before any commit and CI
+globs:
+- "**/*"
+alwaysApply: true
+---
+**Goal**
+- Ensure the app builds **cleanly** with **no ESLint errors or warnings** before any commit or merge.
+
+
+**Rules**
+- Commits must pass: `tsc --noEmit`, `eslint --max-warnings=0`, and app build (e.g., `vite build` or `next build`).
+- CI must run the same checks; merges are blocked on failure.
+- Husky + lint-staged enforce pre-commit checks locally.
+
+
+**Checklist (Definition of Done)**
+- [ ] `pnpm run lint` (or `npm run lint`) finishes with **0 warnings** and **0 errors**.
+- [ ] `pnpm run typecheck` finishes with **0 errors**.
+- [ ] `pnpm run build` completes successfully.
+
+
+**Suggested scripts**
+- Add to `package.json`:
+- `"lint": "eslint . --ext .ts,.tsx --max-warnings=0"`
+- `"typecheck": "tsc --noEmit"`
+- `"precommit": "lint-staged"`
+
+
+**Husky/lint-staged example**
+- `.husky/pre-commit`: `pnpm exec lint-staged`
+- `lint-staged`:
+```json
+{
+"*.{ts,tsx,js}": ["eslint --fix", "prettier --write"],
+"*.{json,css,md}": ["prettier --write"]
+}

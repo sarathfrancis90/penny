@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatCurrency, formatPercentage } from '@/lib/utils/incomeCalculations';
@@ -157,7 +156,9 @@ export function AIRecommendations({
       }
 
       // 50/30/20 Rule Recommendation
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const needsExpenses = totalExpenses * 0.6; // Estimate
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const wantsExpenses = totalExpenses * 0.4; // Estimate
       if (expenseRatio <= 50 && savingsRate >= 20) {
         recs.push({

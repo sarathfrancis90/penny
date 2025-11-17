@@ -1,0 +1,36 @@
+---
+alwaysApply: true
+---
+
+---
+
+## `.cursor/rules/theming.mdc`
+```md
+---
+description: Centralized theming, styles, and color tokens
+globs:
+- "frontend/src/**/*"
+- "apps/**/src/**/*"
+- "packages/ui/**/*"
+alwaysApply: false
+---
+**Goal**
+- Use a **single, centralized theme system** (design tokens for colors, spacing, typography) for pages, modals, and components.
+
+
+**Rules**
+- All colors, spacing, radii, and typography come from **tokens** (e.g., Tailwind config, CSS variables, or a ThemeProvider).
+- **Do not** hardcode hex values or ad-hoc styles in components; import from theme utilities.
+- Modals/pages consume shared tokens and utility classes; no component-local color definitions.
+- Dark mode and brand variants derive from the same token set.
+
+
+**Implementation Hints**
+- Tailwind: define tokens in `tailwind.config.ts` + CSS variables (e.g., `:root { --color-primary: ... }`).
+- React: expose a `ThemeProvider` at app root; pages/components read from tokens/hooks only.
+
+
+**Checklist (Definition of Done)**
+- [ ] No hardcoded hex/rgb/hsl in component files.
+- [ ] New components import from `theme/` or use Tailwind tokens only.
+- [ ] Theming changes are one-file/one-place edits (propagate everywhere).

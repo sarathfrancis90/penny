@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+---
+description: Use shared, app-level dialogs and modals (no browser dialogs)
+---
+**Goal**
+- Replace `alert/confirm/prompt` with **app-level dialog components**. Create them once, reuse everywhere.
+
+
+**Rules**
+- Never use native `window.alert`, `window.confirm`, or `window.prompt` in product code.
+- Provide shared dialog primitives (e.g., `<AppDialog />`, `<ConfirmDialog />`) in `packages/ui` or `src/components/ui`.
+- Feature code consumes dialogs via hooks/context (e.g., `useDialog()`), not ad-hoc markup.
+- Accessibility: focus trap, ARIA labels, escape/overlay close, keyboard navigation.
+
+
+**Checklist (Definition of Done)**
+- [ ] New flows use shared dialog components only.
+- [ ] No references to browser dialogs in the diff.
+- [ ] Dialogs pass a11y basics: labelled, focus-managed, and escape/overlay closable.
+
+
+**Example structure**
+- `packages/ui/src/dialog/*` or `frontend/src/components/ui/dialog/*`
+- Export `<AppDialog/>`, `<Modal/>`, `<ConfirmDialog/>` and a `DialogProvider`.

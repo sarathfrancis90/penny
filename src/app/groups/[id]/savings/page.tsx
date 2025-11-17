@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { use } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useConfirm } from '@/hooks/useConfirm';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,8 @@ export default function GroupSavingsPage({ params }: PageProps) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingGoal, setEditingGoal] = useState<GroupSavingsGoal | null>(null);
+  
+  const { confirm, ConfirmDialog } = useConfirm();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -131,7 +134,15 @@ export default function GroupSavingsPage({ params }: PageProps) {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!confirm('Are you sure you want to delete this savings goal?')) return;
+    const confirmed = await confirm({
+      title: 'Delete Savings Goal',
+      description: 'Are you sure you want to delete this savings goal? All progress will be lost and this action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) return;
 
     try {
       await GroupSavingsGoalService.delete(goalId);
@@ -391,6 +402,9 @@ export default function GroupSavingsPage({ params }: PageProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog />
     </AppLayout>
   );
 }

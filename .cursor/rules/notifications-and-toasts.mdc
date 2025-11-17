@@ -1,0 +1,23 @@
+---
+alwaysApply: false
+---
+**Goal**
+- Centralize **toasts/notifications** so UX is consistent and we avoid duplicate implementations.
+
+
+**Rules**
+- Provide a single shared notification system (e.g., `<ToastProvider/>`, `useToast()`), exported from `packages/ui` or `src/components/ui`.
+- Do **not** create local/feature-specific toast implementations.
+- Support variants (success/error/info/warn) via theme tokens.
+- Respect motion/accessibility preferences (reduced motion, announce live regions).
+
+
+**Checklist (Definition of Done)**
+- [ ] All new notifications use the shared `useToast()` or `<Toast />` API.
+- [ ] No duplicated toast libraries or one-off components in features.
+- [ ] Visuals follow the central theme (tokens only).
+
+
+**Example structure**
+- `packages/ui/src/notification/*` or `frontend/src/components/ui/notification/*`
+- `useToast.ts`, `<ToastViewport/>`, `<Toast/>`, `<Toaster/>` exported and documented.
