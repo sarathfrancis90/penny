@@ -3,50 +3,75 @@ import { GoogleGenAI } from "@google/genai";
 import { expenseCategories } from "@/lib/categories";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { findMatchingGroup } from "@/lib/groupMatching";
 
 // Initialize the Gemini AI client
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
 
 // System prompt with detailed instructions for expense analysis
-const getSystemPrompt = () => {
+const getSystemPrompt = (userGroups?: { id: string; name: string; icon: string }[]) => {
   const categoriesList = expenseCategories.join(", ");
-  const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+  const todayDate = new Date().toISOString().split("T")[0];
+  const groupsList = userGroups?.map(g => `${g.icon} ${g.name}`).join(", ") || "No groups available";
   
   return `You are Penny, an AI expense tracking assistant for a self-incorporated software professional in Canada. Your job is to analyze expense information and extract structured data for tax purposes.
 
 CURRENT DATE: ${todayDate}
 
+USER'S GROUPS: ${groupsList}
+
 INSTRUCTIONS:
 1. Analyze the provided text description and/or receipt image
-2. Extract the following information:
+2. Extract ALL the following information:
    - vendor: The business/merchant name
    - amount: The total amount in CAD (number only, no currency symbol)
-   - date: The transaction date in YYYY-MM-DD format. IMPORTANT: If no specific date is mentioned in the input, use ${todayDate} (today's date). Only use a different date if the user explicitly mentions a date or if it's clearly visible on a receipt.
+   - date: The transaction date in YYYY-MM-DD format
    - category: Choose the MOST appropriate category from the list below
    - description: A brief description of the expense (optional)
+   - groupName: The group name if mentioned (e.g., "family group", "business group", "travel group")
    - confidence: Your confidence level in the extracted data (0-1)
 
 3. AVAILABLE CATEGORIES (choose ONE that best fits):
 ${categoriesList}
 
-4. RULES:
-   - Be conservative with categorization - choose the most specific category that applies
-   - If the image is unclear or data is missing, make reasonable assumptions based on context
-   - Always provide a vendor name, even if it's "Unknown Vendor"
-   - Amounts should be numbers only (e.g., 85.50 not $85.50)
-   - If you see multiple amounts, use the TOTAL amount
-   - DEFAULT TO TODAY'S DATE (${todayDate}) unless a specific date is mentioned
+4. DATE PARSING RULES:
+   - "today" or no date mentioned → ${todayDate}
+   - "yesterday" → subtract 1 day from ${todayDate}
+   - "last week" → subtract 7 days from ${todayDate}
+   - "Monday", "Tuesday", etc. → most recent occurrence of that day
+   - Specific dates like "Nov 15" or "November 15th" → parse to YYYY-MM-DD
+   - Relative dates like "3 days ago" → calculate from ${todayDate}
 
-5. RESPONSE FORMAT:
-You MUST respond with ONLY a valid JSON object, no other text before or after. Use this exact structure:
-{"vendor":"string","amount":number,"date":"YYYY-MM-DD","category":"string","description":"string","confidence":number}
+5. GROUP DETECTION RULES:
+   - Look for phrases like "in family group", "for the business", "travel expenses", "office group"
+   - Extract the group name mentioned (e.g., "family", "business", "travel")
+   - If multiple groups match, choose the most relevant one
+   - If no group is mentioned, set groupName to null
+   - Match against user's groups: ${groupsList}
 
-IMPORTANT: Do not include markdown code blocks, explanations, or any text outside the JSON object. Respond with minified JSON only.`;
+6. MULTI-EXPENSE SUPPORT:
+   - If user mentions MULTIPLE expenses in one message, extract ALL of them
+   - Return an array of expense objects
+   - Example: "I spent $50 at Walmart and $30 at Target" → return 2 expenses
+
+7. RESPONSE FORMAT:
+For SINGLE expense:
+{"vendor":"string","amount":number,"date":"YYYY-MM-DD","category":"string","description":"string","groupName":"string|null","confidence":number}
+
+For MULTIPLE expenses:
+{"expenses":[{"vendor":"string","amount":number,"date":"YYYY-MM-DD","category":"string","description":"string","groupName":"string|null","confidence":number},...]}
+
+IMPORTANT: 
+- Do not include markdown code blocks or explanations
+- Respond with minified JSON only
+- If multiple expenses detected, use the "expenses" array format
+- Always extract groupName if mentioned`;
 };
 
 interface AnalyzeExpenseRequest {
   text?: string;
   imageBase64?: string;
+  userId?: string; // For fetching user's groups
 }
 
 interface AnalyzeExpenseResponse {
@@ -55,7 +80,12 @@ interface AnalyzeExpenseResponse {
   date: string;
   category: string;
   description?: string;
+  groupName?: string | null;
   confidence?: number;
+}
+
+interface MultiExpenseResponse {
+  expenses: AnalyzeExpenseResponse[];
 }
 
 export async function POST(request: NextRequest) {
@@ -65,10 +95,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body: AnalyzeExpenseRequest = await request.json();
-    const { text, imageBase64 } = body;
+    const { text, imageBase64, userId: bodyUserId } = body;
     
-    // Extract userId from request headers or body (if available)
-    userId = request.headers.get("x-user-id") || undefined;
+    // Extract userId from request headers or body
+    userId = bodyUserId || request.headers.get("x-user-id") || undefined;
 
     // Validate input
     if (!text && !imageBase64) {
@@ -87,11 +117,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch user's groups if userId is provided
+    let userGroups: { id: string; name: string; icon: string }[] = [];
+    if (userId) {
+      try {
+        const membershipSnapshot = await adminDb
+          .collection("groupMembers")
+          .where("userId", "==", userId)
+          .where("status", "==", "active")
+          .get();
+
+        const groupIds = membershipSnapshot.docs.map(doc => doc.data().groupId);
+        
+        if (groupIds.length > 0) {
+          const groupsSnapshot = await adminDb
+            .collection("groups")
+            .where("__name__", "in", groupIds.slice(0, 10)) // Firestore 'in' limit is 10
+            .get();
+
+          userGroups = groupsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            name: doc.data().name || "",
+            icon: doc.data().icon || "👥",
+          }));
+        }
+      } catch (error) {
+        console.warn("Failed to fetch user groups, continuing without them:", error);
+      }
+    }
+
     // Prepare the content parts
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
-    // Add system prompt
-    parts.push({ text: getSystemPrompt() });
+    // Add system prompt with user's groups
+    parts.push({ text: getSystemPrompt(userGroups) });
 
     // Add user text if provided
     if (text) {
@@ -131,45 +190,104 @@ export async function POST(request: NextRequest) {
     console.log("Gemini response:", responseText);
 
     // Parse the JSON response
-    let expenseData: AnalyzeExpenseResponse;
-    
     try {
       // Try to extract JSON from the response
-      // Sometimes the model includes extra text despite instructions
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
       
       if (!jsonMatch) {
         throw new Error("No JSON object found in response");
       }
 
-      expenseData = JSON.parse(jsonMatch[0]);
+      const parsedResponse = JSON.parse(jsonMatch[0]);
 
-      // Validate required fields
-      if (!expenseData.vendor || !expenseData.amount || !expenseData.category) {
-        throw new Error("Missing required fields in response");
-      }
+      // Helper function to validate and process a single expense
+      const processExpense = (expense: AnalyzeExpenseResponse) => {
+        // Validate required fields
+        if (!expense.vendor || !expense.amount || !expense.category) {
+          throw new Error("Missing required fields in expense");
+        }
 
-      // Validate category is in our list
-      const categoryList = expenseCategories as readonly string[];
-      if (!categoryList.includes(expenseData.category)) {
-        console.warn(`Invalid category: ${expenseData.category}, defaulting to "Other Business Expenses"`);
-        expenseData.category = "Other Business Expenses";
-      }
+        // Validate category
+        const categoryList = expenseCategories as readonly string[];
+        if (!categoryList.includes(expense.category)) {
+          console.warn(`Invalid category: ${expense.category}, defaulting to "Other Business Expenses"`);
+          expense.category = "Other Business Expenses";
+        }
 
-      // Ensure amount is a valid number
-      if (typeof expenseData.amount === "string") {
-        expenseData.amount = parseFloat(expenseData.amount);
-      }
+        // Ensure amount is a valid number
+        if (typeof expense.amount === "string") {
+          expense.amount = parseFloat(expense.amount);
+        }
 
-      // Validate date format (YYYY-MM-DD)
-      if (expenseData.date && !/^\d{4}-\d{2}-\d{2}$/.test(expenseData.date)) {
-        console.warn(`Invalid date format: ${expenseData.date}, using today's date`);
-        expenseData.date = new Date().toISOString().split("T")[0];
-      }
+        // Validate date format (YYYY-MM-DD)
+        if (expense.date && !/^\d{4}-\d{2}-\d{2}$/.test(expense.date)) {
+          console.warn(`Invalid date format: ${expense.date}, using today's date`);
+          expense.date = new Date().toISOString().split("T")[0];
+        }
 
-      // Default date to today if not provided
-      if (!expenseData.date) {
-        expenseData.date = new Date().toISOString().split("T")[0];
+        // Default date to today if not provided
+        if (!expense.date) {
+          expense.date = new Date().toISOString().split("T")[0];
+        }
+
+        // Match group name to group ID
+        const groupId = findMatchingGroup(expense.groupName, userGroups);
+        
+        return {
+          ...expense,
+          groupId, // Add matched groupId
+          groupName: expense.groupName || null,
+        };
+      };
+
+      // Check if it's a multi-expense response
+      const isMultiExpense = 'expenses' in parsedResponse && Array.isArray(parsedResponse.expenses);
+
+      if (isMultiExpense) {
+        // Handle multiple expenses
+        const expenses = parsedResponse.expenses.map(processExpense);
+
+        // Track analytics
+        const duration = Date.now() - startTime;
+        trackAnalytics({
+          userId,
+          requestType: imageBase64 ? "image" : "text",
+          success: true,
+          duration,
+          inputLength: text?.length || 0,
+          hasImage: !!imageBase64,
+          expenseCount: expenses.length,
+        }).catch(err => console.error("Analytics tracking failed:", err));
+
+        console.log(`AI analyzed ${expenses.length} expenses in ${duration}ms`);
+
+        return NextResponse.json({
+          success: true,
+          multiExpense: true,
+          data: expenses,
+        });
+
+      } else {
+        // Handle single expense
+        const expenseData = processExpense(parsedResponse);
+
+        // Track analytics
+        const duration = Date.now() - startTime;
+        trackAnalytics({
+          userId,
+          requestType: imageBase64 ? "image" : "text",
+          success: true,
+          duration,
+          inputLength: text?.length || 0,
+          hasImage: !!imageBase64,
+        }).catch(err => console.error("Analytics tracking failed:", err));
+
+        console.log(`AI analyzed expense in ${duration}ms`);
+
+        return NextResponse.json({
+          success: true,
+          data: expenseData,
+        });
       }
 
     } catch (parseError) {
@@ -180,28 +298,11 @@ export async function POST(request: NextRequest) {
         {
           error: "Failed to parse expense data from AI response",
           details: parseError instanceof Error ? parseError.message : "Unknown error",
-          rawResponse: responseText.substring(0, 500), // Include partial response for debugging
+          rawResponse: responseText.substring(0, 500),
         },
         { status: 500 }
       );
     }
-
-    // Track analytics (fire and forget - don't block response)
-    const duration = Date.now() - startTime;
-    trackAnalytics({
-      userId,
-      requestType: imageBase64 ? "image" : "text",
-      success: true,
-      duration,
-      inputLength: text?.length || 0,
-      hasImage: !!imageBase64,
-    }).catch(err => console.error("Analytics tracking failed:", err));
-
-    // Return the extracted expense data
-    return NextResponse.json({
-      success: true,
-      data: expenseData,
-    });
 
   } catch (error) {
     console.error("Error in analyze-expense API:", error);

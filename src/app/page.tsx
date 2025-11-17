@@ -40,6 +40,12 @@ interface PendingExpense {
   description?: string;
   confidence?: number;
   groupId?: string | null;
+  groupName?: string | null;
+}
+
+interface MultiPendingExpense {
+  expenses: PendingExpense[];
+  messageId: string;
 }
 
 export default function Home() {
@@ -266,30 +272,70 @@ export default function Home() {
       // Remove thinking message
       setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessage.id));
 
-      // Create confirmation message
-      const confirmationMessageId = `confirmation-${Date.now()}`;
-      const confirmationMessage: ChatMessage = {
-        id: confirmationMessageId,
-        role: "assistant",
-        content: "I've extracted the following details. Please confirm:",
-        timestamp: Timestamp.now(),
-        status: "pending",
-      };
+      // Handle multi-expense response
+      if (result.multiExpense && Array.isArray(expenseData)) {
+        // Multiple expenses detected
+        const confirmationMessageId = `confirmation-${Date.now()}`;
+        const confirmationMessage: ChatMessage = {
+          id: confirmationMessageId,
+          role: "assistant",
+          content: `Great! I detected ${expenseData.length} expenses. Let's save them one by one. Here's the first:`,
+          timestamp: Timestamp.now(),
+          status: "pending",
+        };
 
-      setMessages((prev) => [...prev, confirmationMessage]);
-      setPendingExpense({
-        ...expenseData,
-        groupId: expenseData.groupId || defaultGroupId || null,
-      });
-      setPendingMessageId(confirmationMessageId);
-      // Store the receipt file for later upload
-      if (image) {
-        setCurrentReceiptFile(image);
-      }
+        setMessages((prev) => [...prev, confirmationMessage]);
+        
+        // For now, show first expense for confirmation
+        // TODO: In Phase 1.4, we'll add full multi-expense support
+        setPendingExpense({
+          ...expenseData[0],
+          groupId: expenseData[0].groupId || defaultGroupId || null,
+        });
+        setPendingMessageId(confirmationMessageId);
+        
+        // Store the receipt file for later upload
+        if (image) {
+          setCurrentReceiptFile(image);
+        }
 
-      // Save messages to conversation
-      if (currentConversationId) {
-        await saveMessageToConversation(currentConversationId, "assistant", confirmationMessage.content);
+        // Save messages to conversation
+        if (currentConversationId) {
+          await saveMessageToConversation(currentConversationId, "assistant", confirmationMessage.content);
+        }
+        
+        // TODO: Store remaining expenses for sequential confirmation
+        console.log(`🔄 Multi-expense: Showing 1 of ${expenseData.length} expenses`);
+        
+      } else {
+        // Single expense
+        const singleExpense = Array.isArray(expenseData) ? expenseData[0] : expenseData;
+        
+        const confirmationMessageId = `confirmation-${Date.now()}`;
+        const confirmationMessage: ChatMessage = {
+          id: confirmationMessageId,
+          role: "assistant",
+          content: "I've extracted the following details. Please confirm:",
+          timestamp: Timestamp.now(),
+          status: "pending",
+        };
+
+        setMessages((prev) => [...prev, confirmationMessage]);
+        setPendingExpense({
+          ...singleExpense,
+          groupId: singleExpense.groupId || defaultGroupId || null,
+        });
+        setPendingMessageId(confirmationMessageId);
+        
+        // Store the receipt file for later upload
+        if (image) {
+          setCurrentReceiptFile(image);
+        }
+
+        // Save messages to conversation
+        if (currentConversationId) {
+          await saveMessageToConversation(currentConversationId, "assistant", confirmationMessage.content);
+        }
       }
     } catch (error) {
       console.error("Error analyzing expense:", error);
@@ -600,6 +646,8 @@ export default function Home() {
                     category={pendingExpense.category}
                     description={pendingExpense.description}
                     confidence={pendingExpense.confidence}
+                    groupId={pendingExpense.groupId}
+                    groupName={pendingExpense.groupName}
                     onConfirm={handleConfirmExpense}
                     onCancel={handleCancelExpense}
                     isProcessing={isProcessing}

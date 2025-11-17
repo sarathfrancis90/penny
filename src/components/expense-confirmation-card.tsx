@@ -43,6 +43,7 @@ interface ExpenseConfirmationCardProps {
   description?: string;
   confidence?: number;
   groupId?: string | null;
+  groupName?: string | null; // Add groupName to show it was auto-detected
   onConfirm: (editedData: {
     vendor: string;
     amount: number;
@@ -62,6 +63,7 @@ export function ExpenseConfirmationCard({
   category: initialCategory,
   description: initialDescription,
   groupId: initialGroupId,
+  groupName,
   confidence,
   onConfirm,
   onCancel,
@@ -388,10 +390,18 @@ export function ExpenseConfirmationCard({
 
         {/* Group Selector */}
         <div className="space-y-2 group">
-          <Label className="flex items-center gap-2 text-sm font-semibold">
-            <Users className="h-4 w-4 text-violet-500" />
-            Assign to Group
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-2 text-sm font-semibold">
+              <Users className="h-4 w-4 text-violet-500" />
+              Assign to Group
+            </Label>
+            {groupName && initialGroupId && (
+              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium bg-violet-100 dark:bg-violet-950/50 text-violet-700 dark:text-violet-300 rounded-full border border-violet-200 dark:border-violet-800/30 animate-in fade-in-50 duration-300">
+                <Sparkles className="h-3 w-3" />
+                Auto-detected: {groupName}
+              </span>
+            )}
+          </div>
           <GroupSelector 
             value={groupId}
             onChange={setGroupId}

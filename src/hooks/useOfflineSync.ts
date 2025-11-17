@@ -11,6 +11,8 @@ interface ExpenseData {
   category: string;
   description?: string;
   confidence?: number;
+  groupId?: string | null;
+  groupName?: string | null;
 }
 
 interface OfflineSyncResult {
@@ -271,19 +273,27 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
     async (
       text?: string,
       imageBase64?: string
-    ): Promise<{ success: boolean; data?: ExpenseData; error?: string }> => {
+    ): Promise<{ success: boolean; data?: ExpenseData | ExpenseData[]; error?: string; multiExpense?: boolean }> => {
       if (isOnline) {
         // Try online first
         try {
           const response = await fetch("/api/analyze-expense", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text, imageBase64 }),
+            body: JSON.stringify({ 
+              text, 
+              imageBase64,
+              userId, // Pass userId to enable group matching
+            }),
           });
 
           if (response.ok) {
             const result = await response.json();
-            return { success: true, data: result.data };
+            return { 
+              success: true, 
+              data: result.data,
+              multiExpense: result.multiExpense || false,
+            };
           } else {
             const error = await response.json();
             throw new Error(error.error || "Failed to analyze expense");
