@@ -8,6 +8,7 @@ import { useGroupBudgets } from "@/hooks/useGroupBudgets";
 import { useGroups } from "@/hooks/useGroups";
 import { useBudgetManagement } from "@/hooks/useBudgetManagement";
 import { useBudgetUsage } from "@/hooks/useBudgetUsage";
+import { useIncomeAllocation, useGroupIncomeAllocation } from "@/hooks/useIncomeAllocation";
 import { getCurrentPeriod } from "@/lib/budgetCalculations";
 import { expenseCategories } from "@/lib/categories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { BudgetCard } from "@/components/budgets/BudgetCard";
+import { AllocationWarningDialog } from "@/components/allocation/AllocationWarningDialog";
+import { AllocationStatusBadge } from "@/components/allocation/AllocationStatusBadge";
+import { AllocationPreview } from "@/components/allocation/AllocationPreview";
 import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -89,6 +93,14 @@ function BudgetsPageContent() {
   const [alertMembers, setAlertMembers] = useState(true);
   const [requireApproval, setRequireApproval] = useState(false);
 
+  // Allocation validation state
+  const [showAllocationWarning, setShowAllocationWarning] = useState(false);
+  const [pendingBudgetData, setPendingBudgetData] = useState<{
+    category: string;
+    limit: number;
+    isEdit: boolean;
+  } | null>(null);
+
   const { groups } = useGroups();
   const firstGroupId = groups[0]?.id;
   const displayGroupId = selectedGroupId || firstGroupId;
@@ -122,6 +134,12 @@ function BudgetsPageContent() {
     currentPeriod.month,
     currentPeriod.year
   );
+
+  // Income allocation hooks
+  const personalAllocation = useIncomeAllocation(user?.uid);
+  const groupAllocation = useGroupIncomeAllocation(user?.uid, displayGroupId);
+  
+  const currentAllocation = selectedTab === "personal" ? personalAllocation : groupAllocation;
 
   const {
     loading: managementLoading,
@@ -177,9 +195,23 @@ function BudgetsPageContent() {
       return;
     }
 
+    // Validate allocation before creating
+    const validation = currentAllocation.validateAllocation(limit, 0);
+    if (!validation.isValid) {
+      // Show warning dialog
+      setPendingBudgetData({ category, limit, isEdit: false });
+      setShowAllocationWarning(true);
+      return;
+    }
+
+    // Proceed with creation
+    await proceedWithBudgetCreation(category, limit);
+  };
+
+  const proceedWithBudgetCreation = async (cat: string, limit: number) => {
     if (selectedTab === "personal") {
       const result = await createPersonalBudget(
-        category,
+        cat,
         limit,
         currentPeriod,
         {
@@ -192,6 +224,8 @@ function BudgetsPageContent() {
       if (result) {
         toast.success("Personal budget created successfully!");
         setShowCreateDialog(false);
+        setShowAllocationWarning(false);
+        setPendingBudgetData(null);
         resetForm();
         // Refetch usage data to update the UI
         refetchPersonalUsage();
@@ -206,7 +240,7 @@ function BudgetsPageContent() {
 
       const result = await createGroupBudget(
         displayGroupId,
-        category,
+        cat,
         limit,
         currentPeriod,
         {
@@ -219,11 +253,23 @@ function BudgetsPageContent() {
       if (result) {
         toast.success("Group budget created successfully!");
         setShowCreateDialog(false);
+        setShowAllocationWarning(false);
+        setPendingBudgetData(null);
         resetForm();
         // Refetch usage data to update the UI
         refetchGroupUsage();
       } else {
         toast.error("Failed to create group budget");
+      }
+    }
+  };
+
+  const handleConfirmOverAllocation = () => {
+    if (pendingBudgetData) {
+      if (pendingBudgetData.isEdit && editingBudgetId) {
+        proceedWithBudgetUpdate(editingBudgetId, pendingBudgetData.limit);
+      } else {
+        proceedWithBudgetCreation(pendingBudgetData.category, pendingBudgetData.limit);
       }
     }
   };
@@ -263,8 +309,29 @@ function BudgetsPageContent() {
       return;
     }
 
+    // Get the old budget to calculate the difference
+    const oldBudget = currentBudgets.find(b => b.id === editingBudgetId);
+    const oldLimit = oldBudget?.monthlyLimit || 0;
+    const difference = limit - oldLimit;
+
+    // Validate allocation if increasing the budget
+    if (difference > 0) {
+      const validation = currentAllocation.validateAllocation(difference, 0);
+      if (!validation.isValid) {
+        // Show warning dialog
+        setPendingBudgetData({ category, limit, isEdit: true });
+        setShowAllocationWarning(true);
+        return;
+      }
+    }
+
+    // Proceed with update
+    await proceedWithBudgetUpdate(editingBudgetId, limit);
+  };
+
+  const proceedWithBudgetUpdate = async (budgetId: string, limit: number) => {
     if (selectedTab === "personal") {
-      const result = await updatePersonalBudget(editingBudgetId, {
+      const result = await updatePersonalBudget(budgetId, {
         monthlyLimit: limit,
         settings: {
           rollover,
@@ -276,6 +343,8 @@ function BudgetsPageContent() {
       if (result) {
         toast.success("Budget updated successfully!");
         setShowEditDialog(false);
+        setShowAllocationWarning(false);
+        setPendingBudgetData(null);
         resetForm();
         setEditingBudgetId(null);
         // Refetch usage data to update the UI
@@ -284,7 +353,7 @@ function BudgetsPageContent() {
         toast.error("Failed to update budget");
       }
     } else {
-      const result = await updateGroupBudget(editingBudgetId, {
+      const result = await updateGroupBudget(budgetId, {
         monthlyLimit: limit,
         settings: {
           alertMembers,
@@ -296,6 +365,8 @@ function BudgetsPageContent() {
       if (result) {
         toast.success("Group budget updated successfully!");
         setShowEditDialog(false);
+        setShowAllocationWarning(false);
+        setPendingBudgetData(null);
         resetForm();
         setEditingBudgetId(null);
         // Refetch usage data to update the UI
@@ -372,7 +443,16 @@ function BudgetsPageContent() {
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold gradient-text">Budget Management</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl font-bold gradient-text">Budget Management</h1>
+              {!currentAllocation.loading && (
+                <AllocationStatusBadge
+                  unallocated={currentAllocation.unallocated}
+                  isOverAllocated={currentAllocation.isOverAllocated}
+                  totalIncome={currentAllocation.totalMonthlyIncome}
+                />
+              )}
+            </div>
             <p className="text-muted-foreground">
               Set monthly spending limits and track your budget usage for {new Date(currentPeriod.year, currentPeriod.month - 1).toLocaleDateString("en-US", {
                 month: "long",
@@ -817,6 +897,25 @@ function BudgetsPageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Allocation Warning Dialog */}
+      <AllocationWarningDialog
+        open={showAllocationWarning}
+        income={currentAllocation.totalMonthlyIncome}
+        currentBudgets={currentAllocation.totalBudgets}
+        currentSavings={currentAllocation.totalSavings}
+        newAmount={pendingBudgetData?.limit || 0}
+        type="budget"
+        itemName={pendingBudgetData?.category}
+        overAllocation={
+          currentAllocation.validateAllocation(pendingBudgetData?.limit || 0, 0).overAllocation
+        }
+        onConfirm={handleConfirmOverAllocation}
+        onCancel={() => {
+          setShowAllocationWarning(false);
+          setPendingBudgetData(null);
+        }}
+      />
     </AppLayout>
   );
 }
