@@ -47,7 +47,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 
 function BudgetsPageContent() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentPeriod = getCurrentPeriod();
@@ -317,14 +317,31 @@ function BudgetsPageContent() {
   useEffect(() => {
     console.log("🔍 [Budgets Page] Component mounted");
     console.log("🔍 [Budgets Page] User:", user?.email);
+    console.log("🔍 [Budgets Page] Auth loading:", authLoading);
     console.log("🔍 [Budgets Page] Search params:", searchParams?.toString());
   }, []);
 
+  // Show loading while auth is initializing
+  if (authLoading) {
+    console.log("⏳ [Budgets Page] Waiting for auth to load...");
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-violet-600 mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Only redirect if auth is done loading AND user is not authenticated
   if (!user) {
-    console.log("❌ [Budgets Page] No user, redirecting to login");
+    console.log("❌ [Budgets Page] No user after loading, redirecting to login");
     router.push("/login");
     return null;
   }
+  
+  console.log("✅ [Budgets Page] User authenticated:", user.email);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4 md:p-8">
