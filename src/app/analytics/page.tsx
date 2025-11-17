@@ -7,6 +7,9 @@ import { useSavingsAnalytics } from '@/hooks/useSavingsAnalytics';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageContainer } from '@/components/ui/page-container';
+import { StatCard } from '@/components/ui/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   Select,
   SelectContent,
@@ -63,11 +66,11 @@ export default function AnalyticsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <PageContainer>
         {/* Header with Year Selector */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Financial Analytics</h1>
+            <h1 className="text-3xl font-bold gradient-text">Financial Analytics</h1>
             <p className="text-muted-foreground mt-1">
               Track your income, savings, and spending patterns over time
             </p>
@@ -105,72 +108,33 @@ export default function AnalyticsPage() {
             <TabsContent value="overview" className="space-y-6">
               {/* YTD Summary Cards */}
               <div className="grid gap-4 md:grid-cols-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">YTD Income</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(incomeAnalytics?.ytd.income || 0, 'USD')}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {incomeAnalytics?.period.months || 0} month
-                      {(incomeAnalytics?.period.months || 0) !== 1 ? 's' : ''}
-                    </p>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="YTD Income"
+                  value={formatCurrency(incomeAnalytics?.ytd.income || 0, 'USD')}
+                  subtitle={`${incomeAnalytics?.period.months || 0} month${(incomeAnalytics?.period.months || 0) !== 1 ? 's' : ''}`}
+                  icon={<DollarSign className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">YTD Expenses</CardTitle>
-                    <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(incomeAnalytics?.ytd.expenses || 0, 'USD')}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {incomeAnalytics?.ytd.income
-                        ? formatPercentage((incomeAnalytics.ytd.expenses / incomeAnalytics.ytd.income) * 100)
-                        : '0%'}{' '}
-                      of income
-                    </p>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="YTD Expenses"
+                  value={formatCurrency(incomeAnalytics?.ytd.expenses || 0, 'USD')}
+                  subtitle={`${incomeAnalytics?.ytd.income ? formatPercentage((incomeAnalytics.ytd.expenses / incomeAnalytics.ytd.income) * 100) : '0%'} of income`}
+                  icon={<TrendingDown className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">YTD Savings</CardTitle>
-                    <Target className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(incomeAnalytics?.ytd.savings || 0, 'USD')}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {incomeAnalytics?.ytd.income
-                        ? formatPercentage((incomeAnalytics.ytd.savings / incomeAnalytics.ytd.income) * 100)
-                        : '0%'}{' '}
-                      of income
-                    </p>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="YTD Savings"
+                  value={formatCurrency(incomeAnalytics?.ytd.savings || 0, 'USD')}
+                  subtitle={`${incomeAnalytics?.ytd.income ? formatPercentage((incomeAnalytics.ytd.savings / incomeAnalytics.ytd.income) * 100) : '0%'} of income`}
+                  icon={<Target className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Savings Rate</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatPercentage(incomeAnalytics?.averages.savingsRate || 0)}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Average for {selectedYear}
-                    </p>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Savings Rate"
+                  value={formatPercentage(incomeAnalytics?.averages.savingsRate || 0)}
+                  subtitle={`Average for ${selectedYear}`}
+                  icon={<TrendingUp className="h-4 w-4" />}
+                />
               </div>
 
               {/* Monthly Trend */}
@@ -219,13 +183,11 @@ export default function AnalyticsPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No data available for {selectedYear}</p>
-                      <p className="text-sm mt-2">
-                        Complete your monthly setup wizard to start tracking analytics
-                      </p>
-                    </div>
+                    <EmptyState
+                      icon={<Calendar className="h-12 w-12" />}
+                      title={`No data available for ${selectedYear}`}
+                      description="Complete your monthly setup wizard to start tracking analytics"
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -234,36 +196,23 @@ export default function AnalyticsPage() {
             {/* Income Tab */}
             <TabsContent value="income" className="space-y-6">
               <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Average Monthly Income</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(incomeAnalytics?.averages.monthlyIncome || 0, 'USD')}
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Average Monthly Income"
+                  value={formatCurrency(incomeAnalytics?.averages.monthlyIncome || 0, 'USD')}
+                  icon={<DollarSign className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Total YTD</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(incomeAnalytics?.ytd.income || 0, 'USD')}
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Total YTD"
+                  value={formatCurrency(incomeAnalytics?.ytd.income || 0, 'USD')}
+                  icon={<TrendingUp className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Months Recorded</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{incomeAnalytics?.period.months || 0}</div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Months Recorded"
+                  value={incomeAnalytics?.period.months || 0}
+                  icon={<Calendar className="h-4 w-4" />}
+                />
               </div>
 
               <Card>
@@ -284,7 +233,11 @@ export default function AnalyticsPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">No income data available</div>
+                    <EmptyState
+                      icon={<DollarSign className="h-12 w-12" />}
+                      title="No income data available"
+                      description="Add income sources to see category breakdown"
+                    />
                   )}
                 </CardContent>
               </Card>
@@ -293,38 +246,23 @@ export default function AnalyticsPage() {
             {/* Savings Tab */}
             <TabsContent value="savings" className="space-y-6">
               <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Average Monthly Savings</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(savingsAnalytics?.averages.monthlySaved || 0, 'USD')}
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Average Monthly Savings"
+                  value={formatCurrency(savingsAnalytics?.averages.monthlySaved || 0, 'USD')}
+                  icon={<Target className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Total YTD Saved</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(savingsAnalytics?.ytd.totalSaved || 0, 'USD')}
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Total YTD Saved"
+                  value={formatCurrency(savingsAnalytics?.ytd.totalSaved || 0, 'USD')}
+                  icon={<TrendingUp className="h-4 w-4" />}
+                />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Goal Completion Rate</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatPercentage(savingsAnalytics?.averages.goalCompletionRate || 0)}
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  title="Goal Completion Rate"
+                  value={formatPercentage(savingsAnalytics?.averages.goalCompletionRate || 0)}
+                  icon={<Award className="h-4 w-4" />}
+                />
               </div>
 
               <Card>
@@ -346,18 +284,18 @@ export default function AnalyticsPage() {
                         ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No savings data available</p>
-                      <p className="text-sm mt-2">Start contributing to your savings goals to see analytics</p>
-                    </div>
+                    <EmptyState
+                      icon={<Award className="h-12 w-12" />}
+                      title="No savings data available"
+                      description="Start contributing to your savings goals to see analytics"
+                    />
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
         )}
-      </div>
+      </PageContainer>
     </AppLayout>
   );
 }
