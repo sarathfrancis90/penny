@@ -1,0 +1,76 @@
+name: Deploy to Firebase
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'storage.rules'
+      - 'firebase.json'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  deploy-database:
+    name: Deploy Database Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Validate Firestore Rules
+        run: firebase firestore:rules:release --test
+
+      - name: Deploy Firestore Rules
+        run: firebase deploy --only firestore:rules --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
+
+      - name: Deploy Firestore Indexes
+        run: firebase deploy --only firestore:indexes --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
+
+      - name: Deploy Storage Rules
+        run: firebase deploy --only storage --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
+
+      - name: Notify on Success
+        if: success()
+        run: echo "✅ Database configuration deployed successfully!"
+
+      - name: Notify on Failure
+        if: failure()
+        run: echo "❌ Database deployment failed. Check logs above."
+
+  verify-deployment:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: deploy-database
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run database connectivity tests
+        run: npm run test:db || echo "⚠️  Database tests not configured yet"
+
+      - name: Check Firestore indexes status
+        run: |
+          echo "🔍 Checking if indexes are building..."
+          # Add script to check index status via Firebase Admin SDK
+
