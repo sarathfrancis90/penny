@@ -47,7 +47,7 @@ import {
   Eye,
   LogOut,
   MoreVertical,
-  PiggyBank,
+  Calculator,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -208,15 +208,9 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem asChild>
-                <Link href={`/groups/${groupId}/income`}>
+                <Link href={`/finances?context=group&groupId=${groupId}&groupName=${encodeURIComponent(group.name)}`}>
                   <DollarSign className="mr-2 h-4 w-4" />
-                  Group Income
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/groups/${groupId}/savings`}>
-                  <PiggyBank className="mr-2 h-4 w-4" />
-                  Group Savings
+                  Finances
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -305,15 +299,9 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             {/* Desktop Actions */}
             <div className="flex gap-3 flex-wrap">
               <Button variant="outline" asChild>
-                <Link href={`/groups/${groupId}/income`}>
+                <Link href={`/finances?context=group&groupId=${groupId}&groupName=${encodeURIComponent(group.name)}`}>
                   <DollarSign className="mr-2 h-4 w-4" />
-                  Income
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href={`/groups/${groupId}/savings`}>
-                  <PiggyBank className="mr-2 h-4 w-4" />
-                  Savings
+                  Finances
                 </Link>
               </Button>
               {(isOwner || myMembership?.role === "admin") && (
@@ -370,14 +358,14 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-2">
-                <PiggyBank className="h-5 w-5 text-violet-500" />
+                <Calculator className="h-5 w-5 text-violet-500" />
                 <CardTitle>Group Budgets</CardTitle>
               </div>
               {(isOwner || myMembership?.role === "admin") && (
                 <Button 
                   size="sm" 
                   onClick={() => {
-                    const url = `/budgets?tab=group&groupId=${groupId}`;
+                    const url = `/finances?context=group&groupId=${groupId}&groupName=${encodeURIComponent(group.name)}`;
                     console.log("🔗 [Group Detail Page] Manage Budgets - Navigating to:", url);
                     router.push(url);
                   }}
@@ -400,7 +388,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
             ) : budgetUsage.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-950 flex items-center justify-center mx-auto mb-4">
-                  <PiggyBank className="h-8 w-8 text-violet-500" />
+                  <Calculator className="h-8 w-8 text-violet-500" />
                 </div>
                 <p className="text-muted-foreground mb-2">No budgets set</p>
                 {(isOwner || myMembership?.role === "admin") ? (
@@ -417,7 +405,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                     size="sm" 
                     variant="outline" 
                     onClick={() => {
-                      const url = `/budgets?tab=group&groupId=${groupId}`;
+                      const url = `/finances?context=group&groupId=${groupId}&groupName=${encodeURIComponent(group.name)}`;
                       console.log("🔗 [Group Detail Page] Navigating to:", url);
                       console.log("🔗 [Group Detail Page] GroupId:", groupId);
                       router.push(url);
