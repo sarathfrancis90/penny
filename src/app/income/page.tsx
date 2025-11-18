@@ -12,6 +12,7 @@ import { PageContainer } from '@/components/ui/page-container';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IncomeSourceForm } from '@/components/income/IncomeSourceForm';
 import { IncomeSourceCard } from '@/components/income/IncomeSourceCard';
@@ -151,10 +152,10 @@ export default function IncomePage() {
           title="Income Management"
           subtitle="Track all your income sources and plan your budget"
           action={
-            <Button onClick={() => setShowCreateDialog(true)} size="lg">
+            <GradientButton onClick={() => setShowCreateDialog(true)} size="lg" variant="primary">
               <PlusCircle className="mr-2 h-5 w-5" />
               Add Income Source
-            </Button>
+            </GradientButton>
           }
         />
 
@@ -202,10 +203,10 @@ export default function IncomePage() {
                     title="No Active Income Sources"
                     description="Add your first income source to start tracking your earnings and planning your budget."
                     action={
-                      <Button onClick={() => setShowCreateDialog(true)}>
+                      <GradientButton onClick={() => setShowCreateDialog(true)} variant="primary">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add Income Source
-                      </Button>
+                      </GradientButton>
                     }
                   />
                 </CardContent>

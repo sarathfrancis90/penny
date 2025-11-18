@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { PageContainer } from '@/components/ui/page-container';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SavingsGoalForm } from '@/components/savings/SavingsGoalForm';
 import { SavingsGoalCard } from '@/components/savings/SavingsGoalCard';
@@ -201,10 +202,10 @@ export default function SavingsPage() {
               Track your progress and achieve your financial dreams
             </p>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)} size="lg">
+          <GradientButton onClick={() => setShowCreateDialog(true)} size="lg" variant="primary">
             <PlusCircle className="mr-2 h-5 w-5" />
             Create Goal
-          </Button>
+          </GradientButton>
         </div>
 
         {/* Stats Cards */}
@@ -266,10 +267,10 @@ export default function SavingsPage() {
                     }
                     action={
                       activeTab === 'active' && (
-                        <Button onClick={() => setShowCreateDialog(true)}>
+                        <GradientButton onClick={() => setShowCreateDialog(true)} variant="primary">
                           <PlusCircle className="mr-2 h-4 w-4" />
                           Create Savings Goal
-                        </Button>
+                        </GradientButton>
                       )
                     }
                   />

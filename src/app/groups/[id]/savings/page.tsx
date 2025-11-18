@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { PageContainer } from '@/components/ui/page-container';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { GroupSavingsGoal, GoalStatus, SAVINGS_CATEGORY_LABELS, CreateGroupSavingsGoal, UpdateGroupSavingsGoal } from '@/lib/types/savings';
@@ -195,10 +196,10 @@ export default function GroupSavingsPage({ params }: PageProps) {
           backHref={`/groups/${groupId}`}
           action={
             isAdmin && (
-              <Button onClick={() => setShowCreateDialog(true)}>
+              <GradientButton onClick={() => setShowCreateDialog(true)} variant="primary">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Goal
-              </Button>
+              </GradientButton>
             )
           }
         />
@@ -275,10 +276,10 @@ export default function GroupSavingsPage({ params }: PageProps) {
                 }
                 action={
                   isAdmin && (
-                    <Button onClick={() => setShowCreateDialog(true)}>
+                    <GradientButton onClick={() => setShowCreateDialog(true)} variant="primary">
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Create Goal
-                    </Button>
+                    </GradientButton>
                   )
                 }
               />

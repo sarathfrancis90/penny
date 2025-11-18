@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { PageContainer } from '@/components/ui/page-container';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { GroupIncomeSource, CreateGroupIncomeSource, UpdateGroupIncomeSource } from '@/lib/types/income';
@@ -191,10 +192,10 @@ export default function GroupIncomePage({ params }: PageProps) {
           backHref={`/groups/${groupId}`}
           action={
             isAdmin && (
-              <Button onClick={() => setShowCreateDialog(true)}>
+              <GradientButton onClick={() => setShowCreateDialog(true)} variant="primary">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Income Source
-              </Button>
+              </GradientButton>
             )
           }
         />
@@ -248,10 +249,10 @@ export default function GroupIncomePage({ params }: PageProps) {
                 }
                 action={
                   isAdmin && (
-                    <Button onClick={() => setShowCreateDialog(true)}>
+                    <GradientButton onClick={() => setShowCreateDialog(true)} variant="primary">
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Add Income Source
-                    </Button>
+                    </GradientButton>
                   )
                 }
               />

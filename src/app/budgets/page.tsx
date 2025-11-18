@@ -46,6 +46,7 @@ import { BudgetCard } from "@/components/budgets/BudgetCard";
 import { AllocationWarningDialog } from "@/components/allocation/AllocationWarningDialog";
 import { AllocationStatusBadge } from "@/components/allocation/AllocationStatusBadge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { GradientButton } from "@/components/ui/gradient-button";
 import { Loader2, PlusCircle, Pencil, Trash2, ArrowLeft, Target } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -469,7 +470,7 @@ function BudgetsPageContent() {
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
                 Your Budgets
               </CardTitle>
-              <Button
+              <GradientButton
                 onClick={() => {
                   resetForm();
                   setShowCreateDialog(true);
@@ -478,11 +479,11 @@ function BudgetsPageContent() {
                   (selectedTab === "group" && !isGroupAdmin) ||
                   availableCategories.length === 0
                 }
-                className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105"
+                variant="primary"
               >
                 <PlusCircle size={16} className="mr-2" />
                 Create Budget
-              </Button>
+              </GradientButton>
             </div>
           </CardHeader>
 

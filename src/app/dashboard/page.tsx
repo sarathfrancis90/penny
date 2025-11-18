@@ -8,7 +8,7 @@ import { useExpenses } from "@/hooks/useExpenses";
 import { useGroups } from "@/hooks/useGroups";
 import { AppLayout } from "@/components/app-layout";
 import { Button } from "@/components/ui/button";
-import { PageContainer } from "@/components/ui/page-container";
+import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Table,
   TableBody,
@@ -341,9 +341,9 @@ export default function DashboardPage() {
                 Start tracking your business expenses by adding them through the
                 chat interface.
               </p>
-              <Button asChild className="h-12 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition-all duration-300 hover:scale-105 text-base font-semibold">
+              <GradientButton asChild size="lg" variant="primary">
                 <Link href="/">Add Your First Expense</Link>
-              </Button>
+              </GradientButton>
             </CardContent>
           </Card>
         ) : (
