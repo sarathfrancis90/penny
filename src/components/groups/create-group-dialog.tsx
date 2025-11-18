@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { GradientButton } from "@/components/ui/gradient-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Users, Plus } from "lucide-react";
@@ -79,10 +80,10 @@ export function CreateGroupDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600">
+        <GradientButton variant="primary">
           <Plus className="mr-2 h-4 w-4" />
           New Group
-        </Button>
+        </GradientButton>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
@@ -182,10 +183,10 @@ export function CreateGroupDialog() {
             >
               Cancel
             </Button>
-            <Button
+            <GradientButton
               type="submit"
               disabled={loading || !name.trim()}
-              className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600"
+              variant="primary"
             >
               {loading ? (
                 <>
@@ -195,7 +196,7 @@ export function CreateGroupDialog() {
               ) : (
                 "Create Group"
               )}
-            </Button>
+            </GradientButton>
           </DialogFooter>
         </form>
       </DialogContent>

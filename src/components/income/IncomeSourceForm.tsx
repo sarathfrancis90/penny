@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -280,9 +281,9 @@ export function IncomeSourceForm({
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isSubmitting}>
+        <GradientButton type="submit" disabled={isSubmitting} variant="primary">
           {isSubmitting ? 'Saving...' : submitLabel}
-        </Button>
+        </GradientButton>
       </div>
     </form>
   );

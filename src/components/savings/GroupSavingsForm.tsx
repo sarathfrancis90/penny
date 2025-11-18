@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { GradientButton } from '@/components/ui/gradient-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -366,9 +367,9 @@ export function GroupSavingsForm({
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isSubmitting} className="flex-1">
+        <GradientButton type="submit" disabled={isSubmitting} variant="primary" className="flex-1">
           {isSubmitting ? 'Saving...' : submitLabel}
-        </Button>
+        </GradientButton>
       </div>
     </form>
   );
