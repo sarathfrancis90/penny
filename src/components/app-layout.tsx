@@ -29,9 +29,6 @@ import {
   Sparkles,
   Users,
   Wallet,
-  PiggyBank,
-  Calculator,
-  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
@@ -140,63 +137,18 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </Link>
               </Button>
               <Button
-                variant={pathname === "/budgets" ? "default" : "ghost"}
+                variant={pathname === "/finances" || pathname === "/budgets" || pathname === "/income" || pathname === "/savings" || pathname === "/analytics" ? "default" : "ghost"}
                 size="sm"
                 asChild
                 className={cn(
                   "transition-all duration-300 hover:scale-105",
-                  pathname === "/budgets" && "bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30"
+                  (pathname === "/finances" || pathname === "/budgets" || pathname === "/income" || pathname === "/savings" || pathname === "/analytics") && "bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30"
                 )}
               >
-                <Link href="/budgets">
-                  <Calculator className="h-4 w-4 mr-2" />
-                  Budgets
-                  {pathname === "/budgets" && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
-                </Link>
-              </Button>
-              <Button
-                variant={pathname === "/income" ? "default" : "ghost"}
-                size="sm"
-                asChild
-                className={cn(
-                  "transition-all duration-300 hover:scale-105",
-                  pathname === "/income" && "bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30"
-                )}
-              >
-                <Link href="/income">
+                <Link href="/finances">
                   <Wallet className="h-4 w-4 mr-2" />
-                  Income
-                  {pathname === "/income" && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
-                </Link>
-              </Button>
-              <Button
-                variant={pathname === "/savings" ? "default" : "ghost"}
-                size="sm"
-                asChild
-                className={cn(
-                  "transition-all duration-300 hover:scale-105",
-                  pathname === "/savings" && "bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30"
-                )}
-              >
-                <Link href="/savings">
-                  <PiggyBank className="h-4 w-4 mr-2" />
-                  Savings
-                  {pathname === "/savings" && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
-                </Link>
-              </Button>
-              <Button
-                variant={pathname === "/analytics" ? "default" : "ghost"}
-                size="sm"
-                asChild
-                className={cn(
-                  "transition-all duration-300 hover:scale-105",
-                  pathname === "/analytics" && "bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30"
-                )}
-              >
-                <Link href="/analytics">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Analytics
-                  {pathname === "/analytics" && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
+                  Finances
+                  {(pathname === "/finances" || pathname === "/budgets" || pathname === "/income" || pathname === "/savings" || pathname === "/analytics") && <Sparkles className="h-3 w-3 ml-1 animate-pulse" />}
                 </Link>
               </Button>
             </nav>
@@ -326,54 +278,15 @@ export function AppLayout({ children }: AppLayoutProps) {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer">
                     <Link 
-                      href="/budgets" 
+                      href="/finances" 
                       className={cn(
                         "transition-all duration-200",
-                        pathname === "/budgets" && "bg-violet-50 dark:bg-violet-950/30"
-                      )}
-                    >
-                      <Calculator className="h-4 w-4 mr-2 text-green-500" />
-                      <span>Budgets</span>
-                      {pathname === "/budgets" && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-green-500" />}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link 
-                      href="/income" 
-                      className={cn(
-                        "transition-all duration-200",
-                        pathname === "/income" && "bg-violet-50 dark:bg-violet-950/30"
+                        (pathname === "/finances" || pathname === "/budgets" || pathname === "/income" || pathname === "/savings" || pathname === "/analytics") && "bg-violet-50 dark:bg-violet-950/30"
                       )}
                     >
                       <Wallet className="h-4 w-4 mr-2 text-emerald-500" />
-                      <span>Income</span>
-                      {pathname === "/income" && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-emerald-500" />}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link 
-                      href="/savings" 
-                      className={cn(
-                        "transition-all duration-200",
-                        pathname === "/savings" && "bg-violet-50 dark:bg-violet-950/30"
-                      )}
-                    >
-                      <PiggyBank className="h-4 w-4 mr-2 text-pink-500" />
-                      <span>Savings</span>
-                      {pathname === "/savings" && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-pink-500" />}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link 
-                      href="/analytics" 
-                      className={cn(
-                        "transition-all duration-200",
-                        pathname === "/analytics" && "bg-violet-50 dark:bg-violet-950/30"
-                      )}
-                    >
-                      <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
-                      <span>Analytics</span>
-                      {pathname === "/analytics" && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-blue-500" />}
+                      <span>Finances</span>
+                      {(pathname === "/finances" || pathname === "/budgets" || pathname === "/income" || pathname === "/savings" || pathname === "/analytics") && <Sparkles className="h-3 w-3 ml-auto animate-pulse text-emerald-500" />}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
