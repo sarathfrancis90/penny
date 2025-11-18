@@ -178,6 +178,14 @@ export default function FinancesPage() {
                 icon={<DollarSign className="h-12 w-12" />}
                 title="No Income Sources"
                 description="Add your first income source to start tracking your earnings."
+                action={
+                  <button
+                    onClick={() => router.push('/income')}
+                    className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
+                  >
+                    Add Income Source
+                  </button>
+                }
               />
             }
           >
@@ -222,6 +230,14 @@ export default function FinancesPage() {
                 icon={<CreditCard className="h-12 w-12" />}
                 title="No Budgets Set"
                 description="Create budgets to track your spending and stay on target."
+                action={
+                  <button
+                    onClick={() => router.push('/budgets')}
+                    className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
+                  >
+                    Create Budget
+                  </button>
+                }
               />
             }
           >
@@ -281,6 +297,14 @@ export default function FinancesPage() {
                 icon={<Target className="h-12 w-12" />}
                 title="No Savings Goals"
                 description="Create savings goals to work towards your financial dreams."
+                action={
+                  <button
+                    onClick={() => router.push('/savings')}
+                    className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
+                  >
+                    Create Goal
+                  </button>
+                }
               />
             }
           >

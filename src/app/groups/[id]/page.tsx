@@ -356,27 +356,13 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
         {/* Group Budgets Section */}
         <Card className="glass border-2 border-violet-200/50 dark:border-violet-800/30">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Calculator className="h-5 w-5 text-violet-500" />
-                <CardTitle>Group Budgets</CardTitle>
-              </div>
-              {(isOwner || myMembership?.role === "admin") && (
-                <Button 
-                  size="sm" 
-                  onClick={() => {
-                    const url = `/finances?context=group&groupId=${groupId}&groupName=${encodeURIComponent(group.name)}`;
-                    console.log("🔗 [Group Detail Page] Manage Budgets - Navigating to:", url);
-                    router.push(url);
-                  }}
-                >
-                  Manage Budgets
-                </Button>
-              )}
+            <div className="flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-violet-500" />
+              <CardTitle>Group Budgets</CardTitle>
             </div>
             <CardDescription>
               {(isOwner || myMembership?.role === "admin")
-                ? "Set monthly spending limits for each expense category"
+                ? "Set monthly spending limits for each expense category using the Finances button above"
                 : "View monthly spending limits set by group admins"}
             </CardDescription>
           </CardHeader>
@@ -392,27 +378,13 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
                 </div>
                 <p className="text-muted-foreground mb-2">No budgets set</p>
                 {(isOwner || myMembership?.role === "admin") ? (
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Set monthly budgets to track group spending
+                  <p className="text-sm text-muted-foreground">
+                    Click the Finances button above to set monthly budgets
                   </p>
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     Group admins haven&apos;t set any budgets yet
                   </p>
-                )}
-                {(isOwner || myMembership?.role === "admin") && (
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => {
-                      const url = `/finances?context=group&groupId=${groupId}&groupName=${encodeURIComponent(group.name)}`;
-                      console.log("🔗 [Group Detail Page] Navigating to:", url);
-                      console.log("🔗 [Group Detail Page] GroupId:", groupId);
-                      router.push(url);
-                    }}
-                  >
-                    Create First Budget
-                  </Button>
                 )}
               </div>
             ) : (
