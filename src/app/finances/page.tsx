@@ -170,7 +170,12 @@ export default function FinancesPage() {
             icon={<DollarSign className="h-6 w-6" />}
             summary={incomeSummary}
             details={incomeDetails}
-            onManage={() => router.push('/income')}
+            onManage={() => {
+              const url = context.type === 'group' 
+                ? `/income?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
+                : '/income?context=personal';
+              router.push(url);
+            }}
             manageLabel="Manage Income"
             isEmpty={activeIncome.length === 0}
             emptyState={
@@ -180,7 +185,12 @@ export default function FinancesPage() {
                 description="Add your first income source to start tracking your earnings."
                 action={
                   <button
-                    onClick={() => router.push('/income')}
+                    onClick={() => {
+                      const url = context.type === 'group' 
+                        ? `/income?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
+                        : '/income?context=personal';
+                      router.push(url);
+                    }}
                     className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
                   >
                     Add Income Source
@@ -222,7 +232,12 @@ export default function FinancesPage() {
             icon={<CreditCard className="h-6 w-6" />}
             summary={budgetSummary}
             details={budgetDetails}
-            onManage={() => router.push('/budgets')}
+            onManage={() => {
+              const url = context.type === 'group' 
+                ? `/budgets?tab=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
+                : '/budgets?tab=personal';
+              router.push(url);
+            }}
             manageLabel="Manage Budgets"
             isEmpty={currentBudgets.length === 0}
             emptyState={
@@ -232,7 +247,12 @@ export default function FinancesPage() {
                 description="Create budgets to track your spending and stay on target."
                 action={
                   <button
-                    onClick={() => router.push('/budgets')}
+                    onClick={() => {
+                      const url = context.type === 'group' 
+                        ? `/budgets?tab=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
+                        : '/budgets?tab=personal';
+                      router.push(url);
+                    }}
                     className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
                   >
                     Create Budget
@@ -289,7 +309,12 @@ export default function FinancesPage() {
             icon={<Target className="h-6 w-6" />}
             summary={savingsSummary}
             details={savingsDetails}
-            onManage={() => router.push('/savings')}
+            onManage={() => {
+              const url = context.type === 'group' 
+                ? `/savings?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
+                : '/savings?context=personal';
+              router.push(url);
+            }}
             manageLabel="Manage Savings"
             isEmpty={activeSavings.length === 0}
             emptyState={
@@ -299,7 +324,12 @@ export default function FinancesPage() {
                 description="Create savings goals to work towards your financial dreams."
                 action={
                   <button
-                    onClick={() => router.push('/savings')}
+                    onClick={() => {
+                      const url = context.type === 'group' 
+                        ? `/savings?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
+                        : '/savings?context=personal';
+                      router.push(url);
+                    }}
                     className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
                   >
                     Create Goal
