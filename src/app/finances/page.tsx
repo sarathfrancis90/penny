@@ -172,8 +172,8 @@ export default function FinancesPage() {
             details={incomeDetails}
             onManage={() => {
               const url = context.type === 'group' 
-                ? `/income?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
-                : '/income?context=personal';
+                ? `/groups/${context.groupId}/income`
+                : '/income';
               router.push(url);
             }}
             manageLabel="Manage Income"
@@ -187,8 +187,8 @@ export default function FinancesPage() {
                   <button
                     onClick={() => {
                       const url = context.type === 'group' 
-                        ? `/income?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
-                        : '/income?context=personal';
+                        ? `/groups/${context.groupId}/income`
+                        : '/income';
                       router.push(url);
                     }}
                     className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
@@ -311,8 +311,8 @@ export default function FinancesPage() {
             details={savingsDetails}
             onManage={() => {
               const url = context.type === 'group' 
-                ? `/savings?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
-                : '/savings?context=personal';
+                ? `/groups/${context.groupId}/savings`
+                : '/savings';
               router.push(url);
             }}
             manageLabel="Manage Savings"
@@ -326,8 +326,8 @@ export default function FinancesPage() {
                   <button
                     onClick={() => {
                       const url = context.type === 'group' 
-                        ? `/savings?context=group&groupId=${context.groupId}&groupName=${encodeURIComponent(context.groupName || '')}`
-                        : '/savings?context=personal';
+                        ? `/groups/${context.groupId}/savings`
+                        : '/savings';
                       router.push(url);
                     }}
                     className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-lg font-medium transition-all"
