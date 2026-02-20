@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ImageIcon, Send, Loader2, X, Sparkles } from "lucide-react";
+import { Camera, ImageIcon, Send, Loader2, X, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
@@ -22,6 +22,7 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, reset, watch } = useForm<ChatFormData>({
     defaultValues: {
@@ -48,6 +49,9 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
     setImagePreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = "";
     }
   };
 
@@ -105,7 +109,18 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
               ? "bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-950/30 dark:to-fuchsia-950/30 shadow-lg ring-2 ring-violet-500/50" 
               : "glass"
           )}>
-            {/* Image Upload Button */}
+            {/* Camera Input (opens camera directly on mobile) */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageSelect}
+              disabled={isProcessing}
+              className="hidden"
+              aria-label="Take photo of receipt"
+            />
+            {/* Gallery Input (opens file/photo picker) */}
             <input
               ref={fileInputRef}
               type="file"
@@ -113,8 +128,27 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
               onChange={handleImageSelect}
               disabled={isProcessing}
               className="hidden"
-              aria-label="Upload receipt image"
+              aria-label="Choose receipt from gallery"
             />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={isProcessing}
+              className={cn(
+                "shrink-0 h-11 w-11 rounded-xl transition-all duration-300",
+                selectedImage
+                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-900/50"
+                  : "hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-110"
+              )}
+              title="Take photo of receipt"
+            >
+              <Camera className={cn(
+                "h-5 w-5 transition-transform duration-300",
+                selectedImage && "scale-110"
+              )} />
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -123,11 +157,11 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
               disabled={isProcessing}
               className={cn(
                 "shrink-0 h-11 w-11 rounded-xl transition-all duration-300",
-                selectedImage 
-                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-900/50" 
+                selectedImage
+                  ? "bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-900/50"
                   : "hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-110"
               )}
-              title="Upload receipt"
+              title="Choose from gallery"
             >
               <ImageIcon className={cn(
                 "h-5 w-5 transition-transform duration-300",
@@ -198,7 +232,7 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
                 key={i}
                 type="button"
                 onClick={() => {
-                  if (i === 0) fileInputRef.current?.click();
+                  if (i === 0) cameraInputRef.current?.click();
                 }}
                 className="text-xs px-3 py-1.5 rounded-full glass hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-all duration-200 hover:scale-105"
               >
