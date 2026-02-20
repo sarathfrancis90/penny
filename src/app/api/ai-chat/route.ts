@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
+let genAI: GoogleGenAI | null = null;
+function getGenAI(): GoogleGenAI {
+  if (!genAI) {
+    genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  }
+  return genAI;
+}
 
 /**
  * POST /api/ai-chat
@@ -115,8 +121,8 @@ Comparison:
     // For now, AI will guide users to use the dashboard for detailed analytics
     
     // Call Gemini for conversational response
-    const result = await genAI.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+    const result = await getGenAI().models.generateContent({
+      model: "gemini-3-flash-preview",
       contents: contents.map((c) => ({ text: c.text })),
     });
 

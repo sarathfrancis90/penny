@@ -5,8 +5,14 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { findMatchingGroup } from "@/lib/groupMatching";
 
-// Initialize the Gemini AI client
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
+let genAI: GoogleGenAI | null = null;
+function getGenAI(): GoogleGenAI {
+  if (!genAI) {
+    genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  }
+  return genAI;
+}
 
 // System prompt with detailed instructions for expense analysis
 const getSystemPrompt = (userGroups?: { id: string; name: string; icon: string }[]) => {
@@ -170,8 +176,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate content with Gemini using the new SDK
-    const result = await genAI.models.generateContent({
-      model: "gemini-2.0-flash-exp",
+    const result = await getGenAI().models.generateContent({
+      model: "gemini-3-flash-preview",
       contents: parts,
     });
     

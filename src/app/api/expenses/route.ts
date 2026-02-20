@@ -51,7 +51,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert date string to Timestamp
-    const expenseDate = Timestamp.fromDate(new Date(date));
+    // Parse date components to avoid UTC midnight timezone shift
+    const [year, month, day] = date.split("-").map(Number);
+    const expenseDate = Timestamp.fromDate(new Date(year, month - 1, day, 12, 0, 0));
     const now = Timestamp.now();
 
     // Determine expense type
