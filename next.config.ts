@@ -126,10 +126,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  // Disable turbopack in build
-  webpack: (config) => {
-    return config;
-  }
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);
