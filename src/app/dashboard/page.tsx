@@ -552,8 +552,8 @@ export default function DashboardPage() {
                           className="text-muted-foreground"
                         />
                         <Tooltip
-                          formatter={(value: number) => [
-                            `$${value.toFixed(2)}`,
+                          formatter={(value) => [
+                            `$${(Number(value) || 0).toFixed(2)}`,
                             "Amount",
                           ]}
                           contentStyle={{
@@ -657,8 +657,8 @@ export default function DashboardPage() {
                             className="text-muted-foreground"
                           />
                           <Tooltip
-                            formatter={(value: number) => [
-                              `$${value.toFixed(2)}`,
+                            formatter={(value) => [
+                              `$${(Number(value) || 0).toFixed(2)}`,
                               "Amount",
                             ]}
                             contentStyle={{
