@@ -1,0 +1,87 @@
+default_platform(:ios)
+
+KEY_FILEPATH = File.expand_path("AuthKey_VNP3AZMFL6.p8", File.dirname(__FILE__))
+
+platform :ios do
+
+  desc "Register the app on App Store Connect"
+  lane :register do
+    api_key = app_store_connect_api_key(
+      key_id: "VNP3AZMFL6",
+      issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+      key_filepath: KEY_FILEPATH,
+      in_house: false
+    )
+
+    produce(
+      username: "sarathfrancis90@icloud.com",
+      app_identifier: "com.penny.pennyMobile",
+      app_name: "Penny - AI Expense Tracker",
+      language: "English",
+      app_version: "1.0.0",
+      sku: "penny-mobile-001",
+      team_id: "H845PX7Q62",
+      itc_team_id: "H845PX7Q62",
+      skip_devcenter: true
+    )
+  end
+
+  desc "Build release IPA and upload to TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: "VNP3AZMFL6",
+      issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+      key_filepath: KEY_FILEPATH,
+      in_house: false
+    )
+
+    # Flutter build
+    Dir.chdir("..") do
+      sh("flutter", "clean")
+      sh("flutter", "pub", "get")
+      sh("flutter", "build", "ios", "--release", "--no-codesign")
+    end
+
+    # Enable automatic signing
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: "H845PX7Q62",
+      path: "ios/Runner.xcodeproj"
+    )
+
+    # Archive and export IPA
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      clean: true
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Build release IPA only"
+  lane :build do
+    Dir.chdir("..") do
+      sh("flutter", "build", "ios", "--release", "--no-codesign")
+    end
+
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: "H845PX7Q62",
+      path: "ios/Runner.xcodeproj"
+    )
+
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      clean: true
+    )
+  end
+
+end

@@ -66,6 +66,7 @@ dev_dependencies:
   fake_cloud_firestore: ^4.1.0+1
   firebase_auth_mocks: ^0.15.1
   mockito: ^5.4.6
+  flutter_launcher_icons: ^0.14.4
 
 patrol:
   app_name: Penny Mobile
@@ -73,6 +74,15 @@ patrol:
     package_name: com.penny.penny_mobile
   ios:
     bundle_id: com.penny.pennyMobile
+
+flutter_launcher_icons:
+  ios: true
+  android: true
+  image_path: "assets/icon/penny_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icon/penny_icon.png"
+  remove_alpha_ios: true
+  ios_content_mode: "scaleAspectFill"
 
 flutter:
   uses-material-design: true
