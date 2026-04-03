@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Group } from "@/lib/types";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * GET /api/groups/[groupId] - Get a specific group
@@ -86,8 +87,14 @@ export async function PATCH(
 ) {
   try {
     const { groupId } = await params;
+
+    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
+    const tokenUserId = await getAuthenticatedUserId(request);
+
     const body = await request.json();
-    const { name, description, color, icon, settings, userId } = body;
+    const { name, description, color, icon, settings, userId: bodyUserId } = body;
+
+    const userId = tokenUserId ?? bodyUserId;
 
     if (!userId) {
       return NextResponse.json(
@@ -221,8 +228,11 @@ export async function DELETE(
 ) {
   try {
     const { groupId } = await params;
+
+    // Authenticate: prefer Bearer token (mobile), fall back to query param (web)
+    const tokenUserId = await getAuthenticatedUserId(request);
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const userId = tokenUserId ?? searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json(

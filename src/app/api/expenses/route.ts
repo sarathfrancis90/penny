@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { BudgetNotificationService } from "@/lib/services/budgetNotificationService";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 interface CreateExpenseRequest {
   vendor: string;
@@ -17,10 +18,15 @@ interface CreateExpenseRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
+    const tokenUserId = await getAuthenticatedUserId(request);
+
     // Parse request body
     const body: CreateExpenseRequest = await request.json();
-    const { vendor, amount, date, category, description, userId, receiptUrl, receiptPath, groupId } =
+    const { vendor, amount, date, category, description, userId: bodyUserId, receiptUrl, receiptPath, groupId } =
       body;
+
+    const userId = tokenUserId ?? bodyUserId;
 
     // Validate required fields
     if (!vendor || !amount || !date || !category || !userId) {

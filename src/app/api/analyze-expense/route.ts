@@ -4,6 +4,7 @@ import { expenseCategories } from "@/lib/categories";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { findMatchingGroup } from "@/lib/groupMatching";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
 let genAI: GoogleGenAI | null = null;
@@ -96,12 +97,15 @@ export async function POST(request: NextRequest) {
   let userId: string | undefined;
   
   try {
+    // Authenticate: prefer Bearer token (mobile), fall back to body/header userId (web)
+    const tokenUserId = await getAuthenticatedUserId(request);
+
     // Parse request body
     const body: AnalyzeExpenseRequest = await request.json();
     const { text, imageBase64, userId: bodyUserId } = body;
-    
-    // Extract userId from request headers or body
-    userId = bodyUserId || request.headers.get("x-user-id") || undefined;
+
+    // Extract userId: Bearer token > body > x-user-id header
+    userId = tokenUserId || bodyUserId || request.headers.get("x-user-id") || undefined;
 
     // Validate input
     if (!text && !imageBase64) {

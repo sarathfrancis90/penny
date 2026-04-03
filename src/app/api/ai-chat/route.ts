@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
 let genAI: GoogleGenAI | null = null;
@@ -16,7 +17,10 @@ function getGenAI(): GoogleGenAI {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { message, userId, conversationHistory = [] } = await request.json();
+    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const { message, userId: bodyUserId, conversationHistory = [] } = await request.json();
+    const userId = tokenUserId ?? bodyUserId;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

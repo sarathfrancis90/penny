@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Group, GroupMember, DEFAULT_ROLE_PERMISSIONS } from "@/lib/types";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * GET /api/groups - Get all groups for the authenticated user
@@ -80,8 +81,13 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
+    const tokenUserId = await getAuthenticatedUserId(request);
+
     const body = await request.json();
-    const { name, description, color, icon, settings, userId } = body;
+    const { name, description, color, icon, settings, userId: bodyUserId } = body;
+
+    const userId = tokenUserId ?? bodyUserId;
 
     // Validation
     if (!name || !userId) {
