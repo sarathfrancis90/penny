@@ -1,0 +1,8 @@
+schemaVersion: 1
+sessionDefaults:
+  workspacePath: /Users/sarathfrancis/work/git/Personal/penny/mobile/ios/Runner.xcworkspace
+  scheme: Runner
+  simulatorId: 342D8854-215A-449B-8246-A61BCFF61EFE
+  bundleId: com.penny.pennyMobile
+  simulatorName: iPhone 16 Pro
+  simulatorPlatform: iOS Simulator
