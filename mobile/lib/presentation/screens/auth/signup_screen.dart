@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/data/services/oauth_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -50,6 +51,31 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           _error = 'Sign up failed. Please try again';
         }
       });
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _signInWithOAuth(String provider) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final oauthService = OAuthService();
+      if (provider == 'google') {
+        await oauthService.signInWithGoogle();
+      } else if (provider == 'apple') {
+        await oauthService.signInWithApple();
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e.toString();
+        if (!msg.contains('cancelled') && !msg.contains('canceled')) {
+          setState(() => _error = 'Sign in failed. Please try again');
+        }
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -155,6 +181,54 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         )
                       : const Text('Create Account'),
                 ),
+                const SizedBox(height: 20),
+
+                // Divider
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text('or', style: TextStyle(
+                        color: AppColors.textSecondary, fontSize: 13)),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Google
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : () => _signInWithOAuth('google'),
+                  icon: const Text('G', style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary)),
+                  label: const Text('Continue with Google'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.divider),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Apple
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : () => _signInWithOAuth('apple'),
+                  icon: const Icon(Icons.apple, size: 20,
+                    color: AppColors.textPrimary),
+                  label: const Text('Continue with Apple'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimary,
+                    side: const BorderSide(color: AppColors.divider),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+
                 const SizedBox(height: 12),
 
                 TextButton(
