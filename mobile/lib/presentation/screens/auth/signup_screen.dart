@@ -1,0 +1,173 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
+
+  @override
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends ConsumerState<SignupScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      await ref.read(authServiceProvider).signUpWithEmail(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+    } catch (e) {
+      setState(() {
+        if (e.toString().contains('email-already-in-use')) {
+          _error = 'An account already exists with this email';
+        } else if (e.toString().contains('weak-password')) {
+          _error = 'Password must be at least 6 characters';
+        } else {
+          _error = 'Sign up failed. Please try again';
+        }
+      });
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Spacer(flex: 2),
+
+                Text(
+                  'Create Account',
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Start tracking expenses with AI',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const Spacer(),
+
+                if (_error != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: AppColors.error, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  decoration: const InputDecoration(hintText: 'Email'),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Required';
+                    if (!v.contains('@')) return 'Invalid email';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(hintText: 'Password'),
+                  validator: (v) {
+                    if (v == null || v.length < 6) {
+                      return 'At least 6 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                TextFormField(
+                  controller: _confirmController,
+                  obscureText: true,
+                  decoration: const InputDecoration(hintText: 'Confirm Password'),
+                  validator: (v) {
+                    if (v != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                  onFieldSubmitted: (_) => _signUp(),
+                ),
+                const SizedBox(height: 24),
+
+                ElevatedButton(
+                  onPressed: _loading ? null : _signUp,
+                  child: _loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Create Account'),
+                ),
+                const SizedBox(height: 12),
+
+                TextButton(
+                  onPressed: () => context.go('/auth/login'),
+                  child: const Text('Already have an account? Sign In'),
+                ),
+
+                const Spacer(flex: 2),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

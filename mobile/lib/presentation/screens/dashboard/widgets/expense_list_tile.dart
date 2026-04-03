@@ -1,0 +1,169 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/data/models/expense_model.dart';
+
+class ExpenseListTile extends StatelessWidget {
+  const ExpenseListTile({
+    super.key,
+    required this.expense,
+    this.onTap,
+  });
+
+  final ExpenseModel expense;
+  final VoidCallback? onTap;
+
+  static Widget _flightShuttleBuilder(
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection flightDirection,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+  ) {
+    return DefaultTextStyle(
+      style: DefaultTextStyle.of(toHeroContext).style,
+      child: toHeroContext.widget,
+    );
+  }
+
+  IconData get _categoryIcon {
+    final cat = expense.category.toLowerCase();
+    if (cat.contains('meal') || cat.contains('groceries')) {
+      return Icons.restaurant_outlined;
+    }
+    if (cat.contains('travel') || cat.contains('motor')) {
+      return Icons.directions_car_outlined;
+    }
+    if (cat.contains('office')) return Icons.business_outlined;
+    if (cat.contains('telephone')) return Icons.phone_outlined;
+    if (cat.contains('insurance')) return Icons.shield_outlined;
+    if (cat.contains('vehicle') || cat.contains('fuel')) {
+      return Icons.local_gas_station_outlined;
+    }
+    if (cat.contains('home office')) return Icons.home_outlined;
+    if (cat.contains('subscription') || cat.contains('fees')) {
+      return Icons.receipt_long_outlined;
+    }
+    if (cat.contains('legal') || cat.contains('accounting')) {
+      return Icons.gavel_outlined;
+    }
+    if (cat.contains('advertising')) return Icons.campaign_outlined;
+    if (cat.contains('supplies')) return Icons.inventory_2_outlined;
+    return Icons.receipt_outlined;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateStr = DateFormat('MMM d').format(expense.date.toDate());
+    final amountStr = NumberFormat.currency(symbol: '\$', decimalDigits: 2)
+        .format(expense.amount);
+
+    // Shorten category for display
+    var categoryDisplay = expense.category;
+    final parenIdx = categoryDisplay.indexOf('(');
+    if (parenIdx > 0) {
+      categoryDisplay = categoryDisplay.substring(0, parenIdx).trim();
+    }
+    if (categoryDisplay.startsWith('Home Office - ')) {
+      categoryDisplay = categoryDisplay.replaceFirst('Home Office - ', 'Home: ');
+    }
+    if (categoryDisplay.startsWith('Vehicle - ')) {
+      categoryDisplay = categoryDisplay.replaceFirst('Vehicle - ', '');
+    }
+
+    return Semantics(
+      button: true,
+      label: '${expense.vendor}, $categoryDisplay, '
+          'Amount: $amountStr, $dateStr',
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              // Category icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _categoryIcon,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Vendor + Category
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Hero(
+                      tag: 'expense-vendor-${expense.id}',
+                      flightShuttleBuilder: _flightShuttleBuilder,
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Text(
+                          expense.vendor,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      categoryDisplay,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+
+              // Amount + Date
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Hero(
+                    tag: 'expense-amount-${expense.id}',
+                    flightShuttleBuilder: _flightShuttleBuilder,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Text(
+                        amountStr,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    dateStr,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

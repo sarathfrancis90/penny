@@ -1,0 +1,52 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/core/constants/env_config.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/data/repositories/ai_repository.dart';
+import 'package:penny_mobile/data/repositories/budget_repository.dart';
+import 'package:penny_mobile/data/repositories/conversation_repository.dart';
+import 'package:penny_mobile/data/repositories/expense_repository.dart';
+import 'package:penny_mobile/data/repositories/income_repository.dart';
+import 'package:penny_mobile/data/repositories/group_repository.dart';
+import 'package:penny_mobile/data/repositories/notification_repository.dart';
+import 'package:penny_mobile/data/repositories/savings_repository.dart';
+import 'package:penny_mobile/data/services/storage_service.dart';
+
+final apiClientProvider = Provider<ApiClient>((ref) {
+  return ApiClient(baseUrl: EnvConfig.apiBaseUrl);
+});
+
+final aiRepositoryProvider = Provider<AiRepository>((ref) {
+  return AiRepository(apiClient: ref.watch(apiClientProvider));
+});
+
+final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
+  return ConversationRepository();
+});
+
+final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
+  return ExpenseRepository();
+});
+
+final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
+  return BudgetRepository();
+});
+
+final incomeRepositoryProvider = Provider<IncomeRepository>((ref) {
+  return IncomeRepository();
+});
+
+final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
+  return SavingsRepository();
+});
+
+final groupRepositoryProvider = Provider<GroupRepository>((ref) {
+  return GroupRepository(apiClient: ref.watch(apiClientProvider));
+});
+
+final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
+  return NotificationRepository();
+});
+
+final storageServiceProvider = Provider<StorageService>((ref) {
+  return StorageService();
+});
