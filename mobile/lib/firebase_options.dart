@@ -20,11 +20,12 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBvcpvU5xsP_YMu7OXYcNc3SG-ETojD_gM',
+    apiKey: 'AIzaSyD_ReaEZIZ_r07LjNB1QN0GuAjipDD5ddc',
     appId: '1:537615138155:ios:ea2d69ff2d159f231be02e',
     messagingSenderId: '537615138155',
     projectId: 'penny-f4acd',
     storageBucket: 'penny-f4acd.firebasestorage.app',
+    iosClientId: '537615138155-2jvto0f3lj0gj8kn2tuv64fpshqhulet.apps.googleusercontent.com',
     iosBundleId: 'com.penny.pennyMobile',
   );
 

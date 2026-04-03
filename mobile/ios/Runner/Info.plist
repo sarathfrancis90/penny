@@ -51,6 +51,17 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Penny uses Face ID to secure your financial data</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.537615138155-2jvto0f3lj0gj8kn2tuv64fpshqhulet</string>
+			</array>
+		</dict>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

@@ -12,7 +12,12 @@
           "package_name": "com.penny.penny_mobile"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "537615138155-qa3uf7pfqhdado4ogcreoi024rhrncoj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCrlDPdRCqwg_ji5Wm6cHNIEP9EKGZC4Zk"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537615138155-qa3uf7pfqhdado4ogcreoi024rhrncoj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "537615138155-2jvto0f3lj0gj8kn2tuv64fpshqhulet.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.penny.pennyMobile"
+              }
+            }
+          ]
         }
       }
     }
