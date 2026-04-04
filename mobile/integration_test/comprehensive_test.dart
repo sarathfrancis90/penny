@@ -549,7 +549,8 @@ void main() {
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Family'), findsAny);
-      expect(find.text('Household'), findsAny);
+      // Description may be in header or body
+      expect(find.textContaining('Household'), findsAny);
       expect(find.text('MEMBERS'), findsOneWidget);
       expect(find.text('Test User'), findsAny);
       expect(find.text('Sarah'), findsOneWidget);

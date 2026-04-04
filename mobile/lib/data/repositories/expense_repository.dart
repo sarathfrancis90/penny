@@ -19,6 +19,18 @@ class ExpenseRepository {
             snap.docs.map(ExpenseModel.fromFirestore).toList());
   }
 
+  /// Stream expenses for a specific group.
+  Stream<List<ExpenseModel>> watchGroupExpenses(String groupId) {
+    return _db
+        .collection('expenses')
+        .where('groupId', isEqualTo: groupId)
+        .where('expenseType', isEqualTo: 'group')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map(ExpenseModel.fromFirestore).toList());
+  }
+
   /// Stream all expenses (personal + group) for a user.
   Stream<List<ExpenseModel>> watchAllExpenses(String userId) {
     return _db

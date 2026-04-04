@@ -178,98 +178,105 @@ class _SavingsGoalCard extends ConsumerWidget {
         ref.read(savingsRepositoryProvider).deleteSavingsGoal(goal.id);
         HapticFeedback.mediumImpact();
       },
-      child: Semantics(
-        container: true,
-        label: '${goal.name}, '
-            '${formatter.format(goal.currentAmount)} of ${formatter.format(goal.targetAmount)}, '
-            '${progress.toStringAsFixed(0)} percent complete, '
-            '${goal.priority} priority'
-            '${targetStr != null ? ', target by $targetStr' : ''}',
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              // Emoji + info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(emoji, style: const TextStyle(fontSize: 24)),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(goal.name,
-                              style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600)),
+      child: GestureDetector(
+        onTap: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => _SavingsGoalActionsSheet(ref: ref, goal: goal),
+        ),
+        child: Semantics(
+          container: true,
+          label: '${goal.name}, '
+              '${formatter.format(goal.currentAmount)} of ${formatter.format(goal.targetAmount)}, '
+              '${progress.toStringAsFixed(0)} percent complete, '
+              '${goal.priority} priority'
+              '${targetStr != null ? ', target by $targetStr' : ''}',
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                // Emoji + info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 24)),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(goal.name,
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${formatter.format(goal.currentAmount)} / ${formatter.format(goal.targetAmount)}',
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _PriorityBadge(
+                              label: '${goal.priority} priority',
+                              color: _priorityColor),
+                          if (targetStr != null) ...[
+                            const SizedBox(width: 8),
+                            Text('by $targetStr',
+                                style: const TextStyle(
+                                    fontSize: 12, color: AppColors.textTertiary)),
+                          ],
+                        ],
+                      ),
+                      if (goal.monthlyContribution > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '${formatter.format(goal.monthlyContribution)}/mo contribution',
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${formatter.format(goal.currentAmount)} / ${formatter.format(goal.targetAmount)}',
-                      style: const TextStyle(
-                          fontSize: 14, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _PriorityBadge(
-                            label: '${goal.priority} priority',
-                            color: _priorityColor),
-                        if (targetStr != null) ...[
-                          const SizedBox(width: 8),
-                          Text('by $targetStr',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textTertiary)),
-                        ],
-                      ],
-                    ),
-                    if (goal.monthlyContribution > 0) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${formatter.format(goal.monthlyContribution)}/mo contribution',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary),
-                      ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
 
-              // Progress ring
-              Semantics(
-                label: '${progress.toStringAsFixed(0)} percent complete',
-                value: '${progress.toStringAsFixed(0)} percent',
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0, end: progress.clamp(0, 100)),
-                  duration: const Duration(milliseconds: 1200),
-                  curve: Curves.easeOutBack,
-                  builder: (context, animatedProgress, _) {
-                    return SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: CustomPaint(
-                        painter: _MiniProgressRing(
-                            percentage: animatedProgress),
-                        child: Center(
-                          child: Text(
-                            '${animatedProgress.toStringAsFixed(0)}%',
-                            style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w700),
+                // Progress ring
+                Semantics(
+                  label: '${progress.toStringAsFixed(0)} percent complete',
+                  value: '${progress.toStringAsFixed(0)} percent',
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: 0, end: progress.clamp(0, 100)),
+                    duration: const Duration(milliseconds: 1200),
+                    curve: Curves.easeOutBack,
+                    builder: (context, animatedProgress, _) {
+                      return SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CustomPaint(
+                          painter: _MiniProgressRing(
+                              percentage: animatedProgress),
+                          child: Center(
+                            child: Text(
+                              '${animatedProgress.toStringAsFixed(0)}%',
+                              style: const TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w700),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -427,6 +434,319 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
                 ? const SizedBox(height: 20, width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Text('Create Goal'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavingsGoalActionsSheet extends StatelessWidget {
+  const _SavingsGoalActionsSheet({required this.ref, required this.goal});
+
+  final WidgetRef ref;
+  final SavingsGoalModel goal;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(goal.name,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 20),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
+            title: const Text('Edit Goal'),
+            subtitle: const Text('Update name, target, or contribution'),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            tileColor: AppColors.surface,
+            onTap: () {
+              Navigator.pop(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => _EditGoalSheet(ref: ref, goal: goal),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          ListTile(
+            leading:
+                const Icon(Icons.add_circle_outline, color: AppColors.success),
+            title: const Text('Add Contribution'),
+            subtitle: const Text('Record a deposit toward this goal'),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            tileColor: AppColors.surface,
+            onTap: () {
+              Navigator.pop(context);
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) =>
+                    _AddContributionSheet(ref: ref, goal: goal),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditGoalSheet extends StatefulWidget {
+  const _EditGoalSheet({required this.ref, required this.goal});
+
+  final WidgetRef ref;
+  final SavingsGoalModel goal;
+
+  @override
+  State<_EditGoalSheet> createState() => _EditGoalSheetState();
+}
+
+class _EditGoalSheetState extends State<_EditGoalSheet> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _targetController;
+  late final TextEditingController _monthlyController;
+  late String _priority;
+  bool _saving = false;
+
+  static const _priorities = ['low', 'medium', 'high', 'critical'];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.goal.name);
+    _targetController = TextEditingController(
+      text: widget.goal.targetAmount.toStringAsFixed(
+          widget.goal.targetAmount == widget.goal.targetAmount.roundToDouble()
+              ? 0
+              : 2),
+    );
+    _monthlyController = TextEditingController(
+      text: widget.goal.monthlyContribution.toStringAsFixed(
+          widget.goal.monthlyContribution ==
+                  widget.goal.monthlyContribution.roundToDouble()
+              ? 0
+              : 2),
+    );
+    _priority = _priorities.contains(widget.goal.priority)
+        ? widget.goal.priority
+        : 'medium';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _targetController.dispose();
+    _monthlyController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    final target = double.tryParse(_targetController.text.trim());
+    final monthly = double.tryParse(_monthlyController.text.trim()) ?? 0;
+    if (name.isEmpty || target == null || target <= 0) return;
+
+    setState(() => _saving = true);
+    try {
+      final progress = target > 0
+          ? (widget.goal.currentAmount / target * 100)
+          : 0.0;
+      await widget.ref.read(savingsRepositoryProvider).updateSavingsGoal(
+        widget.goal.id,
+        {
+          'name': name,
+          'targetAmount': target,
+          'monthlyContribution': monthly,
+          'priority': _priority,
+          'progressPercentage': progress,
+        },
+      );
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Savings goal updated')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Edit Savings Goal',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(hintText: 'Goal name'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _targetController,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+                hintText: 'Target amount', prefixText: '\$ '),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _monthlyController,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+                hintText: 'Monthly contribution', prefixText: '\$ '),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _priority,
+            decoration: const InputDecoration(hintText: 'Priority'),
+            items: _priorities
+                .map(
+                    (p) => DropdownMenuItem(value: p, child: Text(p)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _priority = v);
+            },
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddContributionSheet extends StatefulWidget {
+  const _AddContributionSheet({required this.ref, required this.goal});
+
+  final WidgetRef ref;
+  final SavingsGoalModel goal;
+
+  @override
+  State<_AddContributionSheet> createState() => _AddContributionSheetState();
+}
+
+class _AddContributionSheetState extends State<_AddContributionSheet> {
+  final _amountController = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final amount = double.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) return;
+
+    setState(() => _saving = true);
+    try {
+      await widget.ref
+          .read(savingsRepositoryProvider)
+          .addContribution(widget.goal.id, amount);
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  'Added \$${amount.toStringAsFixed(0)} to ${widget.goal.name}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    final remaining = widget.goal.targetAmount - widget.goal.currentAmount;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Add Contribution',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(
+            '${formatter.format(remaining)} remaining to goal',
+            style: const TextStyle(
+                fontSize: 14, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _amountController,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+                hintText: 'Amount', prefixText: '\$ '),
+            autofocus: true,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Add Contribution'),
           ),
         ],
       ),

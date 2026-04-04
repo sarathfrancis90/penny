@@ -138,8 +138,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (msg.contains('cancelled') || msg.contains('canceled')) {
           setState(() => _error = null); // User cancelled, no error
         } else {
-          // Show actual error for debugging OAuth issues
-          setState(() => _error = e.toString());
+          final errStr = e.toString();
+          if (errStr.contains('error 1000') || errStr.contains('AuthorizationError')) {
+            setState(() => _error = 'Apple Sign-In is not available. Please use email or Google.');
+          } else if (errStr.contains('network_error') || errStr.contains('ApiException: 10')) {
+            setState(() => _error = 'Network error. Please check your connection.');
+          } else if (errStr.contains('sign_in_failed') || errStr.contains('ApiException: 12500')) {
+            setState(() => _error = 'Google Sign-In configuration error. Please use email.');
+          } else {
+            setState(() => _error = _parseError(e));
+          }
         }
       }
     } finally {

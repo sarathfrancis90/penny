@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
-import 'package:penny_mobile/data/repositories/group_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
@@ -16,6 +16,20 @@ final userGroupsProvider = StreamProvider<List<GroupModel>>((ref) {
 final groupMembersProvider =
     StreamProvider.family<List<GroupMemberModel>, String>((ref, groupId) {
   return ref.watch(groupRepositoryProvider).watchGroupMembers(groupId);
+});
+
+/// Stream expenses for a specific group.
+final groupExpensesProvider =
+    StreamProvider.family<List<ExpenseModel>, String>((ref, groupId) {
+  return ref.watch(expenseRepositoryProvider).watchGroupExpenses(groupId);
+});
+
+/// Get the current user's membership in a group.
+final currentUserMembershipProvider =
+    FutureProvider.family<GroupMemberModel?, String>((ref, groupId) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Future.value(null);
+  return ref.watch(groupRepositoryProvider).getUserMembership(groupId, user.uid);
 });
 
 /// Get a single group by ID from the cached groups list.

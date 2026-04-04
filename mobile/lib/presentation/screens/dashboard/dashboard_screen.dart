@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
+import 'package:penny_mobile/presentation/widgets/quick_add_expense.dart';
 import 'package:penny_mobile/presentation/screens/expenses/expense_detail_screen.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/cash_flow_chart.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/category_bar_chart.dart';
@@ -29,6 +30,17 @@ class DashboardScreen extends ConsumerWidget {
             onPressed: () => context.push('/search'),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) => QuickAddExpense(ref: ref),
+          );
+        },
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: expensesAsync.when(
         data: (_) => const _DashboardContent(),

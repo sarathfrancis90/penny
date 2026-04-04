@@ -200,69 +200,76 @@ class _IncomeSourceTile extends ConsumerWidget {
         ref.read(incomeRepositoryProvider).deleteIncomeSource(source.id);
         HapticFeedback.mediumImpact();
       },
-      child: Semantics(
-        label: '${source.name}, ${source.category}, '
-            '${formatter.format(source.amount)}${source.frequencyLabel}, '
-            '${source.isActive ? 'active' : 'inactive'}',
-        container: true,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            children: [
-              Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
+      child: GestureDetector(
+        onTap: () => showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (_) => _EditIncomeSheet(ref: ref, source: source),
+        ),
+        child: Semantics(
+          label: '${source.name}, ${source.category}, '
+              '${formatter.format(source.amount)}${source.frequencyLabel}, '
+              '${source.isActive ? 'active' : 'inactive'}',
+          container: true,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(_icon, size: 20, color: AppColors.textSecondary),
                 ),
-                child: Icon(_icon, size: 20, color: AppColors.textSecondary),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(source.name,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        _Tag(label: source.category),
-                        const SizedBox(width: 6),
-                        Semantics(
-                          label: source.isActive ? 'Active' : 'Inactive',
-                          child: Container(
-                            width: 6, height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: source.isActive
-                                  ? AppColors.success
-                                  : AppColors.textTertiary,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(source.name,
+                          style: const TextStyle(
+                              fontSize: 15, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          _Tag(label: source.category),
+                          const SizedBox(width: 6),
+                          Semantics(
+                            label: source.isActive ? 'Active' : 'Inactive',
+                            child: Container(
+                              width: 6, height: 6,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: source.isActive
+                                    ? AppColors.success
+                                    : AppColors.textTertiary,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(source.isActive ? 'Active' : 'Inactive',
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Semantics(
-                label: 'Amount: ${formatter.format(source.amount)}${source.frequencyLabel}',
-                child: Text(
-                  '${formatter.format(source.amount)}${source.frequencyLabel}',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.success,
+                          const SizedBox(width: 4),
+                          Text(source.isActive ? 'Active' : 'Inactive',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textSecondary)),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                Semantics(
+                  label: 'Amount: ${formatter.format(source.amount)}${source.frequencyLabel}',
+                  child: Text(
+                    '${formatter.format(source.amount)}${source.frequencyLabel}',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.success,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -399,6 +406,173 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
                 ? const SizedBox(height: 20, width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Text('Add Source'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditIncomeSheet extends StatefulWidget {
+  const _EditIncomeSheet({required this.ref, required this.source});
+
+  final WidgetRef ref;
+  final IncomeSourceModel source;
+
+  @override
+  State<_EditIncomeSheet> createState() => _EditIncomeSheetState();
+}
+
+class _EditIncomeSheetState extends State<_EditIncomeSheet> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _amountController;
+  late String _category;
+  late String _frequency;
+  late bool _taxable;
+  bool _saving = false;
+
+  static const _categories = [
+    'salary',
+    'freelance',
+    'bonus',
+    'investment',
+    'rental',
+    'side_hustle',
+    'gift',
+    'other'
+  ];
+  static const _frequencies = ['monthly', 'biweekly', 'weekly', 'yearly', 'once'];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.source.name);
+    _amountController = TextEditingController(
+      text: widget.source.amount.toStringAsFixed(
+          widget.source.amount == widget.source.amount.roundToDouble() ? 0 : 2),
+    );
+    _category = _categories.contains(widget.source.category)
+        ? widget.source.category
+        : 'other';
+    _frequency = _frequencies.contains(widget.source.frequency)
+        ? widget.source.frequency
+        : 'monthly';
+    _taxable = widget.source.taxable;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final name = _nameController.text.trim();
+    final amount = double.tryParse(_amountController.text.trim());
+    if (name.isEmpty || amount == null || amount <= 0) return;
+
+    setState(() => _saving = true);
+    try {
+      await widget.ref.read(incomeRepositoryProvider).updateIncomeSource(
+        widget.source.id,
+        {
+          'name': name,
+          'amount': amount,
+          'category': _category,
+          'frequency': _frequency,
+          'isRecurring': _frequency != 'once',
+          'taxable': _taxable,
+        },
+      );
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Income source updated')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Edit Income Source',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(hintText: 'Source name'),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _amountController,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration:
+                const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _category,
+            decoration: const InputDecoration(hintText: 'Category'),
+            items: _categories
+                .map((c) => DropdownMenuItem(
+                    value: c, child: Text(c.replaceAll('_', ' '))))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _category = v);
+            },
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            value: _frequency,
+            decoration: const InputDecoration(hintText: 'Frequency'),
+            items: _frequencies
+                .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _frequency = v);
+            },
+          ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            title: const Text('Taxable', style: TextStyle(fontSize: 15)),
+            value: _taxable,
+            onChanged: (v) => setState(() => _taxable = v),
+            activeColor: AppColors.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Save Changes'),
           ),
         ],
       ),

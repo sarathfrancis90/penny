@@ -53,6 +53,8 @@
 	<string>Penny uses Face ID to secure your financial data</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>GIDClientID</key>
+	<string>537615138155-2jvto0f3lj0gj8kn2tuv64fpshqhulet.apps.googleusercontent.com</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

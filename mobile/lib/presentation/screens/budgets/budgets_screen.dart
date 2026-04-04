@@ -193,10 +193,19 @@ class _BudgetsContent extends ConsumerWidget {
                     color: AppColors.textSecondary,
                     letterSpacing: 1)),
             const SizedBox(height: 12),
-            ...usage.asMap().entries.map((entry) => AnimatedListItem(
-                  index: entry.key,
-                  child: _BudgetCategoryCard(usage: entry.value),
-                )),
+            ...usage.asMap().entries.map((entry) {
+              final budgets = ref.watch(budgetsProvider).valueOrNull ?? [];
+              final budget = budgets.where(
+                (b) => b.category == entry.value.category,
+              ).firstOrNull;
+              return AnimatedListItem(
+                index: entry.key,
+                child: _BudgetCategoryCard(
+                  usage: entry.value,
+                  budget: budget,
+                ),
+              );
+            }),
           ],
 
           const SizedBox(height: 24),
@@ -206,10 +215,11 @@ class _BudgetsContent extends ConsumerWidget {
   }
 }
 
-class _BudgetCategoryCard extends StatelessWidget {
-  const _BudgetCategoryCard({required this.usage});
+class _BudgetCategoryCard extends ConsumerWidget {
+  const _BudgetCategoryCard({required this.usage, this.budget});
 
   final BudgetUsage usage;
+  final BudgetModel? budget;
 
   Color get _statusColor => switch (usage.status) {
         BudgetStatus.safe => AppColors.success,
@@ -233,7 +243,7 @@ class _BudgetCategoryCard extends StatelessWidget {
       };
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     final label = _shortenCategory(usage.category);
 
@@ -243,60 +253,73 @@ class _BudgetCategoryCard extends StatelessWidget {
           '${formatter.format(usage.budgetLimit)}, '
           '${usage.percentageUsed.toStringAsFixed(0)} percent, '
           'Status: $_statusLabel',
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(label,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w600)),
-                ),
-                Text(
-                  '${formatter.format(usage.totalSpent)} / ${formatter.format(usage.budgetLimit)}',
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Semantics(
-              label: '${usage.percentageUsed.toStringAsFixed(0)} percent used',
-              value: '${usage.percentageUsed.toStringAsFixed(0)} percent',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: (usage.percentageUsed / 100).clamp(0.0, 1.0),
-                  minHeight: 8,
-                  backgroundColor: AppColors.divider,
-                  valueColor: AlwaysStoppedAnimation<Color>(_barColor),
+      child: GestureDetector(
+        onTap: budget != null
+            ? () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => _EditBudgetSheet(
+                    ref: ref,
+                    budget: budget!,
+                    category: label,
+                  ),
+                )
+            : null,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(label,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                  ),
+                  Text(
+                    '${formatter.format(usage.totalSpent)} / ${formatter.format(usage.budgetLimit)}',
+                    style: const TextStyle(
+                        fontSize: 13, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Semantics(
+                label: '${usage.percentageUsed.toStringAsFixed(0)} percent used',
+                value: '${usage.percentageUsed.toStringAsFixed(0)} percent',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: (usage.percentageUsed / 100).clamp(0.0, 1.0),
+                    minHeight: 8,
+                    backgroundColor: AppColors.divider,
+                    valueColor: AlwaysStoppedAnimation<Color>(_barColor),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Semantics(
-                  label: 'Status: $_statusLabel',
-                  child: _StatusBadge(label: _statusLabel, color: _statusColor),
-                ),
-                const Spacer(),
-                Text(
-                  '${usage.percentageUsed.toStringAsFixed(0)}%',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Semantics(
+                    label: 'Status: $_statusLabel',
+                    child: _StatusBadge(label: _statusLabel, color: _statusColor),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${usage.percentageUsed.toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -468,6 +491,163 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
                     height: 20, width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Text('Create Budget'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditBudgetSheet extends StatefulWidget {
+  const _EditBudgetSheet({
+    required this.ref,
+    required this.budget,
+    required this.category,
+  });
+
+  final WidgetRef ref;
+  final BudgetModel budget;
+  final String category;
+
+  @override
+  State<_EditBudgetSheet> createState() => _EditBudgetSheetState();
+}
+
+class _EditBudgetSheetState extends State<_EditBudgetSheet> {
+  late final TextEditingController _amountController;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(
+      text: widget.budget.monthlyLimit.toStringAsFixed(0),
+    );
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final amount = double.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) return;
+
+    setState(() => _saving = true);
+    try {
+      await widget.ref
+          .read(budgetRepositoryProvider)
+          .updateBudget(widget.budget.id, {'monthlyLimit': amount});
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Budget updated')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _delete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Budget'),
+        content: Text(
+            'Are you sure you want to delete the budget for "${widget.category}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete',
+                style: TextStyle(color: AppColors.error)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await widget.ref
+          .read(budgetRepositoryProvider)
+          .deleteBudget(widget.budget.id);
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Budget deleted')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Edit Budget',
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(widget.category,
+              style: const TextStyle(
+                  fontSize: 14, color: AppColors.textSecondary)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: _amountController,
+            keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+                hintText: 'Monthly limit', prefixText: '\$ '),
+            autofocus: true,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Save'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: _saving ? null : _delete,
+            child: const Text('Delete Budget',
+                style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),

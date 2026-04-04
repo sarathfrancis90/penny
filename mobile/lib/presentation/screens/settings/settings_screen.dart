@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 
@@ -23,6 +25,11 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefsAsync = ref.watch(userPreferencesProvider);
     final user = ref.watch(currentUserProvider);
+
+    final pushEnabled =
+        prefsAsync.valueOrNull?['pushNotifications'] as bool? ?? true;
+    final budgetAlertsEnabled =
+        prefsAsync.valueOrNull?['budgetAlerts'] as bool? ?? true;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -58,15 +65,17 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.notifications_outlined,
             title: 'Push Notifications',
             subtitle: 'Receive push alerts',
-            value: true,
-            onChanged: (_) {},
+            value: pushEnabled,
+            onChanged: (value) => _updatePreference(
+                ref, 'pushNotifications', value),
           ),
           _SettingsToggle(
             icon: Icons.warning_amber_outlined,
             title: 'Budget Alerts',
             subtitle: 'Warn when approaching limits',
-            value: true,
-            onChanged: (_) {},
+            value: budgetAlertsEnabled,
+            onChanged: (value) => _updatePreference(
+                ref, 'budgetAlerts', value),
           ),
 
           const SizedBox(height: 24),
@@ -108,6 +117,18 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  void _updatePreference(WidgetRef ref, String key, bool value) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .set({
+      'preferences': {key: value}
+    }, SetOptions(merge: true));
+    HapticFeedback.selectionClick();
   }
 
   void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
@@ -176,9 +197,9 @@ class SettingsScreen extends ConsumerWidget {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.error),
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.pop(ctx);
-                        // TODO: Implement account deletion
+                        await _deleteAccount(context);
                       },
                       child: const Text('Delete'),
                     ),
@@ -190,6 +211,50 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _deleteAccount(BuildContext context) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Delete the Firebase Auth account
+      await user.delete();
+
+      // Clean up local data
+      await Hive.box('app_preferences').clear();
+
+      // Auth state listener will redirect to login automatically
+    } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
+
+      if (e.code == 'requires-recent-login') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Please sign out and sign back in, then try again. '
+                'Account deletion requires recent authentication.'),
+            backgroundColor: AppColors.warning,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete account: ${e.message}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete account: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 }
 
@@ -293,7 +358,7 @@ class _SettingsToggle extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.primary,
+            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
           ),
         ],
       ),
