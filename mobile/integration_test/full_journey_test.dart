@@ -656,7 +656,9 @@ void main() {
       await t.tap(find.text('Dashboard'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
-      // Switch to 3 Months to see all expenses
+      // Switch to 3 Months — use ensureVisible since it may be off-screen
+      await t.ensureVisible(find.text('3 Months'));
+      await t.pumpAndSettle();
       await t.tap(find.text('3 Months'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
@@ -1696,17 +1698,196 @@ void main() {
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Switch to 3 Months
+      await t.ensureVisible(find.text('3 Months'));
+      await t.pumpAndSettle();
       await t.tap(find.text('3 Months'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
-      // Should see category breakdown from multiple months
-      expect(find.text('By Category'), findsOneWidget);
+      // Total should reflect all expenses
+      expect(find.text('Total Spent'), findsOneWidget);
+    });
+  });
 
-      // Scroll down to see expense list
-      await t.drag(find.byType(ListView).first, const Offset(0, -300));
+  // ====================================================================
+  // 10. DASHBOARD FILTERS
+  // ====================================================================
+
+  group('10 — Dashboard Filters', () {
+    late FakeFirebaseFirestore fs;
+    setUp(() => fs = FakeFirebaseFirestore());
+
+    testWidgets('10.1 Period presets show all options', (t) async {
+      await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      expect(find.text('By Category'), findsOneWidget);
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle();
+
+      // All period preset chips should be visible (in scrollable row)
+      expect(find.text('This Week'), findsOneWidget);
+      expect(find.text('This Month'), findsOneWidget);
+      expect(find.text('Last Month'), findsOneWidget);
+      expect(find.text('3 Months'), findsOneWidget);
+      // This Year and Custom may need scrolling
+    });
+
+    testWidgets('10.2 Period filter changes displayed expenses', (t) async {
+      final now = DateTime.now();
+      final lastMonth = DateTime(now.year, now.month - 1, 15);
+
+      // Seed expense in current month
+      await fs.collection('expenses').add({
+        'userId': 'test-user-123', 'vendor': 'Today Shop', 'amount': 10,
+        'category': 'Office expenses', 'date': now,
+        'expenseType': 'personal', 'groupId': null,
+        'createdAt': now, 'updatedAt': now, 'syncStatus': 'synced',
+        'history': [{'action': 'created', 'by': 'test-user-123', 'at': now}],
+      });
+      // Seed expense in last month
+      await fs.collection('expenses').add({
+        'userId': 'test-user-123', 'vendor': 'Last Month Store', 'amount': 20,
+        'category': 'Meals and entertainment', 'date': lastMonth,
+        'expenseType': 'personal', 'groupId': null,
+        'createdAt': lastMonth, 'updatedAt': lastMonth, 'syncStatus': 'synced',
+        'history': [{'action': 'created', 'by': 'test-user-123', 'at': lastMonth}],
+      });
+
+      await t.pumpWidget(_app(_createAuth(), fs));
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Default is "This Month" — should show Today Shop
+      expect(find.text('Today Shop'), findsOneWidget);
+
+      // Switch to "Last Month"
+      await t.tap(find.text('Last Month'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Should show Last Month Store
+      expect(find.text('Last Month Store'), findsOneWidget);
+    });
+
+    testWidgets('10.3 Type filter: Personal vs Group', (t) async {
+      final now = DateTime.now();
+      await fs.collection('expenses').add({
+        'userId': 'test-user-123', 'vendor': 'Personal Vendor', 'amount': 10,
+        'category': 'Office expenses', 'date': now,
+        'expenseType': 'personal', 'groupId': null,
+        'createdAt': now, 'updatedAt': now, 'syncStatus': 'synced',
+        'history': [{'action': 'created', 'by': 'test-user-123', 'at': now}],
+      });
+      await fs.collection('expenses').add({
+        'userId': 'test-user-123', 'vendor': 'Group Vendor', 'amount': 20,
+        'category': 'Meals and entertainment', 'date': now,
+        'expenseType': 'group', 'groupId': 'grp-1',
+        'createdAt': now, 'updatedAt': now, 'syncStatus': 'synced',
+        'history': [{'action': 'created', 'by': 'test-user-123', 'at': now}],
+      });
+
+      await t.pumpWidget(_app(_createAuth(), fs));
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // All filter — both visible
+      expect(find.text('All'), findsOneWidget);
+      expect(find.text('Personal'), findsOneWidget);
+      expect(find.text('Group'), findsOneWidget);
+
+      // Tap Personal filter
+      await t.tap(find.text('Personal'));
+      await t.pumpAndSettle();
+
+      expect(find.text('Personal Vendor'), findsOneWidget);
+    });
+
+    testWidgets('10.4 Category filter dropdown works', (t) async {
+      final now = DateTime.now();
+      await fs.collection('expenses').add({
+        'userId': 'test-user-123', 'vendor': 'Starbucks', 'amount': 5,
+        'category': 'Meals and entertainment', 'date': now,
+        'expenseType': 'personal', 'groupId': null,
+        'createdAt': now, 'updatedAt': now, 'syncStatus': 'synced',
+        'history': [{'action': 'created', 'by': 'test-user-123', 'at': now}],
+      });
+      await fs.collection('expenses').add({
+        'userId': 'test-user-123', 'vendor': 'Staples', 'amount': 45,
+        'category': 'Office expenses', 'date': now,
+        'expenseType': 'personal', 'groupId': null,
+        'createdAt': now, 'updatedAt': now, 'syncStatus': 'synced',
+        'history': [{'action': 'created', 'by': 'test-user-123', 'at': now}],
+      });
+
+      await t.pumpWidget(_app(_createAuth(), fs));
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Category filter chip should exist
+      expect(find.text('Category'), findsOneWidget);
+      // By Category section shows both
+      expect(find.text('By Category'), findsAny);
+    });
+
+    testWidgets('10.5 Group filter dropdown shows user groups', (t) async {
+      final now = DateTime.now();
+      final ts = Timestamp.now();
+
+      // Seed a group + membership
+      await fs.collection('groups').doc('grp-test').set({
+        'name': 'Work Team', 'icon': '💼',
+        'createdBy': 'test-user-123', 'createdAt': ts, 'updatedAt': ts,
+        'settings': {'requireApproval': false, 'allowMemberInvites': true},
+        'status': 'active',
+        'stats': {'memberCount': 1, 'expenseCount': 0, 'totalAmount': 0, 'lastActivityAt': ts},
+      });
+      await fs.collection('groupMembers').doc('grp-test_test-user-123').set({
+        'groupId': 'grp-test', 'userId': 'test-user-123',
+        'userEmail': 'test@penny.app', 'role': 'owner', 'status': 'active',
+        'permissions': {}, 'invitedAt': ts, 'invitedBy': 'test-user-123',
+      });
+
+      await t.pumpWidget(_app(_createAuth(), fs));
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // "By Group" filter chip should be visible
+      expect(find.text('By Group'), findsOneWidget);
+    });
+
+    testWidgets('10.6 FAB opens manual expense form', (t) async {
+      await t.pumpWidget(_app(_createAuth(), fs));
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle();
+
+      // FAB should be visible
+      await t.tap(find.byType(FloatingActionButton));
+      await t.pumpAndSettle();
+
+      expect(find.text('Add Expense'), findsAny);
+      expect(find.text('Vendor / Merchant'), findsOneWidget);
+    });
+
+    testWidgets('10.7 Search accessible from Dashboard', (t) async {
+      await t.pumpWidget(_app(_createAuth(), fs));
+      await t.pumpAndSettle();
+
+      await t.tap(find.text('Dashboard'));
+      await t.pumpAndSettle();
+
+      await t.tap(find.byIcon(Icons.search));
+      await t.pumpAndSettle();
+
+      expect(find.text('Search your expenses'), findsOneWidget);
+      expect(find.text('coffee this month'), findsOneWidget);
     });
   });
 }

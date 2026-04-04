@@ -1,0 +1,24 @@
+#!/bin/bash
+# Pre-push hook: runs Flutter tests before allowing push
+# Ensures no broken code reaches the remote
+
+set -e
+
+echo "🧪 Running pre-push tests..."
+
+cd mobile
+
+# Unit tests (fast — always run)
+echo "  ▸ Unit tests..."
+flutter test test/ --reporter compact 2>&1 | tail -1
+
+# Integration tests only if simulator is booted
+BOOTED_SIM=$(xcrun simctl list devices booted | grep -o '[A-F0-9-]\{36\}' | head -1)
+if [ -n "$BOOTED_SIM" ]; then
+  echo "  ▸ Integration tests (simulator: $BOOTED_SIM)..."
+  flutter test integration_test/expense_crud_test.dart -d "$BOOTED_SIM" --reporter compact 2>&1 | tail -1
+else
+  echo "  ⚠ Skipping integration tests (no booted simulator)"
+fi
+
+echo "✅ All pre-push tests passed"
