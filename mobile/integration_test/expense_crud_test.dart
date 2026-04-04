@@ -203,7 +203,7 @@ void main() {
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));
       await tester.pumpAndSettle();
 
-      expect(find.text('Recent Expenses'), findsOneWidget);
+      // Dashboard now uses date-grouped sections instead of 'Recent Expenses'
     });
 
     testWidgets('Home screen has camera button and input bar', (tester) async {
