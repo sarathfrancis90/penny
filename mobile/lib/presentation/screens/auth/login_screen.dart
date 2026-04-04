@@ -138,7 +138,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (msg.contains('cancelled') || msg.contains('canceled')) {
           setState(() => _error = null); // User cancelled, no error
         } else {
-          setState(() => _error = _parseError(e));
+          // Show actual error for debugging OAuth issues
+          setState(() => _error = e.toString());
         }
       }
     } finally {
