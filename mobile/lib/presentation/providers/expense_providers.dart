@@ -114,3 +114,98 @@ final cashFlowProvider = Provider<List<MonthCashFlow>>((ref) {
 
   return months;
 });
+
+/// Filter state for the dashboard expense list.
+enum ExpenseTypeFilter { all, personal, group }
+
+class ExpenseFilter {
+  const ExpenseFilter({
+    this.typeFilter = ExpenseTypeFilter.all,
+    this.categoryFilter,
+  });
+
+  final ExpenseTypeFilter typeFilter;
+  final String? categoryFilter;
+
+  ExpenseFilter copyWith({
+    ExpenseTypeFilter? typeFilter,
+    String? Function()? categoryFilter,
+  }) {
+    return ExpenseFilter(
+      typeFilter: typeFilter ?? this.typeFilter,
+      categoryFilter:
+          categoryFilter != null ? categoryFilter() : this.categoryFilter,
+    );
+  }
+}
+
+final expenseFilterProvider =
+    StateProvider<ExpenseFilter>((ref) => const ExpenseFilter());
+
+/// Expenses filtered by the dashboard period, then by the expense filter.
+final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
+  final expenses = ref.watch(allExpensesProvider).valueOrNull ?? [];
+  final period = ref.watch(dashboardPeriodProvider);
+  final filter = ref.watch(expenseFilterProvider);
+  final now = DateTime.now();
+
+  // Step 1: filter by period
+  final periodFiltered = expenses.where((e) {
+    final d = e.date.toDate();
+    switch (period) {
+      case DashboardPeriod.thisMonth:
+        return d.year == now.year && d.month == now.month;
+      case DashboardPeriod.lastMonth:
+        final lastMonth = DateTime(now.year, now.month - 1);
+        return d.year == lastMonth.year && d.month == lastMonth.month;
+      case DashboardPeriod.threeMonths:
+        final threeMonthsAgo = DateTime(now.year, now.month - 2, 1);
+        return !d.isBefore(threeMonthsAgo);
+    }
+  }).toList();
+
+  // Step 2: filter by type (personal / group)
+  final typeFiltered = periodFiltered.where((e) {
+    switch (filter.typeFilter) {
+      case ExpenseTypeFilter.all:
+        return true;
+      case ExpenseTypeFilter.personal:
+        return e.expenseType == 'personal';
+      case ExpenseTypeFilter.group:
+        return e.expenseType == 'group';
+    }
+  }).toList();
+
+  // Step 3: filter by category
+  final categoryFiltered = filter.categoryFilter == null
+      ? typeFiltered
+      : typeFiltered.where((e) => e.category == filter.categoryFilter).toList();
+
+  // Sort by date descending
+  categoryFiltered.sort((a, b) => b.date.toDate().compareTo(a.date.toDate()));
+
+  return categoryFiltered;
+});
+
+/// Category breakdown derived from filtered expenses (respects period + filters).
+final filteredCategoryBreakdownProvider =
+    Provider<List<CategoryBreakdown>>((ref) {
+  final expenses = ref.watch(filteredExpensesProvider);
+  final totals = <String, double>{};
+
+  for (final e in expenses) {
+    totals[e.category] = (totals[e.category] ?? 0) + e.amount;
+  }
+
+  final total = totals.values.fold(0.0, (a, b) => a + b);
+  final sorted = totals.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+
+  return sorted
+      .map((e) => CategoryBreakdown(
+            category: e.key,
+            amount: e.value,
+            percentage: total > 0 ? (e.value / total * 100) : 0,
+          ))
+      .toList();
+});

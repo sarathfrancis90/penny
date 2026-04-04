@@ -14,9 +14,12 @@ import 'package:penny_mobile/presentation/screens/groups/groups_screen.dart';
 import 'package:penny_mobile/presentation/screens/notifications/notifications_screen.dart';
 import 'package:penny_mobile/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:penny_mobile/presentation/screens/savings/savings_screen.dart';
+import 'package:penny_mobile/presentation/screens/expenses/expense_detail_screen.dart';
 import 'package:penny_mobile/presentation/screens/expenses/expense_search_screen.dart';
+import 'package:penny_mobile/presentation/screens/groups/group_detail_screen.dart';
 import 'package:penny_mobile/presentation/screens/settings/settings_screen.dart';
 import 'package:penny_mobile/presentation/widgets/app_shell.dart';
+import 'package:penny_mobile/data/models/expense_model.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -94,6 +97,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         pageBuilder: (context, state) => _buildCupertinoPage(
           key: state.pageKey,
           child: const SettingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/groups/:id',
+        pageBuilder: (context, state) => _buildCupertinoPage(
+          key: state.pageKey,
+          child: GroupDetailScreen(groupId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/expenses/detail',
+        pageBuilder: (context, state) => _buildCupertinoPage(
+          key: state.pageKey,
+          child: ExpenseDetailScreen(expense: state.extra as ExpenseModel),
         ),
       ),
 

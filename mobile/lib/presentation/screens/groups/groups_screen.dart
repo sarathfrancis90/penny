@@ -7,7 +7,7 @@ import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
-import 'package:penny_mobile/presentation/screens/groups/group_detail_screen.dart';
+import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
@@ -130,12 +130,7 @@ class _GroupCard extends StatelessWidget {
           'total ${formatter.format(group.stats.totalAmount)}',
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => GroupDetailScreen(groupId: group.id),
-            ),
-          );
+          context.push('/groups/${group.id}');
         },
         borderRadius: BorderRadius.circular(12),
         child: Container(

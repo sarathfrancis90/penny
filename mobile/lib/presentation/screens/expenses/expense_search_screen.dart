@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
-import 'package:penny_mobile/presentation/screens/expenses/expense_detail_screen.dart';
 
 /// Natural language search across expenses.
 /// Supports queries like "coffee last week", "uber march", "over $50".
@@ -201,13 +201,7 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
                           style: const TextStyle(
                               fontWeight: FontWeight.w600)),
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                ExpenseDetailScreen(expense: e),
-                          ),
-                        );
+                        context.push('/expenses/detail', extra: e);
                       },
                     );
                   },
