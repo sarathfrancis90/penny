@@ -6,6 +6,7 @@ import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
+import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/widgets/quick_add_expense.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/expense_list_tile.dart';
 import 'package:penny_mobile/presentation/widgets/animated_counter.dart';
@@ -193,40 +194,86 @@ class _PeriodSelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(dashboardPeriodProvider);
+    final customRange = ref.watch(customDateRangeProvider);
 
-    return Row(
-      children: DashboardPeriod.values.map((period) {
-        final isActive = period == selected;
-        final label = switch (period) {
-          DashboardPeriod.thisMonth => 'This Month',
-          DashboardPeriod.lastMonth => 'Last Month',
-          DashboardPeriod.threeMonths => '3 Months',
-        };
+    final presets = <DashboardPeriod, String>{
+      DashboardPeriod.thisWeek: 'This Week',
+      DashboardPeriod.thisMonth: 'This Month',
+      DashboardPeriod.lastMonth: 'Last Month',
+      DashboardPeriod.threeMonths: '3 Months',
+      DashboardPeriod.thisYear: 'This Year',
+      DashboardPeriod.custom: customRange != null
+          ? '${DateFormat('MMM d').format(customRange.start)} – ${DateFormat('MMM d').format(customRange.end)}'
+          : 'Custom',
+    };
 
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: ChoiceChip(
-            label: Text(label),
-            selected: isActive,
-            onSelected: (_) =>
-                ref.read(dashboardPeriodProvider.notifier).state = period,
-            selectedColor: AppColors.primary,
-            labelStyle: TextStyle(
-              color: isActive ? Colors.white : AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
-              fontSize: 13,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: presets.entries.map((entry) {
+          final period = entry.key;
+          final label = entry.value;
+          final isActive = period == selected;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(label),
+              selected: isActive,
+              onSelected: (_) {
+                if (period == DashboardPeriod.custom) {
+                  _showDateRangePicker(context, ref);
+                } else {
+                  ref.read(dashboardPeriodProvider.notifier).state = period;
+                }
+              },
+              selectedColor: AppColors.primary,
+              labelStyle: TextStyle(
+                color: isActive ? Colors.white : AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+              ),
+              showCheckmark: false,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              side: isActive
+                  ? BorderSide.none
+                  : const BorderSide(color: AppColors.divider),
             ),
-            showCheckmark: false,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            side: isActive
-                ? BorderSide.none
-                : const BorderSide(color: AppColors.divider),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
+  }
+
+  Future<void> _showDateRangePicker(BuildContext context, WidgetRef ref) async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      initialDateRange: ref.read(customDateRangeProvider) ??
+          DateTimeRange(
+            start: DateTime(now.year, now.month, 1),
+            end: now,
+          ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+                  primary: AppColors.primary,
+                ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      ref.read(customDateRangeProvider.notifier).state = picked;
+      ref.read(dashboardPeriodProvider.notifier).state = DashboardPeriod.custom;
+    }
   }
 }
 
@@ -273,12 +320,28 @@ class _FilterRow extends ConsumerWidget {
           // Group chip
           _FilterChip(
             label: 'Group',
-            isActive: filter.typeFilter == ExpenseTypeFilter.group,
+            isActive: filter.typeFilter == ExpenseTypeFilter.group &&
+                filter.groupIdFilter == null,
             onTap: () {
               ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
                 typeFilter: filter.typeFilter == ExpenseTypeFilter.group
                     ? ExpenseTypeFilter.all
                     : ExpenseTypeFilter.group,
+                groupIdFilter: () => null,
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+
+          // Specific group picker chip
+          _GroupDropdownChip(
+            selectedGroupId: filter.groupIdFilter,
+            onChanged: (groupId) {
+              ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+                typeFilter: groupId != null
+                    ? ExpenseTypeFilter.group
+                    : ExpenseTypeFilter.all,
+                groupIdFilter: () => groupId,
               );
             },
           ),
@@ -332,6 +395,93 @@ class _FilterChip extends StatelessWidget {
             fontWeight: FontWeight.w500,
             color: isActive ? AppColors.primary : AppColors.textSecondary,
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupDropdownChip extends ConsumerWidget {
+  const _GroupDropdownChip({
+    required this.selectedGroupId,
+    required this.onChanged,
+  });
+
+  final String? selectedGroupId;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupsAsync = ref.watch(userGroupsProvider);
+    final groups = groupsAsync.valueOrNull ?? [];
+
+    if (groups.isEmpty) return const SizedBox.shrink();
+
+    final selectedName = selectedGroupId != null
+        ? groups.where((g) => g.id == selectedGroupId).firstOrNull?.name
+        : null;
+
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (ctx) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: const Text('All Groups'),
+                  selected: selectedGroupId == null,
+                  onTap: () {
+                    onChanged(null);
+                    Navigator.pop(ctx);
+                  },
+                ),
+                ...groups.map((g) => ListTile(
+                      leading: Text(g.icon ?? '👥', style: const TextStyle(fontSize: 20)),
+                      title: Text(g.name),
+                      selected: selectedGroupId == g.id,
+                      onTap: () {
+                        onChanged(g.id);
+                        Navigator.pop(ctx);
+                      },
+                    )),
+              ],
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selectedGroupId != null ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: selectedGroupId != null
+              ? null
+              : Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selectedName ?? 'By Group',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: selectedGroupId != null
+                    ? Colors.white
+                    : AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              Icons.arrow_drop_down,
+              size: 16,
+              color: selectedGroupId != null
+                  ? Colors.white
+                  : AppColors.textSecondary,
+            ),
+          ],
         ),
       ),
     );
