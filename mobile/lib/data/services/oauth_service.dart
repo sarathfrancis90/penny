@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
@@ -14,16 +15,45 @@ class OAuthService {
   // ====== Google Sign-In ======
 
   Future<UserCredential> signInWithGoogle() async {
-    await GoogleSignIn.instance.initialize();
-    final googleUser = await GoogleSignIn.instance.authenticate(
-      scopeHint: ['email'],
-    );
+    try {
+      await GoogleSignIn.instance.initialize();
+      final googleUser = await GoogleSignIn.instance.authenticate(
+        scopeHint: ['email'],
+      );
 
-    final credential = GoogleAuthProvider.credential(
-      idToken: googleUser.authentication.idToken,
-    );
+      final idToken = googleUser.authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        // This happens when iOS uses a passkey instead of the OAuth flow.
+        // The passkey authenticates the user locally but doesn't produce
+        // an OAuth ID token that Firebase can verify.
+        throw Exception(
+          'Google Sign-In did not return an ID token. '
+          'If you were prompted to use a passkey, please try again '
+          'and choose "Use password" instead.',
+        );
+      }
 
-    return _auth.signInWithCredential(credential);
+      final credential = GoogleAuthProvider.credential(idToken: idToken);
+      return _auth.signInWithCredential(credential);
+    } on PlatformException catch (e) {
+      // Handle platform-specific errors gracefully
+      if (e.code == 'sign_in_failed') {
+        throw Exception(
+          'Google Sign-In failed. If prompted for a passkey, '
+          'try choosing "Use password" instead.',
+        );
+      }
+      rethrow;
+    } catch (e) {
+      // Catch any other errors (null pointer, type cast, etc.)
+      if (e is TypeError || e.toString().contains('Null')) {
+        throw Exception(
+          'Google Sign-In returned incomplete data. '
+          'Please try again using your Google password.',
+        );
+      }
+      rethrow;
+    }
   }
 
   // ====== Apple Sign-In ======
