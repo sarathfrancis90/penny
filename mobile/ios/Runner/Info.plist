@@ -51,6 +51,10 @@
 	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Penny uses Face ID to secure your financial data</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Penny uses the camera to scan receipts for expense tracking</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Penny accesses your photos to upload receipt images</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>GIDClientID</key>
