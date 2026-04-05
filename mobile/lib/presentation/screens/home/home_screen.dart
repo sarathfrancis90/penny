@@ -1,18 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
-import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/chat_provider.dart';
-import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/chat_bubble.dart';
 import 'package:penny_mobile/presentation/widgets/expense_card.dart';
+import 'package:penny_mobile/presentation/widgets/expense_confirmation_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -105,51 +103,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Future<void> _confirmExpense(int index) async {
+  /// Open the editable confirmation bottom sheet for a single expense.
+  Future<void> _openConfirmationSheet(int index) async {
     final chatState = ref.read(chatProvider);
     final expense = chatState.pendingExpenses?.expenses[index];
     if (expense == null) return;
 
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
+    final saved = await ExpenseConfirmationSheet.show(
+      context,
+      expense: expense,
+      receiptUrl: chatState.receiptUrl,
+      onSaved: () {
+        ref.read(chatProvider.notifier).clearPendingExpenses();
+      },
+    );
 
-    try {
-      final expenseRepo = ref.read(expenseRepositoryProvider);
-      await expenseRepo.savePersonalExpense(
-        userId: user.uid,
-        vendor: expense.vendor,
-        amount: expense.amount,
-        category: expense.category,
-        date: expense.date,
-        description: expense.description,
+    // If the single-expense case was saved, pending is already cleared via
+    // the onSaved callback. For multi-expense, we clear after all are done
+    // (handled by _openMultiExpenseFlow).
+    if (saved == true && chatState.pendingExpenses?.isMultiple == false) {
+      // Already cleared above via onSaved.
+    }
+  }
+
+  /// When the AI detects multiple expenses, iterate through each and open the
+  /// confirmation sheet one at a time. User can confirm/skip each.
+  Future<void> _openMultiExpenseFlow() async {
+    final chatState = ref.read(chatProvider);
+    final expenses = chatState.pendingExpenses?.expenses;
+    if (expenses == null || expenses.isEmpty) return;
+
+    int savedCount = 0;
+
+    for (var i = 0; i < expenses.length; i++) {
+      if (!mounted) break;
+
+      final saved = await ExpenseConfirmationSheet.show(
+        context,
+        expense: expenses[i],
         receiptUrl: chatState.receiptUrl,
       );
 
-      HapticFeedback.mediumImpact();
+      if (saved == true) savedCount++;
+    }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${expense.vendor} — \$${expense.amount.toStringAsFixed(2)} saved'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
+    // Clear all pending expenses after the flow completes.
+    ref.read(chatProvider.notifier).clearPendingExpenses();
 
-      // If all expenses confirmed, clear pending
-      ref.read(chatProvider.notifier).clearPendingExpenses();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save: $e'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+    if (mounted && savedCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$savedCount of ${expenses.length} expenses saved'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     }
   }
 
@@ -189,7 +198,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     conversationId: conversationId,
                     scrollController: _scrollController,
                     pendingExpenses: chatState.pendingExpenses,
-                    onConfirmExpense: _confirmExpense,
+                    onConfirmExpense: _openConfirmationSheet,
+                    onConfirmAll: _openMultiExpenseFlow,
                   ),
           ),
 
@@ -322,12 +332,14 @@ class _MessageList extends ConsumerWidget {
     required this.scrollController,
     this.pendingExpenses,
     this.onConfirmExpense,
+    this.onConfirmAll,
   });
 
   final String conversationId;
   final ScrollController scrollController;
   final AnalyzeExpenseResult? pendingExpenses;
   final void Function(int index)? onConfirmExpense;
+  final VoidCallback? onConfirmAll;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -351,18 +363,50 @@ class _MessageList extends ConsumerWidget {
           itemBuilder: (context, index) {
             // Show pending expense cards at the end
             if (index == messages.length && pendingExpenses != null) {
+              final isMultiple = pendingExpenses!.isMultiple;
               return Padding(
                 padding: const EdgeInsets.only(right: 48),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var i = 0; i < pendingExpenses!.expenses.length; i++)
+                    // Header for multi-expense
+                    if (isMultiple)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${pendingExpenses!.expenses.length} expenses detected',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton.icon(
+                              onPressed: onConfirmAll,
+                              icon: const Icon(Icons.playlist_add_check,
+                                  size: 18),
+                              label: const Text('Confirm All'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8),
+                                textStyle: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    for (var i = 0;
+                        i < pendingExpenses!.expenses.length;
+                        i++)
                       ExpenseCard(
                         expense: pendingExpenses!.expenses[i],
                         onConfirm: () => onConfirmExpense?.call(i),
-                        onEdit: () {
-                          // TODO: Open edit bottom sheet
-                        },
+                        onEdit: () => onConfirmExpense?.call(i),
                       ),
                   ],
                 ),

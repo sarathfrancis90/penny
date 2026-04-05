@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,42 +58,11 @@ class GroupDetailScreen extends ConsumerWidget {
               onPressed: () => _showEditSheet(context, ref, group),
             ),
           // Overflow menu
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
-            onSelected: (value) {
-              if (value == 'leave') {
-                _confirmLeaveGroup(context, ref, group);
-              } else if (value == 'delete') {
-                _confirmDeleteGroup(context, ref, group);
-              }
-            },
-            itemBuilder: (context) => [
-              if (!isOwner)
-                const PopupMenuItem(
-                  value: 'leave',
-                  child: Row(
-                    children: [
-                      Icon(Icons.exit_to_app, size: 20,
-                          color: AppColors.warning),
-                      SizedBox(width: 8),
-                      Text('Leave Group'),
-                    ],
-                  ),
-                ),
-              if (isOwner)
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, size: 20,
-                          color: AppColors.error),
-                      SizedBox(width: 8),
-                      Text('Delete Group',
-                          style: TextStyle(color: AppColors.error)),
-                    ],
-                  ),
-                ),
-            ],
+          _OverflowMenu(
+            groupId: groupId,
+            isOwner: isOwner,
+            onLeave: () => _confirmLeaveGroup(context, ref, group),
+            onDelete: () => _confirmDeleteGroup(context, ref, group),
           ),
         ],
       ),
@@ -1018,6 +988,165 @@ class _MemberTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Overflow menu with "Set/Clear Default Group", "Leave", and "Delete" options.
+class _OverflowMenu extends ConsumerWidget {
+  const _OverflowMenu({
+    required this.groupId,
+    required this.isOwner,
+    this.onLeave,
+    this.onDelete,
+  });
+
+  final String groupId;
+  final bool isOwner;
+  final VoidCallback? onLeave;
+  final VoidCallback? onDelete;
+
+  Future<void> _setDefaultGroup(BuildContext context, WidgetRef ref) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(
+        {'preferences': {'defaultGroupId': groupId}},
+        SetOptions(merge: true),
+      );
+      HapticFeedback.mediumImpact();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Set as default group for new expenses'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to set default: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearDefaultGroup(BuildContext context, WidgetRef ref) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(
+        {'preferences': {'defaultGroupId': null}},
+        SetOptions(merge: true),
+      );
+      HapticFeedback.mediumImpact();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Default group cleared'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to clear default: $e'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final defaultGroupAsync = ref.watch(defaultGroupProvider);
+    final isDefault =
+        defaultGroupAsync.valueOrNull == groupId;
+
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
+      onSelected: (value) {
+        switch (value) {
+          case 'set_default':
+            _setDefaultGroup(context, ref);
+          case 'clear_default':
+            _clearDefaultGroup(context, ref);
+          case 'leave':
+            onLeave?.call();
+          case 'delete':
+            onDelete?.call();
+        }
+      },
+      itemBuilder: (context) => [
+        if (!isDefault)
+          const PopupMenuItem(
+            value: 'set_default',
+            child: Row(
+              children: [
+                Icon(Icons.star_outline, size: 20,
+                    color: AppColors.primary),
+                SizedBox(width: 8),
+                Text('Set as Default Group'),
+              ],
+            ),
+          ),
+        if (isDefault)
+          const PopupMenuItem(
+            value: 'clear_default',
+            child: Row(
+              children: [
+                Icon(Icons.star_border, size: 20,
+                    color: AppColors.textSecondary),
+                SizedBox(width: 8),
+                Text('Clear Default Group'),
+              ],
+            ),
+          ),
+        if (!isOwner)
+          const PopupMenuItem(
+            value: 'leave',
+            child: Row(
+              children: [
+                Icon(Icons.exit_to_app, size: 20,
+                    color: AppColors.warning),
+                SizedBox(width: 8),
+                Text('Leave Group'),
+              ],
+            ),
+          ),
+        if (isOwner)
+          const PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 20,
+                    color: AppColors.error),
+                SizedBox(width: 8),
+                Text('Delete Group',
+                    style: TextStyle(color: AppColors.error)),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
