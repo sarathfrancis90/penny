@@ -173,9 +173,15 @@ class ExpenseDetailScreen extends ConsumerWidget {
                           backgroundColor: AppColors.error),
                       onPressed: () async {
                         Navigator.pop(ctx);
-                        await ref
-                            .read(expenseRepositoryProvider)
-                            .deleteExpense(expense.id);
+                        // Group expenses go through API (triggers notifications)
+                        if (expense.groupId != null && expense.expenseType == 'group') {
+                          await ref.read(apiClientProvider).delete(
+                            '/api/expenses/${expense.id}',
+                          );
+                        } else {
+                          await ref.read(expenseRepositoryProvider)
+                              .deleteExpense(expense.id);
+                        }
                         HapticFeedback.mediumImpact();
                         if (context.mounted) Navigator.pop(context);
                       },
@@ -286,19 +292,32 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
 
     try {
       final user = widget.ref.read(currentUserProvider);
-      await widget.ref.read(expenseRepositoryProvider).updateExpense(
-        expenseId: widget.expense.id,
-        userId: user!.uid,
-        updates: {
-          'vendor': vendor,
-          'amount': amount,
-          'category': _selectedCategory,
-          'description': _descriptionController.text.trim(),
-          'date': Timestamp.fromDate(
-              DateTime(_selectedDate.year, _selectedDate.month,
-                  _selectedDate.day, 12)),
-        },
-      );
+      final updates = {
+        'vendor': vendor,
+        'amount': amount,
+        'category': _selectedCategory,
+        'description': _descriptionController.text.trim(),
+        'date': '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
+      };
+
+      // Group expenses go through API (triggers notifications to members)
+      if (widget.expense.groupId != null && widget.expense.expenseType == 'group') {
+        await widget.ref.read(apiClientProvider).patch(
+          '/api/expenses/${widget.expense.id}',
+          data: updates,
+        );
+      } else {
+        await widget.ref.read(expenseRepositoryProvider).updateExpense(
+          expenseId: widget.expense.id,
+          userId: user!.uid,
+          updates: {
+            ...updates,
+            'date': Timestamp.fromDate(
+                DateTime(_selectedDate.year, _selectedDate.month,
+                    _selectedDate.day, 12)),
+          },
+        );
+      }
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context);
     } catch (e) {

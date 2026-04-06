@@ -2,6 +2,71 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { deleteReceipt } from "@/lib/storageService";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+
+/**
+ * Notify group members about an expense change (update or delete).
+ */
+async function notifyGroupMembers(
+  groupId: string,
+  actorUserId: string,
+  type: "group_expense_updated" | "group_expense_deleted",
+  title: string,
+  body: string,
+  expenseId: string,
+  metadata?: Record<string, unknown>
+) {
+  try {
+    const now = Timestamp.now();
+
+    // Get actor info
+    const userDoc = await adminDb.collection("users").doc(actorUserId).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const actorName = userData?.displayName || userData?.email || "Someone";
+
+    // Get group info
+    const groupDoc = await adminDb.collection("groups").doc(groupId).get();
+    const groupName = groupDoc.exists ? groupDoc.data()?.name : "Unknown Group";
+    const groupIcon = groupDoc.exists ? groupDoc.data()?.icon : "👥";
+
+    // Get all active members except actor
+    const membersSnapshot = await adminDb
+      .collection("groupMembers")
+      .where("groupId", "==", groupId)
+      .where("status", "==", "active")
+      .get();
+
+    const promises = membersSnapshot.docs
+      .filter((doc) => doc.data().userId !== actorUserId)
+      .map((memberDoc) =>
+        adminDb.collection("notifications").add({
+          userId: memberDoc.data().userId,
+          type,
+          title,
+          body: body.replace("{actor}", actorName),
+          icon: type === "group_expense_deleted" ? "🗑️" : "✏️",
+          priority: "medium",
+          category: "group",
+          read: false,
+          delivered: false,
+          isGrouped: false,
+          actionUrl: `/groups/${groupId}`,
+          relatedId: expenseId,
+          relatedType: "expense",
+          groupId,
+          actorId: actorUserId,
+          actorName,
+          metadata: { groupName, groupIcon, ...metadata },
+          createdAt: now,
+        })
+      );
+
+    await Promise.all(promises);
+    console.log(`[Notifications] Created ${promises.length} ${type} notifications for group ${groupId}`);
+  } catch (err) {
+    console.error("[Notifications] Error creating group notifications:", err);
+  }
+}
 
 interface UpdateExpenseRequest {
   vendor?: string;
@@ -38,6 +103,33 @@ export async function DELETE(
       } catch (receiptError) {
         console.error("Failed to delete receipt:", receiptError);
         // Continue with expense deletion even if receipt deletion fails
+      }
+    }
+
+    // Notify group members if this is a group expense
+    if (expenseData?.groupId && expenseData?.expenseType === "group") {
+      const tokenUserId = await getAuthenticatedUserId(request);
+      const userId = tokenUserId || expenseData.userId;
+      await notifyGroupMembers(
+        expenseData.groupId,
+        userId,
+        "group_expense_deleted",
+        "Expense deleted",
+        `{actor} deleted $${expenseData.amount?.toFixed(2)} at ${expenseData.vendor}`,
+        id,
+        { vendor: expenseData.vendor, amount: expenseData.amount, category: expenseData.category }
+      );
+
+      // Update group stats
+      const groupRef = adminDb.collection("groups").doc(expenseData.groupId);
+      const groupDoc = await groupRef.get();
+      if (groupDoc.exists) {
+        const stats = groupDoc.data()?.stats || {};
+        await groupRef.update({
+          "stats.expenseCount": Math.max((stats.expenseCount || 1) - 1, 0),
+          "stats.totalAmount": Math.max((stats.totalAmount || 0) - (expenseData.amount || 0), 0),
+          "stats.lastActivityAt": Timestamp.now(),
+        });
       }
     }
 
@@ -125,6 +217,27 @@ export async function PUT(
 
     // Update the expense document using Admin SDK (bypasses security rules)
     await adminDb.collection("expenses").doc(id).update(updateData);
+
+    // Notify group members if this is a group expense
+    const expenseDoc = await adminDb.collection("expenses").doc(id).get();
+    const expenseData = expenseDoc.data();
+    if (expenseData?.groupId && expenseData?.expenseType === "group") {
+      const tokenUserId = await getAuthenticatedUserId(request);
+      const userId = tokenUserId || expenseData.userId;
+
+      const changes = Object.keys(body).filter(k => body[k as keyof UpdateExpenseRequest] !== undefined);
+      const changeDesc = changes.join(", ");
+
+      await notifyGroupMembers(
+        expenseData.groupId,
+        userId,
+        "group_expense_updated",
+        "Expense updated",
+        `{actor} updated ${expenseData.vendor} (${changeDesc})`,
+        id,
+        { vendor: expenseData.vendor, amount: expenseData.amount, changes }
+      );
+    }
 
     return NextResponse.json({
       success: true,
