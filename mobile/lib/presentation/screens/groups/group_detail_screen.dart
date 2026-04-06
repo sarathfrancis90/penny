@@ -416,6 +416,25 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) return;
 
+    // Check if member already exists or is already invited
+    final members = widget.ref.read(groupMembersProvider(widget.groupId)).valueOrNull ?? [];
+    final existing = members.where(
+        (m) => m.userEmail.toLowerCase() == email.toLowerCase()).firstOrNull;
+    if (existing != null) {
+      final status = existing.status;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(status == 'invited'
+                ? '$email has already been invited'
+                : '$email is already a ${existing.role} in this group'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _sending = true);
     try {
       final user = widget.ref.read(currentUserProvider);
@@ -991,6 +1010,20 @@ class _MemberTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (member.status == 'invited')
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text('invited',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.warning)),
+              ),
             Semantics(
               label: 'Role: ${member.role}',
               child: Container(
