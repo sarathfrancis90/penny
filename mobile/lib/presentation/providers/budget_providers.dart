@@ -36,3 +36,10 @@ final totalBudgetSpentProvider = Provider<double>((ref) {
   final usage = ref.watch(budgetUsageProvider);
   return usage.fold(0.0, (sum, u) => sum + u.totalSpent);
 });
+
+/// Budget usage for a specific category (used by over-budget warning).
+final budgetUsageForCategoryProvider =
+    Provider.family<BudgetUsage?, String>((ref, category) {
+  final usages = ref.watch(budgetUsageProvider);
+  return usages.where((u) => u.category == category).firstOrNull;
+});

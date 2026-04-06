@@ -65,8 +65,41 @@ export async function POST(request: NextRequest) {
     // Determine expense type
     const expenseType = groupId ? "group" : "personal";
 
+    // Determine approval status for group expenses
+    let groupMetadata: Record<string, unknown> | null = null;
+    if (groupId) {
+      const groupRef = adminDb.collection("groups").doc(groupId);
+      const groupDoc = await groupRef.get();
+      const groupData = groupDoc.exists ? groupDoc.data() : null;
+      const requireApproval = groupData?.settings?.requireApproval ?? false;
+
+      if (requireApproval) {
+        // Check if submitter is owner or admin (auto-approve for them)
+        const memberSnapshot = await adminDb
+          .collection("groupMembers")
+          .where("groupId", "==", groupId)
+          .where("userId", "==", userId)
+          .where("status", "==", "active")
+          .limit(1)
+          .get();
+
+        const memberRole = memberSnapshot.empty
+          ? "member"
+          : memberSnapshot.docs[0].data().role;
+
+        const isAdminOrOwner = memberRole === "owner" || memberRole === "admin";
+
+        groupMetadata = {
+          approvalStatus: isAdminOrOwner ? "approved" : "pending",
+          ...(isAdminOrOwner ? { approvedBy: userId, approvedAt: now } : {}),
+        };
+      } else {
+        groupMetadata = { approvalStatus: "approved" };
+      }
+    }
+
     // Create expense document
-    const expenseData = {
+    const expenseData: Record<string, unknown> = {
       vendor,
       amount,
       category,
@@ -88,6 +121,7 @@ export async function POST(request: NextRequest) {
           at: now,
         },
       ],
+      ...(groupMetadata ? { groupMetadata } : {}),
     };
 
     // Save to Firestore using Admin SDK (bypasses security rules)

@@ -3,6 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { GroupMember, GroupRole } from "@/lib/types";
 import { randomBytes } from "crypto";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * GET /api/groups/[groupId]/members - Get all members of a group
@@ -14,7 +15,8 @@ export async function GET(
   try {
     const { groupId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json(
@@ -74,8 +76,10 @@ export async function POST(
 ) {
   try {
     const { groupId } = await params;
+    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { userId, email, role = "member" } = body;
+    const { userId: bodyUserId, email, role = "member" } = body;
+    const userId = tokenUserId || bodyUserId;
 
     if (!userId || !email) {
       return NextResponse.json(

@@ -7,10 +7,14 @@ import 'package:penny_mobile/data/repositories/budget_repository.dart';
 import 'package:penny_mobile/data/repositories/conversation_repository.dart';
 import 'package:penny_mobile/data/repositories/expense_repository.dart';
 import 'package:penny_mobile/data/repositories/income_repository.dart';
+import 'package:penny_mobile/data/repositories/group_income_repository.dart';
 import 'package:penny_mobile/data/repositories/group_repository.dart';
+import 'package:penny_mobile/data/repositories/group_savings_repository.dart';
 import 'package:penny_mobile/data/repositories/notification_repository.dart';
 import 'package:penny_mobile/data/repositories/savings_repository.dart';
 import 'package:penny_mobile/data/services/duplicate_detector.dart';
+import 'package:penny_mobile/data/services/export_service.dart';
+import 'package:penny_mobile/data/services/push_notification_service.dart';
 import 'package:penny_mobile/data/services/storage_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 
@@ -46,6 +50,14 @@ final groupRepositoryProvider = Provider<GroupRepository>((ref) {
   return GroupRepository(apiClient: ref.watch(apiClientProvider));
 });
 
+final groupIncomeRepositoryProvider = Provider<GroupIncomeRepository>((ref) {
+  return GroupIncomeRepository();
+});
+
+final groupSavingsRepositoryProvider = Provider<GroupSavingsRepository>((ref) {
+  return GroupSavingsRepository();
+});
+
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   return NotificationRepository();
 });
@@ -56,6 +68,25 @@ final storageServiceProvider = Provider<StorageService>((ref) {
 
 final duplicateDetectorProvider = Provider<DuplicateDetector>((ref) {
   return DuplicateDetector();
+});
+
+final pushNotificationServiceProvider =
+    Provider<PushNotificationService>((ref) {
+  return PushNotificationService();
+});
+
+final exportServiceProvider = Provider<ExportService>((ref) => ExportService());
+
+/// Initializes push notifications when a user is authenticated.
+/// Watch this provider in the app shell to trigger initialization.
+final pushNotificationInitProvider = FutureProvider<void>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  final service = ref.read(pushNotificationServiceProvider);
+  if (user != null) {
+    await service.initialize();
+    await service.requestPermission();
+    await service.getAndStoreToken(user.uid);
+  }
 });
 
 /// Stream the user's default group ID from their preferences.

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * Helper function to check if user is admin/owner of a group
@@ -28,7 +29,8 @@ async function isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || searchParams.get("userId");
     const groupId = searchParams.get("groupId");
     const category = searchParams.get("category");
     const month = searchParams.get("month");
@@ -99,8 +101,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { userId, groupId, category, monthlyLimit, period, settings } = body;
+    const { userId: bodyUserId, groupId, category, monthlyLimit, period, settings } = body;
+    const userId = tokenUserId || bodyUserId;
 
     // Validation
     if (!userId || !groupId || !category || !monthlyLimit || !period) {

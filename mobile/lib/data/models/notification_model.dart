@@ -1,5 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class NotificationAction {
+  const NotificationAction({
+    required this.id,
+    required this.label,
+    this.action,
+    this.variant,
+  });
+
+  final String id;
+  final String label;
+  final String? action;
+  final String? variant;
+
+  factory NotificationAction.fromMap(Map<String, dynamic> map) =>
+      NotificationAction(
+        id: map['id'] as String? ?? '',
+        label: map['label'] as String? ?? '',
+        action: map['action'] as String?,
+        variant: map['variant'] as String?,
+      );
+}
+
 class NotificationModel {
   NotificationModel({
     required this.id,
@@ -23,6 +45,7 @@ class NotificationModel {
     this.actorAvatar,
     this.groupCount,
     this.metadata,
+    this.actions,
   });
 
   final String id;
@@ -46,6 +69,7 @@ class NotificationModel {
   final String? actorAvatar;
   final int? groupCount;
   final Map<String, dynamic>? metadata;
+  final List<NotificationAction>? actions;
 
   factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data()! as Map<String, dynamic>;
@@ -73,6 +97,10 @@ class NotificationModel {
       metadata: data['metadata'] != null
           ? Map<String, dynamic>.from(data['metadata'] as Map)
           : null,
+      actions: (data['actions'] as List<dynamic>?)
+          ?.map((a) => NotificationAction.fromMap(
+              Map<String, dynamic>.from(a as Map)))
+          .toList(),
     );
   }
 

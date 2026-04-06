@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * GET /api/user/default-group
@@ -7,7 +8,8 @@ import { adminDb } from "@/lib/firebase-admin";
  */
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.nextUrl.searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || request.nextUrl.searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -39,7 +41,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, groupId } = await request.json();
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const { userId: bodyUserId, groupId } = await request.json();
+    const userId = tokenUserId || bodyUserId;
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -96,7 +100,8 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = request.nextUrl.searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || request.nextUrl.searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });

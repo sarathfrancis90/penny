@@ -25,4 +25,14 @@ abstract final class AppColors {
   // Borders / Dividers
   static const divider = Color(0xFFE5E5EA);
   static const border = Color(0xFFD1D1D6);
+
+  // Dark theme colors
+  static const darkBackground = Color(0xFF000000);       // Pure black (OLED)
+  static const darkSurface = Color(0xFF1C1C1E);          // iOS dark gray
+  static const darkSurfaceSecondary = Color(0xFF2C2C2E);
+  static const darkTextPrimary = Color(0xFFFFFFFF);
+  static const darkTextSecondary = Color(0xFF8E8E93);    // Same gray works both themes
+  static const darkTextTertiary = Color(0xFF48484A);
+  static const darkDivider = Color(0xFF38383A);
+  static const darkBorder = Color(0xFF48484A);
 }

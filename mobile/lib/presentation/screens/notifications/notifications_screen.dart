@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/models/notification_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
@@ -110,7 +111,7 @@ class _NotificationList extends ConsumerWidget {
   }
 }
 
-class _NotificationTile extends StatelessWidget {
+class _NotificationTile extends ConsumerStatefulWidget {
   const _NotificationTile({
     required this.notification,
     required this.onTap,
@@ -121,11 +122,122 @@ class _NotificationTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDismiss;
 
+  @override
+  ConsumerState<_NotificationTile> createState() => _NotificationTileState();
+}
+
+class _NotificationTileState extends ConsumerState<_NotificationTile> {
+  bool _isProcessing = false;
+
+  NotificationModel get notification => widget.notification;
+
   Color get _priorityIndicator => switch (notification.priority) {
         'critical' => AppColors.error,
         'high' => AppColors.warning,
         _ => Colors.transparent,
       };
+
+  bool get _isGroupInvitation =>
+      notification.type == 'group_invitation' && !notification.read;
+
+  Future<void> _acceptInvitation() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    try {
+      final user = ref.read(currentUserProvider);
+      if (user == null) return;
+
+      final token = notification.metadata?['invitationToken'] as String?;
+      if (token == null) {
+        throw Exception('Missing invitation token');
+      }
+
+      final result =
+          await ref.read(groupRepositoryProvider).acceptInvitation(
+                token: token,
+                userId: user.uid,
+                userEmail: user.email ?? '',
+                userName: user.displayName,
+              );
+
+      await ref
+          .read(notificationRepositoryProvider)
+          .markAsRead(notification.id);
+
+      HapticFeedback.mediumImpact();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invitation accepted! You joined the group.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+
+        // Navigate to the group
+        final groupId = result['groupId'] as String? ??
+            notification.metadata?['groupId'] as String?;
+        if (groupId != null) {
+          context.push('/groups/$groupId');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to accept invitation: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _declineInvitation() async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
+    try {
+      final invitationId =
+          notification.metadata?['invitationId'] as String?;
+      if (invitationId == null) {
+        throw Exception('Missing invitation ID');
+      }
+
+      await ref
+          .read(groupRepositoryProvider)
+          .declineInvitation(invitationId: invitationId);
+
+      await ref
+          .read(notificationRepositoryProvider)
+          .markAsRead(notification.id);
+
+      HapticFeedback.lightImpact();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invitation declined'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to decline invitation: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,7 +252,7 @@ class _NotificationTile extends StatelessWidget {
         color: AppColors.error,
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
-      onDismissed: (_) => onDismiss(),
+      onDismissed: (_) => widget.onDismiss(),
       child: Semantics(
         button: true,
         label: '${notification.read ? '' : 'Unread, '}'
@@ -149,7 +261,7 @@ class _NotificationTile extends StatelessWidget {
             '${notification.timeAgo}'
             '${notification.priority == 'critical' ? ', critical priority' : notification.priority == 'high' ? ', high priority' : ''}',
         child: InkWell(
-          onTap: onTap,
+          onTap: widget.onTap,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -207,6 +319,51 @@ class _NotificationTile extends StatelessWidget {
                           notification.actorName!,
                           style: const TextStyle(
                               fontSize: 12, color: AppColors.textTertiary),
+                        ),
+                      ],
+
+                      // Group invitation action buttons
+                      if (_isGroupInvitation) ...[
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: _isProcessing ? null : _declineInvitation,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.textSecondary,
+                                  side: const BorderSide(color: AppColors.border),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                child: _isProcessing
+                                    ? const SizedBox(
+                                        height: 16, width: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))
+                                    : const Text('Decline',
+                                        style: TextStyle(fontSize: 13)),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: _isProcessing ? null : _acceptInvitation,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                                child: _isProcessing
+                                    ? const SizedBox(
+                                        height: 16, width: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white))
+                                    : const Text('Accept',
+                                        style: TextStyle(fontSize: 13)),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],

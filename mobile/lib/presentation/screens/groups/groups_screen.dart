@@ -137,7 +137,7 @@ class _GroupCard extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -307,7 +307,7 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
                     decoration: BoxDecoration(
                       color: selected
                           ? AppColors.primary.withValues(alpha: 0.1)
-                          : AppColors.surface,
+                          : Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(10),
                       border: selected
                           ? Border.all(color: AppColors.primary, width: 2)

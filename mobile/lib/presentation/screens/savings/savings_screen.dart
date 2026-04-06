@@ -78,7 +78,7 @@ class _SavingsContent extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -195,7 +195,7 @@ class _SavingsGoalCard extends ConsumerWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -465,7 +465,7 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
             subtitle: const Text('Update name, target, or contribution'),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
-            tileColor: AppColors.surface,
+            tileColor: Theme.of(context).cardColor,
             onTap: () {
               Navigator.pop(context);
               showModalBottomSheet(
@@ -483,7 +483,7 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
             subtitle: const Text('Record a deposit toward this goal'),
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
-            tileColor: AppColors.surface,
+            tileColor: Theme.of(context).cardColor,
             onTap: () {
               Navigator.pop(context);
               showModalBottomSheet(

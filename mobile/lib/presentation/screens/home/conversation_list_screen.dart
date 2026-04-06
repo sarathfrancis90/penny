@@ -1,17 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/models/conversation_model.dart';
-import 'package:penny_mobile/data/repositories/conversation_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/chat_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
-/// Provider for streaming conversation list.
+/// Provider for streaming conversation list, sorted with pinned first.
 final conversationsListProvider =
     StreamProvider<List<ConversationModel>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
-  return ref.watch(conversationRepositoryProvider).watchConversations(user.uid);
+  return ref
+      .watch(conversationRepositoryProvider)
+      .watchConversations(user.uid)
+      .map((conversations) {
+    conversations.sort((a, b) {
+      // Pinned conversations first
+      if (a.metadata.isPinned && !b.metadata.isPinned) return -1;
+      if (!a.metadata.isPinned && b.metadata.isPinned) return 1;
+      // Then by updatedAt descending
+      return b.updatedAt.compareTo(a.updatedAt);
+    });
+    return conversations;
+  });
 });
 
 /// Slide-in drawer showing conversation history.
@@ -103,7 +116,7 @@ class ConversationListDrawer extends ConsumerWidget {
   }
 }
 
-class _ConversationTile extends StatelessWidget {
+class _ConversationTile extends ConsumerWidget {
   const _ConversationTile({
     required this.conversation,
     required this.onTap,
@@ -113,7 +126,7 @@ class _ConversationTile extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final timeAgo = _formatTimeAgo(conversation.updatedAt.toDate());
 
     return Semantics(
@@ -124,6 +137,7 @@ class _ConversationTile extends StatelessWidget {
           '${conversation.metadata.isPinned ? ', pinned' : ''}',
       child: InkWell(
         onTap: onTap,
+        onLongPress: () => _showActionsSheet(context, ref),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -132,7 +146,7 @@ class _ConversationTile extends StatelessWidget {
               Container(
                 width: 36, height: 36,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(Icons.chat_bubble_outline,
@@ -181,6 +195,172 @@ class _ConversationTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showActionsSheet(BuildContext context, WidgetRef ref) {
+    HapticFeedback.mediumImpact();
+    final isPinned = conversation.metadata.isPinned;
+    final repo = ref.read(conversationRepositoryProvider);
+    final convId = conversation.id;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Pin / Unpin
+              ListTile(
+                leading: Icon(
+                  Icons.push_pin,
+                  color: isPinned ? AppColors.textSecondary : AppColors.primary,
+                ),
+                title: Text(isPinned ? 'Unpin' : 'Pin'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await repo.pinConversation(convId, !isPinned);
+                  HapticFeedback.lightImpact();
+                },
+              ),
+              // Rename
+              ListTile(
+                leading: const Icon(Icons.edit_outlined,
+                    color: AppColors.primary),
+                title: const Text('Rename'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showRenameDialog(context, ref);
+                },
+              ),
+              // Archive
+              ListTile(
+                leading: const Icon(Icons.archive_outlined,
+                    color: AppColors.textSecondary),
+                title: const Text('Archive'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await repo.archiveConversation(convId);
+                  _resetChatIfActive(ref, convId);
+                  HapticFeedback.lightImpact();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Conversation archived'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
+                },
+              ),
+              // Delete
+              ListTile(
+                leading: const Icon(Icons.delete_outline,
+                    color: AppColors.error),
+                title: const Text('Delete',
+                    style: TextStyle(color: AppColors.error)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showDeleteConfirmation(context, ref);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRenameDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController(text: conversation.title);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename Conversation'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Conversation title'),
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final newTitle = controller.text.trim();
+              if (newTitle.isNotEmpty && newTitle != conversation.title) {
+                await ref
+                    .read(conversationRepositoryProvider)
+                    .renameConversation(conversation.id, newTitle);
+                HapticFeedback.lightImpact();
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Conversation?'),
+        content: const Text(
+          'This will permanently delete this conversation and all its messages. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await ref
+                    .read(conversationRepositoryProvider)
+                    .deleteConversation(conversation.id);
+                _resetChatIfActive(ref, conversation.id);
+                HapticFeedback.mediumImpact();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Conversation deleted'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to delete: $e'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _resetChatIfActive(WidgetRef ref, String convId) {
+    final chatState = ref.read(chatProvider);
+    if (chatState.conversationId == convId) {
+      ref.read(chatProvider.notifier).newConversation();
+    }
   }
 
   String _formatTimeAgo(DateTime dt) {

@@ -9,6 +9,7 @@ import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
+import 'package:penny_mobile/presentation/widgets/receipt_image_viewer.dart';
 
 class ExpenseDetailScreen extends ConsumerWidget {
   const ExpenseDetailScreen({super.key, required this.expense});
@@ -104,6 +105,35 @@ class ExpenseDetailScreen extends ConsumerWidget {
             _DetailRow(label: 'Description', value: expense.description!),
           if (expense.notes != null && expense.notes!.isNotEmpty)
             _DetailRow(label: 'Notes', value: expense.notes!),
+
+          // Approval status for group expenses
+          if (expense.expenseType == 'group' &&
+              expense.approvalStatus != null) ...[
+            const SizedBox(height: 8),
+            _ApprovalStatusRow(expense: expense),
+          ],
+
+          if (expense.receiptUrl != null) ...[
+            const SizedBox(height: 16),
+            ReceiptImageViewer(
+              receiptUrl: expense.receiptUrl,
+              heroTag: 'receipt-${expense.id}',
+            ),
+          ],
+          if (expense.receiptUrl == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.receipt_long_outlined,
+                      size: 16, color: AppColors.textTertiary),
+                  const SizedBox(width: 8),
+                  Text('No receipt attached',
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textTertiary)),
+                ],
+              ),
+            ),
 
           const SizedBox(height: 32),
 
@@ -239,6 +269,71 @@ class _DetailRow extends StatelessWidget {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ApprovalStatusRow extends StatelessWidget {
+  const _ApprovalStatusRow({required this.expense});
+
+  final ExpenseModel expense;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color statusColor;
+    final String statusLabel;
+    final IconData statusIcon;
+
+    if (expense.isPending) {
+      statusColor = AppColors.warning;
+      statusLabel = 'Pending Approval';
+      statusIcon = Icons.hourglass_empty;
+    } else if (expense.isRejected) {
+      statusColor = AppColors.error;
+      statusLabel = 'Rejected';
+      statusIcon = Icons.cancel_outlined;
+    } else {
+      statusColor = AppColors.success;
+      statusLabel = 'Approved';
+      statusIcon = Icons.check_circle_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: statusColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(statusIcon, size: 16, color: statusColor),
+              const SizedBox(width: 8),
+              Text(
+                statusLabel,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                ),
+              ),
+            ],
+          ),
+          if (expense.isRejected && expense.rejectedReason != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Reason: ${expense.rejectedReason}',
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/theme_provider.dart';
 
 /// Provider for user preferences from Firestore.
 final userPreferencesProvider = StreamProvider<Map<String, dynamic>>((ref) {
@@ -25,11 +27,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefsAsync = ref.watch(userPreferencesProvider);
     final user = ref.watch(currentUserProvider);
-
-    final pushEnabled =
-        prefsAsync.valueOrNull?['pushNotifications'] as bool? ?? true;
-    final budgetAlertsEnabled =
-        prefsAsync.valueOrNull?['budgetAlerts'] as bool? ?? true;
+    final themeMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -56,26 +54,28 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () {},
           ),
 
+          // Appearance
+          _SettingsTile(
+            icon: Icons.dark_mode_outlined,
+            title: 'Appearance',
+            subtitle: switch (themeMode) {
+              ThemeMode.light => 'Light',
+              ThemeMode.dark => 'Dark',
+              ThemeMode.system => 'System',
+            },
+            onTap: () => _showThemePicker(context, ref),
+          ),
+
           const SizedBox(height: 24),
 
           // Notifications section
           const _SectionHeader(title: 'NOTIFICATIONS'),
           const SizedBox(height: 8),
-          _SettingsToggle(
+          _SettingsTile(
             icon: Icons.notifications_outlined,
-            title: 'Push Notifications',
-            subtitle: 'Receive push alerts',
-            value: pushEnabled,
-            onChanged: (value) => _updatePreference(
-                ref, 'pushNotifications', value),
-          ),
-          _SettingsToggle(
-            icon: Icons.warning_amber_outlined,
-            title: 'Budget Alerts',
-            subtitle: 'Warn when approaching limits',
-            value: budgetAlertsEnabled,
-            onChanged: (value) => _updatePreference(
-                ref, 'budgetAlerts', value),
+            title: 'Notification Preferences',
+            subtitle: 'Push, in-app, quiet hours',
+            onTap: () => context.push('/settings/notifications'),
           ),
 
           const SizedBox(height: 24),
@@ -119,16 +119,38 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _updatePreference(WidgetRef ref, String key, bool value) {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .set({
-      'preferences': {key: value}
-    }, SetOptions(merge: true));
-    HapticFeedback.selectionClick();
+  void _showThemePicker(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.read(themeModeProvider);
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final option in [
+                (ThemeMode.system, 'System', Icons.settings_suggest_outlined),
+                (ThemeMode.light, 'Light', Icons.light_mode_outlined),
+                (ThemeMode.dark, 'Dark', Icons.dark_mode_outlined),
+              ])
+                ListTile(
+                  leading: Icon(option.$3),
+                  title: Text(option.$2),
+                  trailing: currentMode == option.$1
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  onTap: () {
+                    ref.read(themeModeProvider.notifier).setThemeMode(option.$1);
+                    HapticFeedback.selectionClick();
+                    Navigator.pop(ctx);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showCurrencyPicker(BuildContext context, WidgetRef ref) {
@@ -314,53 +336,6 @@ class _SettingsTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SettingsToggle extends StatelessWidget {
-  const _SettingsToggle({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: AppColors.textSecondary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w500)),
-                Text(subtitle,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
-          ),
-        ],
       ),
     );
   }

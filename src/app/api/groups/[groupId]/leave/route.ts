@@ -1,22 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
-import { auth } from "@/lib/firebase";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
+    const tokenUserId = await getAuthenticatedUserId(request);
+    let bodyUserId: string | null = null;
+    try {
+      const body = await request.json();
+      bodyUserId = body.userId || null;
+    } catch {
+      // No body or invalid JSON — that's fine
+    }
+    const userId = tokenUserId || bodyUserId;
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { groupId } = await params;
 
+    // Fetch user profile for display name
+    const userDoc = await adminDb.collection("users").doc(userId).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const displayName = userData?.displayName || userData?.email || "Unknown User";
+
     // Check membership
-    const membershipId = `${groupId}_${currentUser.uid}`;
+    const membershipId = `${groupId}_${userId}`;
     const membershipDoc = await adminDb
       .collection("groupMembers")
       .doc(membershipId)
@@ -30,7 +44,7 @@ export async function POST(
     }
 
     const membershipData = membershipDoc.data();
-    
+
     // Owners cannot leave - they must transfer ownership first or delete the group
     if (membershipData?.role === "owner") {
       return NextResponse.json(
@@ -51,7 +65,7 @@ export async function POST(
     // Decrease member count in group stats
     const groupRef = adminDb.collection("groups").doc(groupId);
     const groupDoc = await groupRef.get();
-    
+
     if (groupDoc.exists) {
       const currentMemberCount = groupDoc.data()?.stats?.memberCount || 0;
       await groupRef.update({
@@ -64,10 +78,10 @@ export async function POST(
     // Log activity
     await adminDb.collection("groupActivity").add({
       groupId,
-      userId: currentUser.uid,
-      userName: currentUser.displayName || currentUser.email || "Unknown User",
+      userId,
+      userName: displayName,
       action: "member_left",
-      details: `${currentUser.displayName || currentUser.email} left the group`,
+      details: `${displayName} left the group`,
       createdAt: Timestamp.now(),
     });
 
@@ -86,4 +100,3 @@ export async function POST(
     );
   }
 }
-

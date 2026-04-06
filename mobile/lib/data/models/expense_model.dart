@@ -39,6 +39,14 @@ class ExpenseModel {
   final Map<String, dynamic>? groupMetadata;
   final List<Map<String, dynamic>>? history;
 
+  // Approval convenience getters
+  String? get approvalStatus => groupMetadata?['approvalStatus'] as String?;
+  String? get approvedBy => groupMetadata?['approvedBy'] as String?;
+  bool get isPending => approvalStatus == 'pending';
+  bool get isApproved => approvalStatus == 'approved' || approvalStatus == null;
+  bool get isRejected => approvalStatus == 'rejected';
+  String? get rejectedReason => groupMetadata?['rejectedReason'] as String?;
+
   factory ExpenseModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return ExpenseModel(

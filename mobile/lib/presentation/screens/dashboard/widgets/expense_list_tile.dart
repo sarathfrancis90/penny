@@ -86,7 +86,7 @@ class ExpenseListTile extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -131,7 +131,7 @@ class ExpenseListTile extends StatelessWidget {
                 ),
               ),
 
-              // Amount + Date
+              // Amount + Date + Approval badge
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -151,17 +151,58 @@ class ExpenseListTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    dateStr,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textTertiary,
+                  if (expense.expenseType == 'group' && expense.isPending)
+                    _ApprovalBadge(
+                      label: 'Pending',
+                      color: AppColors.warning,
+                    )
+                  else if (expense.expenseType == 'group' && expense.isRejected)
+                    _ApprovalBadge(
+                      label: 'Rejected',
+                      color: AppColors.error,
+                    )
+                  else if (expense.expenseType == 'group' &&
+                      expense.approvalStatus == 'approved')
+                    const Icon(Icons.check_circle,
+                        size: 14, color: AppColors.success)
+                  else
+                    Text(
+                      dateStr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textTertiary,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ApprovalBadge extends StatelessWidget {
+  const _ApprovalBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
         ),
       ),
     );

@@ -108,4 +108,52 @@ class ExpenseRepository {
   Future<void> deleteExpense(String expenseId) async {
     await _db.collection('expenses').doc(expenseId).delete();
   }
+
+  /// Approve a group expense.
+  Future<void> approveExpense(
+      {required String expenseId, required String userId}) async {
+    final now = Timestamp.now();
+    await _db.collection('expenses').doc(expenseId).update({
+      'groupMetadata.approvalStatus': 'approved',
+      'groupMetadata.approvedBy': userId,
+      'groupMetadata.approvedAt': now,
+      'updatedAt': now,
+      'history': FieldValue.arrayUnion([
+        {'action': 'approved', 'by': userId, 'at': now},
+      ]),
+    });
+  }
+
+  /// Reject a group expense with an optional reason.
+  Future<void> rejectExpense(
+      {required String expenseId,
+      required String userId,
+      String? reason}) async {
+    final now = Timestamp.now();
+    await _db.collection('expenses').doc(expenseId).update({
+      'groupMetadata.approvalStatus': 'rejected',
+      'groupMetadata.rejectedReason': reason,
+      'groupMetadata.rejectedAt': now,
+      'updatedAt': now,
+      'history': FieldValue.arrayUnion([
+        {
+          'action': 'rejected',
+          'by': userId,
+          'at': now,
+          'changes': {'reason': reason},
+        },
+      ]),
+    });
+  }
+
+  /// Stream pending group expenses awaiting approval.
+  Stream<List<ExpenseModel>> watchPendingGroupExpenses(String groupId) {
+    return _db
+        .collection('expenses')
+        .where('groupId', isEqualTo: groupId)
+        .where('groupMetadata.approvalStatus', isEqualTo: 'pending')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map(ExpenseModel.fromFirestore).toList());
+  }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * PATCH /api/groups/[groupId]/members/[memberId] - Update member role
@@ -12,8 +13,10 @@ export async function PATCH(
 ) {
   try {
     const { groupId, memberId } = await params;
+    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { newRole, userId } = body;
+    const { newRole, userId: bodyUserId } = body;
+    const userId = tokenUserId || bodyUserId;
 
     if (!userId) {
       return NextResponse.json(
@@ -171,7 +174,8 @@ export async function DELETE(
   try {
     const { groupId, memberId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || searchParams.get("userId");
     const action = searchParams.get("action"); // "leave" or "remove"
 
     if (!userId) {

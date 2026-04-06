@@ -80,7 +80,7 @@ class _BudgetsContent extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -269,7 +269,7 @@ class _BudgetCategoryCard extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -414,6 +414,9 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
   final _amountController = TextEditingController();
   String? _selectedCategory;
   bool _saving = false;
+  bool _rollover = false;
+  double _alertThreshold = 80.0;
+  bool _notificationsEnabled = true;
 
   @override
   void dispose() {
@@ -435,6 +438,11 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
             category: _selectedCategory!,
             monthlyLimit: amount,
             period: period,
+            settings: BudgetSettings(
+              rollover: _rollover,
+              alertThreshold: _alertThreshold,
+              notificationsEnabled: _notificationsEnabled,
+            ),
           );
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context);
@@ -484,6 +492,92 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
           ),
           const SizedBox(height: 20),
 
+          // Settings section
+          const Text('SETTINGS',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1)),
+          const SizedBox(height: 12),
+
+          // Rollover toggle
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Rollover unused budget',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    SizedBox(height: 2),
+                    Text('Carry forward unspent amount to next month',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: _rollover,
+                activeColor: AppColors.primary,
+                onChanged: (v) => setState(() => _rollover = v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Alert threshold
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Alert threshold',
+                    style:
+                        TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              ),
+              Text('${_alertThreshold.round()}%',
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary)),
+            ],
+          ),
+          Slider(
+            value: _alertThreshold,
+            min: 50,
+            max: 100,
+            divisions: 10,
+            activeColor: AppColors.primary,
+            onChanged: (v) => setState(() => _alertThreshold = v),
+          ),
+          const SizedBox(height: 4),
+
+          // Notifications toggle
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Budget notifications',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    SizedBox(height: 2),
+                    Text('Get notified when approaching limit',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: _notificationsEnabled,
+                activeColor: AppColors.primary,
+                onChanged: (v) => setState(() => _notificationsEnabled = v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving
@@ -516,6 +610,9 @@ class _EditBudgetSheet extends StatefulWidget {
 class _EditBudgetSheetState extends State<_EditBudgetSheet> {
   late final TextEditingController _amountController;
   bool _saving = false;
+  late bool _rollover;
+  late double _alertThreshold;
+  late bool _notificationsEnabled;
 
   @override
   void initState() {
@@ -523,6 +620,9 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
     _amountController = TextEditingController(
       text: widget.budget.monthlyLimit.toStringAsFixed(0),
     );
+    _rollover = widget.budget.settings.rollover;
+    _alertThreshold = widget.budget.settings.alertThreshold;
+    _notificationsEnabled = widget.budget.settings.notificationsEnabled;
   }
 
   @override
@@ -539,7 +639,14 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
     try {
       await widget.ref
           .read(budgetRepositoryProvider)
-          .updateBudget(widget.budget.id, {'monthlyLimit': amount});
+          .updateBudget(widget.budget.id, {
+        'monthlyLimit': amount,
+        'settings': BudgetSettings(
+          rollover: _rollover,
+          alertThreshold: _alertThreshold,
+          notificationsEnabled: _notificationsEnabled,
+        ).toMap(),
+      });
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -633,6 +740,93 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
             autofocus: true,
           ),
           const SizedBox(height: 20),
+
+          // Settings section
+          const Text('SETTINGS',
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 1)),
+          const SizedBox(height: 12),
+
+          // Rollover toggle
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Rollover unused budget',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    SizedBox(height: 2),
+                    Text('Carry forward unspent amount to next month',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: _rollover,
+                activeColor: AppColors.primary,
+                onChanged: (v) => setState(() => _rollover = v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Alert threshold
+          Row(
+            children: [
+              const Expanded(
+                child: Text('Alert threshold',
+                    style:
+                        TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+              ),
+              Text('${_alertThreshold.round()}%',
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary)),
+            ],
+          ),
+          Slider(
+            value: _alertThreshold,
+            min: 50,
+            max: 100,
+            divisions: 10,
+            activeColor: AppColors.primary,
+            onChanged: (v) => setState(() => _alertThreshold = v),
+          ),
+          const SizedBox(height: 4),
+
+          // Notifications toggle
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Budget notifications',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    SizedBox(height: 2),
+                    Text('Get notified when approaching limit',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: _notificationsEnabled,
+                activeColor: AppColors.primary,
+                onChanged: (v) => setState(() => _notificationsEnabled = v),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving

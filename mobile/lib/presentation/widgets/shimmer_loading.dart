@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:penny_mobile/core/constants/app_colors.dart';
 
 /// Reusable shimmer/skeleton loading components for Penny Mobile.
 ///
@@ -17,7 +16,7 @@ class ShimmerListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surface,
+      baseColor: Theme.of(context).cardColor,
       highlightColor: Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -28,7 +27,7 @@ class ShimmerListTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -43,7 +42,7 @@ class ShimmerListTile extends StatelessWidget {
                     height: 14,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -52,7 +51,7 @@ class ShimmerListTile extends StatelessWidget {
                     height: 12,
                     width: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -66,7 +65,7 @@ class ShimmerListTile extends StatelessWidget {
               height: 14,
               width: 60,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -89,13 +88,13 @@ class ShimmerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surface,
+      baseColor: Theme.of(context).cardColor,
       highlightColor: Colors.white,
       child: Container(
         height: height,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
         ),
       ),
@@ -115,14 +114,14 @@ class ShimmerContentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surface,
+      baseColor: Theme.of(context).cardColor,
       highlightColor: Colors.white,
       child: Container(
         height: height,
         width: double.infinity,
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
         ),
       ),

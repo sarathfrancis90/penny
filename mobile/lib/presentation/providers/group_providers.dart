@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
+import 'package:penny_mobile/data/models/group_activity_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
@@ -38,4 +39,26 @@ final groupByIdProvider =
   final groups = ref.watch(userGroupsProvider).valueOrNull ?? [];
   final matches = groups.where((g) => g.id == groupId);
   return matches.isEmpty ? null : matches.first;
+});
+
+/// Stream pending group expenses awaiting approval.
+final pendingGroupExpensesProvider =
+    StreamProvider.family<List<ExpenseModel>, String>((ref, groupId) {
+  return ref.watch(expenseRepositoryProvider).watchPendingGroupExpenses(groupId);
+});
+
+/// Count of pending expenses for a group.
+final pendingExpenseCountProvider =
+    Provider.family<int, String>((ref, groupId) {
+  return ref
+          .watch(pendingGroupExpensesProvider(groupId))
+          .valueOrNull
+          ?.length ??
+      0;
+});
+
+/// Stream recent activity for a group.
+final groupActivitiesProvider =
+    StreamProvider.family<List<GroupActivityModel>, String>((ref, groupId) {
+  return ref.watch(groupRepositoryProvider).watchGroupActivities(groupId);
 });

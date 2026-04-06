@@ -273,6 +273,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : const Text('Sign In'),
                 ),
 
+                // Forgot Password
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push('/auth/forgot-password'),
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Biometric Sign In Button
                 if (showBiometric) ...[
                   const SizedBox(height: 12),
@@ -310,13 +325,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Google Sign In
                 OutlinedButton.icon(
                   onPressed: _loading ? null : () => _signInWithOAuth('google'),
-                  icon: const Text('G', style: TextStyle(
+                  icon: Text('G', style: TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary)),
+                    color: Theme.of(context).colorScheme.onSurface)),
                   label: const Text('Continue with Google'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.divider),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -327,12 +342,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Apple Sign In
                 OutlinedButton.icon(
                   onPressed: _loading ? null : () => _signInWithOAuth('apple'),
-                  icon: const Icon(Icons.apple, size: 20,
-                    color: AppColors.textPrimary),
+                  icon: Icon(Icons.apple, size: 20,
+                    color: Theme.of(context).colorScheme.onSurface),
                   label: const Text('Continue with Apple'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: const BorderSide(color: AppColors.divider),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),

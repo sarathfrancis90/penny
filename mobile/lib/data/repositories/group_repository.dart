@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
 import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/data/models/group_activity_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 
@@ -69,6 +70,46 @@ class GroupRepository {
     final doc = await _db.collection('groupMembers').doc(docId).get();
     if (!doc.exists) return null;
     return GroupMemberModel.fromFirestore(doc);
+  }
+
+  /// Stream activity feed for a group.
+  Stream<List<GroupActivityModel>> watchGroupActivities(String groupId,
+      {int limit = 50}) {
+    return _db
+        .collection('groupActivities')
+        .where('groupId', isEqualTo: groupId)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snap) =>
+            snap.docs.map(GroupActivityModel.fromFirestore).toList());
+  }
+
+  /// Accept a group invitation via API.
+  Future<Map<String, dynamic>> acceptInvitation({
+    required String token,
+    required String userId,
+    required String userEmail,
+    String? userName,
+  }) async {
+    final response = await _api.post(
+      ApiEndpoints.acceptInvitation,
+      data: {
+        'token': token,
+        'userId': userId,
+        'userEmail': userEmail,
+        if (userName != null) 'userName': userName,
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  /// Decline a group invitation by updating the invitation status.
+  Future<void> declineInvitation({required String invitationId}) async {
+    await _db.collection('groupInvitations').doc(invitationId).update({
+      'status': 'rejected',
+      'respondedAt': FieldValue.serverTimestamp(),
+    });
   }
 
   // ====== API Writes (server-side for atomicity) ======

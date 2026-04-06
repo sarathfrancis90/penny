@@ -8,8 +8,11 @@ import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
+import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
+import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
 
 /// A modal bottom sheet for confirming and editing an AI-parsed expense before
 /// saving. Supports personal and group expense flows.
@@ -92,6 +95,9 @@ class _ExpenseConfirmationSheetState
         : expenseCategories.first;
 
     _date = _parseDate(widget.expense.date);
+
+    // Trigger rebuild for live budget impact preview.
+    _amountController.addListener(() => setState(() {}));
   }
 
   @override
@@ -140,6 +146,21 @@ class _ExpenseConfirmationSheetState
     if (user == null) {
       _showError('Not signed in');
       return;
+    }
+
+    // Budget check for personal expenses
+    if (_selectedGroupId == null) {
+      final usage = ref.read(budgetUsageForCategoryProvider(_category));
+      if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
+        final proceed = await OverBudgetWarningSheet.show(
+          context,
+          category: _category,
+          budgetLimit: usage.budgetLimit,
+          currentSpent: usage.totalSpent,
+          expenseAmount: amount,
+        );
+        if (proceed != true) return;
+      }
     }
 
     setState(() => _saving = true);
@@ -404,6 +425,17 @@ class _ExpenseConfirmationSheetState
                   const InputDecoration(hintText: 'Additional notes...'),
             ),
             const SizedBox(height: 14),
+
+            // Budget impact preview (personal only)
+            if (_selectedGroupId == null &&
+                (double.tryParse(_amountController.text.trim()) ?? 0) > 0)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: BudgetImpactPreview(
+                  category: _category,
+                  amount: double.tryParse(_amountController.text.trim()) ?? 0,
+                ),
+              ),
 
             // Group selector
             _FieldLabel(icon: Icons.group_outlined, label: 'Assign to'),

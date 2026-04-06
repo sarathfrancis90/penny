@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * GET /api/budgets/personal
@@ -10,7 +11,8 @@ import { Timestamp } from "firebase-admin/firestore";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || searchParams.get("userId");
     const category = searchParams.get("category");
     const month = searchParams.get("month");
     const year = searchParams.get("year");
@@ -59,8 +61,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { userId, category, monthlyLimit, period, settings } = body;
+    const { userId: bodyUserId, category, monthlyLimit, period, settings } = body;
+    const userId = tokenUserId || bodyUserId;
 
     // Validation
     if (!userId || !category || !monthlyLimit || !period) {

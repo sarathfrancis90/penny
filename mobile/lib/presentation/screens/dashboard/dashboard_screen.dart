@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -7,6 +8,7 @@ import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
+import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/quick_add_expense.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/expense_list_tile.dart';
 import 'package:penny_mobile/presentation/widgets/animated_counter.dart';
@@ -25,6 +27,11 @@ class DashboardScreen extends ConsumerWidget {
         title: const Text('Dashboard'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.ios_share_outlined),
+            tooltip: 'Export expenses',
+            onPressed: () => _showExportSheet(context, ref),
+          ),
+          IconButton(
             icon: const Icon(Icons.search),
             tooltip: 'Search expenses',
             onPressed: () => context.push('/search'),
@@ -32,11 +39,12 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        tooltip: 'Add expense',
         onPressed: () {
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
-            builder: (_) => QuickAddExpense(ref: ref),
+            builder: (_) => const QuickAddExpense(),
           );
         },
         backgroundColor: AppColors.primary,
@@ -50,6 +58,13 @@ class DashboardScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(allExpensesProvider),
         ),
       ),
+    );
+  }
+
+  void _showExportSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => _ExportSheet(ref: ref),
     );
   }
 }
@@ -200,7 +215,7 @@ class _PeriodSelector extends ConsumerWidget {
       DashboardPeriod.thisWeek: 'This Week',
       DashboardPeriod.thisMonth: 'This Month',
       DashboardPeriod.lastMonth: 'Last Month',
-      DashboardPeriod.threeMonths: '3 Months',
+      DashboardPeriod.threeMonths: '3M',
       DashboardPeriod.thisYear: 'This Year',
       DashboardPeriod.custom: customRange != null
           ? '${DateFormat('MMM d').format(customRange.start)} – ${DateFormat('MMM d').format(customRange.end)}'
@@ -657,7 +672,7 @@ class _TotalCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -723,7 +738,7 @@ class _CategoryTotals extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -795,6 +810,212 @@ class _SectionTitle extends StatelessWidget {
         const Spacer(),
         if (trailing != null) trailing!,
       ],
+    );
+  }
+}
+
+// ====== Export Sheet ======
+
+class _ExportSheet extends StatefulWidget {
+  const _ExportSheet({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  State<_ExportSheet> createState() => _ExportSheetState();
+}
+
+class _ExportSheetState extends State<_ExportSheet> {
+  bool _exporting = false;
+
+  String _periodLabel(DashboardPeriod period, DateTimeRange? customRange) {
+    return switch (period) {
+      DashboardPeriod.thisWeek => 'this_week',
+      DashboardPeriod.thisMonth => 'this_month',
+      DashboardPeriod.lastMonth => 'last_month',
+      DashboardPeriod.threeMonths => '3_months',
+      DashboardPeriod.thisYear => 'this_year',
+      DashboardPeriod.custom => customRange != null
+          ? '${DateFormat('yyyy-MM-dd').format(customRange.start)}_${DateFormat('yyyy-MM-dd').format(customRange.end)}'
+          : 'custom',
+    };
+  }
+
+  String _periodDisplayLabel(
+      DashboardPeriod period, DateTimeRange? customRange) {
+    return switch (period) {
+      DashboardPeriod.thisWeek => 'This Week',
+      DashboardPeriod.thisMonth => 'This Month',
+      DashboardPeriod.lastMonth => 'Last Month',
+      DashboardPeriod.threeMonths => 'Last 3 Months',
+      DashboardPeriod.thisYear => 'This Year',
+      DashboardPeriod.custom => customRange != null
+          ? '${DateFormat('MMM d').format(customRange.start)} - ${DateFormat('MMM d').format(customRange.end)}'
+          : 'Custom Range',
+    };
+  }
+
+  String _filterSummary(ExpenseFilter filter) {
+    final parts = <String>[];
+    if (filter.typeFilter == ExpenseTypeFilter.personal) {
+      parts.add('Personal only');
+    } else if (filter.typeFilter == ExpenseTypeFilter.group) {
+      parts.add('Group only');
+    }
+    if (filter.categoryFilter != null) {
+      var cat = filter.categoryFilter!;
+      final parenIdx = cat.indexOf('(');
+      if (parenIdx > 0) cat = cat.substring(0, parenIdx).trim();
+      parts.add(cat);
+    }
+    return parts.isEmpty ? 'All expenses' : parts.join(', ');
+  }
+
+  Future<void> _export() async {
+    setState(() => _exporting = true);
+    try {
+      final expenses = widget.ref.read(filteredExpensesProvider);
+      final groups =
+          widget.ref.read(userGroupsProvider).valueOrNull ?? [];
+      final groupNames = {for (final g in groups) g.id: g.name};
+      final period = widget.ref.read(dashboardPeriodProvider);
+      final customRange = widget.ref.read(customDateRangeProvider);
+      final dateRangeLabel = _periodLabel(period, customRange);
+
+      await widget.ref.read(exportServiceProvider).shareExpenseCsv(
+            expenses,
+            groupNames: groupNames,
+            dateRangeLabel: dateRangeLabel,
+          );
+
+      HapticFeedback.mediumImpact();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expenses = widget.ref.read(filteredExpensesProvider);
+    final period = widget.ref.read(dashboardPeriodProvider);
+    final customRange = widget.ref.read(customDateRangeProvider);
+    final filter = widget.ref.read(expenseFilterProvider);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Export Expenses',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+
+            // Summary info
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.date_range,
+                          size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      Text(
+                        _periodDisplayLabel(period, customRange),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.filter_alt_outlined,
+                          size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      Text(
+                        _filterSummary(filter),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.receipt_long_outlined,
+                          size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${expenses.length} expense${expenses.length == 1 ? '' : 's'}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            ElevatedButton.icon(
+              onPressed: expenses.isEmpty || _exporting ? null : _export,
+              icon: _exporting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.file_download_outlined),
+              label: Text(_exporting ? 'Generating...' : 'Export as CSV'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+
+            if (expenses.isEmpty) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'No expenses match the current filters',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

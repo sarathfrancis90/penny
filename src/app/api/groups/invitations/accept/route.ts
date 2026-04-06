@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * POST /api/groups/invitations/accept - Accept a group invitation
  */
 export async function POST(request: NextRequest) {
   try {
+    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { token, userId, userEmail, userName } = body;
+    const { token, userId: bodyUserId, userEmail, userName } = body;
+    const userId = tokenUserId || bodyUserId;
 
     if (!token || !userId || !userEmail) {
       return NextResponse.json(

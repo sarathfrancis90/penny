@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
  * GET /api/conversations
@@ -9,7 +10,8 @@ import { Timestamp } from "firebase-admin/firestore";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const tokenUserId = await getAuthenticatedUserId(request);
+    const userId = tokenUserId || searchParams.get("userId");
     const limitParam = searchParams.get("limit");
     const includeArchived = searchParams.get("includeArchived") === "true";
 
@@ -69,8 +71,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { userId, title, firstMessage, firstMessageRole = "user" } = body;
+    const { userId: bodyUserId, title, firstMessage, firstMessageRole = "user" } = body;
+    const userId = tokenUserId || bodyUserId;
 
     if (!userId) {
       return NextResponse.json(

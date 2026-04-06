@@ -99,6 +99,43 @@ class ConversationRepository {
     });
   }
 
+  /// Update a conversation with arbitrary fields.
+  Future<void> updateConversation(
+      String conversationId, Map<String, dynamic> updates) async {
+    await _db.collection('conversations').doc(conversationId).update({
+      ...updates,
+      'updatedAt': Timestamp.now(),
+    });
+  }
+
+  /// Pin or unpin a conversation.
+  Future<void> pinConversation(String conversationId, bool isPinned) =>
+      updateConversation(conversationId, {'metadata.isPinned': isPinned});
+
+  /// Archive a conversation (sets status to 'archived').
+  Future<void> archiveConversation(String conversationId) =>
+      updateConversation(conversationId, {'status': 'archived'});
+
+  /// Rename a conversation.
+  Future<void> renameConversation(String conversationId, String title) =>
+      updateConversation(conversationId, {'title': title});
+
+  /// Delete a conversation and all its messages.
+  Future<void> deleteConversation(String conversationId) async {
+    // Delete all messages in subcollection first
+    final messages = await _db
+        .collection('conversations')
+        .doc(conversationId)
+        .collection('messages')
+        .get();
+    final batch = _db.batch();
+    for (final doc in messages.docs) {
+      batch.delete(doc.reference);
+    }
+    batch.delete(_db.collection('conversations').doc(conversationId));
+    await batch.commit();
+  }
+
   /// Stream messages for a conversation.
   Stream<List<MessageModel>> watchMessages(String conversationId) {
     return _db
