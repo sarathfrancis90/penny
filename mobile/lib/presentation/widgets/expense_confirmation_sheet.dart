@@ -148,6 +148,29 @@ class _ExpenseConfirmationSheetState
       return;
     }
 
+    // Duplicate check
+    final duplicateResult = await ref.read(duplicateDetectorProvider).checkForDuplicate(
+      vendor: vendor,
+      amount: amount,
+      date: _date,
+      userId: user.uid,
+      groupId: _selectedGroupId,
+    );
+    if (duplicateResult != null && mounted) {
+      final addAnyway = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Possible Duplicate'),
+          content: Text(duplicateResult.warningMessage),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add Anyway')),
+          ],
+        ),
+      );
+      if (addAnyway != true) return;
+    }
+
     // Budget check for personal expenses
     if (_selectedGroupId == null) {
       final usage = ref.read(budgetUsageForCategoryProvider(_category));

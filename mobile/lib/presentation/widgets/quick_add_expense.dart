@@ -62,6 +62,32 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
       return;
     }
 
+    // Duplicate check
+    final user = ref.read(currentUserProvider);
+    if (user != null) {
+      final duplicateResult = await ref.read(duplicateDetectorProvider).checkForDuplicate(
+        vendor: vendor,
+        amount: amount,
+        date: _selectedDate,
+        userId: user.uid,
+        groupId: _selectedGroupId,
+      );
+      if (duplicateResult != null && mounted) {
+        final addAnyway = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Possible Duplicate'),
+            content: Text(duplicateResult.warningMessage),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add Anyway')),
+            ],
+          ),
+        );
+        if (addAnyway != true) return;
+      }
+    }
+
     // Budget check for personal expenses
     if (_selectedGroupId == null) {
       final usage = ref.read(budgetUsageForCategoryProvider(_selectedCategory!));
@@ -80,7 +106,6 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
     setState(() => _saving = true);
 
     try {
-      final user = ref.read(currentUserProvider);
       if (user == null) return;
 
       final dateStr =
