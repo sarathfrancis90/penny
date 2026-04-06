@@ -412,18 +412,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           // Navigation links
           _ProfileTile(
-            icon: Icons.account_balance_outlined,
-            title: 'Income',
-            subtitle: 'Manage income sources',
-            onTap: () => context.push('/income'),
-          ),
-          _ProfileTile(
-            icon: Icons.savings_outlined,
-            title: 'Savings Goals',
-            subtitle: 'Track your savings progress',
-            onTap: () => context.push('/savings'),
-          ),
-          _ProfileTile(
             icon: Icons.notifications_outlined,
             title: 'Notifications',
             subtitle: 'Manage alerts and preferences',

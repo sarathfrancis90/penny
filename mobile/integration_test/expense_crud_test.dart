@@ -241,12 +241,18 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // Navigate to Budgets tab
-      await tester.tap(find.text('Budgets'));
+      // Navigate to Finances tab
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
 
-      // Empty state
+      // Empty state on Finances screen
       expect(find.text('No budgets yet'), findsOneWidget);
+
+      // Tap "Create Budget" to push to BudgetsScreen
+      await tester.tap(find.text('Create Budget'));
+      await tester.pumpAndSettle();
+
+      // BudgetsScreen empty state
       expect(find.text('Tap + to create your first budget'), findsOneWidget);
 
       // Tap add button
@@ -283,7 +289,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Budgets'));
+      await tester.tap(find.text('Finances'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Tap "Manage Budgets" to push to BudgetsScreen
+      await tester.tap(find.text('Manage Budgets'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Should show Warning badge (250/300 = 83%)
@@ -335,7 +345,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Budgets'));
+      await tester.tap(find.text('Finances'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Tap "Manage Budgets" to push to BudgetsScreen
+      await tester.tap(find.text('Manage Budgets'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Both categories should appear
@@ -363,7 +377,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Budgets'));
+      await tester.tap(find.text('Finances'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Tap "Manage Budgets" to push to BudgetsScreen
+      await tester.tap(find.text('Manage Budgets'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Summary should show the month and budget info
@@ -394,7 +412,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Budgets'));
+      await tester.tap(find.text('Finances'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Tap "Manage Budgets" to push to BudgetsScreen
+      await tester.tap(find.text('Manage Budgets'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Over'), findsOneWidget);
@@ -410,20 +432,20 @@ void main() {
 
     setUp(() { fs = FakeFirebaseFirestore(); auth = _createAuth(); });
 
-    testWidgets('Income screen accessible from Profile with empty state', (tester) async {
+    testWidgets('Income screen accessible from Finances with empty state', (tester) async {
       await tester.pumpWidget(ProviderScope(
         overrides: _overrides(auth, fs),
         child: const PennyApp(),
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
 
       expect(find.text('Income'), findsOneWidget);
-      expect(find.text('Savings Goals'), findsOneWidget);
+      expect(find.text('Savings'), findsOneWidget);
 
-      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Add Income'));
       await tester.pumpAndSettle();
 
       expect(find.text('No income sources'), findsOneWidget);
@@ -451,9 +473,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Manage Income'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Sources should appear
@@ -475,9 +497,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Add Income'));
       await tester.pumpAndSettle();
 
       // Tap + button
@@ -512,9 +534,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Manage Income'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Frequency labels should be displayed
@@ -541,9 +563,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Savings Goals'));
+      await tester.tap(find.text('Add Goal'));
       await tester.pumpAndSettle();
 
       expect(find.text('TOTAL PORTFOLIO'), findsOneWidget);
@@ -569,9 +591,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Savings Goals'));
+      await tester.tap(find.text('Manage Savings'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Japan Trip'), findsOneWidget);
@@ -606,9 +628,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Savings Goals'));
+      await tester.tap(find.text('Manage Savings'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Japan Trip'), findsOneWidget);
@@ -624,9 +646,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Savings Goals'));
+      await tester.tap(find.text('Add Goal'));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.add));
@@ -938,7 +960,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Sign Out'), findsOneWidget);
-      expect(find.text('Income'), findsOneWidget);
+      expect(find.text('Notifications'), findsOneWidget);
     });
   });
 
@@ -996,7 +1018,11 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Budgets'));
+      await tester.tap(find.text('Finances'));
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+
+      // Tap "Manage Budgets" to push to BudgetsScreen
+      await tester.tap(find.text('Manage Budgets'));
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Initially Safe (no expenses)
@@ -1037,7 +1063,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Total Spent'), findsOneWidget);
 
-      await tester.tap(find.text('Budgets'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
       expect(find.text('No budgets yet'), findsOneWidget);
 
@@ -1047,7 +1073,7 @@ void main() {
 
       await tester.tap(find.text('Profile'));
       await tester.pumpAndSettle();
-      expect(find.text('Income'), findsOneWidget);
+      expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Sign Out'), findsOneWidget);
 
       await tester.tap(find.text('Home'));
@@ -1055,7 +1081,7 @@ void main() {
       expect(find.text('Track an expense'), findsOneWidget);
     });
 
-    testWidgets('Profile → Income → back returns to Profile', (tester) async {
+    testWidgets('Finances → Income → back returns to Finances', (tester) async {
       final fs = FakeFirebaseFirestore();
       final auth = _createAuth();
 
@@ -1065,13 +1091,13 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // Go to Profile
-      await tester.tap(find.text('Profile'));
+      // Go to Finances
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
       expect(find.text('Income'), findsOneWidget);
 
       // Push to Income
-      await tester.tap(find.text('Income'));
+      await tester.tap(find.text('Add Income'));
       await tester.pumpAndSettle();
       expect(find.text('No income sources'), findsOneWidget);
 
@@ -1079,13 +1105,13 @@ void main() {
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
 
-      // Should be back on Profile
+      // Should be back on Finances
       expect(find.text('Income'), findsOneWidget);
-      expect(find.text('Savings Goals'), findsOneWidget);
-      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Savings'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget);
     });
 
-    testWidgets('Profile → Savings → back returns to Profile', (tester) async {
+    testWidgets('Finances → Savings → back returns to Finances', (tester) async {
       final fs = FakeFirebaseFirestore();
       final auth = _createAuth();
 
@@ -1095,18 +1121,18 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Profile'));
+      await tester.tap(find.text('Finances'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Savings Goals'));
+      await tester.tap(find.text('Add Goal'));
       await tester.pumpAndSettle();
       expect(find.text('TOTAL PORTFOLIO'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Savings Goals'), findsOneWidget);
-      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Savings'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget);
     });
 
     testWidgets('Profile shows user info correctly', (tester) async {

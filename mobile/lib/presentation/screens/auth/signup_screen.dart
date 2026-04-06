@@ -94,6 +94,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               children: [
                 const Spacer(flex: 2),
 
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset('assets/icon/penny_icon.png', width: 64, height: 64),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   'Create Account',
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(

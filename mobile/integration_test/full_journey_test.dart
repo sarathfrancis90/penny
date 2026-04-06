@@ -746,11 +746,15 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
 
-      // Empty state
+      // Empty state on Finances
       expect(find.text('No budgets yet'), findsOneWidget);
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Create Budget'));
+      await t.pumpAndSettle();
 
       // Tap add
       await t.tap(find.byIcon(Icons.add));
@@ -814,7 +818,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // $250/$300 = 83% -> Warning
@@ -858,7 +866,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Initially Safe
@@ -952,7 +964,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Office expenses'), findsAny);
@@ -980,9 +996,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Manage Income'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // All 3 sources visible
@@ -1006,9 +1022,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Add Income'));
       await t.pumpAndSettle();
 
       await t.tap(find.byIcon(Icons.add));
@@ -1025,20 +1041,20 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Add Income'));
       await t.pumpAndSettle();
 
       // Empty state
       expect(find.text('No income sources'), findsOneWidget);
       expect(find.text('Add your first income source'), findsOneWidget);
 
-      // Navigate back and verify Profile is intact
+      // Navigate back and verify Finances is intact
       await t.tap(find.byTooltip('Back'));
       await t.pumpAndSettle();
       expect(find.text('Income'), findsOneWidget);
-      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget);
     });
   });
 
@@ -1056,9 +1072,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Savings Goals'));
+      await t.tap(find.text('Manage Savings'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // All 3 goals visible
@@ -1089,9 +1105,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Savings Goals'));
+      await t.tap(find.text('Manage Savings'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // $1,000 + $4,000 + $2,700 = $7,700
@@ -1102,9 +1118,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Savings Goals'));
+      await t.tap(find.text('Add Goal'));
       await t.pumpAndSettle();
 
       await t.tap(find.byIcon(Icons.add));
@@ -1297,12 +1313,31 @@ void main() {
         await t.pumpAndSettle();
       }
 
-      // Dashboard -> Budgets
-      await t.tap(find.text('Budgets'));
+      // Dashboard -> Finances
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('CATEGORIES'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget);
+      expect(find.text('Income'), findsOneWidget);
 
-      // Budgets -> Groups
+      // Finances -> Income
+      await t.tap(find.text('Manage Income'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Software Consulting'), findsOneWidget);
+
+      // Back from Income
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
+
+      // Finances -> Savings
+      await t.tap(find.text('Manage Savings'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Japan Trip'), findsOneWidget);
+
+      // Back from Savings
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
+
+      // Finances -> Groups
       await t.tap(find.text('Groups'));
       await t.pumpAndSettle(const Duration(seconds: 1));
       expect(find.text('Family'), findsOneWidget);
@@ -1321,24 +1356,6 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('Test User'), findsOneWidget);
 
-      // Profile -> Income
-      await t.tap(find.text('Income'));
-      await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('Software Consulting'), findsOneWidget);
-
-      // Back from Income
-      await t.tap(find.byTooltip('Back'));
-      await t.pumpAndSettle();
-
-      // Profile -> Savings
-      await t.tap(find.text('Savings Goals'));
-      await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('Japan Trip'), findsOneWidget);
-
-      // Back from Savings
-      await t.tap(find.byTooltip('Back'));
-      await t.pumpAndSettle();
-
       // Profile -> Home
       await t.tap(find.text('Home'));
       await t.pumpAndSettle();
@@ -1351,10 +1368,10 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      // Push to Income from Profile
-      await t.tap(find.text('Profile'));
+      // Push to Income from Finances
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Manage Income'));
       await t.pumpAndSettle(const Duration(seconds: 1));
       await t.tap(find.byTooltip('Back'));
       await t.pumpAndSettle();
@@ -1383,10 +1400,11 @@ void main() {
       await t.tap(find.byTooltip('Back'));
       await t.pumpAndSettle();
 
-      // Bottom nav: Budgets
-      await t.tap(find.text('Budgets'));
+      // Bottom nav: Finances
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('CATEGORIES'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget);
+      expect(find.text('Income'), findsOneWidget);
 
       // Bottom nav: Home
       await t.tap(find.text('Home'));
@@ -1532,16 +1550,12 @@ void main() {
       expect(find.text('Test User'), findsOneWidget);
       expect(find.text('test@penny.app'), findsOneWidget);
 
-      // Navigation links
-      expect(find.text('Income'), findsOneWidget);
-      expect(find.text('Savings Goals'), findsOneWidget);
+      // Navigation links (Income/Savings moved to Finances tab)
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Sign Out'), findsOneWidget);
 
-      // Subtitles
-      expect(find.text('Manage income sources'), findsOneWidget);
-      expect(find.text('Track your savings progress'), findsOneWidget);
+      // Subtitles (Income/Savings tiles moved to Finances tab)
       expect(find.text('Manage alerts and preferences'), findsOneWidget);
       expect(find.text('Currency, fiscal year, theme'), findsOneWidget);
     });
@@ -1612,12 +1626,39 @@ void main() {
       expect(find.text('By Category'), findsAny);
       expect(find.text('Total Spent'), findsOneWidget);
 
-      // Budgets
-      await t.tap(find.text('Budgets'));
+      // Finances
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Budgets'), findsOneWidget);
+      expect(find.text('Income'), findsOneWidget);
+      expect(find.text('Savings'), findsOneWidget);
+
+      // Income (push from Finances)
+      await t.tap(find.text('Manage Income'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Software Consulting'), findsOneWidget);
+      expect(find.text('Freelance Design'), findsOneWidget);
+      expect(find.text('SaaS Product Revenue'), findsOneWidget);
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
+
+      // Savings (push from Finances)
+      await t.tap(find.text('Manage Savings'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Japan Trip'), findsOneWidget);
+      expect(find.text('Emergency Fund'), findsOneWidget);
+      expect(find.text('New MacBook'), findsOneWidget);
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
+
+      // Budgets (push from Finances)
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
       expect(find.text('CATEGORIES'), findsOneWidget);
       expect(find.text('Meals and entertainment'), findsAny);
       expect(find.text('Groceries'), findsAny);
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
 
       // Groups
       await t.tap(find.text('Groups'));
@@ -1629,24 +1670,6 @@ void main() {
       await t.tap(find.text('Profile'));
       await t.pumpAndSettle();
       expect(find.text('Test User'), findsOneWidget);
-
-      // Income
-      await t.tap(find.text('Income'));
-      await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('Software Consulting'), findsOneWidget);
-      expect(find.text('Freelance Design'), findsOneWidget);
-      expect(find.text('SaaS Product Revenue'), findsOneWidget);
-      await t.tap(find.byTooltip('Back'));
-      await t.pumpAndSettle();
-
-      // Savings
-      await t.tap(find.text('Savings Goals'));
-      await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('Japan Trip'), findsOneWidget);
-      expect(find.text('Emergency Fund'), findsOneWidget);
-      expect(find.text('New MacBook'), findsOneWidget);
-      await t.tap(find.byTooltip('Back'));
-      await t.pumpAndSettle();
 
       // Notifications
       await t.tap(find.text('Notifications'));
@@ -1676,7 +1699,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Budgets seeded for current month: Meals $300, Office $200, Telephone $150, Groceries $500

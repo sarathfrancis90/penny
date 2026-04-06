@@ -12,7 +12,7 @@ class AppShell extends ConsumerWidget {
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/dashboard')) return 1;
-    if (location.startsWith('/budgets')) return 2;
+    if (location.startsWith('/finances')) return 2;
     if (location.startsWith('/groups')) return 3;
     if (location.startsWith('/profile')) return 4;
     return 0;
@@ -25,7 +25,7 @@ class AppShell extends ConsumerWidget {
       case 1:
         context.go('/dashboard');
       case 2:
-        context.go('/budgets');
+        context.go('/finances');
       case 3:
         context.go('/groups');
       case 4:
@@ -66,7 +66,7 @@ class AppShell extends ConsumerWidget {
             BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet_outlined),
               activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Budgets',
+              label: 'Finances',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.group_outlined),

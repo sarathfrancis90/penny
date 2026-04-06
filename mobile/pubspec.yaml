@@ -91,6 +91,8 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/
 
   # Using system fonts (SF Pro on iOS, Roboto on Android).
   # Add custom Inter font files later if needed.

@@ -32,7 +32,7 @@ Screen (Widget) → Provider (Riverpod) → Repository → Firestore / API
 - Run `dart run build_runner build` after adding/changing `@riverpod` annotations
 
 ### Navigation — go_router
-- ShellRoute for bottom navigation (5 tabs: Home, Dashboard, Budgets, Groups, Profile)
+- ShellRoute for bottom navigation (5 tabs: Home, Dashboard, Finances, Groups, Profile)
 - Nested routes within each tab preserve tab state
 - Auth redirect: unauthenticated users → `/auth/login`
 

@@ -15,6 +15,7 @@ import 'package:penny_mobile/presentation/screens/groups/groups_screen.dart';
 import 'package:penny_mobile/presentation/screens/notifications/notifications_screen.dart';
 import 'package:penny_mobile/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:penny_mobile/presentation/screens/savings/savings_screen.dart';
+import 'package:penny_mobile/presentation/screens/finances/finances_screen.dart';
 import 'package:penny_mobile/presentation/screens/expenses/expense_detail_screen.dart';
 import 'package:penny_mobile/presentation/screens/expenses/expense_search_screen.dart';
 import 'package:penny_mobile/presentation/screens/profile/profile_screen.dart';
@@ -93,6 +94,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: '/budgets',
+        pageBuilder: (context, state) => _buildCupertinoPage(
+          key: state.pageKey,
+          child: const BudgetsScreen(),
+        ),
+      ),
+      GoRoute(
         path: '/notifications',
         pageBuilder: (context, state) => _buildCupertinoPage(
           key: state.pageKey,
@@ -145,9 +153,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/budgets',
+            path: '/finances',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: BudgetsScreen(),
+              child: FinancesScreen(),
             ),
           ),
           GoRoute(

@@ -330,7 +330,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle();
+
+      // Push to BudgetsScreen via empty state button
+      await t.tap(find.text('Create Budget'));
       await t.pumpAndSettle();
 
       await t.tap(find.byIcon(Icons.add));
@@ -346,7 +350,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Summary card visible
@@ -364,7 +372,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Progress ring is a CustomPaint - verify surrounding text
@@ -386,9 +398,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Add Income'));
       await t.pumpAndSettle();
 
       await t.tap(find.byIcon(Icons.add));
@@ -406,9 +418,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Manage Income'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Consulting'), findsOneWidget);
@@ -424,9 +436,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Manage Income'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Monthly summary card should show total
@@ -447,9 +459,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Savings Goals'));
+      await t.tap(find.text('Add Goal'));
       await t.pumpAndSettle();
 
       await t.tap(find.byIcon(Icons.add));
@@ -466,9 +478,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Savings Goals'));
+      await t.tap(find.text('Manage Savings'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('Japan Trip'), findsOneWidget);
@@ -486,9 +498,9 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Savings Goals'));
+      await t.tap(find.text('Manage Savings'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       expect(find.text('TOTAL PORTFOLIO'), findsOneWidget);
@@ -666,14 +678,10 @@ void main() {
       expect(find.text('T'), findsOneWidget); // Avatar initial
       expect(find.text('Test User'), findsOneWidget);
       expect(find.text('test@penny.app'), findsOneWidget);
-      expect(find.text('Income'), findsOneWidget);
-      expect(find.text('Savings Goals'), findsOneWidget);
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Settings'), findsOneWidget);
       expect(find.text('Sign Out'), findsOneWidget);
       // Subtitles
-      expect(find.text('Manage income sources'), findsOneWidget);
-      expect(find.text('Track your savings progress'), findsOneWidget);
       expect(find.text('Manage alerts and preferences'), findsOneWidget);
       expect(find.text('Currency, fiscal year, theme'), findsOneWidget);
     });
@@ -737,10 +745,26 @@ void main() {
       await t.pumpAndSettle(const Duration(seconds: 1));
       expect(find.text('By Category'), findsOneWidget);
 
-      // Budgets
-      await t.tap(find.text('Budgets'));
+      // Finances
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('CATEGORIES'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget);
+      expect(find.text('Income'), findsOneWidget);
+      expect(find.text('Savings'), findsOneWidget);
+
+      // Income (push from Finances)
+      await t.tap(find.text('Manage Income'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Consulting'), findsOneWidget);
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
+
+      // Savings (push from Finances)
+      await t.tap(find.text('Manage Savings'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+      expect(find.text('Japan Trip'), findsOneWidget);
+      await t.tap(find.byTooltip('Back'));
+      await t.pumpAndSettle();
 
       // Groups
       await t.tap(find.text('Groups'));
@@ -751,20 +775,6 @@ void main() {
       await t.tap(find.text('Profile'));
       await t.pumpAndSettle();
       expect(find.text('Test User'), findsOneWidget);
-
-      // Income
-      await t.tap(find.text('Income'));
-      await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('Consulting'), findsOneWidget);
-      await t.tap(find.byTooltip('Back'));
-      await t.pumpAndSettle();
-
-      // Savings
-      await t.tap(find.text('Savings Goals'));
-      await t.pumpAndSettle(const Duration(seconds: 1));
-      expect(find.text('Japan Trip'), findsOneWidget);
-      await t.tap(find.byTooltip('Back'));
-      await t.pumpAndSettle();
 
       // Notifications
       await t.tap(find.text('Notifications'));
@@ -808,7 +818,11 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Budgets'));
+      await t.tap(find.text('Finances'));
+      await t.pumpAndSettle(const Duration(seconds: 1));
+
+      // Push to BudgetsScreen
+      await t.tap(find.text('Manage Budgets'));
       await t.pumpAndSettle(const Duration(seconds: 1));
 
       // Meals: $14.50/$300 = 4.8% -> Safe
@@ -827,26 +841,27 @@ void main() {
       await t.pumpWidget(_app(_createAuth(), fs));
       await t.pumpAndSettle();
 
-      await t.tap(find.text('Profile'));
+      // Income → back (push from Finances)
+      await t.tap(find.text('Finances'));
       await t.pumpAndSettle();
-
-      // Income → back
-      await t.tap(find.text('Income'));
+      await t.tap(find.text('Add Income'));
       await t.pumpAndSettle();
       expect(find.text('No income sources'), findsOneWidget);
       await t.tap(find.byTooltip('Back'));
       await t.pumpAndSettle();
-      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget); // Back on Finances
 
-      // Savings → back
-      await t.tap(find.text('Savings Goals'));
+      // Savings → back (push from Finances)
+      await t.tap(find.text('Add Goal'));
       await t.pumpAndSettle();
       expect(find.text('TOTAL PORTFOLIO'), findsOneWidget);
       await t.tap(find.byTooltip('Back'));
       await t.pumpAndSettle();
-      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Budgets'), findsOneWidget); // Back on Finances
 
-      // Notifications → back
+      // Notifications → back (push from Profile)
+      await t.tap(find.text('Profile'));
+      await t.pumpAndSettle();
       await t.tap(find.text('Notifications'));
       await t.pumpAndSettle();
       expect(find.text('No notifications'), findsOneWidget);

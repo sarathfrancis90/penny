@@ -149,7 +149,7 @@ class _OnboardingPage extends StatelessWidget {
         children: [
           const Spacer(),
 
-          // Illustration area — icon in a blue-tinted circle
+          // Illustration area — Penny icon or feature icon in circle
           Container(
             width: 160,
             height: 160,
@@ -157,11 +157,18 @@ class _OnboardingPage extends StatelessWidget {
               color: AppColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              data.icon,
-              size: 72,
-              color: AppColors.primary,
-            ),
+            child: data.icon == Icons.chat_bubble_outline
+                ? Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset('assets/icon/penny_icon.png', width: 88, height: 88),
+                    ),
+                  )
+                : Icon(
+                    data.icon,
+                    size: 72,
+                    color: AppColors.primary,
+                  ),
           ),
           const SizedBox(height: 48),
 

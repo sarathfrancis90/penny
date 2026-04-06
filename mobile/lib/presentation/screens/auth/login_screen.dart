@@ -192,6 +192,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const Spacer(flex: 2),
 
                 // Logo
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset('assets/icon/penny_icon.png', width: 72, height: 72),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   'Penny',
                   style: Theme.of(context).textTheme.headlineLarge?.copyWith(

@@ -79,6 +79,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         children: [
           const Spacer(flex: 2),
 
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset('assets/icon/penny_icon.png', width: 56, height: 56),
+            ),
+          ),
+          const SizedBox(height: 12),
+
           // Header
           Text(
             'Reset Password',

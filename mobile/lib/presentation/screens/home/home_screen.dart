@@ -122,12 +122,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Penny',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: Image.asset('assets/icon/penny_icon.png', width: 28, height: 28),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Penny',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
