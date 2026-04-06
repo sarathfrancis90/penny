@@ -4,15 +4,8 @@ set -e
 echo "=== Xcode Cloud: Post-Clone Script ==="
 echo "Installing Flutter SDK and project dependencies..."
 
-# Auto-increment build number using Xcode Cloud's build number
-# This ensures each build has a unique, incrementing number
-if [ -n "$CI_BUILD_NUMBER" ]; then
-  BUILD_NUM=$((CI_BUILD_NUMBER + 14))
-  echo "Setting build number to $BUILD_NUM (CI_BUILD_NUMBER=$CI_BUILD_NUMBER + 14 offset)"
-  cd "$CI_PRIMARY_REPOSITORY_PATH/mobile/ios"
-  agvtool new-version -all "$BUILD_NUM"
-  cd "$CI_PRIMARY_REPOSITORY_PATH"
-fi
+# Build number is managed via App Store Connect → Xcode Cloud → Settings → Build Number.
+# No manual version bumping needed — Xcode Cloud auto-increments.
 
 # Install Flutter SDK
 FLUTTER_HOME="$HOME/flutter"
