@@ -10,7 +10,6 @@ import 'package:penny_mobile/presentation/providers/notification_providers.dart'
 import 'package:penny_mobile/presentation/providers/chat_provider.dart';
 import 'package:penny_mobile/presentation/widgets/chat_bubble.dart';
 import 'package:penny_mobile/presentation/widgets/expense_card.dart';
-import 'package:penny_mobile/presentation/widgets/expense_confirmation_sheet.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -24,12 +23,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
   final _picker = ImagePicker();
+  final _saveTrigger = ValueNotifier<VoidCallback?>(null);
+  final _savingNotifier = ValueNotifier<bool>(false);
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
+    _saveTrigger.dispose();
+    _savingNotifier.dispose();
     super.dispose();
   }
 
@@ -103,63 +106,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Open the editable confirmation bottom sheet for a single expense.
-  Future<void> _openConfirmationSheet(int index) async {
-    final chatState = ref.read(chatProvider);
-    final expense = chatState.pendingExpenses?.expenses[index];
-    if (expense == null) return;
-
-    final saved = await ExpenseConfirmationSheet.show(
-      context,
-      expense: expense,
-      receiptUrl: chatState.receiptUrl,
-      onSaved: () {
-        ref.read(chatProvider.notifier).clearPendingExpenses();
-      },
-    );
-
-    // If the single-expense case was saved, pending is already cleared via
-    // the onSaved callback. For multi-expense, we clear after all are done
-    // (handled by _openMultiExpenseFlow).
-    if (saved == true && chatState.pendingExpenses?.isMultiple == false) {
-      // Already cleared above via onSaved.
-    }
+  /// Clear pending expenses after save or dismiss.
+  void _onExpenseSaved() {
+    ref.read(chatProvider.notifier).clearPendingExpenses();
   }
 
-  /// When the AI detects multiple expenses, iterate through each and open the
-  /// confirmation sheet one at a time. User can confirm/skip each.
-  Future<void> _openMultiExpenseFlow() async {
-    final chatState = ref.read(chatProvider);
-    final expenses = chatState.pendingExpenses?.expenses;
-    if (expenses == null || expenses.isEmpty) return;
-
-    int savedCount = 0;
-
-    for (var i = 0; i < expenses.length; i++) {
-      if (!mounted) break;
-
-      final saved = await ExpenseConfirmationSheet.show(
-        context,
-        expense: expenses[i],
-        receiptUrl: chatState.receiptUrl,
-      );
-
-      if (saved == true) savedCount++;
-    }
-
-    // Clear all pending expenses after the flow completes.
+  void _onExpenseDismissed() {
     ref.read(chatProvider.notifier).clearPendingExpenses();
-
-    if (mounted && savedCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$savedCount of ${expenses.length} expenses saved'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-    }
   }
 
   @override
@@ -197,9 +150,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 : _MessageList(
                     conversationId: conversationId,
                     scrollController: _scrollController,
-                    pendingExpenses: chatState.pendingExpenses,
-                    onConfirmExpense: _openConfirmationSheet,
-                    onConfirmAll: _openMultiExpenseFlow,
                   ),
           ),
 
@@ -249,15 +199,179 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
 
-          // Input bar
-          _InputBar(
-            controller: _controller,
-            focusNode: _focusNode,
-            onSend: _sendMessage,
-            onCamera: _showImageSourcePicker,
-            isLoading: chatState.isLoading || chatState.isAnalyzing,
-          ),
+          // Pending expense panel + action bar, OR input bar
+          if (chatState.pendingExpenses != null) ...[
+            _PendingExpensePanel(
+              pendingExpenses: chatState.pendingExpenses!,
+              receiptUrl: chatState.receiptUrl,
+              onExpenseSaved: _onExpenseSaved,
+              onExpenseDismissed: _onExpenseDismissed,
+              saveTrigger: _saveTrigger,
+              savingNotifier: _savingNotifier,
+            ),
+            _ActionBar(
+              saveTrigger: _saveTrigger,
+              savingNotifier: _savingNotifier,
+              onCancel: _onExpenseDismissed,
+            ),
+          ] else
+            _InputBar(
+              controller: _controller,
+              focusNode: _focusNode,
+              onSend: _sendMessage,
+              onCamera: _showImageSourcePicker,
+              isLoading: chatState.isLoading || chatState.isAnalyzing,
+            ),
         ],
+      ),
+    );
+  }
+}
+
+/// Persistent bottom panel that slides up when there are pending expenses.
+/// Contains a scrollable form area. Action buttons live in [_ActionBar].
+class _PendingExpensePanel extends StatelessWidget {
+  const _PendingExpensePanel({
+    required this.pendingExpenses,
+    this.receiptUrl,
+    this.onExpenseSaved,
+    this.onExpenseDismissed,
+    this.saveTrigger,
+    this.savingNotifier,
+  });
+
+  final AnalyzeExpenseResult pendingExpenses;
+  final String? receiptUrl;
+  final VoidCallback? onExpenseSaved;
+  final VoidCallback? onExpenseDismissed;
+  final ValueNotifier<VoidCallback?>? saveTrigger;
+  final ValueNotifier<bool>? savingNotifier;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final maxHeight = MediaQuery.of(context).size.height * 0.55;
+    final isMultiple = pendingExpenses.isMultiple;
+
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          border: Border(
+            top: BorderSide(
+              color: AppColors.primary.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header for multi-expense
+              if (isMultiple)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '${pendingExpenses.expenses.length} expenses detected',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+
+              for (var i = 0; i < pendingExpenses.expenses.length; i++) ...[
+                if (i > 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(
+                      height: 1,
+                      color: theme.dividerColor,
+                    ),
+                  ),
+                ExpenseCard(
+                  expense: pendingExpenses.expenses[i],
+                  receiptUrl: receiptUrl,
+                  onSaved: onExpenseSaved,
+                  onDismiss: onExpenseDismissed,
+                  saveTrigger: saveTrigger,
+                  savingNotifier: savingNotifier,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Bottom action bar shown when a pending expense is being reviewed.
+/// Replaces the [_InputBar] so the user sees Cancel / Confirm & Save.
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.saveTrigger,
+    required this.savingNotifier,
+    required this.onCancel,
+  });
+
+  final ValueNotifier<VoidCallback?> saveTrigger;
+  final ValueNotifier<bool> savingNotifier;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: ValueListenableBuilder<bool>(
+          valueListenable: savingNotifier,
+          builder: (context, saving, _) {
+            return Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: saving ? null : onCancel,
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: saving ? null : () => saveTrigger.value?.call(),
+                    icon: saving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.check_circle_outline, size: 18),
+                    label: const Text('Confirm & Save'),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -330,16 +444,10 @@ class _MessageList extends ConsumerWidget {
   const _MessageList({
     required this.conversationId,
     required this.scrollController,
-    this.pendingExpenses,
-    this.onConfirmExpense,
-    this.onConfirmAll,
   });
 
   final String conversationId;
   final ScrollController scrollController;
-  final AnalyzeExpenseResult? pendingExpenses;
-  final void Function(int index)? onConfirmExpense;
-  final VoidCallback? onConfirmAll;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -359,60 +467,8 @@ class _MessageList extends ConsumerWidget {
         return ListView.builder(
           controller: scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount: messages.length + (pendingExpenses != null ? 1 : 0),
+          itemCount: messages.length,
           itemBuilder: (context, index) {
-            // Show pending expense cards at the end
-            if (index == messages.length && pendingExpenses != null) {
-              final isMultiple = pendingExpenses!.isMultiple;
-              return Padding(
-                padding: const EdgeInsets.only(right: 48),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header for multi-expense
-                    if (isMultiple)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${pendingExpenses!.expenses.length} expenses detected',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            const Spacer(),
-                            TextButton.icon(
-                              onPressed: onConfirmAll,
-                              icon: const Icon(Icons.playlist_add_check,
-                                  size: 18),
-                              label: const Text('Confirm All'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8),
-                                textStyle: const TextStyle(fontSize: 13),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    for (var i = 0;
-                        i < pendingExpenses!.expenses.length;
-                        i++)
-                      ExpenseCard(
-                        expense: pendingExpenses!.expenses[i],
-                        onConfirm: () => onConfirmExpense?.call(i),
-                        onEdit: () => onConfirmExpense?.call(i),
-                      ),
-                  ],
-                ),
-              );
-            }
-
             final msg = messages[index];
             return ChatBubble(
               content: msg.content,
