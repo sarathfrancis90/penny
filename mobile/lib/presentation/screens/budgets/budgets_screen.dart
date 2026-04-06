@@ -86,8 +86,8 @@ class _BudgetsContent extends ConsumerWidget {
             child: Column(
               children: [
                 Text(monthName,
-                    style: const TextStyle(
-                        fontSize: 14, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 16),
 
                 // Progress ring
@@ -113,15 +113,16 @@ class _BudgetsContent extends ConsumerWidget {
                                         BudgetStatus.warning
                                     ? AppColors.warning
                                     : AppColors.error,
+                            trackColor: Theme.of(context).dividerColor,
                           ),
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text('Spent',
+                                Text('Spent',
                                     style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondary)),
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
                                 AnimatedCounter(
                                     value: totalSpent,
                                     decimals: 0,
@@ -129,9 +130,9 @@ class _BudgetsContent extends ConsumerWidget {
                                         fontSize: 24,
                                         fontWeight: FontWeight.w700)),
                                 Text('of ${formatter.format(totalLimit)}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondary)),
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
                               ],
                             ),
                           ),
@@ -153,8 +154,8 @@ class _BudgetsContent extends ConsumerWidget {
                 ),
                 Text(
                   '${percentage.toStringAsFixed(0)}% of monthly limit reached',
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary),
+                  style: TextStyle(
+                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -164,33 +165,33 @@ class _BudgetsContent extends ConsumerWidget {
 
           // Category budgets
           if (usage.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
               child: Center(
                 child: Column(
                   children: [
                     Icon(Icons.account_balance_wallet_outlined,
-                        size: 48, color: AppColors.textTertiary),
+                        size: 48, color: Theme.of(context).hintColor),
                     SizedBox(height: 12),
                     Text('No budgets yet',
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary)),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     SizedBox(height: 4),
                     Text('Tap + to create your first budget',
                         style: TextStyle(
-                            fontSize: 14, color: AppColors.textTertiary)),
+                            fontSize: 14, color: Theme.of(context).hintColor)),
                   ],
                 ),
               ),
             )
           else ...[
-            const Text('CATEGORIES',
+            Text('CATEGORIES',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     letterSpacing: 1)),
             const SizedBox(height: 12),
             ...usage.asMap().entries.map((entry) {
@@ -284,8 +285,8 @@ class _BudgetCategoryCard extends ConsumerWidget {
                   ),
                   Text(
                     '${formatter.format(usage.totalSpent)} / ${formatter.format(usage.budgetLimit)}',
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -298,7 +299,7 @@ class _BudgetCategoryCard extends ConsumerWidget {
                   child: LinearProgressIndicator(
                     value: (usage.percentageUsed / 100).clamp(0.0, 1.0),
                     minHeight: 8,
-                    backgroundColor: AppColors.divider,
+                    backgroundColor: Theme.of(context).dividerColor,
                     valueColor: AlwaysStoppedAnimation<Color>(_barColor),
                   ),
                 ),
@@ -313,8 +314,8 @@ class _BudgetCategoryCard extends ConsumerWidget {
                   const Spacer(),
                   Text(
                     '${usage.percentageUsed.toStringAsFixed(0)}%',
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -360,10 +361,11 @@ class _StatusBadge extends StatelessWidget {
 }
 
 class _ProgressRingPainter extends CustomPainter {
-  _ProgressRingPainter({required this.percentage, required this.color});
+  _ProgressRingPainter({required this.percentage, required this.color, required this.trackColor});
 
   final double percentage;
   final Color color;
+  final Color trackColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -378,7 +380,7 @@ class _ProgressRingPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth
-        ..color = AppColors.divider,
+        ..color = trackColor,
     );
 
     // Progress arc
@@ -398,7 +400,7 @@ class _ProgressRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ProgressRingPainter old) =>
-      old.percentage != percentage || old.color != color;
+      old.percentage != percentage || old.color != color || old.trackColor != trackColor;
 }
 
 class _CreateBudgetSheet extends StatefulWidget {
@@ -493,11 +495,11 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
           const SizedBox(height: 20),
 
           // Settings section
-          const Text('SETTINGS',
+          Text('SETTINGS',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   letterSpacing: 1)),
           const SizedBox(height: 12),
 
@@ -507,14 +509,14 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Rollover unused budget',
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w500)),
                     SizedBox(height: 2),
                     Text('Carry forward unspent amount to next month',
                         style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
+                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
@@ -558,14 +560,14 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Budget notifications',
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w500)),
                     SizedBox(height: 2),
                     Text('Get notified when approaching limit',
                         style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
+                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
@@ -728,8 +730,8 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
                   const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(widget.category,
-              style: const TextStyle(
-                  fontSize: 14, color: AppColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 20),
           TextField(
             controller: _amountController,
@@ -742,11 +744,11 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
           const SizedBox(height: 20),
 
           // Settings section
-          const Text('SETTINGS',
+          Text('SETTINGS',
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   letterSpacing: 1)),
           const SizedBox(height: 12),
 
@@ -756,14 +758,14 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Rollover unused budget',
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w500)),
                     SizedBox(height: 2),
                     Text('Carry forward unspent amount to next month',
                         style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
+                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
@@ -807,14 +809,14 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Budget notifications',
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.w500)),
                     SizedBox(height: 2),
                     Text('Get notified when approaching limit',
                         style: TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
+                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),

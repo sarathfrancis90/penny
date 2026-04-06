@@ -290,7 +290,7 @@ class _ExpenseConfirmationSheetState
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: Theme.of(context).dividerColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -317,9 +317,9 @@ class _ExpenseConfirmationSheetState
                       const Text('Confirm Expense',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w700)),
-                      const Text('Review and edit details',
+                      Text('Review and edit details',
                           style: TextStyle(
-                              fontSize: 13, color: AppColors.textSecondary)),
+                              fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -363,11 +363,11 @@ class _ExpenseConfirmationSheetState
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               textInputAction: TextInputAction.next,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: '0.00',
                 prefixText: '\$ ',
                 prefixStyle: TextStyle(
-                    fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                    fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
             const SizedBox(height: 14),
@@ -450,8 +450,8 @@ class _ExpenseConfirmationSheetState
               _selectedGroupId != null
                   ? 'This expense will be shared with the group'
                   : 'This is a personal expense',
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary),
+              style: TextStyle(
+                  fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
 
@@ -510,10 +510,10 @@ class _ExpenseConfirmationSheetState
         value: '__header_${entry.key}',
         child: Text(
           entry.key.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             letterSpacing: 0.5,
           ),
         ),
@@ -601,8 +601,8 @@ class _FieldLabel extends StatelessWidget {
                 fontSize: 13, fontWeight: FontWeight.w600)),
         if (optional) ...[
           const SizedBox(width: 4),
-          const Text('(optional)',
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          Text('(optional)',
+              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ],
       ],
     );

@@ -32,14 +32,14 @@ class BudgetImpactPreview extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.info_outline,
-                size: 16, color: AppColors.textSecondary),
+            Icon(Icons.info_outline,
+                size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'No budget set for "$_shortCategory"',
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
+                style: TextStyle(
+                    fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
           ],
@@ -71,13 +71,13 @@ class BudgetImpactPreview extends ConsumerWidget {
           // Header: title + status badge
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Budget Impact',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -97,18 +97,18 @@ class BudgetImpactPreview extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Current',
+                    Text('Current',
                         style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
                     Text(formatter.format(usage.totalSpent),
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w600)),
                     Text('${usage.percentageUsed.toStringAsFixed(0)}% used',
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
@@ -125,10 +125,10 @@ class BudgetImpactPreview extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('After',
+                    Text('After',
                         style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
                     Text(formatter.format(projectedSpent),
@@ -154,7 +154,7 @@ class BudgetImpactPreview extends ConsumerWidget {
             child: LinearProgressIndicator(
               value: (projectedPercentage / 100).clamp(0.0, 1.0),
               minHeight: 6,
-              backgroundColor: AppColors.divider,
+              backgroundColor: Theme.of(context).dividerColor,
               valueColor: AlwaysStoppedAnimation<Color>(statusColor),
             ),
           ),
@@ -165,8 +165,8 @@ class BudgetImpactPreview extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Budget: ${formatter.format(usage.budgetLimit)}',
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               Text(
                 projectedRemaining >= 0
                     ? '${formatter.format(projectedRemaining)} remaining'

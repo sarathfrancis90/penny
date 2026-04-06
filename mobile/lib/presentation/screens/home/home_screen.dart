@@ -227,9 +227,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       chatState.isAnalyzing
                           ? 'Analyzing expense...'
                           : 'Thinking...',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -348,10 +348,10 @@ class _MessageList extends ConsumerWidget {
     return messagesAsync.when(
       data: (messages) {
         if (messages.isEmpty) {
-          return const Center(
+          return Center(
             child: Text(
               'Send a message to get started',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           );
         }
@@ -377,10 +377,10 @@ class _MessageList extends ConsumerWidget {
                           children: [
                             Text(
                               '${pendingExpenses!.expenses.length} expenses detected',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             const Spacer(),
@@ -468,7 +468,7 @@ class _InputBar extends StatelessWidget {
           // Camera button
           IconButton(
             icon: const Icon(Icons.camera_alt_outlined),
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             tooltip: 'Take photo or choose from gallery',
             onPressed: isLoading ? null : onCamera,
           ),

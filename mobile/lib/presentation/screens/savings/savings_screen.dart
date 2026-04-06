@@ -83,11 +83,11 @@ class _SavingsContent extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  const Text('TOTAL PORTFOLIO',
+                  Text('TOTAL PORTFOLIO',
                       style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           letterSpacing: 1)),
                   const SizedBox(height: 4),
                   AnimatedCounter(
@@ -101,8 +101,8 @@ class _SavingsContent extends ConsumerWidget {
                   ),
                   Text(
                     'across ${goals.length} goal${goals.length == 1 ? '' : 's'}',
-                    style: const TextStyle(
-                        fontSize: 14, color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -117,12 +117,12 @@ class _SavingsContent extends ConsumerWidget {
               child: Center(
                 child: Column(
                   children: [
-                    const Icon(Icons.savings_outlined,
-                        size: 48, color: AppColors.textTertiary),
+                    Icon(Icons.savings_outlined,
+                        size: 48, color: Theme.of(context).hintColor),
                     const SizedBox(height: 12),
-                    const Text('No savings goals yet',
+                    Text('No savings goals yet',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary)),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 4),
                     TextButton(onPressed: onAdd, child: const Text('Create your first goal')),
                   ],
@@ -147,11 +147,11 @@ class _SavingsGoalCard extends ConsumerWidget {
 
   final SavingsGoalModel goal;
 
-  Color get _priorityColor => switch (goal.priority) {
+  Color _priorityColor(BuildContext context) => switch (goal.priority) {
         'critical' => AppColors.error,
         'high' => AppColors.warning,
         'medium' => AppColors.primary,
-        _ => AppColors.textSecondary,
+        _ => Theme.of(context).colorScheme.onSurfaceVariant,
       };
 
   @override
@@ -219,20 +219,20 @@ class _SavingsGoalCard extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         '${formatter.format(goal.currentAmount)} / ${formatter.format(goal.targetAmount)}',
-                        style: const TextStyle(
-                            fontSize: 14, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           _PriorityBadge(
                               label: '${goal.priority} priority',
-                              color: _priorityColor),
+                              color: _priorityColor(context)),
                           if (targetStr != null) ...[
                             const SizedBox(width: 8),
                             Text('by $targetStr',
-                                style: const TextStyle(
-                                    fontSize: 12, color: AppColors.textTertiary)),
+                                style: TextStyle(
+                                    fontSize: 12, color: Theme.of(context).hintColor)),
                           ],
                         ],
                       ),
@@ -240,8 +240,8 @@ class _SavingsGoalCard extends ConsumerWidget {
                         const SizedBox(height: 4),
                         Text(
                           '${formatter.format(goal.monthlyContribution)}/mo contribution',
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textSecondary),
+                          style: TextStyle(
+                              fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ],
@@ -262,7 +262,8 @@ class _SavingsGoalCard extends ConsumerWidget {
                         height: 60,
                         child: CustomPaint(
                           painter: _MiniProgressRing(
-                              percentage: animatedProgress),
+                              percentage: animatedProgress,
+                              trackColor: Theme.of(context).dividerColor),
                           child: Center(
                             child: Text(
                               '${animatedProgress.toStringAsFixed(0)}%',
@@ -305,8 +306,9 @@ class _PriorityBadge extends StatelessWidget {
 }
 
 class _MiniProgressRing extends CustomPainter {
-  _MiniProgressRing({required this.percentage});
+  _MiniProgressRing({required this.percentage, required this.trackColor});
   final double percentage;
+  final Color trackColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -315,7 +317,7 @@ class _MiniProgressRing extends CustomPainter {
     const strokeWidth = 5.0;
 
     canvas.drawCircle(center, radius,
-        Paint()..style = PaintingStyle.stroke..strokeWidth = strokeWidth..color = AppColors.divider);
+        Paint()..style = PaintingStyle.stroke..strokeWidth = strokeWidth..color = trackColor);
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
@@ -327,7 +329,7 @@ class _MiniProgressRing extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MiniProgressRing old) => old.percentage != percentage;
+  bool shouldRepaint(covariant _MiniProgressRing old) => old.percentage != percentage || old.trackColor != trackColor;
 }
 
 class _CreateGoalSheet extends StatefulWidget {
@@ -725,8 +727,8 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
           const SizedBox(height: 4),
           Text(
             '${formatter.format(remaining)} remaining to goal',
-            style: const TextStyle(
-                fontSize: 14, color: AppColors.textSecondary),
+            style: TextStyle(
+                fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 20),
           TextField(

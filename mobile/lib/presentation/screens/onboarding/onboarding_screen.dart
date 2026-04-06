@@ -57,12 +57,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: _currentPage < _pages.length - 1
                     ? TextButton(
                         onPressed: _completeOnboarding,
-                        child: const Text(
+                        child: Text(
                           'Skip',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
@@ -103,7 +103,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     width: isActive ? 24 : 8,
                     height: 8,
                     decoration: BoxDecoration(
-                      color: isActive ? AppColors.primary : AppColors.divider,
+                      color: isActive ? AppColors.primary : Theme.of(context).dividerColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   );
@@ -168,10 +168,10 @@ class _OnboardingPage extends StatelessWidget {
           // Title
           Text(
             data.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
               letterSpacing: -0.5,
             ),
             textAlign: TextAlign.center,
@@ -181,9 +181,9 @@ class _OnboardingPage extends StatelessWidget {
           // Subtitle
           Text(
             data.subtitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.4,
             ),
             textAlign: TextAlign.center,

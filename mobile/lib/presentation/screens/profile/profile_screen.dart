@@ -171,7 +171,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: Theme.of(context).dividerColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -340,7 +340,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             color: AppColors.primary,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.background,
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               width: 2,
                             ),
                           ),
@@ -370,10 +370,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(
+                      Icon(
                         Icons.edit_outlined,
                         size: 16,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ],
                   ),
@@ -383,9 +383,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 const SizedBox(height: 2),
                 Text(
                   user?.email ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
 
@@ -398,9 +398,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Member since ${DateFormat('MMMM yyyy').format(user!.metadata.creationTime!)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -470,7 +470,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 fit: BoxFit.cover,
                 placeholder: (_, _) => CircleAvatar(
                   radius: 40,
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: Theme.of(context).cardColor,
                   child: Text(
                     _getInitial(user),
                     style: const TextStyle(
@@ -481,7 +481,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 errorWidget: (_, _, _) => CircleAvatar(
                   radius: 40,
-                  backgroundColor: AppColors.surface,
+                  backgroundColor: Theme.of(context).cardColor,
                   child: Text(
                     _getInitial(user),
                     style: const TextStyle(
@@ -495,7 +495,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           else
             CircleAvatar(
               radius: 40,
-              backgroundColor: AppColors.surface,
+              backgroundColor: Theme.of(context).cardColor,
               child: Text(
                 _getInitial(user),
                 style: const TextStyle(
@@ -601,10 +601,10 @@ class _ProfileTile extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F7),
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, size: 20, color: const Color(0xFF8E8E93)),
+              child: Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -615,12 +615,12 @@ class _ProfileTile extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w500)),
                   Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFF8E8E93))),
+                      style: TextStyle(
+                          fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFFC7C7CC)),
+            Icon(Icons.chevron_right, color: Theme.of(context).hintColor),
           ],
         ),
       ),

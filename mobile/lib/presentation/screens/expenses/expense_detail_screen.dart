@@ -69,10 +69,10 @@ class ExpenseDetailScreen extends ConsumerWidget {
                 type: MaterialType.transparency,
                 child: Text(
                   amountStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 40,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: -1,
                   ),
                 ),
@@ -87,10 +87,10 @@ class ExpenseDetailScreen extends ConsumerWidget {
               type: MaterialType.transparency,
               child: Text(
                 expense.vendor,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -126,11 +126,11 @@ class ExpenseDetailScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   Icon(Icons.receipt_long_outlined,
-                      size: 16, color: AppColors.textTertiary),
+                      size: 16, color: Theme.of(context).hintColor),
                   const SizedBox(width: 8),
                   Text('No receipt attached',
                       style: TextStyle(
-                          fontSize: 13, color: AppColors.textTertiary)),
+                          fontSize: 13, color: Theme.of(context).hintColor)),
                 ],
               ),
             ),
@@ -184,8 +184,8 @@ class ExpenseDetailScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 '${expense.vendor} — \$${expense.amount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                    fontSize: 15, color: AppColors.textSecondary),
+                style: TextStyle(
+                    fontSize: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 24),
               Row(
@@ -253,9 +253,9 @@ class _DetailRow extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -263,9 +263,9 @@ class _DetailRow extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -328,9 +328,9 @@ class _ApprovalStatusRow extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               'Reason: ${expense.rejectedReason}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],

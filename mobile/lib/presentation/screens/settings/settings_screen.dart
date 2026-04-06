@@ -201,10 +201,10 @@ class SettingsScreen extends ConsumerWidget {
               const Text('Delete Account?',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                   'This will permanently delete your account and all data.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -287,10 +287,10 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(title,
-        style: const TextStyle(
+        style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             letterSpacing: 1));
   }
 }
@@ -320,7 +320,7 @@ class _SettingsTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: AppColors.textSecondary),
+              Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(title,
@@ -328,11 +328,11 @@ class _SettingsTile extends StatelessWidget {
                         fontSize: 15, fontWeight: FontWeight.w500)),
               ),
               Text(subtitle,
-                  style: const TextStyle(
-                      fontSize: 14, color: AppColors.textSecondary)),
+                  style: TextStyle(
+                      fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right, size: 18,
-                  color: AppColors.textTertiary),
+              Icon(Icons.chevron_right, size: 18,
+                  color: Theme.of(context).hintColor),
             ],
           ),
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
@@ -160,9 +159,9 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
               _search(q);
             })
           : _results.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text('No expenses found',
-                      style: TextStyle(color: AppColors.textSecondary)),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -173,9 +172,9 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text(
                           '${_results.length} result${_results.length == 1 ? '' : 's'}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.textSecondary),
+                              color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       );
                     }
@@ -183,7 +182,7 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
-                        backgroundColor: AppColors.surface,
+                        backgroundColor: Theme.of(context).cardColor,
                         child: Text(
                           formatter.format(e.amount).substring(0, 1),
                           style: const TextStyle(fontSize: 14),
@@ -194,9 +193,9 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
                               fontWeight: FontWeight.w600)),
                       subtitle: Text(
                           '${e.category} • ${DateFormat('MMM d').format(e.date.toDate())}',
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary)),
+                              color: Theme.of(context).colorScheme.onSurfaceVariant)),
                       trailing: Text(formatter.format(e.amount),
                           style: const TextStyle(
                               fontWeight: FontWeight.w600)),
@@ -230,15 +229,15 @@ class _SearchHints extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.search, size: 36, color: AppColors.textTertiary),
+          Icon(Icons.search, size: 36, color: Theme.of(context).hintColor),
           const SizedBox(height: 12),
           const Text('Search your expenses',
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
-          const Text('Try natural language queries:',
+          Text('Try natural language queries:',
               style: TextStyle(
-                  fontSize: 14, color: AppColors.textSecondary)),
+                  fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,

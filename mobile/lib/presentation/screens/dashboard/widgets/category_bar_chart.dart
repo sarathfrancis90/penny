@@ -34,20 +34,20 @@ class CategoryBarChart extends StatelessWidget {
                     Expanded(
                       child: Text(
                         label,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
                       formatter.format(cat.amount),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -61,7 +61,7 @@ class CategoryBarChart extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: fraction,
                       minHeight: 8,
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: Theme.of(context).cardColor,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         AppColors.primary.withValues(
                           alpha: 0.5 + (fraction * 0.5),

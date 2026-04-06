@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:penny_mobile/core/constants/app_colors.dart';
 
 /// Collapsible receipt thumbnail that opens a full-screen pinch-to-zoom viewer.
 class ReceiptImageViewer extends StatefulWidget {
@@ -35,16 +34,16 @@ class _ReceiptImageViewerState extends State<ReceiptImageViewer> {
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
               children: [
-                const Icon(Icons.receipt_long_outlined,
-                    size: 20, color: AppColors.textSecondary),
+                Icon(Icons.receipt_long_outlined,
+                    size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Receipt',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -53,7 +52,7 @@ class _ReceiptImageViewerState extends State<ReceiptImageViewer> {
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down,
                   size: 22,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
@@ -94,13 +93,13 @@ class _ReceiptImageViewerState extends State<ReceiptImageViewer> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.broken_image_outlined,
-                            size: 32, color: AppColors.textTertiary),
+                        Icon(Icons.broken_image_outlined,
+                            size: 32, color: Theme.of(context).hintColor),
                         const SizedBox(height: 8),
-                        const Text('Failed to load receipt',
+                        Text('Failed to load receipt',
                             style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.textSecondary)),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: () => setState(() {}),

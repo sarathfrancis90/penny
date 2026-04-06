@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:penny_mobile/core/constants/app_colors.dart';
 
 /// Reusable error state widget with retry button.
 class ErrorState extends StatelessWidget {
@@ -22,14 +21,14 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: AppColors.textTertiary),
+            Icon(icon, size: 48, color: Theme.of(context).hintColor),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             if (onRetry != null) ...[

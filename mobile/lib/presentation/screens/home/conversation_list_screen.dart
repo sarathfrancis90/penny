@@ -79,10 +79,10 @@ class ConversationListDrawer extends ConsumerWidget {
               child: conversationsAsync.when(
                 data: (conversations) {
                   if (conversations.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         'No conversations yet',
-                        style: TextStyle(color: AppColors.textSecondary),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     );
                   }
@@ -103,9 +103,9 @@ class ConversationListDrawer extends ConsumerWidget {
                 },
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Center(
+                error: (_, __) => Center(
                   child: Text('Could not load conversations',
-                      style: TextStyle(color: AppColors.textSecondary)),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ),
               ),
             ),
@@ -149,8 +149,8 @@ class _ConversationTile extends ConsumerWidget {
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.chat_bubble_outline,
-                    size: 16, color: AppColors.textSecondary),
+                child: Icon(Icons.chat_bubble_outline,
+                    size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(width: 12),
 
@@ -169,8 +169,8 @@ class _ConversationTile extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       conversation.lastMessagePreview,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary),
+                      style: TextStyle(
+                          fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -180,8 +180,8 @@ class _ConversationTile extends ConsumerWidget {
 
               // Time
               Text(timeAgo,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textTertiary)),
+                  style: TextStyle(
+                      fontSize: 11, color: Theme.of(context).hintColor)),
 
               // Pin indicator
               if (conversation.metadata.isPinned)
@@ -215,7 +215,7 @@ class _ConversationTile extends ConsumerWidget {
               ListTile(
                 leading: Icon(
                   Icons.push_pin,
-                  color: isPinned ? AppColors.textSecondary : AppColors.primary,
+                  color: isPinned ? Theme.of(context).colorScheme.onSurfaceVariant : AppColors.primary,
                 ),
                 title: Text(isPinned ? 'Unpin' : 'Pin'),
                 onTap: () async {
@@ -236,8 +236,8 @@ class _ConversationTile extends ConsumerWidget {
               ),
               // Archive
               ListTile(
-                leading: const Icon(Icons.archive_outlined,
-                    color: AppColors.textSecondary),
+                leading: Icon(Icons.archive_outlined,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
                 title: const Text('Archive'),
                 onTap: () async {
                   Navigator.pop(ctx);

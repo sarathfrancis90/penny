@@ -55,21 +55,21 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.notifications_none_outlined, size: 48,
-                color: AppColors.textTertiary),
+                color: Theme.of(context).hintColor),
             SizedBox(height: 12),
             Text('No notifications',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary)),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
             SizedBox(height: 4),
             Text("You're all caught up!",
-                style: TextStyle(fontSize: 14, color: AppColors.textTertiary)),
+                style: TextStyle(fontSize: 14, color: Theme.of(context).hintColor)),
           ],
         ),
       ),
@@ -265,7 +265,7 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: notification.read ? AppColors.background : AppColors.surface,
+              color: notification.read ? Theme.of(context).scaffoldBackgroundColor : Theme.of(context).cardColor,
               border: Border(
                 left: BorderSide(
                   color: _priorityIndicator,
@@ -300,16 +300,16 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                           ),
                           Text(
                             notification.timeAgo,
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textTertiary),
+                            style: TextStyle(
+                                fontSize: 12, color: Theme.of(context).hintColor),
                           ),
                         ],
                       ),
                       const SizedBox(height: 2),
                       Text(
                         notification.body,
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.textSecondary),
+                        style: TextStyle(
+                            fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -317,8 +317,8 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                         const SizedBox(height: 4),
                         Text(
                           notification.actorName!,
-                          style: const TextStyle(
-                              fontSize: 12, color: AppColors.textTertiary),
+                          style: TextStyle(
+                              fontSize: 12, color: Theme.of(context).hintColor),
                         ),
                       ],
 
@@ -331,8 +331,8 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                               child: OutlinedButton(
                                 onPressed: _isProcessing ? null : _declineInvitation,
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.textSecondary,
-                                  side: const BorderSide(color: AppColors.border),
+                                  foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  side: BorderSide(color: Theme.of(context).dividerColor),
                                   padding: const EdgeInsets.symmetric(vertical: 8),
                                 ),
                                 child: _isProcessing

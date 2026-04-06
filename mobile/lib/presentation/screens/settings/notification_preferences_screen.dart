@@ -93,10 +93,10 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'No push notifications during these hours',
                 style: TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary),
+                    fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 20),
               StatefulBuilder(
@@ -211,10 +211,10 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppColors.textSecondary,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
         letterSpacing: 1,
       ),
     );
@@ -232,10 +232,10 @@ class _GlobalMuteToggle extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.do_not_disturb_on_outlined,
-              size: 20, color: AppColors.textSecondary),
+          Icon(Icons.do_not_disturb_on_outlined,
+              size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -244,7 +244,7 @@ class _GlobalMuteToggle extends StatelessWidget {
                         TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                 Text('Temporarily mute all notifications',
                     style:
-                        TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                        TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -279,10 +279,10 @@ class _QuietHoursRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
-            const Icon(Icons.bedtime_outlined,
-                size: 20, color: AppColors.textSecondary),
+            Icon(Icons.bedtime_outlined,
+                size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -291,16 +291,16 @@ class _QuietHoursRow extends StatelessWidget {
                           TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
                   Text('No push notifications during these hours',
                       style: TextStyle(
-                          fontSize: 12, color: AppColors.textSecondary)),
+                          fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                 ],
               ),
             ),
             Text('$startTime - $endTime',
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.textSecondary)),
+                style: TextStyle(
+                    fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right,
-                size: 18, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right,
+                size: 18, color: Theme.of(context).hintColor),
           ],
         ),
       ),
@@ -382,16 +382,16 @@ class _NotificationTypeRow extends StatelessWidget {
                             fontSize: 15, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 2),
                     Text(type.description,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.textSecondary)),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
                   ],
                 ),
               ),
               _StatusIndicators(preference: preference),
               const SizedBox(width: 4),
-              const Icon(Icons.chevron_right,
-                  size: 18, color: AppColors.textTertiary),
+              Icon(Icons.chevron_right,
+                  size: 18, color: Theme.of(context).hintColor),
             ],
           ),
         ),
@@ -410,22 +410,22 @@ class _StatusIndicators extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (preference.inApp)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 4),
             child: Icon(Icons.inbox_outlined,
-                size: 16, color: AppColors.textTertiary),
+                size: 16, color: Theme.of(context).hintColor),
           ),
         if (preference.push)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 4),
             child: Icon(Icons.notifications_active_outlined,
-                size: 16, color: AppColors.textTertiary),
+                size: 16, color: Theme.of(context).hintColor),
           ),
         if (preference.frequency != 'realtime')
           Text(
             preference.frequency,
-            style: const TextStyle(
-                fontSize: 11, color: AppColors.textTertiary),
+            style: TextStyle(
+                fontSize: 11, color: Theme.of(context).hintColor),
           ),
       ],
     );
@@ -481,8 +481,8 @@ class _TypePreferenceSheetState extends State<_TypePreferenceSheet> {
                   fontSize: 18, fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text(widget.type.description,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 20),
 
           // In-App toggle
@@ -508,11 +508,11 @@ class _TypePreferenceSheetState extends State<_TypePreferenceSheet> {
           const SizedBox(height: 16),
 
           // Frequency dropdown
-          const Text('Frequency',
+          Text('Frequency',
               style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary)),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
@@ -585,7 +585,7 @@ class _ToggleRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.textSecondary),
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -595,8 +595,8 @@ class _ToggleRow extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w500)),
                 Text(subtitle,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
+                    style: TextStyle(
+                        fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ],
             ),
           ),

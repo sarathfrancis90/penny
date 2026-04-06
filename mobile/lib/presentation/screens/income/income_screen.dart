@@ -83,8 +83,8 @@ class _IncomeContent extends ConsumerWidget {
                 children: [
                   Text(
                     DateFormat('MMMM yyyy').format(DateTime.now()),
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.textSecondary),
+                    style: TextStyle(
+                        fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -125,12 +125,12 @@ class _IncomeContent extends ConsumerWidget {
               child: Center(
                 child: Column(
                   children: [
-                    const Icon(Icons.account_balance_outlined,
-                        size: 48, color: AppColors.textTertiary),
+                    Icon(Icons.account_balance_outlined,
+                        size: 48, color: Theme.of(context).hintColor),
                     const SizedBox(height: 12),
-                    const Text('No income sources',
+                    Text('No income sources',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary)),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 4),
                     TextButton(onPressed: onAdd, child: const Text('Add your first income source')),
                   ],
@@ -138,11 +138,11 @@ class _IncomeContent extends ConsumerWidget {
               ),
             )
           else ...[
-            const Text('ACTIVE SOURCES',
+            Text('ACTIVE SOURCES',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     letterSpacing: 1)),
             const SizedBox(height: 12),
             ...activeSources.asMap().entries.map((entry) => AnimatedListItem(
@@ -221,7 +221,7 @@ class _IncomeSourceTile extends ConsumerWidget {
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(_icon, size: 20, color: AppColors.textSecondary),
+                  child: Icon(_icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -244,14 +244,14 @@ class _IncomeSourceTile extends ConsumerWidget {
                                 shape: BoxShape.circle,
                                 color: source.isActive
                                     ? AppColors.success
-                                    : AppColors.textTertiary,
+                                    : Theme.of(context).hintColor,
                               ),
                             ),
                           ),
                           const SizedBox(width: 4),
                           Text(source.isActive ? 'Active' : 'Inactive',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textSecondary)),
+                              style: TextStyle(
+                                  fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         ],
                       ),
                     ],
@@ -290,7 +290,7 @@ class _Tag extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(label,
-          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
     );
   }
 }

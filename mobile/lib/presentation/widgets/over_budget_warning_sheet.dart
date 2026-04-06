@@ -58,12 +58,12 @@ class OverBudgetWarningSheet extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Title
-            const Text(
+            Text(
               'Budget Exceeded',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 6),
@@ -72,9 +72,9 @@ class OverBudgetWarningSheet extends StatelessWidget {
             Text(
               'Adding this expense will exceed your budget for "$category"',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 20),
@@ -103,9 +103,9 @@ class OverBudgetWarningSheet extends StatelessWidget {
                     value: '+${formatter.format(expenseAmount)}',
                     valueColor: AppColors.warning,
                   ),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
-                    child: Divider(height: 1, color: AppColors.divider),
+                    child: Divider(height: 1, color: Theme.of(context).dividerColor),
                   ),
                   _BreakdownRow(
                     label: 'Total After',
@@ -200,7 +200,7 @@ class _BreakdownRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
         Text(
@@ -208,7 +208,7 @@ class _BreakdownRow extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],

@@ -42,10 +42,10 @@ class ExpenseCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     expense.vendor,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -53,10 +53,10 @@ class ExpenseCard extends StatelessWidget {
                   label: 'Amount: \$${expense.amount.toStringAsFixed(2)}',
                   child: Text(
                     '\$${expense.amount.toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -71,18 +71,18 @@ class ExpenseCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 expense.date,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const Spacer(),
               if (expense.confidence != null)
                 Text(
                   '${(expense.confidence! * 100).round()}%',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textTertiary,
+                    color: Theme.of(context).hintColor,
                   ),
                 ),
             ],

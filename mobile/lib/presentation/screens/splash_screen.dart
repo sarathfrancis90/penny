@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:penny_mobile/core/constants/app_colors.dart';
 
 /// Animated splash screen with coin flip reveal.
 ///
@@ -70,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -100,12 +99,12 @@ class _SplashScreenState extends State<SplashScreen>
             const SizedBox(height: 24),
 
             // "Penny" text — slides up + fades in
-            const Text(
+            Text(
               'Penny',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
                 letterSpacing: -0.5,
               ),
             )
@@ -116,11 +115,11 @@ class _SplashScreenState extends State<SplashScreen>
             const SizedBox(height: 6),
 
             // Subtitle — fades in
-            const Text(
+            Text(
               'AI Expense Tracker',
               style: TextStyle(
                 fontSize: 15,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             )
                 .animate(delay: 900.ms)

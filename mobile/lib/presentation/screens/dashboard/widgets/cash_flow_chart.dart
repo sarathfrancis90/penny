@@ -25,12 +25,12 @@ class CashFlowChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return const SizedBox(
+      return SizedBox(
         height: 200,
         child: Center(
           child: Text(
             'No data available',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
       );
@@ -91,10 +91,10 @@ class CashFlowChart extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
                           data[index].monthLabel,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       );
@@ -109,9 +109,9 @@ class CashFlowChart extends StatelessWidget {
                       if (value == 0) return const SizedBox.shrink();
                       return Text(
                         formatter.format(value),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       );
                     },
@@ -123,7 +123,7 @@ class CashFlowChart extends StatelessWidget {
                 drawVerticalLine: false,
                 horizontalInterval: maxY / 4,
                 getDrawingHorizontalLine: (value) => FlLine(
-                  color: AppColors.divider,
+                  color: Theme.of(context).dividerColor,
                   strokeWidth: 0.5,
                 ),
               ),
@@ -195,10 +195,10 @@ class _LegendDot extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],

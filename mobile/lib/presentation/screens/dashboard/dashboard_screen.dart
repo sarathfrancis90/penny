@@ -124,12 +124,12 @@ class _DashboardContent extends ConsumerWidget {
           const SizedBox(height: 8),
 
           if (filteredExpenses.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
                   'No expenses for this period',
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             )
@@ -139,10 +139,10 @@ class _DashboardContent extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 8, bottom: 4),
                     child: Text(
                       entry.key,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),
@@ -852,21 +852,21 @@ class _TotalCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Total Spent',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const SizedBox(height: 4),
             AnimatedCounter(
               value: total,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
                 letterSpacing: -1,
               ),
             ),
@@ -936,9 +936,9 @@ class _CategoryTotals extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -946,10 +946,10 @@ class _CategoryTotals extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   formatter.format(cat.amount),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -975,10 +975,10 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const Spacer(),
@@ -1110,15 +1110,15 @@ class _ExportSheetState extends State<_ExportSheet> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.date_range,
-                          size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.date_range,
+                          size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       const SizedBox(width: 8),
                       Text(
                         _periodDisplayLabel(period, customRange),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -1126,14 +1126,14 @@ class _ExportSheetState extends State<_ExportSheet> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.filter_alt_outlined,
-                          size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.filter_alt_outlined,
+                          size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       const SizedBox(width: 8),
                       Text(
                         _filterSummary(filter),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -1141,15 +1141,15 @@ class _ExportSheetState extends State<_ExportSheet> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.receipt_long_outlined,
-                          size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.receipt_long_outlined,
+                          size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       const SizedBox(width: 8),
                       Text(
                         '${expenses.length} expense${expenses.length == 1 ? '' : 's'}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -1178,12 +1178,12 @@ class _ExportSheetState extends State<_ExportSheet> {
 
             if (expenses.isEmpty) ...[
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'No expenses match the current filters',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

@@ -92,7 +92,7 @@ class ExpenseListTile extends StatelessWidget {
                 child: Icon(
                   _categoryIcon,
                   size: 20,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 12),
@@ -109,10 +109,10 @@ class ExpenseListTile extends StatelessWidget {
                         type: MaterialType.transparency,
                         child: Text(
                           expense.vendor,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -121,9 +121,9 @@ class ExpenseListTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       categoryDisplay,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -142,10 +142,10 @@ class ExpenseListTile extends StatelessWidget {
                       type: MaterialType.transparency,
                       child: Text(
                         amountStr,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -168,9 +168,9 @@ class ExpenseListTile extends StatelessWidget {
                   else
                     Text(
                       dateStr,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textTertiary,
+                        color: Theme.of(context).hintColor,
                       ),
                     ),
                 ],

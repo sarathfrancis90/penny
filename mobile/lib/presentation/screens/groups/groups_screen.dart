@@ -71,16 +71,16 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.group_outlined, size: 48,
-                color: AppColors.textTertiary),
+            Icon(Icons.group_outlined, size: 48,
+                color: Theme.of(context).hintColor),
             const SizedBox(height: 12),
-            const Text('No groups yet',
+            Text('No groups yet',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary)),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
             const SizedBox(height: 4),
-            const Text('Create a group to share expenses\nwith family or team members',
+            Text('Create a group to share expenses\nwith family or team members',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppColors.textTertiary)),
+                style: TextStyle(fontSize: 14, color: Theme.of(context).hintColor)),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onAdd,
@@ -148,7 +148,7 @@ class _GroupCard extends StatelessWidget {
                 child: Container(
                   width: 48, height: 48,
                   decoration: BoxDecoration(
-                    color: _parseColor(group.color),
+                    color: _parseColor(group.color, context),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
@@ -188,23 +188,23 @@ class _GroupCard extends StatelessWidget {
                     Row(
                       children: [
                         Icon(Icons.people_outline, size: 14,
-                            color: AppColors.textSecondary),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
                         const SizedBox(width: 4),
                         Text('${group.stats.memberCount} members',
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.textSecondary)),
+                            style: TextStyle(
+                                fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
                         const SizedBox(width: 12),
                         Text(formatter.format(group.stats.totalAmount),
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 13, fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary)),
+                                color: Theme.of(context).colorScheme.onSurfaceVariant)),
                       ],
                     ),
                   ],
                 ),
               ),
 
-              const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+              Icon(Icons.chevron_right, color: Theme.of(context).hintColor),
             ],
           ),
         ),
@@ -212,13 +212,13 @@ class _GroupCard extends StatelessWidget {
     );
   }
 
-  Color _parseColor(String? hex) {
-    if (hex == null || hex.isEmpty) return AppColors.surface;
+  Color _parseColor(String? hex, BuildContext context) {
+    if (hex == null || hex.isEmpty) return Theme.of(context).cardColor;
     try {
       return Color(int.parse(hex.replaceFirst('#', '0xFF')))
           .withValues(alpha: 0.15);
     } catch (_) {
-      return AppColors.surface;
+      return Theme.of(context).cardColor;
     }
   }
 }
@@ -337,8 +337,8 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
           SwitchListTile(
             title: const Text('Require expense approval',
                 style: TextStyle(fontSize: 15)),
-            subtitle: const Text('Admins must approve member expenses',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            subtitle: Text('Admins must approve member expenses',
+                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             value: _requireApproval,
             onChanged: (v) => setState(() => _requireApproval = v),
             activeColor: AppColors.primary,
