@@ -1774,17 +1774,20 @@ class _GroupSavingsSection extends ConsumerWidget {
   }
 }
 
-class _GroupSavingsGoalCard extends StatelessWidget {
+class _GroupSavingsGoalCard extends ConsumerWidget {
   const _GroupSavingsGoalCard({required this.goal});
   final GroupSavingsGoalModel goal;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     final progress = goal.computedProgress;
     final emoji = goal.emoji ?? goal.defaultEmoji;
 
-    return Container(
+    return InkWell(
+      onTap: () => _showContributionSheet(context, ref),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -1829,6 +1832,101 @@ class _GroupSavingsGoalCard extends StatelessWidget {
             Text('${formatter.format(goal.monthlyContribution)}/mo contribution',
                 style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
+        ],
+      ),
+    ));
+  }
+
+  void _showContributionSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _AddContributionSheet(ref: ref, goal: goal),
+    );
+  }
+}
+
+class _AddContributionSheet extends StatefulWidget {
+  const _AddContributionSheet({required this.ref, required this.goal});
+  final WidgetRef ref;
+  final GroupSavingsGoalModel goal;
+
+  @override
+  State<_AddContributionSheet> createState() => _AddContributionSheetState();
+}
+
+class _AddContributionSheetState extends State<_AddContributionSheet> {
+  final _amountController = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final amount = double.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) return;
+    setState(() => _saving = true);
+    try {
+      final user = widget.ref.read(currentUserProvider);
+      if (user == null) return;
+      await widget.ref.read(groupSavingsRepositoryProvider)
+          .addGroupContribution(widget.goal.id, amount, user.uid);
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('\$${amount.toStringAsFixed(2)} added to ${widget.goal.name}'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final remaining = widget.goal.targetAmount - widget.goal.currentAmount;
+    final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24, right: 24, top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Add Contribution',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text('${widget.goal.name} — ${formatter.format(remaining)} remaining',
+              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
+            autofocus: true,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            child: _saving
+                ? const SizedBox(height: 20, width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Add Contribution'),
+          ),
         ],
       ),
     );
