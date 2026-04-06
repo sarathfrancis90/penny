@@ -99,8 +99,8 @@ class _DashboardContent extends ConsumerWidget {
           const _PeriodSelector(),
           const SizedBox(height: 12),
 
-          // Filter row
-          const _FilterRow(),
+          // Filter bar
+          const _FilterBar(),
           const SizedBox(height: 16),
 
           // Total spending card
@@ -201,7 +201,7 @@ class _DashboardContent extends ConsumerWidget {
   }
 }
 
-// ====== Period Selector ======
+// ====== Period Selector (SegmentedButton — Material 3) ======
 
 class _PeriodSelector extends ConsumerWidget {
   const _PeriodSelector();
@@ -210,55 +210,61 @@ class _PeriodSelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(dashboardPeriodProvider);
     final customRange = ref.watch(customDateRangeProvider);
+    final theme = Theme.of(context);
 
-    final presets = <DashboardPeriod, String>{
-      DashboardPeriod.thisWeek: 'This Week',
-      DashboardPeriod.thisMonth: 'This Month',
-      DashboardPeriod.lastMonth: 'Last Month',
-      DashboardPeriod.threeMonths: '3M',
-      DashboardPeriod.thisYear: 'This Year',
-      DashboardPeriod.custom: customRange != null
-          ? '${DateFormat('MMM d').format(customRange.start)} – ${DateFormat('MMM d').format(customRange.end)}'
-          : 'Custom',
-    };
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: presets.entries.map((entry) {
-          final period = entry.key;
-          final label = entry.value;
-          final isActive = period == selected;
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(label),
-              selected: isActive,
-              onSelected: (_) {
-                if (period == DashboardPeriod.custom) {
-                  _showDateRangePicker(context, ref);
-                } else {
-                  ref.read(dashboardPeriodProvider.notifier).state = period;
-                }
-              },
-              selectedColor: AppColors.primary,
-              labelStyle: TextStyle(
-                color: isActive ? Colors.white : AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<DashboardPeriod>(
+            segments: const [
+              ButtonSegment(value: DashboardPeriod.thisWeek, label: Text('W')),
+              ButtonSegment(value: DashboardPeriod.thisMonth, label: Text('M')),
+              ButtonSegment(
+                  value: DashboardPeriod.lastMonth, label: Text('LM')),
+              ButtonSegment(
+                  value: DashboardPeriod.threeMonths, label: Text('3M')),
+              ButtonSegment(value: DashboardPeriod.thisYear, label: Text('Y')),
+              ButtonSegment(
+                value: DashboardPeriod.custom,
+                label: Icon(Icons.date_range, size: 16),
               ),
-              showCheckmark: false,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+            ],
+            selected: {selected},
+            onSelectionChanged: (set) {
+              final period = set.first;
+              if (period == DashboardPeriod.custom) {
+                _showDateRangePicker(context, ref);
+              } else {
+                ref.read(dashboardPeriodProvider.notifier).state = period;
+              }
+            },
+            style: ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              textStyle: WidgetStatePropertyAll(
+                theme.textTheme.labelMedium?.copyWith(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ) ??
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
-              side: isActive
-                  ? BorderSide.none
-                  : const BorderSide(color: AppColors.divider),
             ),
-          );
-        }).toList(),
-      ),
+            showSelectedIcon: false,
+          ),
+        ),
+        if (selected == DashboardPeriod.custom && customRange != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6, left: 4),
+            child: Text(
+              '${DateFormat('MMM d').format(customRange.start)} – ${DateFormat('MMM d, yyyy').format(customRange.end)}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -273,16 +279,6 @@ class _PeriodSelector extends ConsumerWidget {
             start: DateTime(now.year, now.month, 1),
             end: now,
           ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: AppColors.primary,
-                ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
@@ -292,295 +288,427 @@ class _PeriodSelector extends ConsumerWidget {
   }
 }
 
-// ====== Filter Row ======
+// ====== Filter Bar (icon + active tags + clear) ======
 
-class _FilterRow extends ConsumerWidget {
-  const _FilterRow();
+class _FilterBar extends ConsumerWidget {
+  const _FilterBar();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(expenseFilterProvider);
+    final theme = Theme.of(context);
+    final groups = ref.watch(userGroupsProvider).valueOrNull ?? [];
 
-    return SizedBox(
-      height: 36,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          // All chip
-          _FilterChip(
-            label: 'All',
-            isActive: filter.typeFilter == ExpenseTypeFilter.all &&
-                filter.categoryFilter == null,
-            onTap: () {
+    final hasAnyFilter = filter.typeFilter != ExpenseTypeFilter.all ||
+        filter.categoryFilter != null ||
+        filter.groupIdFilter != null;
+
+    // Build list of active filter tags
+    final tags = <_ActiveFilterTag>[];
+
+    if (filter.typeFilter == ExpenseTypeFilter.personal) {
+      tags.add(_ActiveFilterTag(
+        label: 'Personal',
+        onRemove: () {
+          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+            typeFilter: ExpenseTypeFilter.all,
+          );
+        },
+      ));
+    } else if (filter.typeFilter == ExpenseTypeFilter.group &&
+        filter.groupIdFilter == null) {
+      tags.add(_ActiveFilterTag(
+        label: 'Group',
+        onRemove: () {
+          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+            typeFilter: ExpenseTypeFilter.all,
+          );
+        },
+      ));
+    }
+
+    if (filter.groupIdFilter != null) {
+      final groupName = groups
+              .where((g) => g.id == filter.groupIdFilter)
+              .firstOrNull
+              ?.name ??
+          'Group';
+      tags.add(_ActiveFilterTag(
+        label: groupName,
+        onRemove: () {
+          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+            typeFilter: ExpenseTypeFilter.all,
+            groupIdFilter: () => null,
+          );
+        },
+      ));
+    }
+
+    if (filter.categoryFilter != null) {
+      tags.add(_ActiveFilterTag(
+        label: _shortenCategory(filter.categoryFilter!),
+        onRemove: () {
+          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+            categoryFilter: () => null,
+          );
+        },
+      ));
+    }
+
+    return Row(
+      children: [
+        // Filter icon button
+        IconButton(
+          icon: Badge(
+            isLabelVisible: hasAnyFilter,
+            smallSize: 8,
+            child: Icon(
+              Icons.tune,
+              color: hasAnyFilter
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          tooltip: 'Filter expenses',
+          onPressed: () => _showFilterBottomSheet(context, ref),
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+        ),
+        const SizedBox(width: 4),
+
+        // Active tags or "No filters" text
+        Expanded(
+          child: hasAnyFilter
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (final tag in tags) ...[
+                        _FilterTagChip(tag: tag, theme: theme),
+                        const SizedBox(width: 6),
+                      ],
+                    ],
+                  ),
+                )
+              : Text(
+                  'No filters',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+        ),
+
+        // Clear button
+        if (hasAnyFilter)
+          TextButton(
+            onPressed: () {
               ref.read(expenseFilterProvider.notifier).state =
                   const ExpenseFilter();
             },
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text('Clear'),
           ),
-          const SizedBox(width: 8),
-
-          // Personal chip
-          _FilterChip(
-            label: 'Personal',
-            isActive: filter.typeFilter == ExpenseTypeFilter.personal,
-            onTap: () {
-              ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-                typeFilter: filter.typeFilter == ExpenseTypeFilter.personal
-                    ? ExpenseTypeFilter.all
-                    : ExpenseTypeFilter.personal,
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-
-          // Group chip
-          _FilterChip(
-            label: 'Group',
-            isActive: filter.typeFilter == ExpenseTypeFilter.group &&
-                filter.groupIdFilter == null,
-            onTap: () {
-              ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-                typeFilter: filter.typeFilter == ExpenseTypeFilter.group
-                    ? ExpenseTypeFilter.all
-                    : ExpenseTypeFilter.group,
-                groupIdFilter: () => null,
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-
-          // Specific group picker chip
-          _GroupDropdownChip(
-            selectedGroupId: filter.groupIdFilter,
-            onChanged: (groupId) {
-              ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-                typeFilter: groupId != null
-                    ? ExpenseTypeFilter.group
-                    : ExpenseTypeFilter.all,
-                groupIdFilter: () => groupId,
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-
-          // Category dropdown chip
-          _CategoryDropdownChip(
-            selectedCategory: filter.categoryFilter,
-            onChanged: (category) {
-              ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-                categoryFilter: () => category,
-              );
-            },
-          ),
-        ],
-      ),
+      ],
     );
+  }
+
+  void _showFilterBottomSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _FilterBottomSheet(ref: ref),
+    );
+  }
+
+  static String _shortenCategory(String category) {
+    var label = category;
+    if (label.startsWith('Home Office - ')) {
+      label = label.replaceFirst('Home Office - ', 'Home: ');
+    } else if (label.startsWith('Vehicle - ')) {
+      label = label.replaceFirst('Vehicle - ', 'Veh: ');
+    }
+    final parenIdx = label.indexOf('(');
+    if (parenIdx > 0) label = label.substring(0, parenIdx).trim();
+    return label.length > 22 ? '${label.substring(0, 22)}...' : label;
   }
 }
 
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
+class _ActiveFilterTag {
+  const _ActiveFilterTag({required this.label, required this.onRemove});
   final String label;
-  final bool isActive;
-  final VoidCallback onTap;
+  final VoidCallback onRemove;
+}
+
+class _FilterTagChip extends StatelessWidget {
+  const _FilterTagChip({required this.tag, required this.theme});
+
+  final _ActiveFilterTag tag;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: isActive
-              ? Border.all(color: AppColors.primary, width: 1)
-              : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: isActive ? AppColors.primary : AppColors.textSecondary,
-          ),
-        ),
+    return InputChip(
+      label: Text(tag.label),
+      onDeleted: tag.onRemove,
+      deleteIconColor: theme.colorScheme.primary,
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: theme.colorScheme.primary,
       ),
+      backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+      side: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 }
 
-class _GroupDropdownChip extends ConsumerWidget {
-  const _GroupDropdownChip({
-    required this.selectedGroupId,
-    required this.onChanged,
-  });
+// ====== Filter Bottom Sheet ======
 
-  final String? selectedGroupId;
-  final ValueChanged<String?> onChanged;
+class _FilterBottomSheet extends StatefulWidget {
+  const _FilterBottomSheet({required this.ref});
+
+  final WidgetRef ref;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groupsAsync = ref.watch(userGroupsProvider);
-    final groups = groupsAsync.valueOrNull ?? [];
+  State<_FilterBottomSheet> createState() => _FilterBottomSheetState();
+}
 
-    if (groups.isEmpty) return const SizedBox.shrink();
+class _FilterBottomSheetState extends State<_FilterBottomSheet> {
+  late ExpenseTypeFilter _typeFilter;
+  late String? _groupIdFilter;
+  late String? _categoryFilter;
 
-    final selectedName = selectedGroupId != null
-        ? groups.where((g) => g.id == selectedGroupId).firstOrNull?.name
-        : null;
+  @override
+  void initState() {
+    super.initState();
+    final current = widget.ref.read(expenseFilterProvider);
+    _typeFilter = current.typeFilter;
+    _groupIdFilter = current.groupIdFilter;
+    _categoryFilter = current.categoryFilter;
+  }
 
-    return GestureDetector(
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          builder: (ctx) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  title: const Text('All Groups'),
-                  selected: selectedGroupId == null,
-                  onTap: () {
-                    onChanged(null);
-                    Navigator.pop(ctx);
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final groups = widget.ref.read(userGroupsProvider).valueOrNull ?? [];
+    final showGroupSection =
+        _typeFilter == ExpenseTypeFilter.all ||
+        _typeFilter == ExpenseTypeFilter.group;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Title
+            Text(
+              'Filter Expenses',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // TYPE section
+            Text(
+              'TYPE',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<ExpenseTypeFilter>(
+              segments: const [
+                ButtonSegment(
+                    value: ExpenseTypeFilter.all, label: Text('All')),
+                ButtonSegment(
+                    value: ExpenseTypeFilter.personal, label: Text('Personal')),
+                ButtonSegment(
+                    value: ExpenseTypeFilter.group, label: Text('Group')),
+              ],
+              selected: {_typeFilter},
+              onSelectionChanged: (set) {
+                setState(() {
+                  _typeFilter = set.first;
+                  // Clear group filter if switching away from group
+                  if (_typeFilter == ExpenseTypeFilter.personal) {
+                    _groupIdFilter = null;
+                  }
+                });
+              },
+              showSelectedIcon: false,
+              style: ButtonStyle(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // GROUP section (conditionally shown)
+            if (showGroupSection && groups.isNotEmpty) ...[
+              Text(
+                'GROUP',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.dividerColor),
+                ),
+                child: DropdownButton<String?>(
+                  value: _groupIdFilter,
+                  isExpanded: true,
+                  underline: const SizedBox.shrink(),
+                  items: [
+                    const DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text('All Groups'),
+                    ),
+                    ...groups.map((g) => DropdownMenuItem<String?>(
+                          value: g.id,
+                          child: Row(
+                            children: [
+                              Text(g.icon ?? '', style: const TextStyle(fontSize: 16)),
+                              if (g.icon != null) const SizedBox(width: 8),
+                              Flexible(child: Text(g.name, overflow: TextOverflow.ellipsis)),
+                            ],
+                          ),
+                        )),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _groupIdFilter = value;
+                      if (value != null) {
+                        _typeFilter = ExpenseTypeFilter.group;
+                      }
+                    });
                   },
                 ),
-                ...groups.map((g) => ListTile(
-                      leading: Text(g.icon ?? '👥', style: const TextStyle(fontSize: 20)),
-                      title: Text(g.name),
-                      selected: selectedGroupId == g.id,
-                      onTap: () {
-                        onChanged(g.id);
-                        Navigator.pop(ctx);
-                      },
-                    )),
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // CATEGORY section
+            Text(
+              'CATEGORY',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () => _showCategoryPicker(context, theme),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: theme.dividerColor),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _categoryFilter != null
+                            ? _FilterBar._shortenCategory(_categoryFilter!)
+                            : 'All Categories',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: _categoryFilter != null
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.expand_more,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Action buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        _typeFilter = ExpenseTypeFilter.all;
+                        _groupIdFilter = null;
+                        _categoryFilter = null;
+                      });
+                    },
+                    child: const Text('Clear All'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      widget.ref.read(expenseFilterProvider.notifier).state =
+                          ExpenseFilter(
+                        typeFilter: _typeFilter,
+                        categoryFilter: _categoryFilter,
+                        groupIdFilter: _groupIdFilter,
+                      );
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Apply'),
+                  ),
+                ),
               ],
             ),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selectedGroupId != null ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: selectedGroupId != null
-              ? null
-              : Border.all(color: AppColors.divider),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              selectedName ?? 'By Group',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: selectedGroupId != null
-                    ? Colors.white
-                    : AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 16,
-              color: selectedGroupId != null
-                  ? Colors.white
-                  : AppColors.textSecondary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryDropdownChip extends StatelessWidget {
-  const _CategoryDropdownChip({
-    required this.selectedCategory,
-    required this.onChanged,
-  });
-
-  final String? selectedCategory;
-  final ValueChanged<String?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasFilter = selectedCategory != null;
-
-    // Shorten the display label
-    String displayLabel;
-    if (hasFilter) {
-      var cat = selectedCategory!;
-      if (cat.startsWith('Home Office - ')) {
-        cat = cat.replaceFirst('Home Office - ', 'Home: ');
-      } else if (cat.startsWith('Vehicle - ')) {
-        cat = cat.replaceFirst('Vehicle - ', 'Vehicle: ');
-      }
-      final parenIdx = cat.indexOf('(');
-      if (parenIdx > 0) cat = cat.substring(0, parenIdx).trim();
-      displayLabel = cat.length > 20 ? '${cat.substring(0, 20)}...' : cat;
-    } else {
-      displayLabel = 'Category';
-    }
-
-    return GestureDetector(
-      onTap: () => _showCategoryPicker(context),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-        decoration: BoxDecoration(
-          color: hasFilter
-              ? AppColors.primary.withValues(alpha: 0.12)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(18),
-          border: hasFilter
-              ? Border.all(color: AppColors.primary, width: 1)
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              displayLabel,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color:
-                    hasFilter ? AppColors.primary : AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              hasFilter ? Icons.close : Icons.expand_more,
-              size: 16,
-              color: hasFilter ? AppColors.primary : AppColors.textSecondary,
-            ),
           ],
         ),
       ),
     );
   }
 
-  void _showCategoryPicker(BuildContext context) {
-    if (selectedCategory != null) {
-      // Clear filter
-      onChanged(null);
-      return;
-    }
-
+  void _showCategoryPicker(BuildContext context, ThemeData theme) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
+        initialChildSize: 0.65,
         maxChildSize: 0.85,
         minChildSize: 0.4,
         expand: false,
@@ -592,50 +720,96 @@ class _CategoryDropdownChip extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Row(
                   children: [
-                    const Text(
-                      'Filter by Category',
-                      style: TextStyle(
-                        fontSize: 18,
+                    Text(
+                      'Select Category',
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        onChanged(null);
-                      },
-                      child: const Text('Clear'),
-                    ),
+                    if (_categoryFilter != null)
+                      TextButton(
+                        onPressed: () {
+                          setState(() => _categoryFilter = null);
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text('Clear'),
+                      ),
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              Divider(height: 1, color: theme.dividerColor),
               Expanded(
-                child: ListView.builder(
+                child: ListView(
                   controller: scrollController,
-                  itemCount: expenseCategories.length,
-                  itemBuilder: (ctx, index) {
-                    final cat = expenseCategories[index];
-                    // Shorten for display
-                    var label = cat;
-                    final parenIdx = label.indexOf('(');
-                    if (parenIdx > 0) {
-                      label = label.substring(0, parenIdx).trim();
-                    }
-
-                    return ListTile(
+                  children: [
+                    // All Categories option
+                    ListTile(
                       dense: true,
                       title: Text(
-                        label,
-                        style: const TextStyle(fontSize: 14),
+                        'All Categories',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: _categoryFilter == null
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                          color: _categoryFilter == null
+                              ? theme.colorScheme.primary
+                              : null,
+                        ),
                       ),
                       onTap: () {
+                        setState(() => _categoryFilter = null);
                         Navigator.pop(ctx);
-                        onChanged(cat);
                       },
-                    );
-                  },
+                    ),
+                    // Grouped categories
+                    ...categoryGroups.entries.expand((group) => [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                            child: Text(
+                              group.key.toUpperCase(),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                          ...group.value.map((cat) {
+                            var label = cat;
+                            final parenIdx = label.indexOf('(');
+                            if (parenIdx > 0) {
+                              label = label.substring(0, parenIdx).trim();
+                            }
+                            final isSelected = _categoryFilter == cat;
+                            return ListTile(
+                              dense: true,
+                              title: Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? theme.colorScheme.primary
+                                      : null,
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? Icon(Icons.check,
+                                      size: 18,
+                                      color: theme.colorScheme.primary)
+                                  : null,
+                              onTap: () {
+                                setState(() => _categoryFilter = cat);
+                                Navigator.pop(ctx);
+                              },
+                            );
+                          }),
+                        ]),
+                  ],
                 ),
               ),
             ],
