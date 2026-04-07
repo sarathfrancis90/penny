@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 /* ------------------------------------------------------------------ */
@@ -369,8 +370,8 @@ export default function SupportPage() {
       <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-blue-50/60 to-background dark:from-blue-950/20 dark:to-background">
         <div className="mx-auto max-w-4xl px-5 py-16 sm:py-24 text-center">
           {/* App icon */}
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[22px] bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 dark:shadow-blue-500/15">
-            <span className="text-4xl leading-none text-white font-bold select-none">P</span>
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[22px] overflow-hidden shadow-lg shadow-blue-500/25 dark:shadow-blue-500/15">
+            <Image src="/penny.png" alt="Penny" width={80} height={80} priority />
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -540,8 +541,8 @@ export default function SupportPage() {
         <div className="mx-auto max-w-4xl px-5 py-8">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
-                <span className="text-xs font-bold text-white select-none">P</span>
+              <div className="flex h-7 w-7 items-center justify-center rounded-md overflow-hidden shadow-sm">
+                <Image src="/penny.png" alt="Penny" width={28} height={28} />
               </div>
               <span className="text-sm font-semibold text-foreground">Penny</span>
               <span className="text-xs text-muted-foreground">v1.0</span>
