@@ -140,11 +140,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         } else {
           final errStr = e.toString();
           if (errStr.contains('error 1000') || errStr.contains('AuthorizationError')) {
-            setState(() => _error = 'Apple Sign-In is not available. Please use email or Google.');
+            // Apple Sign-In not available — show as snackbar, not persistent error
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Apple Sign-In is not available on this device. Please use email or Google.'),
+                    backgroundColor: AppColors.warning, behavior: SnackBarBehavior.floating),
+              );
+            }
           } else if (errStr.contains('network_error') || errStr.contains('ApiException: 10')) {
             setState(() => _error = 'Network error. Please check your connection.');
           } else if (errStr.contains('sign_in_failed') || errStr.contains('ApiException: 12500')) {
-            setState(() => _error = 'Google Sign-In configuration error. Please use email.');
+            // Google config error — show as snackbar
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Google Sign-In is temporarily unavailable. Please use email.'),
+                    backgroundColor: AppColors.warning, behavior: SnackBarBehavior.floating),
+              );
+            }
           } else {
             setState(() => _error = _parseError(e));
           }
@@ -346,19 +358,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Apple Sign In
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : () => _signInWithOAuth('apple'),
-                  icon: Icon(Icons.apple, size: 20,
-                    color: Theme.of(context).colorScheme.onSurface),
-                  label: const Text('Continue with Apple'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    side: BorderSide(color: Theme.of(context).dividerColor),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  ),
+                // Apple Sign In (only show if available on this device)
+                FutureBuilder<bool>(
+                  future: OAuthService().isAppleSignInAvailable(),
+                  builder: (context, snapshot) {
+                    if (snapshot.data != true) return const SizedBox.shrink();
+                    return OutlinedButton.icon(
+                      onPressed: _loading ? null : () => _signInWithOAuth('apple'),
+                      icon: Icon(Icons.apple, size: 20,
+                        color: Theme.of(context).colorScheme.onSurface),
+                      label: const Text('Continue with Apple'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.onSurface,
+                        side: BorderSide(color: Theme.of(context).dividerColor),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 12),

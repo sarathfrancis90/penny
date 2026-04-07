@@ -221,19 +221,25 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Apple
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : () => _signInWithOAuth('apple'),
-                  icon: Icon(Icons.apple, size: 20,
-                    color: Theme.of(context).colorScheme.onSurface),
-                  label: const Text('Continue with Apple'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    side: BorderSide(color: Theme.of(context).dividerColor),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  ),
+                // Apple (only show if available)
+                FutureBuilder<bool>(
+                  future: OAuthService().isAppleSignInAvailable(),
+                  builder: (context, snapshot) {
+                    if (snapshot.data != true) return const SizedBox.shrink();
+                    return OutlinedButton.icon(
+                      onPressed: _loading ? null : () => _signInWithOAuth('apple'),
+                      icon: Icon(Icons.apple, size: 20,
+                        color: Theme.of(context).colorScheme.onSurface),
+                      label: const Text('Continue with Apple'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.onSurface,
+                        side: BorderSide(color: Theme.of(context).dividerColor),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      ),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 12),
