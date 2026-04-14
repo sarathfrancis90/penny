@@ -5,6 +5,7 @@ import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/services/oauth_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/biometric_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -168,19 +169,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   String _parseError(Object e) {
-    if (e.toString().contains('user-not-found')) {
+    final msg = e.toString();
+    debugPrint('[Auth] Sign-in error: $msg');
+    if (msg.contains('user-not-found')) {
       return 'No account found with this email';
     }
-    if (e.toString().contains('wrong-password')) {
+    if (msg.contains('wrong-password')) {
       return 'Incorrect password';
     }
-    if (e.toString().contains('invalid-email')) {
+    if (msg.contains('invalid-email')) {
       return 'Invalid email address';
     }
-    if (e.toString().contains('too-many-requests')) {
+    if (msg.contains('too-many-requests')) {
       return 'Too many attempts. Please try again later';
     }
-    return 'Sign in failed. Please try again';
+    if (msg.contains('credential-already-in-use')) {
+      return 'This account is already linked to another sign-in method';
+    }
+    if (msg.contains('provider-not-enabled') || msg.contains('operation-not-allowed')) {
+      return 'This sign-in method is not enabled';
+    }
+    // Show actual error for debugging
+    return 'Sign in failed: ${e is Exception ? msg.replaceFirst('Exception: ', '') : msg}';
   }
 
   @override
@@ -312,8 +322,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: _loading ? null : _signInWithBiometrics,
-                    icon: const Icon(Icons.face, size: 20),
-                    label: const Text('Sign in with Face ID'),
+                    icon: Icon(
+                      Theme.of(context).platform == TargetPlatform.iOS
+                          ? Icons.face
+                          : Icons.fingerprint,
+                      size: 20,
+                    ),
+                    label: Text(
+                      Theme.of(context).platform == TargetPlatform.iOS
+                          ? 'Sign in with Face ID'
+                          : 'Sign in with Biometrics',
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
@@ -385,6 +404,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextButton(
                   onPressed: () => context.go('/auth/signup'),
                   child: const Text("Don't have an account? Sign Up"),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Guest Mode — prominent for App Store review compliance
+                OutlinedButton(
+                  onPressed: _loading
+                      ? null
+                      : () {
+                          ref.read(guestModeProvider.notifier).state = true;
+                          context.go('/');
+                        },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Try Without Account'),
                 ),
 
                 const Spacer(flex: 2),

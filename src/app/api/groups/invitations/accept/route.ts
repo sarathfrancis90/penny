@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
+import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
@@ -176,6 +177,22 @@ export async function POST(request: NextRequest) {
 
       await Promise.all(notificationPromises);
       console.log(`[Notifications] Created ${notificationPromises.length} member joined notifications`);
+
+      // Send push to admins/owners about new member
+      const pushRecipients = membersSnapshot.docs
+        .filter(doc => {
+          const d = doc.data();
+          return d.userId !== userId && (d.role === 'owner' || d.role === 'admin');
+        })
+        .map(doc => doc.data().userId);
+
+      PushService.sendToUsers(pushRecipients, {
+        title: "New member joined",
+        body: `${newMemberName} joined ${groupName}`,
+        actionUrl: `/groups/${invitation.groupId}`,
+        icon: "👋",
+        priority: "low",
+      });
     } catch (notifError) {
       // Don't fail the join if notification fails
       console.error("[Notifications] Error creating member joined notifications:", notifError);

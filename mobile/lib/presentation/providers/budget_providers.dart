@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/data/guest/guest_sample_data.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
 /// Current budget period (default: current month).
@@ -9,8 +11,9 @@ final budgetPeriodProvider = StateProvider<BudgetPeriod>((ref) {
   return BudgetPeriod.current();
 });
 
-/// Stream budgets for current user and selected period.
+/// Stream budgets for current user and selected period (or sample data in guest mode).
 final budgetsProvider = StreamProvider<List<BudgetModel>>((ref) {
+  if (ref.watch(guestModeProvider)) return Stream.value(guestSampleBudgets());
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
   final period = ref.watch(budgetPeriodProvider);

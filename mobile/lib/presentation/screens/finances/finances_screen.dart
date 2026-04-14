@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/income_providers.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/savings_providers.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 
 class FinancesScreen extends ConsumerWidget {
   const FinancesScreen({super.key});
@@ -19,17 +22,25 @@ class FinancesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Finances')),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          const SizedBox(height: 8),
-          _IncomeSection(currencyFormat: _currencyFormat),
-          const SizedBox(height: 12),
-          _BudgetsSection(currencyFormat: _currencyFormat),
-          const SizedBox(height: 12),
-          _SavingsSection(currencyFormat: _currencyFormat),
-          const SizedBox(height: 24),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(incomeSourcesProvider);
+          ref.invalidate(budgetsProvider);
+          ref.invalidate(savingsGoalsProvider);
+          HapticFeedback.lightImpact();
+        },
+        child: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            const SizedBox(height: 8),
+            _IncomeSection(currencyFormat: _currencyFormat),
+            const SizedBox(height: 12),
+            _BudgetsSection(currencyFormat: _currencyFormat),
+            const SizedBox(height: 12),
+            _SavingsSection(currencyFormat: _currencyFormat),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -88,7 +99,10 @@ class _IncomeSection extends ConsumerWidget {
               : '${activeSources.length} active source${activeSources.length == 1 ? '' : 's'}',
           isEmpty: isEmpty,
           emptyLabel: 'No income sources yet',
-          onManage: () => context.push('/income'),
+          onManage: () {
+            if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+            context.push('/income');
+          },
           manageLabel: isEmpty ? 'Add Income' : 'Manage Income',
           overflowCount:
               activeSources.length > 3 ? activeSources.length - 3 : 0,
@@ -195,7 +209,10 @@ class _BudgetsSection extends ConsumerWidget {
               : '${currencyFormat.format(totalSpent)} spent \u00b7 ${usage.length} categor${usage.length == 1 ? 'y' : 'ies'}',
           isEmpty: isEmpty,
           emptyLabel: 'No budgets yet',
-          onManage: () => context.push('/budgets'),
+          onManage: () {
+            if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+            context.push('/budgets');
+          },
           manageLabel: isEmpty ? 'Create Budget' : 'Manage Budgets',
           defaultExpanded: true,
           overflowCount: usage.length > 3 ? usage.length - 3 : 0,
@@ -319,7 +336,10 @@ class _SavingsSection extends ConsumerWidget {
               : '${progressPercent.toStringAsFixed(0)}% progress \u00b7 ${activeGoals.length} goal${activeGoals.length == 1 ? '' : 's'}',
           isEmpty: isEmpty,
           emptyLabel: 'No savings goals yet',
-          onManage: () => context.push('/savings'),
+          onManage: () {
+            if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+            context.push('/savings');
+          },
           manageLabel: isEmpty ? 'Add Goal' : 'Manage Savings',
           overflowCount:
               activeGoals.length > 3 ? activeGoals.length - 3 : 0,

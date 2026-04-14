@@ -18,16 +18,25 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   // Run in a guarded zone to catch ALL uncaught async errors
   runZonedGuarded<Future<void>>(() async {
+    debugPrint('[PENNY] main() starting...');
     WidgetsFlutterBinding.ensureInitialized();
+    debugPrint('[PENNY] WidgetsBinding initialized');
 
     // Initialize Hive first (needed by router for onboarding check)
     await Hive.initFlutter();
     await Hive.openBox('app_preferences');
+    debugPrint('[PENNY] Hive initialized');
 
     // Initialize Firebase
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    // On Android, google-services.json handles config natively
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await Firebase.initializeApp();
+    } else {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+    debugPrint('[PENNY] Firebase initialized');
 
     // Register FCM background message handler
     FirebaseMessaging.onBackgroundMessage(
@@ -40,7 +49,9 @@ void main() async {
       };
     }
 
+    debugPrint('[PENNY] About to runApp...');
     runApp(const ProviderScope(child: PennyApp()));
+    debugPrint('[PENNY] runApp called');
   }, (error, stack) {
     // Crashlytics: capture async errors (outside Flutter framework)
     if (!kDebugMode) {

@@ -1,13 +1,13 @@
 default_platform(:ios)
 
-KEY_FILEPATH = File.expand_path("AuthKey_VNP3AZMFL6.p8", File.dirname(__FILE__))
+KEY_FILEPATH = File.expand_path("AuthKey_P97VLS6M6Z.p8", File.dirname(__FILE__))
 
 platform :ios do
 
   desc "Register the app on App Store Connect"
   lane :register do
     api_key = app_store_connect_api_key(
-      key_id: "VNP3AZMFL6",
+      key_id: "P97VLS6M6Z",
       issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
       key_filepath: KEY_FILEPATH,
       in_house: false
@@ -29,7 +29,7 @@ platform :ios do
   desc "Build release IPA and upload to TestFlight"
   lane :beta do
     api_key = app_store_connect_api_key(
-      key_id: "VNP3AZMFL6",
+      key_id: "P97VLS6M6Z",
       issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
       key_filepath: KEY_FILEPATH,
       in_house: false
@@ -39,6 +39,15 @@ platform :ios do
     Dir.chdir("..") do
       sh("flutter", "clean")
       sh("flutter", "pub", "get")
+    end
+
+    # Reinstall pods (flutter clean removes them)
+    cocoapods(
+      podfile: "ios/Podfile",
+      clean_install: true
+    )
+
+    Dir.chdir("..") do
       sh("flutter", "build", "ios", "--release", "--no-codesign")
     end
 
@@ -49,12 +58,30 @@ platform :ios do
       path: "ios/Runner.xcodeproj"
     )
 
-    # Archive and export IPA
+    # Fetch or create App Store distribution provisioning profile
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.penny.pennyMobile",
+      force: true,
+      skip_certificate_verification: true
+    )
+
+    profile_name = lane_context[SharedValues::SIGH_NAME]
+
+    # Archive and export IPA with explicit profile mapping
     build_app(
       workspace: "ios/Runner.xcworkspace",
       scheme: "Runner",
       export_method: "app-store",
-      clean: true
+      clean: true,
+      export_options: {
+        signingStyle: "manual",
+        teamID: "H845PX7Q62",
+        signingCertificate: "Apple Distribution",
+        provisioningProfiles: {
+          "com.penny.pennyMobile" => profile_name
+        }
+      }
     )
 
     # Upload to TestFlight
@@ -82,6 +109,47 @@ platform :ios do
       export_method: "app-store",
       clean: true
     )
+  end
+
+end
+
+platform :android do
+
+  desc "Build release AAB and upload to Google Play (internal track)"
+  lane :beta do
+    # Flutter build
+    Dir.chdir("..") do
+      sh("flutter", "clean")
+      sh("flutter", "pub", "get")
+      sh("flutter", "build", "appbundle", "--release")
+    end
+
+    # Upload to Play Store internal track with metadata
+    supply(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      json_key: "fastlane/play-store-key.json",
+      package_name: "com.penny.penny_mobile"
+    )
+  end
+
+  desc "Upload metadata, screenshots, and images only (no build)"
+  lane :metadata do
+    supply(
+      json_key: "fastlane/play-store-key.json",
+      package_name: "com.penny.penny_mobile",
+      skip_upload_apk: true,
+      skip_upload_aab: true
+    )
+  end
+
+  desc "Build release AAB only (no upload)"
+  lane :build do
+    Dir.chdir("..") do
+      sh("flutter", "clean")
+      sh("flutter", "pub", "get")
+      sh("flutter", "build", "appbundle", "--release")
+    end
   end
 
 end

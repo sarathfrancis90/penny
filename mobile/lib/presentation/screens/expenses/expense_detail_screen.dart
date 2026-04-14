@@ -8,7 +8,9 @@ import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/receipt_image_viewer.dart';
 
 class ExpenseDetailScreen extends ConsumerWidget {
@@ -47,12 +49,18 @@ class ExpenseDetailScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Edit expense',
-            onPressed: () => _showEditSheet(context, ref),
+            onPressed: () {
+              if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+              _showEditSheet(context, ref);
+            },
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: AppColors.error),
             tooltip: 'Delete expense',
-            onPressed: () => _confirmDelete(context, ref),
+            onPressed: () {
+              if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+              _confirmDelete(context, ref);
+            },
           ),
         ],
       ),
@@ -202,8 +210,13 @@ class ExpenseDetailScreen extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.error),
                       onPressed: () async {
-                        Navigator.pop(ctx);
-                        // Group expenses go through API (triggers notifications)
+                        Navigator.pop(ctx); // close confirmation sheet
+
+                        // Cache expense data and messenger before popping
+                        final cachedExpense = expense;
+                        final messenger = ScaffoldMessenger.of(context);
+
+                        // Delete
                         if (expense.groupId != null && expense.expenseType == 'group') {
                           await ref.read(apiClientProvider).delete(
                             '/api/expenses/${expense.id}',
@@ -212,8 +225,41 @@ class ExpenseDetailScreen extends ConsumerWidget {
                           await ref.read(expenseRepositoryProvider)
                               .deleteExpense(expense.id);
                         }
+
                         HapticFeedback.mediumImpact();
-                        if (context.mounted) Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context); // go back to list
+
+                        // Show undo SnackBar on parent scaffold
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('${cachedExpense.vendor} deleted'),
+                            duration: const Duration(seconds: 5),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            action: SnackBarAction(
+                              label: 'Undo',
+                              textColor: Colors.white,
+                              onPressed: () async {
+                                // Re-create the expense from cached data
+                                try {
+                                  await ref.read(expenseRepositoryProvider)
+                                      .savePersonalExpense(
+                                    userId: cachedExpense.userId,
+                                    vendor: cachedExpense.vendor,
+                                    amount: cachedExpense.amount,
+                                    category: cachedExpense.category,
+                                    date: '${cachedExpense.date.toDate().year}-${cachedExpense.date.toDate().month.toString().padLeft(2, '0')}-${cachedExpense.date.toDate().day.toString().padLeft(2, '0')}',
+                                    description: cachedExpense.description,
+                                    receiptUrl: cachedExpense.receiptUrl,
+                                  );
+                                  HapticFeedback.mediumImpact();
+                                } catch (_) {}
+                              },
+                            ),
+                          ),
+                        );
                       },
                       child: const Text('Delete'),
                     ),
@@ -227,12 +273,16 @@ class ExpenseDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+  void _showEditSheet(BuildContext context, WidgetRef ref) async {
+    final saved = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => _EditExpenseSheet(expense: expense, ref: ref),
     );
+    // Return to the list (which has updated data) after a successful save
+    if (saved == true && context.mounted) {
+      Navigator.pop(context);
+    }
   }
 }
 
@@ -414,7 +464,7 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
         );
       }
       HapticFeedback.mediumImpact();
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

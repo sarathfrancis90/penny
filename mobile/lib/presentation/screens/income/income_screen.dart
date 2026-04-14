@@ -12,6 +12,7 @@ import 'package:penny_mobile/presentation/widgets/animated_counter.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
+import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
 
 class IncomeScreen extends ConsumerWidget {
   const IncomeScreen({super.key});
@@ -63,7 +64,10 @@ class _IncomeContent extends ConsumerWidget {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(incomeSourcesProvider),
+      onRefresh: () async {
+        ref.invalidate(incomeSourcesProvider);
+        HapticFeedback.lightImpact();
+      },
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
@@ -120,22 +124,12 @@ class _IncomeContent extends ConsumerWidget {
 
           // Active sources
           if (activeSources.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 48),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.account_balance_outlined,
-                        size: 48, color: Theme.of(context).hintColor),
-                    const SizedBox(height: 12),
-                    Text('No income sources',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    const SizedBox(height: 4),
-                    TextButton(onPressed: onAdd, child: const Text('Add your first income source')),
-                  ],
-                ),
-              ),
+            PennyEmptyState(
+              lottieAsset: 'assets/lottie/empty_box.json',
+              title: 'No income sources',
+              subtitle: 'Add your salary, freelance gigs, or side income.\nPenny uses this to calculate your cash flow and net savings.',
+              onAction: onAdd,
+              actionLabel: 'Add your first income source',
             )
           else ...[
             Text('ACTIVE SOURCES',

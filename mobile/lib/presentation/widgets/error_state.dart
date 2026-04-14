@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Reusable error state widget with retry button.
 class ErrorState extends StatelessWidget {
@@ -7,11 +8,13 @@ class ErrorState extends StatelessWidget {
     required this.message,
     this.onRetry,
     this.icon = Icons.error_outline,
+    this.svgAsset,
   });
 
   final String message;
   final VoidCallback? onRetry;
   final IconData icon;
+  final String? svgAsset;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +24,14 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: Theme.of(context).hintColor),
+            if (svgAsset != null)
+              SvgPicture.asset(
+                svgAsset!,
+                width: 120,
+                height: 120,
+              )
+            else
+              Icon(icon, size: 48, color: Theme.of(context).hintColor),
             const SizedBox(height: 12),
             Text(
               message,

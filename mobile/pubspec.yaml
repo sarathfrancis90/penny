@@ -1,7 +1,7 @@
 name: penny_mobile
 description: "Penny — AI-powered expense tracker for Canadian professionals"
 publish_to: 'none'
-version: 2.0.0+15
+version: 2.0.0+26
 
 environment:
   sdk: ^3.11.1
@@ -35,6 +35,11 @@ dependencies:
   shimmer: ^3.0.0
   fl_chart: ^1.2.0
   cached_network_image: ^3.4.1
+  badges: ^3.1.2
+  lottie: ^3.3.1
+  smooth_page_indicator: ^1.2.0+3
+  flutter_svg: ^2.0.17
+  gap: ^3.0.1
 
   # Camera & Image
   image_picker: ^1.2.1
@@ -93,6 +98,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/
+    - assets/lottie/
+    - assets/svg/
 
   # Using system fonts (SF Pro on iOS, Roboto on Android).
   # Add custom Inter font files later if needed.

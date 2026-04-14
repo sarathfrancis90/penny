@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
+import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/providers/theme_provider.dart';
 
 /// Provider for user preferences from Firestore.
@@ -25,6 +27,7 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isGuest = ref.watch(guestModeProvider);
     final prefsAsync = ref.watch(userPreferencesProvider);
     final user = ref.watch(currentUserProvider);
     final themeMode = ref.watch(themeModeProvider);
@@ -36,23 +39,27 @@ class SettingsScreen extends ConsumerWidget {
         children: [
           const SizedBox(height: 16),
 
-          // Currency
+          // Appearance (works for guests too — theme is local)
           const _SectionHeader(title: 'PREFERENCES'),
           const SizedBox(height: 8),
-          _SettingsTile(
-            icon: Icons.attach_money,
-            title: 'Currency',
-            subtitle: prefsAsync.valueOrNull?['currency'] as String? ?? 'CAD',
-            onTap: () => _showCurrencyPicker(context, ref),
-          ),
 
-          // Fiscal Year End
-          _SettingsTile(
-            icon: Icons.calendar_today_outlined,
-            title: 'Fiscal Year End',
-            subtitle: prefsAsync.valueOrNull?['fiscalYearEnd'] as String? ?? 'December',
-            onTap: () {},
-          ),
+          if (!isGuest) ...[
+            // Currency
+            _SettingsTile(
+              icon: Icons.attach_money,
+              title: 'Currency',
+              subtitle: prefsAsync.valueOrNull?['currency'] as String? ?? 'CAD',
+              onTap: () => _showCurrencyPicker(context, ref),
+            ),
+
+            // Fiscal Year End
+            _SettingsTile(
+              icon: Icons.calendar_today_outlined,
+              title: 'Fiscal Year End',
+              subtitle: prefsAsync.valueOrNull?['fiscalYearEnd'] as String? ?? 'December',
+              onTap: () {},
+            ),
+          ],
 
           // Appearance
           _SettingsTile(
@@ -66,17 +73,19 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _showThemePicker(context, ref),
           ),
 
-          const SizedBox(height: 24),
+          if (!isGuest) ...[
+            const SizedBox(height: 24),
 
-          // Notifications section
-          const _SectionHeader(title: 'NOTIFICATIONS'),
-          const SizedBox(height: 8),
-          _SettingsTile(
-            icon: Icons.notifications_outlined,
-            title: 'Notification Preferences',
-            subtitle: 'Push, in-app, quiet hours',
-            onTap: () => context.push('/settings/notifications'),
-          ),
+            // Notifications section
+            const _SectionHeader(title: 'NOTIFICATIONS'),
+            const SizedBox(height: 8),
+            _SettingsTile(
+              icon: Icons.notifications_outlined,
+              title: 'Notification Preferences',
+              subtitle: 'Push, in-app, quiet hours',
+              onTap: () => context.push('/settings/notifications'),
+            ),
+          ],
 
           const SizedBox(height: 24),
 
@@ -86,32 +95,35 @@ class SettingsScreen extends ConsumerWidget {
           _SettingsTile(
             icon: Icons.info_outline,
             title: 'App Version',
-            subtitle: '1.0.0',
+            subtitle: '2.0.0',
             onTap: () {},
           ),
-          _SettingsTile(
-            icon: Icons.mail_outline,
-            title: 'Account',
-            subtitle: user?.email ?? '',
-            onTap: () {},
-          ),
-
-          const SizedBox(height: 32),
-
-          // Danger zone
-          OutlinedButton.icon(
-            onPressed: () => _confirmDeleteAccount(context, ref),
-            icon: const Icon(Icons.delete_forever_outlined,
-                color: AppColors.error),
-            label: const Text('Delete Account',
-                style: TextStyle(color: AppColors.error)),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.error),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+          if (!isGuest)
+            _SettingsTile(
+              icon: Icons.mail_outline,
+              title: 'Account',
+              subtitle: user?.email ?? '',
+              onTap: () {},
             ),
-          ),
+
+          if (!isGuest) ...[
+            const SizedBox(height: 32),
+
+            // Danger zone
+            OutlinedButton.icon(
+              onPressed: () => _confirmDeleteAccount(context, ref),
+              icon: const Icon(Icons.delete_forever_outlined,
+                  color: AppColors.error),
+              label: const Text('Delete Account',
+                  style: TextStyle(color: AppColors.error)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.error),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 24),
         ],
@@ -221,7 +233,7 @@ class SettingsScreen extends ConsumerWidget {
                           backgroundColor: AppColors.error),
                       onPressed: () async {
                         Navigator.pop(ctx);
-                        await _deleteAccount(context);
+                        await _deleteAccount(context, ref);
                       },
                       child: const Text('Delete'),
                     ),
@@ -235,13 +247,28 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _deleteAccount(BuildContext context) async {
+  Future<void> _deleteAccount(BuildContext context, WidgetRef ref) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Delete the Firebase Auth account
-      await user.delete();
+      // Call API to delete all Firestore data first
+      try {
+        final apiClient = ref.read(apiClientProvider);
+        await apiClient.delete('/api/account/delete');
+      } catch (apiError) {
+        // API will also delete the auth account, but if the API call
+        // fails we still try to delete locally
+        debugPrint('[Account Delete] API error: $apiError');
+      }
+
+      // Delete the Firebase Auth account (may already be deleted by API)
+      try {
+        await user.delete();
+      } on FirebaseAuthException catch (e) {
+        if (e.code != 'user-not-found') rethrow;
+        // User already deleted by API — this is fine
+      }
 
       // Clean up local data
       await Hive.box('app_preferences').clear();

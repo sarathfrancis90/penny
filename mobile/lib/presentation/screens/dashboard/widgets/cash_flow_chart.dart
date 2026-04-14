@@ -156,6 +156,8 @@ class CashFlowChart extends StatelessWidget {
                 );
               }),
             ),
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeOutCubic,
           ),
         ),
         const SizedBox(height: 12),

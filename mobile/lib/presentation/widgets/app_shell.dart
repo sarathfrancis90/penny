@@ -1,13 +1,24 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
+import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/connectivity_banner.dart';
 
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.child});
 
   final Widget child;
+
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  bool _initialized = false;
 
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
@@ -18,7 +29,8 @@ class AppShell extends ConsumerWidget {
     return 0;
   }
 
-  void _onTap(BuildContext context, int index) {
+  void _onTap(int index) {
+    HapticFeedback.selectionClick();
     switch (index) {
       case 0:
         context.go('/');
@@ -34,53 +46,88 @@ class AppShell extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Initialize push notifications when user is authenticated
-    ref.watch(pushNotificationInitProvider);
+  void initState() {
+    super.initState();
+    // Defer push notification setup to avoid build-phase side effects
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_initialized) {
+        _initialized = true;
+        if (!ref.read(guestModeProvider)) {
+          ref.read(pushNotificationInitProvider);
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
+    final idx = _currentIndex(context);
+    debugPrint('[PENNY] AppShell build: location=$location, index=$idx');
+
+    // Handle push notification deep link navigation
+    ref.listen(pushNavigationStreamProvider, (_, next) {
+      final url = next.valueOrNull;
+      if (url != null && context.mounted) {
+        context.push(url);
+      }
+    });
+
+    final unreadCount = ref.watch(unreadCountProvider);
 
     return Scaffold(
-      body: ConnectivityBanner(child: child),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).dividerColor,
-              width: 0.5,
-            ),
+      body: ConnectivityBanner(child: widget.child),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex(context),
+        onDestinationSelected: _onTap,
+        destinations: [
+          NavigationDestination(
+            icon: _buildBadgedIcon(Icons.chat_bubble_outline, unreadCount),
+            selectedIcon: _buildBadgedIcon(Icons.chat_bubble, unreadCount),
+            label: 'Home',
           ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex(context),
-          onTap: (index) => _onTap(context, index),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              activeIcon: Icon(Icons.chat_bubble),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart_outlined),
-              activeIcon: Icon(Icons.bar_chart),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Finances',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.group_outlined),
-              activeIcon: Icon(Icons.group),
-              label: 'Groups',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+          const NavigationDestination(
+            icon: Icon(Icons.bar_chart_outlined),
+            selectedIcon: Icon(Icons.bar_chart),
+            label: 'Dashboard',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: 'Finances',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.group_outlined),
+            selectedIcon: Icon(Icons.group),
+            label: 'Groups',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgedIcon(IconData iconData, int count) {
+    if (count == 0) return Icon(iconData);
+    return badges.Badge(
+      badgeContent: Text(
+        count > 9 ? '9+' : '$count',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
         ),
       ),
+      badgeStyle: const badges.BadgeStyle(
+        badgeColor: Color(0xFFFF3B30),
+        padding: EdgeInsets.all(4),
+      ),
+      position: badges.BadgePosition.topEnd(top: -8, end: -6),
+      child: Icon(iconData),
     );
   }
 }

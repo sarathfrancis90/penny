@@ -1,0 +1,8 @@
+Welcome to Penny 2.0! First Android release.
+
+- AI-powered expense categorization with CRA T2125 tax categories
+- Smart budgeting with real-time alerts
+- Income tracking and savings goals
+- Group expense management
+- Dashboard with spending analytics
+- Real-time sync across devices

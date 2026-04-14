@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
+import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 
 /// Expense confirmation form displayed as a bottom panel in HomeScreen.
 ///
@@ -133,35 +134,40 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
       return;
     }
 
-    // Duplicate check
-    final duplicateResult =
-        await ref.read(duplicateDetectorProvider).checkForDuplicate(
-              vendor: vendor,
-              amount: amount,
-              date: _date,
-              userId: user.uid,
-              groupId: _selectedGroupId,
-            );
-    if (duplicateResult != null) {
-      if (!mounted) return;
-      final addAnyway = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Possible Duplicate'),
-          content: Text(duplicateResult.warningMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Add Anyway'),
-            ),
-          ],
-        ),
-      );
-      if (addAnyway != true) return;
+    // Duplicate check — wrapped in try/catch so a Firestore error
+    // (e.g. missing composite index) doesn't silently block the save.
+    try {
+      final duplicateResult =
+          await ref.read(duplicateDetectorProvider).checkForDuplicate(
+                vendor: vendor,
+                amount: amount,
+                date: _date,
+                userId: user.uid,
+                groupId: _selectedGroupId,
+              );
+      if (duplicateResult != null) {
+        if (!mounted) return;
+        final addAnyway = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Possible Duplicate'),
+            content: Text(duplicateResult.warningMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Add Anyway'),
+              ),
+            ],
+          ),
+        );
+        if (addAnyway != true) return;
+      }
+    } catch (_) {
+      // Skip duplicate detection if the query fails — saving is more important.
     }
 
     // Budget check for personal expenses
@@ -227,18 +233,10 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
               'group'
             : null;
 
-        final label = groupName != null
-            ? '$vendor — \$${amount.toStringAsFixed(2)} saved to $groupName'
-            : '$vendor — \$${amount.toStringAsFixed(2)} saved';
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(label),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+        SuccessOverlay.show(
+          context,
+          title: vendor,
+          subtitle: '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
         );
 
         widget.onSaved?.call();

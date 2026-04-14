@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { BudgetNotificationService } from "@/lib/services/budgetNotificationService";
+import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 interface CreateExpenseRequest {
@@ -210,6 +211,19 @@ export async function POST(request: NextRequest) {
 
           await Promise.all(notificationPromises);
           console.log(`[Notifications] Created ${notificationPromises.length} expense notifications for group ${groupId}`);
+
+          // Send push notifications
+          const pushRecipients = membersSnapshot.docs
+            .filter(doc => doc.data().userId !== userId)
+            .map(doc => doc.data().userId);
+
+          PushService.sendToUsers(pushRecipients, {
+            title: "New expense added",
+            body: `${actorName} added $${amount.toFixed(2)} at ${vendor}`,
+            actionUrl: `/groups/${groupId}`,
+            icon: "💰",
+            priority: "medium",
+          });
         } catch (notifError) {
           // Don't fail the expense creation if notifications fail
           console.error("[Notifications] Error creating expense notifications:", notifError);

@@ -56,15 +56,20 @@ class CategoryBarChart extends StatelessWidget {
                 Semantics(
                   label: '${(fraction * 100).toStringAsFixed(0)} percent',
                   value: '${(fraction * 100).toStringAsFixed(0)} percent',
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: fraction,
-                      minHeight: 8,
-                      backgroundColor: Theme.of(context).cardColor,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primary.withValues(
-                          alpha: 0.5 + (fraction * 0.5),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: fraction),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, _) => ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        minHeight: 8,
+                        backgroundColor: Theme.of(context).cardColor,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary.withValues(
+                            alpha: 0.5 + (fraction * 0.5),
+                          ),
                         ),
                       ),
                     ),

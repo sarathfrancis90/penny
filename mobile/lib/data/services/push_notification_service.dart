@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,6 +20,11 @@ class PushNotificationService {
   final FirebaseFirestore _db;
 
   String? _pendingNavigationUrl;
+  final StreamController<String> _navigationController =
+      StreamController<String>.broadcast();
+
+  /// Stream of navigation URLs from push notification taps.
+  Stream<String> get navigationStream => _navigationController.stream;
 
   Future<void> initialize() async {
     // Initialize local notifications for foreground display
@@ -128,17 +134,17 @@ class PushNotificationService {
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {
-    // Navigation will be handled by the app's router.
-    // Store the action URL for the app to pick up.
     final actionUrl = message.data['actionUrl'] as String?;
     if (actionUrl != null) {
       _pendingNavigationUrl = actionUrl;
+      _navigationController.add(actionUrl);
     }
   }
 
   void _onNotificationTap(NotificationResponse response) {
-    if (response.payload != null) {
+    if (response.payload != null && response.payload!.isNotEmpty) {
       _pendingNavigationUrl = response.payload;
+      _navigationController.add(response.payload!);
     }
   }
 
@@ -147,5 +153,9 @@ class PushNotificationService {
     final url = _pendingNavigationUrl;
     _pendingNavigationUrl = null;
     return url;
+  }
+
+  void dispose() {
+    _navigationController.close();
   }
 }

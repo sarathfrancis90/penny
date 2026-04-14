@@ -1,0 +1,27 @@
+Penny is an AI-powered expense tracker built for self-incorporated
+  software professionals in Canada.       
+                                                                                                                                                                  
+  SMART EXPENSE TRACKING                                                                                                                                                                                
+  • Just describe your expense or snap a receipt — AI handles the rest                                                                                                                                  
+  • Automatic vendor, amount, and category detection                                                                                                                                                    
+  • 38 CRA T2125 tax categories built-in   
+                                                                                                                                                                                  
+  BUDGETS & INSIGHTS                                                                                                                                                                                    
+  • Set monthly budgets by category with real-time alerts                                                                                                                                               
+  • Spending trend charts and cash flow visualization                                                                                                                                                   
+  • Category breakdown with progress tracking  
+                                                                                                                                                                                             
+  GROUP EXPENSES                                                                                                                                                                                        
+  • Create groups for family, team, or business expenses            
+  • Invite members with role-based permissions                                                                                                                                                          
+  • Track shared spending with approval workflows     
+                                                                                                                                                                                           
+  SAVINGS GOALS                                                 
+  • Set targets for vacations, emergencies, or big purchases                                                                                                                                            
+  • Track progress with monthly contributions                                                                                                                                                           
+  • Priority-based goal management              
+                                                                                                                                                                                                                     
+  INCOME TRACKING                                               
+  • Track salary, freelance, and side income                                                                                                                                                            
+  • Monthly cash flow calculations                              
+  • Net savings insights

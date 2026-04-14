@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:penny_mobile/presentation/screens/auth/login_screen.dart';
 import 'package:penny_mobile/presentation/screens/auth/signup_screen.dart';
@@ -25,28 +26,48 @@ import 'package:penny_mobile/presentation/screens/settings/settings_screen.dart'
 import 'package:penny_mobile/presentation/widgets/app_shell.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 
+/// A [ChangeNotifier] that listens to the auth stream and notifies
+/// GoRouter to re-evaluate its redirect whenever auth state changes.
+class _AuthNotifier extends ChangeNotifier {
+  _AuthNotifier(Ref ref) {
+    ref.listen(authStateProvider, (prev, next) {
+      // Clear guest mode when user signs in
+      if (next.valueOrNull != null && ref.read(guestModeProvider)) {
+        ref.read(guestModeProvider.notifier).state = false;
+      }
+      notifyListeners();
+    });
+    ref.listen(guestModeProvider, (_, __) => notifyListeners());
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  final authNotifier = _AuthNotifier(ref);
 
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: authNotifier,
     redirect: (context, state) {
+      final authState = ref.read(authStateProvider);
       final isLoggedIn = authState.valueOrNull != null;
+      final isGuest = ref.read(guestModeProvider);
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isOnboarding = state.matchedLocation == '/onboarding';
       final onboardingComplete =
           Hive.box('app_preferences').get('onboarding_complete', defaultValue: false) as bool;
 
       // First-time user: show onboarding
-      if (!isLoggedIn && !onboardingComplete && !isOnboarding) {
+      if (!isLoggedIn && !isGuest && !onboardingComplete && !isOnboarding) {
         return '/onboarding';
       }
 
-      // Onboarding done but not logged in: go to login
-      if (!isLoggedIn && !isAuthRoute && !isOnboarding) return '/auth/login';
+      // Onboarding done but not logged in (and not guest): go to login
+      if (!isLoggedIn && !isGuest && !isAuthRoute && !isOnboarding) {
+        return '/auth/login';
+      }
 
-      // Logged in user trying to access auth/onboarding: go home
-      if (isLoggedIn && (isAuthRoute || isOnboarding)) return '/';
+      // Logged in (or guest) trying to access auth/onboarding: go home
+      if ((isLoggedIn || isGuest) && (isAuthRoute || isOnboarding)) return '/';
 
       return null;
     },

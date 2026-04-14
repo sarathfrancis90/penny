@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Group } from "@/lib/types";
+import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
@@ -199,6 +200,66 @@ export async function PATCH(
       metadata: { changes: Object.keys(updateData) },
       createdAt: Timestamp.now(),
     });
+
+    // Notify group members about settings changes
+    if (updateData.settings) {
+      try {
+        const groupDoc = await adminDb.collection("groups").doc(groupId).get();
+        const groupName = groupDoc.data()?.name || 'Unknown Group';
+        const actorName = membershipData.userName || membershipData.userEmail || "Owner";
+
+        const membersSnapshot = await adminDb
+          .collection("groupMembers")
+          .where("groupId", "==", groupId)
+          .where("status", "==", "active")
+          .get();
+
+        const notifPromises = membersSnapshot.docs
+          .filter(doc => doc.data().userId !== userId)
+          .map(memberDoc =>
+            adminDb.collection("notifications").add({
+              userId: memberDoc.data().userId,
+              type: "group_settings_changed",
+              title: "Group settings updated",
+              body: `${actorName} updated settings for ${groupName}`,
+              icon: "⚙️",
+              priority: "low",
+              category: "group",
+              read: false,
+              delivered: false,
+              isGrouped: false,
+              actionUrl: `/groups/${groupId}`,
+              relatedType: "group",
+              relatedId: groupId,
+              groupId,
+              actorId: userId,
+              actorName,
+              metadata: {
+                groupName,
+                changes: Object.keys(settings),
+              },
+              createdAt: Timestamp.now(),
+            })
+          );
+
+        await Promise.all(notifPromises);
+        console.log(`[Notifications] Created ${notifPromises.length} settings_changed notifications`);
+
+        const pushRecipients = membersSnapshot.docs
+          .filter(doc => doc.data().userId !== userId)
+          .map(doc => doc.data().userId);
+
+        PushService.sendToUsers(pushRecipients, {
+          title: "Group settings updated",
+          body: `${actorName} updated settings for ${groupName}`,
+          actionUrl: `/groups/${groupId}`,
+          icon: "⚙️",
+          priority: "low",
+        });
+      } catch (notifError) {
+        console.error("[Notifications] Error creating settings_changed notifications:", notifError);
+      }
+    }
 
     return NextResponse.json({
       success: true,

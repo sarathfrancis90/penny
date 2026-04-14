@@ -8,6 +8,7 @@ import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
+import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
 
@@ -55,24 +56,10 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.notifications_none_outlined, size: 48,
-                color: Theme.of(context).hintColor),
-            SizedBox(height: 12),
-            Text('No notifications',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            SizedBox(height: 4),
-            Text("You're all caught up!",
-                style: TextStyle(fontSize: 14, color: Theme.of(context).hintColor)),
-          ],
-        ),
-      ),
+    return const PennyEmptyState(
+      lottieAsset: 'assets/lottie/empty_box.json',
+      title: 'No notifications',
+      subtitle: "You're all caught up!\nBudget alerts and group activity will appear here.",
     );
   }
 }
@@ -84,7 +71,10 @@ class _NotificationList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(notificationsProvider),
+      onRefresh: () async {
+        ref.invalidate(notificationsProvider);
+        HapticFeedback.lightImpact();
+      },
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: notifications.length,

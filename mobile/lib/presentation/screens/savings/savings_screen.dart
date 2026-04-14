@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/widgets/animated_counter.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
+import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
 
 class SavingsScreen extends ConsumerWidget {
   const SavingsScreen({super.key});
@@ -64,7 +65,10 @@ class _SavingsContent extends ConsumerWidget {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(savingsGoalsProvider),
+      onRefresh: () async {
+        ref.invalidate(savingsGoalsProvider);
+        HapticFeedback.lightImpact();
+      },
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
@@ -112,22 +116,12 @@ class _SavingsContent extends ConsumerWidget {
           const SizedBox(height: 24),
 
           if (goals.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 48),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Icons.savings_outlined,
-                        size: 48, color: Theme.of(context).hintColor),
-                    const SizedBox(height: 12),
-                    Text('No savings goals yet',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    const SizedBox(height: 4),
-                    TextButton(onPressed: onAdd, child: const Text('Create your first goal')),
-                  ],
-                ),
-              ),
+            PennyEmptyState(
+              lottieAsset: 'assets/lottie/empty_box.json',
+              title: 'No savings goals yet',
+              subtitle: 'Set a target amount and track your progress.\nGreat for emergency funds, vacations, or big purchases.',
+              onAction: onAdd,
+              actionLabel: 'Create your first goal',
             )
           else
             ...goals.asMap().entries.map((entry) => AnimatedListItem(

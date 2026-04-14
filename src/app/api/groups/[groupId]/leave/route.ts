@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 export async function POST(
@@ -84,6 +85,58 @@ export async function POST(
       details: `${displayName} left the group`,
       createdAt: Timestamp.now(),
     });
+
+    // Notify remaining group members
+    try {
+      const groupName = groupDoc.data()?.name || 'Unknown Group';
+      const membersSnapshot = await adminDb
+        .collection("groupMembers")
+        .where("groupId", "==", groupId)
+        .where("status", "==", "active")
+        .get();
+
+      const notifPromises = membersSnapshot.docs
+        .filter(doc => doc.data().userId !== userId)
+        .map(memberDoc =>
+          adminDb.collection("notifications").add({
+            userId: memberDoc.data().userId,
+            type: "group_member_left",
+            title: "Member left",
+            body: `${displayName} left ${groupName}`,
+            icon: "👋",
+            priority: "low",
+            category: "group",
+            read: false,
+            delivered: false,
+            isGrouped: false,
+            actionUrl: `/groups/${groupId}`,
+            relatedType: "member",
+            relatedId: userId,
+            groupId: groupId,
+            actorId: userId,
+            actorName: displayName,
+            metadata: { groupName },
+            createdAt: Timestamp.now(),
+          })
+        );
+
+      await Promise.all(notifPromises);
+      console.log(`[Notifications] Created ${notifPromises.length} member_left notifications`);
+
+      const pushRecipients = membersSnapshot.docs
+        .filter(doc => doc.data().userId !== userId)
+        .map(doc => doc.data().userId);
+
+      PushService.sendToUsers(pushRecipients, {
+        title: "Member left",
+        body: `${displayName} left ${groupName}`,
+        actionUrl: `/groups/${groupId}`,
+        icon: "👋",
+        priority: "low",
+      });
+    } catch (notifError) {
+      console.error("[Notifications] Error creating member_left notifications:", notifError);
+    }
 
     return NextResponse.json({
       success: true,

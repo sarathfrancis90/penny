@@ -89,6 +89,12 @@ final pushNotificationInitProvider = FutureProvider<void>((ref) async {
   }
 });
 
+/// Stream of navigation URLs from push notification taps.
+final pushNavigationStreamProvider = StreamProvider<String>((ref) {
+  final service = ref.read(pushNotificationServiceProvider);
+  return service.navigationStream;
+});
+
 /// Stream the user's default group ID from their preferences.
 /// Returns `null` when no default group is set.
 final defaultGroupProvider = StreamProvider<String?>((ref) {

@@ -6,11 +6,14 @@ import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
+import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
 
 class GroupsScreen extends ConsumerWidget {
   const GroupsScreen({super.key});
@@ -51,6 +54,10 @@ class GroupsScreen extends ConsumerWidget {
   }
 
   void _showCreateGroup(BuildContext context, WidgetRef ref) {
+    if (ref.read(guestModeProvider)) {
+      showGuestSignUpPrompt(context);
+      return;
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -65,31 +72,12 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.group_outlined, size: 48,
-                color: Theme.of(context).hintColor),
-            const SizedBox(height: 12),
-            Text('No groups yet',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 4),
-            Text('Create a group to share expenses\nwith family or team members',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Theme.of(context).hintColor)),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: onAdd,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Create Group'),
-            ),
-          ],
-        ),
-      ),
+    return PennyEmptyState(
+      lottieAsset: 'assets/lottie/empty_box.json',
+      title: 'No groups yet',
+      subtitle: 'Groups let you split and track shared expenses.\nPerfect for households, trips, or business partners.',
+      onAction: onAdd,
+      actionLabel: 'Create Group',
     );
   }
 }
@@ -101,7 +89,10 @@ class _GroupList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(userGroupsProvider),
+      onRefresh: () async {
+        ref.invalidate(userGroupsProvider);
+        HapticFeedback.lightImpact();
+      },
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         itemCount: groups.length,
@@ -114,12 +105,12 @@ class _GroupList extends ConsumerWidget {
   }
 }
 
-class _GroupCard extends StatelessWidget {
+class _GroupCard extends ConsumerWidget {
   const _GroupCard({required this.group});
   final GroupModel group;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     final icon = group.icon ?? '👥';
 
@@ -130,6 +121,10 @@ class _GroupCard extends StatelessWidget {
           'total ${formatter.format(group.stats.totalAmount)}',
       child: InkWell(
         onTap: () {
+          if (ref.read(guestModeProvider)) {
+            showGuestSignUpPrompt(context);
+            return;
+          }
           context.push('/groups/${group.id}');
         },
         borderRadius: BorderRadius.circular(12),

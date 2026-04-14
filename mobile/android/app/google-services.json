@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "537615138155-7orqtjp50csmvj31uein6j9iv3lkgoc8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.penny.penny_mobile",
+            "certificate_hash": "ad27929047db0a10fca46ee34117e967be430da0"
+          }
+        },
+        {
+          "client_id": "537615138155-doq1m733e41pr6jihfc3iamhtlqhht8h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.penny.penny_mobile",
+            "certificate_hash": "c54291ca816dc171646ef8ec444b478cd90515da"
+          }
+        },
+        {
           "client_id": "537615138155-qa3uf7pfqhdado4ogcreoi024rhrncoj.apps.googleusercontent.com",
           "client_type": 3
         }

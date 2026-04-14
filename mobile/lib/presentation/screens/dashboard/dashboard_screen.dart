@@ -8,12 +8,17 @@ import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/quick_add_expense.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/expense_list_tile.dart';
 import 'package:penny_mobile/presentation/widgets/animated_counter.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
+import 'package:penny_mobile/presentation/screens/dashboard/widgets/cash_flow_chart.dart';
+import 'package:penny_mobile/presentation/screens/dashboard/widgets/spending_trend_chart.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -29,7 +34,13 @@ class DashboardScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.ios_share_outlined),
             tooltip: 'Export expenses',
-            onPressed: () => _showExportSheet(context, ref),
+            onPressed: () {
+              if (ref.read(guestModeProvider)) {
+                showGuestSignUpPrompt(context);
+                return;
+              }
+              _showExportSheet(context, ref);
+            },
           ),
           IconButton(
             icon: const Icon(Icons.search),
@@ -41,6 +52,10 @@ class DashboardScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         tooltip: 'Add expense',
         onPressed: () {
+          if (ref.read(guestModeProvider)) {
+            showGuestSignUpPrompt(context);
+            return;
+          }
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
@@ -86,14 +101,53 @@ class _DashboardContent extends ConsumerWidget {
     // Group expenses by date bucket
     final grouped = _groupExpensesByDate(filteredExpenses);
 
+    final isGuest = ref.watch(guestModeProvider);
+
     return RefreshIndicator(
       onRefresh: () async {
+        if (isGuest) return;
         ref.invalidate(allExpensesProvider);
+        HapticFeedback.lightImpact();
       },
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           const SizedBox(height: 8),
+
+          // Guest mode banner
+          if (isGuest)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.explore_outlined, size: 18, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Exploring with sample data',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => showGuestSignUpPrompt(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('Create Account', style: TextStyle(fontSize: 13)),
+                  ),
+                ],
+              ),
+            ),
 
           // Period pills
           const _PeriodSelector(),
@@ -108,6 +162,29 @@ class _DashboardContent extends ConsumerWidget {
             total: filteredExpenses.fold(0.0, (sum, e) => sum + e.amount),
             trend: trend,
             lastTotal: lastTotal,
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0, duration: 400.ms),
+          const SizedBox(height: 24),
+
+          // Spending trend line chart
+          const _SectionTitle(title: 'Spending Trend'),
+          const SizedBox(height: 12),
+          const SpendingTrendChart()
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 50.ms)
+              .slideY(begin: 0.05, end: 0, duration: 400.ms, delay: 50.ms),
+          const SizedBox(height: 24),
+
+          // Cash flow bar chart (income vs expenses)
+          const _SectionTitle(title: 'Cash Flow'),
+          const SizedBox(height: 12),
+          Consumer(
+            builder: (context, ref, _) {
+              final cashFlow = ref.watch(cashFlowProvider);
+              return CashFlowChart(data: cashFlow)
+                  .animate()
+                  .fadeIn(duration: 400.ms, delay: 100.ms)
+                  .slideY(begin: 0.05, end: 0, duration: 400.ms, delay: 100.ms);
+            },
           ),
           const SizedBox(height: 24),
 
@@ -115,7 +192,10 @@ class _DashboardContent extends ConsumerWidget {
           if (categoryBreakdown.isNotEmpty) ...[
             const _SectionTitle(title: 'By Category'),
             const SizedBox(height: 12),
-            _CategoryTotals(categories: categoryBreakdown),
+            _CategoryTotals(categories: categoryBreakdown)
+                .animate()
+                .fadeIn(duration: 400.ms, delay: 100.ms)
+                .slideY(begin: 0.05, end: 0, duration: 400.ms, delay: 100.ms),
             const SizedBox(height: 24),
           ],
 
@@ -135,15 +215,42 @@ class _DashboardContent extends ConsumerWidget {
             )
           else
             ...grouped.entries.expand((entry) => [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 4),
-                    child: Text(
-                      entry.key,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 16, bottom: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          entry.key,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${entry.value.length} expense${entry.value.length == 1 ? '' : 's'}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   ...entry.value.map((e) => ExpenseListTile(
@@ -908,6 +1015,8 @@ class _CategoryTotals extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
+    final maxAmount =
+        categories.isNotEmpty ? categories.first.amount : 1.0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -929,28 +1038,56 @@ class _CategoryTotals extends StatelessWidget {
             label = label.substring(0, parenIdx).trim();
           }
 
+          final fraction =
+              maxAmount > 0 ? (cat.amount / maxAmount).clamp(0.0, 1.0) : 0.0;
+
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).colorScheme.onSurface,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                    const SizedBox(width: 12),
+                    Text(
+                      formatter.format(cat.amount),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  formatter.format(cat.amount),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                const SizedBox(height: 6),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: fraction),
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) {
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: value,
+                        minHeight: 6,
+                        backgroundColor:
+                            AppColors.primary.withAlpha(25),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary.withAlpha(
+                              (128 + fraction * 127).round()),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

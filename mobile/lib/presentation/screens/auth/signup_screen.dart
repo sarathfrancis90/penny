@@ -72,8 +72,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     } catch (e) {
       if (mounted) {
         final msg = e.toString();
+        debugPrint('[OAuth] Sign-in error: $msg');
         if (!msg.contains('cancelled') && !msg.contains('canceled')) {
-          setState(() => _error = 'Sign in failed. Please try again');
+          // Show specific error for common issues
+          if (msg.contains('credential-already-in-use')) {
+            setState(() => _error = 'This account is already linked to another sign-in method');
+          } else if (msg.contains('network')) {
+            setState(() => _error = 'Network error. Check your connection');
+          } else if (msg.contains('provider-not-enabled') || msg.contains('operation-not-allowed')) {
+            setState(() => _error = 'This sign-in method is not enabled');
+          } else {
+            setState(() => _error = 'Sign in failed: ${e is Exception ? msg.replaceFirst('Exception: ', '') : msg}');
+          }
         }
       }
     } finally {

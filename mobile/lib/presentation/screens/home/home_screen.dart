@@ -6,10 +6,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/chat_provider.dart';
 import 'package:penny_mobile/presentation/widgets/chat_bubble.dart';
 import 'package:penny_mobile/presentation/widgets/expense_card.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -117,6 +119,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = ref.watch(guestModeProvider);
     final chatState = ref.watch(chatProvider);
     final conversationId = chatState.conversationId;
 
@@ -140,11 +143,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_comment_outlined),
-            tooltip: 'New Chat',
-            onPressed: () => ref.read(chatProvider.notifier).newConversation(),
-          ),
+          if (!isGuest)
+            IconButton(
+              icon: const Icon(Icons.add_comment_outlined),
+              tooltip: 'New Chat',
+              onPressed: () => ref.read(chatProvider.notifier).newConversation(),
+            ),
           _NotificationBell(),
         ],
       ),
@@ -152,86 +156,92 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           // Messages area
           Expanded(
-            child: conversationId == null
-                ? _EmptyState(onSuggestionTap: (text) {
-                    _controller.text = text;
-                    _sendMessage();
-                  })
-                : _MessageList(
-                    conversationId: conversationId,
-                    scrollController: _scrollController,
-                  ),
+            child: isGuest
+                ? const _GuestChatPreview()
+                : conversationId == null
+                    ? _EmptyState(onSuggestionTap: (text) {
+                        _controller.text = text;
+                        _sendMessage();
+                      })
+                    : _MessageList(
+                        conversationId: conversationId,
+                        scrollController: _scrollController,
+                      ),
           ),
 
-          // Loading / Analyzing indicator
-          if (chatState.isLoading || chatState.isAnalyzing)
-            Semantics(
-              liveRegion: true,
-              label: chatState.isAnalyzing
-                  ? 'Analyzing expense'
-                  : 'Thinking',
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppColors.primary,
+          if (!isGuest) ...[
+            // Loading / Analyzing indicator
+            if (chatState.isLoading || chatState.isAnalyzing)
+              Semantics(
+                liveRegion: true,
+                label: chatState.isAnalyzing
+                    ? 'Analyzing expense'
+                    : 'Thinking',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      chatState.isAnalyzing
-                          ? 'Analyzing expense...'
-                          : 'Thinking...',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      const SizedBox(width: 8),
+                      Text(
+                        chatState.isAnalyzing
+                            ? 'Analyzing expense...'
+                            : 'Thinking...',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-          // Error
-          if (chatState.error != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: Text(
-                chatState.error!,
-                style: const TextStyle(fontSize: 13, color: AppColors.error),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            // Error
+            if (chatState.error != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Text(
+                  chatState.error!,
+                  style: const TextStyle(fontSize: 13, color: AppColors.error),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
 
-          // Pending expense panel + action bar, OR input bar
-          if (chatState.pendingExpenses != null) ...[
-            _PendingExpensePanel(
-              pendingExpenses: chatState.pendingExpenses!,
-              receiptUrl: chatState.receiptUrl,
-              onExpenseSaved: _onExpenseSaved,
-              onExpenseDismissed: _onExpenseDismissed,
-              saveTrigger: _saveTrigger,
-              savingNotifier: _savingNotifier,
-            ),
-            _ActionBar(
-              saveTrigger: _saveTrigger,
-              savingNotifier: _savingNotifier,
-              onCancel: _onExpenseDismissed,
-            ),
+            // Pending expense panel + action bar, OR input bar
+            if (chatState.pendingExpenses != null) ...[
+              _PendingExpensePanel(
+                pendingExpenses: chatState.pendingExpenses!,
+                receiptUrl: chatState.receiptUrl,
+                onExpenseSaved: _onExpenseSaved,
+                onExpenseDismissed: _onExpenseDismissed,
+                saveTrigger: _saveTrigger,
+                savingNotifier: _savingNotifier,
+              ),
+              _ActionBar(
+                saveTrigger: _saveTrigger,
+                savingNotifier: _savingNotifier,
+                onCancel: _onExpenseDismissed,
+              ),
+            ] else
+              _InputBar(
+                controller: _controller,
+                focusNode: _focusNode,
+                onSend: _sendMessage,
+                onCamera: _showImageSourcePicker,
+                isLoading: chatState.isLoading || chatState.isAnalyzing,
+              ),
           ] else
-            _InputBar(
-              controller: _controller,
-              focusNode: _focusNode,
-              onSend: _sendMessage,
-              onCamera: _showImageSourcePicker,
-              isLoading: chatState.isLoading || chatState.isAnalyzing,
-            ),
+            // Guest mode: locked input bar
+            _GuestInputBar(),
         ],
       ),
     );
@@ -593,6 +603,85 @@ class _NotificationBell extends ConsumerWidget {
           ? '$unread unread notifications'
           : 'Notifications',
       onPressed: () => context.push('/notifications'),
+    );
+  }
+}
+
+/// Static demo conversation shown in guest mode.
+class _GuestChatPreview extends StatelessWidget {
+  const _GuestChatPreview();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      children: [
+        ChatBubble(
+          content: 'Lunch at Tim Hortons, \$14.50',
+          isUser: true,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
+        ),
+        ChatBubble(
+          content: 'Got it! I\'ve categorized this as:\n\n'
+              'Vendor: Tim Hortons\n'
+              'Amount: \$14.50\n'
+              'Category: Meals and entertainment\n\n'
+              'Would you like to save this expense?',
+          isUser: false,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
+        ),
+        ChatBubble(
+          content: 'How much did I spend on meals this month?',
+          isUser: true,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+        ),
+        ChatBubble(
+          content: 'This month you\'ve spent \$65.50 on Meals and entertainment '
+              'across 3 transactions. That\'s 13% of your \$500 budget.',
+          isUser: false,
+          timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+        ),
+      ],
+    );
+  }
+}
+
+/// Locked input bar for guest mode.
+class _GuestInputBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: MediaQuery.of(context).padding.bottom + 12,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.05),
+        border: Border(
+          top: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_outline, size: 18, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Sign up to chat with Penny AI',
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => showGuestSignUpPrompt(context),
+            child: const Text('Sign Up'),
+          ),
+        ],
+      ),
     );
   }
 }

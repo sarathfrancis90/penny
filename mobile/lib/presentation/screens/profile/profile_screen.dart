@@ -12,6 +12,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -311,11 +313,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = ref.watch(guestModeProvider);
+
+    if (isGuest) return _buildGuestProfile(context);
+
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: ListView(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await FirebaseAuth.instance.currentUser?.reload();
+          if (mounted) setState(() {});
+          HapticFeedback.lightImpact();
+        },
+        child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           const SizedBox(height: 16),
@@ -436,6 +448,81 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(height: 24),
         ],
+      ),
+      ),
+    );
+  }
+
+  Widget _buildGuestProfile(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Profile')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                child: const Icon(Icons.person_outline, size: 40, color: AppColors.primary),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Guest',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Create an account to save your data,\nsync across devices, and unlock all features.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => showGuestSignUpPrompt(context),
+                  child: const Text('Create Account'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    ref.read(guestModeProvider.notifier).state = false;
+                    context.go('/auth/login');
+                  },
+                  child: const Text('Already have an account? Sign In'),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Settings still accessible
+              _ProfileTile(
+                icon: Icons.settings_outlined,
+                title: 'Settings',
+                subtitle: 'Theme preferences',
+                onTap: () => context.push('/settings'),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  ref.read(guestModeProvider.notifier).state = false;
+                  context.go('/auth/login');
+                },
+                child: const Text(
+                  'Exit Guest Mode',
+                  style: TextStyle(color: Color(0xFFFF3B30)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

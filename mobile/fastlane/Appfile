@@ -1,11 +1,9 @@
-app_identifier("com.penny.pennyMobile")
-team_id("H845PX7Q62")
-
-# App Store Connect API Key
-json_key_file("")
-
-# Using API Key authentication
 for_platform :ios do
   app_identifier("com.penny.pennyMobile")
   team_id("H845PX7Q62")
+end
+
+for_platform :android do
+  package_name("com.penny.penny_mobile")
+  json_key_file("fastlane/play-store-key.json")
 end

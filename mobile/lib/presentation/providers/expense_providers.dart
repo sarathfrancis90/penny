@@ -2,13 +2,16 @@ import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
+import 'package:penny_mobile/data/guest/guest_sample_data.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/income_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/cash_flow_chart.dart';
 
-/// Stream all expenses for current user.
+/// Stream all expenses for current user (or sample data in guest mode).
 final allExpensesProvider = StreamProvider<List<ExpenseModel>>((ref) {
+  if (ref.watch(guestModeProvider)) return Stream.value(guestSampleExpenses());
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
   return ref.watch(expenseRepositoryProvider).watchAllExpenses(user.uid);
@@ -204,6 +207,31 @@ class CategoryBreakdown {
   final double amount;
   final double percentage;
 }
+
+/// Daily spending totals for the current filter period.
+class DailySpending {
+  const DailySpending({required this.date, required this.amount});
+  final DateTime date;
+  final double amount;
+}
+
+final dailySpendingProvider = Provider<List<DailySpending>>((ref) {
+  final expenses = ref.watch(filteredExpensesProvider);
+  final Map<DateTime, double> daily = {};
+
+  for (final e in expenses) {
+    final d = e.date.toDate();
+    final dateOnly = DateTime(d.year, d.month, d.day);
+    daily[dateOnly] = (daily[dateOnly] ?? 0) + e.amount;
+  }
+
+  final sorted = daily.entries.toList()
+    ..sort((a, b) => a.key.compareTo(b.key));
+
+  return sorted
+      .map((e) => DailySpending(date: e.key, amount: e.value))
+      .toList();
+});
 
 /// Cash flow data for the last 3 months.
 final cashFlowProvider = Provider<List<MonthCashFlow>>((ref) {

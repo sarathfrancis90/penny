@@ -12,7 +12,10 @@ import 'package:penny_mobile/data/models/group_income_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/models/group_savings_model.dart';
+import 'package:penny_mobile/data/models/budget_model.dart';
+import 'package:penny_mobile/data/repositories/group_budget_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/group_budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_income_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_savings_providers.dart';
@@ -80,7 +83,14 @@ class GroupDetailScreen extends ConsumerWidget {
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
-      body: ListView(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(groupByIdProvider(groupId));
+          ref.invalidate(groupMembersProvider(groupId));
+          ref.invalidate(groupExpensesProvider(groupId));
+          HapticFeedback.lightImpact();
+        },
+        child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           const SizedBox(height: 8),
@@ -105,7 +115,12 @@ class GroupDetailScreen extends ConsumerWidget {
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
                 : Column(
                     children: members
-                        .map((m) => _MemberTile(member: m))
+                        .map((m) => _MemberTile(
+                              member: m,
+                              groupId: groupId,
+                              isOwnerOrAdmin: isOwnerOrAdmin,
+                              currentUserId: user?.uid ?? '',
+                            ))
                         .toList(),
                   ),
             loading: () =>
@@ -114,6 +129,10 @@ class GroupDetailScreen extends ConsumerWidget {
           ),
 
           const SizedBox(height: 24),
+
+          // Group Budgets section
+          _GroupBudgetsSection(
+              groupId: groupId, isOwnerOrAdmin: isOwnerOrAdmin),
 
           // Group Income section (Batch G)
           _GroupIncomeSection(
@@ -199,6 +218,7 @@ class GroupDetailScreen extends ConsumerWidget {
 
           const SizedBox(height: 24),
         ],
+      ),
       ),
     );
   }
@@ -539,7 +559,22 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
   late bool _requireApproval;
+  late bool _allowMemberInvites;
+  late String _icon;
+  late String _color;
   bool _saving = false;
+
+  static const _icons = ['👥', '👨‍👩‍👧‍👦', '🏢', '🏠', '✈️', '🎯', '💼', '🎉'];
+  static const _colors = [
+    '#0A84FF', // Blue
+    '#34C759', // Green
+    '#FF9F0A', // Amber
+    '#FF3B30', // Red
+    '#AF52DE', // Purple
+    '#FF2D55', // Pink
+    '#5AC8FA', // Light Blue
+    '#FF6B35', // Orange
+  ];
 
   @override
   void initState() {
@@ -548,6 +583,9 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
     _descController =
         TextEditingController(text: widget.group.description ?? '');
     _requireApproval = widget.group.settings.requireApproval;
+    _allowMemberInvites = widget.group.settings.allowMemberInvites;
+    _icon = widget.group.icon ?? '👥';
+    _color = widget.group.color ?? _colors.first;
   }
 
   @override
@@ -570,9 +608,12 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
             updates: {
               'name': name,
               'description': _descController.text.trim(),
+              'icon': _icon,
+              'color': _color,
               'settings': {
                 ...widget.group.settings.toMap(),
                 'requireApproval': _requireApproval,
+                'allowMemberInvites': _allowMemberInvites,
               },
             },
           );
@@ -602,7 +643,7 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.only(
         left: 24, right: 24, top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
@@ -614,6 +655,75 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
           const Text('Edit Group',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
           const SizedBox(height: 20),
+
+          // Icon picker
+          Text('Icon', style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: _icons.map((icon) {
+              final selected = icon == _icon;
+              return Semantics(
+                button: true,
+                label: 'Group icon: $icon${selected ? ', selected' : ''}',
+                child: GestureDetector(
+                  onTap: () => setState(() => _icon = icon),
+                  child: Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.primary.withValues(alpha: 0.1)
+                          : Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(10),
+                      border: selected
+                          ? Border.all(color: AppColors.primary, width: 2)
+                          : null,
+                    ),
+                    child: Center(
+                        child: Text(icon, style: const TextStyle(fontSize: 22))),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+
+          // Color picker
+          Text('Color', style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: _colors.map((hex) {
+              final selected = hex == _color;
+              final color = Color(int.parse(hex.replaceFirst('#', '0xFF')));
+              return Semantics(
+                button: true,
+                label: 'Group color: $hex${selected ? ', selected' : ''}',
+                child: GestureDetector(
+                  onTap: () => setState(() => _color = hex),
+                  child: Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: selected
+                          ? Border.all(color: AppColors.textPrimary, width: 2.5)
+                          : null,
+                    ),
+                    child: selected
+                        ? const Icon(Icons.check, color: Colors.white, size: 18)
+                        : null,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+
           TextField(
             controller: _nameController,
             decoration: const InputDecoration(hintText: 'Group name'),
@@ -625,7 +735,13 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
                 const InputDecoration(hintText: 'Description (optional)'),
             maxLines: 2,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+
+          // Settings section
+          Text('Settings', style: TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 4),
           SwitchListTile(
             title: const Text('Require expense approval',
                 style: TextStyle(fontSize: 15)),
@@ -634,6 +750,17 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
                     fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             value: _requireApproval,
             onChanged: (v) => setState(() => _requireApproval = v),
+            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+            contentPadding: EdgeInsets.zero,
+          ),
+          SwitchListTile(
+            title: const Text('Allow member invites',
+                style: TextStyle(fontSize: 15)),
+            subtitle: Text('Members can invite others to the group',
+                style: TextStyle(
+                    fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            value: _allowMemberInvites,
+            onChanged: (v) => setState(() => _allowMemberInvites = v),
             activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
             contentPadding: EdgeInsets.zero,
           ),
@@ -964,85 +1091,293 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _MemberTile extends StatelessWidget {
-  const _MemberTile({required this.member});
+class _MemberTile extends ConsumerWidget {
+  const _MemberTile({
+    required this.member,
+    required this.groupId,
+    required this.isOwnerOrAdmin,
+    required this.currentUserId,
+  });
   final GroupMemberModel member;
+  final String groupId;
+  final bool isOwnerOrAdmin;
+  final String currentUserId;
 
   Color _roleColor(BuildContext context) => switch (member.role) {
         'owner' => AppColors.primary,
-        'admin' => AppColors.warning,
+        'admin' => const Color(0xFF607D8B), // blue-grey
         'member' => AppColors.success,
         _ => Theme.of(context).colorScheme.onSurfaceVariant,
       };
 
+  String _roleLabel() => switch (member.role) {
+        'owner' => 'Owner',
+        'admin' => 'Admin',
+        'member' => 'Member',
+        'viewer' => 'Viewer',
+        _ => member.role,
+      };
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final initial = (member.userName ?? member.userEmail)
         .substring(0, 1)
         .toUpperCase();
+    // Can manage this member: must be owner/admin, member is not owner,
+    // and the member is not the current user.
+    final canManage = isOwnerOrAdmin &&
+        member.role != 'owner' &&
+        member.userId != currentUserId;
 
     return Semantics(
       label: '${member.userName ?? member.userEmail}, role: ${member.role}',
       container: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: Theme.of(context).cardColor,
-              child: Text(initial,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(member.userName ?? member.userEmail,
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w500)),
-                  if (member.userName != null)
-                    Text(member.userEmail,
-                        style: TextStyle(
-                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
+      child: InkWell(
+        onLongPress: canManage
+            ? () => _showMemberManagementSheet(context, ref)
+            : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Theme.of(context).cardColor,
+                child: Text(initial,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
               ),
-            ),
-            if (member.status == 'invited')
-              Container(
-                margin: const EdgeInsets.only(right: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.warning.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(member.userName ?? member.userEmail,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    if (member.userName != null)
+                      Text(member.userEmail,
+                          style: TextStyle(
+                              fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  ],
                 ),
-                child: Text('invited',
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.warning)),
               ),
-            Semantics(
-              label: 'Role: ${member.role}',
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _roleColor(context).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
+              if (member.status == 'invited')
+                Container(
+                  margin: const EdgeInsets.only(right: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text('invited',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.warning)),
                 ),
-                child: Text(member.role,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _roleColor(context))),
+              Semantics(
+                label: 'Role: ${_roleLabel()}',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _roleColor(context).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(_roleLabel(),
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _roleColor(context))),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _showMemberManagementSheet(BuildContext context, WidgetRef ref) {
+    final displayName = member.userName ?? member.userEmail;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Manage $displayName',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text('Current role: ${_roleLabel()}',
+                  style: TextStyle(fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 20),
+
+              // Change role options
+              Text('CHANGE ROLE',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      letterSpacing: 1)),
+              const SizedBox(height: 8),
+              ...['admin', 'member', 'viewer']
+                  .where((r) => r != member.role)
+                  .map((role) => ListTile(
+                        leading: Icon(
+                          role == 'admin'
+                              ? Icons.shield_outlined
+                              : role == 'member'
+                                  ? Icons.person_outline
+                                  : Icons.visibility_outlined,
+                          color: AppColors.primary,
+                        ),
+                        title: Text('${role[0].toUpperCase()}${role.substring(1)}'),
+                        dense: true,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        onTap: () async {
+                          Navigator.pop(ctx);
+                          await _changeRole(context, ref, role);
+                        },
+                      )),
+
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+
+              // Remove member
+              ListTile(
+                leading: const Icon(Icons.person_remove_outlined,
+                    color: AppColors.error),
+                title: const Text('Remove from Group',
+                    style: TextStyle(color: AppColors.error)),
+                dense: true,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmRemoveMember(context, ref, displayName);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _changeRole(BuildContext context, WidgetRef ref, String newRole) async {
+    try {
+      final api = ref.read(apiClientProvider);
+      final memberId = member.userId;
+      await api.patch(
+        '${ApiEndpoints.groupMembers(groupId)}/$memberId',
+        data: {'newRole': newRole},
+      );
+      HapticFeedback.mediumImpact();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${member.userName ?? member.userEmail} is now ${newRole[0].toUpperCase()}${newRole.substring(1)}'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to change role: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _confirmRemoveMember(BuildContext context, WidgetRef ref, String displayName) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.person_remove_outlined, size: 48,
+                  color: AppColors.error),
+              const SizedBox(height: 16),
+              Text('Remove $displayName?',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              Text(
+                'This member will be removed from the group and will no longer have access.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        await _removeMember(context, ref);
+                      },
+                      child: const Text('Remove'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _removeMember(BuildContext context, WidgetRef ref) async {
+    try {
+      final api = ref.read(apiClientProvider);
+      final memberId = member.userId;
+      await api.delete(
+        '${ApiEndpoints.groupMembers(groupId)}/$memberId?action=remove',
+      );
+      HapticFeedback.mediumImpact();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${member.userName ?? member.userEmail} has been removed'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to remove member: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -1447,6 +1782,283 @@ class _ActivityTile extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ====== Group Budgets Section ======
+
+class _GroupBudgetsSection extends ConsumerWidget {
+  const _GroupBudgetsSection({required this.groupId, required this.isOwnerOrAdmin});
+  final String groupId;
+  final bool isOwnerOrAdmin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final budgetsAsync = ref.watch(groupBudgetsProvider(groupId));
+    final groupExpenses = ref.watch(groupExpensesProvider(groupId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('BUDGETS',
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    letterSpacing: 1)),
+            if (isOwnerOrAdmin)
+              TextButton.icon(
+                onPressed: () => _showAddBudgetSheet(context, ref),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Add'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        budgetsAsync.when(
+          data: (budgets) {
+            if (budgets.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.pie_chart_outline, size: 32,
+                          color: Theme.of(context).hintColor),
+                      const SizedBox(height: 8),
+                      Text('No budgets set',
+                          style: TextStyle(fontSize: 14,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      if (isOwnerOrAdmin) ...[
+                        const SizedBox(height: 4),
+                        Text('Set spending limits for your group',
+                            style: TextStyle(fontSize: 12,
+                                color: Theme.of(context).hintColor)),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final expenses = groupExpenses.valueOrNull ?? [];
+            final now = DateTime.now();
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                children: budgets.map((budget) {
+                  // Calculate spent for this category this month
+                  final spent = expenses
+                      .where((e) =>
+                          e.category == budget.category &&
+                          e.date.toDate().month == now.month &&
+                          e.date.toDate().year == now.year)
+                      .fold(0.0, (total, e) => total + e.amount);
+                  final percentage = budget.monthlyLimit > 0
+                      ? (spent / budget.monthlyLimit * 100)
+                      : 0.0;
+                  final status = BudgetUsage.computeStatus(percentage);
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(budget.category,
+                                  style: const TextStyle(
+                                      fontSize: 14, fontWeight: FontWeight.w500),
+                                  overflow: TextOverflow.ellipsis),
+                            ),
+                            Text(
+                              '\$${spent.toStringAsFixed(0)} / \$${budget.monthlyLimit.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: status == BudgetStatus.over
+                                    ? AppColors.error
+                                    : status == BudgetStatus.critical
+                                        ? AppColors.error
+                                        : status == BudgetStatus.warning
+                                            ? AppColors.warning
+                                            : AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: (percentage / 100).clamp(0.0, 1.0),
+                            backgroundColor: Theme.of(context).dividerColor,
+                            color: status == BudgetStatus.over
+                                ? AppColors.error
+                                : status == BudgetStatus.critical
+                                    ? AppColors.error
+                                    : status == BudgetStatus.warning
+                                        ? AppColors.warning
+                                        : AppColors.primary,
+                            minHeight: 6,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${percentage.toStringAsFixed(0)}% used',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.only(bottom: 24),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (e, _) => Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Text('Error loading budgets: $e'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAddBudgetSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _AddGroupBudgetSheet(groupId: groupId, ref: ref),
+    );
+  }
+}
+
+class _AddGroupBudgetSheet extends StatefulWidget {
+  const _AddGroupBudgetSheet({required this.groupId, required this.ref});
+  final String groupId;
+  final WidgetRef ref;
+
+  @override
+  State<_AddGroupBudgetSheet> createState() => _AddGroupBudgetSheetState();
+}
+
+class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
+  String? _selectedCategory;
+  final _limitController = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _limitController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Add Group Budget',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 16),
+
+          // Category dropdown
+          DropdownButtonFormField<String>(
+            value: _selectedCategory,
+            decoration: const InputDecoration(
+              labelText: 'Category',
+              border: OutlineInputBorder(),
+            ),
+            isExpanded: true,
+            items: expenseCategories
+                .map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis)))
+                .toList(),
+            onChanged: (v) => setState(() => _selectedCategory = v),
+          ),
+          const SizedBox(height: 12),
+
+          // Monthly limit
+          TextField(
+            controller: _limitController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Monthly Limit (\$)',
+              border: OutlineInputBorder(),
+              prefixText: '\$ ',
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          FilledButton(
+            onPressed: _saving ? null : _save,
+            child: _saving
+                ? const SizedBox(height: 20, width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Create Budget'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _save() async {
+    if (_selectedCategory == null || _limitController.text.isEmpty) return;
+    final limit = double.tryParse(_limitController.text);
+    if (limit == null || limit <= 0) return;
+
+    setState(() => _saving = true);
+    try {
+      final user = widget.ref.read(currentUserProvider);
+      final membership = widget.ref.read(currentUserMembershipProvider(widget.groupId)).valueOrNull;
+      final repo = GroupBudgetRepository();
+      await repo.createGroupBudget(
+        groupId: widget.groupId,
+        category: _selectedCategory!,
+        monthlyLimit: limit,
+        period: BudgetPeriod.current(),
+        setBy: user!.uid,
+        setByRole: membership?.role ?? 'member',
+      );
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create budget: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 }
 

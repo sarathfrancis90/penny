@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/data/guest/guest_sample_data.dart';
 import 'package:penny_mobile/data/models/income_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
-/// Stream all income sources for current user.
+/// Stream all income sources for current user (or sample data in guest mode).
 final incomeSourcesProvider = StreamProvider<List<IncomeSourceModel>>((ref) {
+  if (ref.watch(guestModeProvider)) return Stream.value(guestSampleIncomeSources());
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
   return ref.watch(incomeRepositoryProvider).watchIncomeSources(user.uid);

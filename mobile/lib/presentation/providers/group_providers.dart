@@ -1,13 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/data/guest/guest_sample_data.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/data/models/group_activity_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
-/// Stream all groups the current user belongs to.
+/// Stream all groups the current user belongs to (or sample data in guest mode).
 final userGroupsProvider = StreamProvider<List<GroupModel>>((ref) {
+  if (ref.watch(guestModeProvider)) return Stream.value(guestSampleGroups());
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
   return ref.watch(groupRepositoryProvider).watchUserGroups(user.uid);

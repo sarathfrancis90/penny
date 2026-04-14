@@ -71,9 +71,18 @@ class OAuthService {
       nonce: nonce,
     );
 
+    final idToken = appleCredential.identityToken;
+    if (idToken == null || idToken.isEmpty) {
+      throw Exception(
+        'Apple Sign-In did not return an identity token. '
+        'Please try again.',
+      );
+    }
+
     final oauthCredential = OAuthProvider('apple.com').credential(
-      idToken: appleCredential.identityToken,
+      idToken: idToken,
       rawNonce: rawNonce,
+      accessToken: appleCredential.authorizationCode,
     );
 
     final userCredential = await _auth.signInWithCredential(oauthCredential);

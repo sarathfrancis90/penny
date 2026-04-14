@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { deleteReceipt } from "@/lib/storageService";
+import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
@@ -63,6 +64,19 @@ async function notifyGroupMembers(
 
     await Promise.all(promises);
     console.log(`[Notifications] Created ${promises.length} ${type} notifications for group ${groupId}`);
+
+    // Send push notifications
+    const pushRecipients = membersSnapshot.docs
+      .filter((doc) => doc.data().userId !== actorUserId)
+      .map((doc) => doc.data().userId);
+
+    PushService.sendToUsers(pushRecipients, {
+      title,
+      body: body.replace("{actor}", actorName),
+      actionUrl: `/groups/${groupId}`,
+      icon: type === "group_expense_deleted" ? "🗑️" : "✏️",
+      priority: "medium",
+    });
   } catch (err) {
     console.error("[Notifications] Error creating group notifications:", err);
   }

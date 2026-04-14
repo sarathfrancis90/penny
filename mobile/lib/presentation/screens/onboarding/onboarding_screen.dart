@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -93,21 +94,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // Page indicator dots
             Padding(
               padding: const EdgeInsets.only(bottom: 48),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(_pages.length, (index) {
-                  final isActive = index == _currentPage;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: isActive ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isActive ? AppColors.primary : Theme.of(context).dividerColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
+              child: SmoothPageIndicator(
+                controller: _controller,
+                count: _pages.length,
+                effect: ExpandingDotsEffect(
+                  activeDotColor: AppColors.primary,
+                  dotColor: Theme.of(context).dividerColor,
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  expansionFactor: 3,
+                  spacing: 8,
+                ),
               ),
             ),
           ],

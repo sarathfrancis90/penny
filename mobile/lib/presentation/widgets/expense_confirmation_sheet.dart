@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
 import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
+import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 
 /// A modal bottom sheet for confirming and editing an AI-parsed expense before
 /// saving. Supports personal and group expense flows.
@@ -235,18 +236,10 @@ class _ExpenseConfirmationSheetState
               'group'
             : null;
 
-        final label = groupName != null
-            ? '$vendor — \$${amount.toStringAsFixed(2)} saved to $groupName'
-            : '$vendor — \$${amount.toStringAsFixed(2)} saved';
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(label),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
+        SuccessOverlay.show(
+          context,
+          title: vendor,
+          subtitle: '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
         );
 
         widget.onSaved?.call();

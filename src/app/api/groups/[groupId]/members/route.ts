@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { GroupMember, GroupRole } from "@/lib/types";
+import { PushService } from "@/lib/services/pushService";
 import { randomBytes } from "crypto";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
@@ -253,6 +254,14 @@ export async function POST(
         });
 
         console.log(`[Notifications] Created invitation notification for user ${invitedUserId}`);
+
+        PushService.sendToUser(invitedUserId, {
+          title: "Group invitation",
+          body: `${inviterName} invited you to join ${groupData.icon || '👥'} ${groupData.name}`,
+          actionUrl: `/groups/${groupId}`,
+          icon: "📨",
+          priority: "high",
+        });
       } else {
         console.log(`[Notifications] User with email ${email} not registered yet, skipping notification`);
       }

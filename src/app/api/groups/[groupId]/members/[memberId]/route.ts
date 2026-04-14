@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
+import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 
 /**
@@ -145,6 +146,50 @@ export async function PATCH(
       createdAt: Timestamp.now(),
     });
 
+    // Notify the member whose role was changed
+    try {
+      const groupDoc = await adminDb.collection("groups").doc(groupId).get();
+      const groupName = groupDoc.exists ? groupDoc.data()?.name : "Unknown Group";
+      const requesterName = requesterData.userName || requesterData.userEmail || "An admin";
+
+      await adminDb.collection("notifications").add({
+        userId: targetMemberData.userId,
+        type: "group_role_changed",
+        title: "Role updated",
+        body: `${requesterName} changed your role to ${newRole} in ${groupName}`,
+        icon: "🔑",
+        priority: "high",
+        category: "group",
+        read: false,
+        delivered: false,
+        isGrouped: false,
+        actionUrl: `/groups/${groupId}`,
+        relatedType: "member",
+        relatedId: targetMemberData.userId,
+        groupId,
+        actorId: userId,
+        actorName: requesterName,
+        metadata: {
+          groupName,
+          oldRole: targetMemberData.role,
+          newRole,
+        },
+        createdAt: Timestamp.now(),
+      });
+
+      console.log(`[Notifications] Created role_changed notification for user ${targetMemberData.userId}`);
+
+      PushService.sendToUser(targetMemberData.userId, {
+        title: "Role updated",
+        body: `${requesterName} changed your role to ${newRole} in ${groupName}`,
+        actionUrl: `/groups/${groupId}`,
+        icon: "🔑",
+        priority: "high",
+      });
+    } catch (notifError) {
+      console.error("[Notifications] Error creating role_changed notification:", notifError);
+    }
+
     return NextResponse.json({
       success: true,
       message: "Member role updated successfully",
@@ -243,6 +288,57 @@ export async function DELETE(
         createdAt: Timestamp.now(),
       });
 
+      // Notify remaining group members about member leaving
+      try {
+        const groupName = groupDoc.data()?.name || 'Unknown Group';
+        const remainingMembers = await adminDb
+          .collection("groupMembers")
+          .where("groupId", "==", groupId)
+          .where("status", "==", "active")
+          .get();
+
+        const notifPromises = remainingMembers.docs
+          .filter(doc => doc.data().userId !== userId)
+          .map(memberDoc =>
+            adminDb.collection("notifications").add({
+              userId: memberDoc.data().userId,
+              type: "group_member_left",
+              title: "Member left",
+              body: `${targetMemberData.userName || targetMemberData.userEmail} left the group`,
+              icon: "👋",
+              priority: "low",
+              category: "group",
+              read: false,
+              delivered: false,
+              isGrouped: false,
+              actionUrl: `/groups/${groupId}`,
+              relatedType: "member",
+              relatedId: targetMemberData.userId,
+              groupId,
+              actorId: targetMemberData.userId,
+              actorName: targetMemberData.userName || targetMemberData.userEmail || "A member",
+              metadata: { groupName },
+              createdAt: Timestamp.now(),
+            })
+          );
+
+        await Promise.all(notifPromises);
+
+        const pushRecipients = remainingMembers.docs
+          .filter(doc => doc.data().userId !== userId)
+          .map(doc => doc.data().userId);
+
+        PushService.sendToUsers(pushRecipients, {
+          title: "Member left",
+          body: `${targetMemberData.userName || targetMemberData.userEmail} left the group`,
+          actionUrl: `/groups/${groupId}`,
+          icon: "👋",
+          priority: "low",
+        });
+      } catch (notifError) {
+        console.error("[Notifications] Error creating member_left notifications:", notifError);
+      }
+
       return NextResponse.json({
         success: true,
         message: "Successfully left the group",
@@ -317,6 +413,89 @@ export async function DELETE(
       },
       createdAt: Timestamp.now(),
     });
+
+    // Notify removed member
+    try {
+      const groupName = groupDoc.data()?.name || 'Unknown Group';
+      const removerName = requesterData.userName || requesterData.userEmail || "An admin";
+
+      await adminDb.collection("notifications").add({
+        userId: targetMemberData.userId,
+        type: "group_member_left",
+        title: "Removed from group",
+        body: `You were removed from ${groupName} by ${removerName}`,
+        icon: "🚫",
+        priority: "high",
+        category: "group",
+        read: false,
+        delivered: false,
+        isGrouped: false,
+        relatedType: "group",
+        relatedId: groupId,
+        groupId,
+        actorId: userId,
+        actorName: removerName,
+        metadata: { groupName, reason: "removed" },
+        createdAt: Timestamp.now(),
+      });
+
+      // Notify remaining members
+      const remainingMembers = await adminDb
+        .collection("groupMembers")
+        .where("groupId", "==", groupId)
+        .where("status", "==", "active")
+        .get();
+
+      const notifPromises = remainingMembers.docs
+        .filter(doc => doc.data().userId !== userId && doc.data().userId !== targetMemberData.userId)
+        .map(memberDoc =>
+          adminDb.collection("notifications").add({
+            userId: memberDoc.data().userId,
+            type: "group_member_left",
+            title: "Member removed",
+            body: `${targetMemberData.userName || targetMemberData.userEmail} was removed from ${groupName}`,
+            icon: "👋",
+            priority: "low",
+            category: "group",
+            read: false,
+            delivered: false,
+            isGrouped: false,
+            actionUrl: `/groups/${groupId}`,
+            relatedType: "member",
+            relatedId: targetMemberData.userId,
+            groupId,
+            actorId: userId,
+            actorName: removerName,
+            metadata: { groupName, removedBy: removerName },
+            createdAt: Timestamp.now(),
+          })
+        );
+
+      await Promise.all(notifPromises);
+
+      // Push to removed member
+      PushService.sendToUser(targetMemberData.userId, {
+        title: "Removed from group",
+        body: `You were removed from ${groupName} by ${removerName}`,
+        icon: "🚫",
+        priority: "high",
+      });
+
+      // Push to remaining members
+      const pushRecipients = remainingMembers.docs
+        .filter(doc => doc.data().userId !== userId && doc.data().userId !== targetMemberData.userId)
+        .map(doc => doc.data().userId);
+
+      PushService.sendToUsers(pushRecipients, {
+        title: "Member removed",
+        body: `${targetMemberData.userName || targetMemberData.userEmail} was removed from ${groupName}`,
+        actionUrl: `/groups/${groupId}`,
+        icon: "👋",
+        priority: "low",
+      });
+    } catch (notifError) {
+      console.error("[Notifications] Error creating member_removed notifications:", notifError);
+    }
 
     return NextResponse.json({
       success: true,

@@ -70,7 +70,10 @@ class _BudgetsContent extends ConsumerWidget {
         .format(DateTime(period.year, period.month));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(budgetsProvider),
+      onRefresh: () async {
+        ref.invalidate(budgetsProvider);
+        HapticFeedback.lightImpact();
+      },
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [

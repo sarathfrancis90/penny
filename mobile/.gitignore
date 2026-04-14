@@ -45,4 +45,13 @@ app.*.map.json
 /android/app/release
 fastlane/AuthKey_*.p8
 fastlane/report.xml
+fastlane/play-store-key.json
 *.ipa
+
+# Android release signing
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+
+# Google Play service account keys
+playstore_assets/*.json
