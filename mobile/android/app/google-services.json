@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "537615138155-g20hc82ib28vpll35duhqkjb1evs2q24.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.penny.penny_mobile",
+            "certificate_hash": "ea046607e9b327e5872770ff79d5011d1f3696eb"
+          }
+        },
+        {
           "client_id": "537615138155-qa3uf7pfqhdado4ogcreoi024rhrncoj.apps.googleusercontent.com",
           "client_type": 3
         }
