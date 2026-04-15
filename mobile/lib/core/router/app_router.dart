@@ -41,9 +41,9 @@ class _AuthNotifier extends ChangeNotifier {
         if (guestNotifier.count > 0) {
           GuestMigrationService.migrateToFirestore(ref: ref, userId: user.uid);
         }
-        // Clear guest mode if active
+        // Clear guest mode if active (also clears Hive persistence)
         if (ref.read(guestModeProvider)) {
-          ref.read(guestModeProvider.notifier).state = false;
+          setGuestMode(ref, false);
         }
       }
       notifyListeners();

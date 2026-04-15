@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _controller = PageController();
   int _currentPage = 0;
 
@@ -39,7 +41,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _completeOnboarding() {
+  void _startFreeMode() {
+    Hive.box('app_preferences').put('onboarding_complete', true);
+    setGuestMode(ref, true);
+    context.go('/');
+  }
+
+  void _goToLogin() {
     Hive.box('app_preferences').put('onboarding_complete', true);
     context.go('/auth/login');
   }
@@ -57,7 +65,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.only(top: 8, right: 16),
                 child: _currentPage < _pages.length - 1
                     ? TextButton(
-                        onPressed: _completeOnboarding,
+                        onPressed: _startFreeMode,
                         child: Text(
                           'Skip',
                           style: TextStyle(
@@ -85,7 +93,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   return _OnboardingPage(
                     data: page,
                     isLast: isLast,
-                    onGetStarted: _completeOnboarding,
+                    onStartFree: _startFreeMode,
+                    onSignIn: _goToLogin,
                   );
                 },
               ),
@@ -130,12 +139,14 @@ class _OnboardingPage extends StatelessWidget {
   const _OnboardingPage({
     required this.data,
     required this.isLast,
-    required this.onGetStarted,
+    required this.onStartFree,
+    required this.onSignIn,
   });
 
   final _OnboardingPageData data;
   final bool isLast;
-  final VoidCallback onGetStarted;
+  final VoidCallback onStartFree;
+  final VoidCallback onSignIn;
 
   @override
   Widget build(BuildContext context) {
@@ -195,16 +206,27 @@ class _OnboardingPage extends StatelessWidget {
 
           const Spacer(),
 
-          // "Get Started" button on last page
+          // CTAs on last page
           if (isLast) ...[
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: onGetStarted,
-                child: const Text('Get Started'),
+                onPressed: onStartFree,
+                child: const Text('Start Tracking Free'),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: onSignIn,
+              child: Text(
+                'Already have an account? Sign In',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
           ],
         ],
       ),

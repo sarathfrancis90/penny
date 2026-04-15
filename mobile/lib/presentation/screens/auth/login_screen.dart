@@ -413,7 +413,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: _loading
                       ? null
                       : () {
-                          ref.read(guestModeProvider.notifier).state = true;
+                          setGuestMode(ref, true);
                           context.go('/');
                         },
                   style: OutlinedButton.styleFrom(

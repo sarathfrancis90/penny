@@ -495,7 +495,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
                   onPressed: () {
-                    ref.read(guestModeProvider.notifier).state = false;
+                    setGuestMode(ref, false);
                     context.go('/auth/login');
                   },
                   child: const Text('Already have an account? Sign In'),
@@ -512,7 +512,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () {
-                  ref.read(guestModeProvider.notifier).state = false;
+                  setGuestMode(ref, false);
                   context.go('/auth/login');
                 },
                 child: const Text(
