@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
+import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
+import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
 import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 
@@ -60,6 +63,34 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
         const SnackBar(content: Text('Please fill all required fields'),
             backgroundColor: AppColors.warning),
       );
+      return;
+    }
+
+    // Guest mode: save locally, skip all Firestore logic
+    if (ref.read(guestModeProvider)) {
+      final notifier = ref.read(guestExpenseProvider.notifier);
+      final result = notifier.add(
+        vendor: vendor,
+        amount: amount,
+        category: _selectedCategory!,
+        date: _selectedDate,
+        description: _descController.text.trim(),
+      );
+      if (result == GuestAddResult.limitReached) {
+        if (mounted) {
+          showGuestSignUpPrompt(context);
+        }
+        return;
+      }
+      HapticFeedback.mediumImpact();
+      if (mounted) {
+        await SuccessOverlay.show(
+          context,
+          title: vendor,
+          subtitle: '\$${amount.toStringAsFixed(2)} saved locally',
+        );
+        if (mounted) Navigator.pop(context);
+      }
       return;
     }
 
@@ -209,6 +240,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = ref.watch(guestModeProvider);
     final groupsAsync = ref.watch(userGroupsProvider);
     final defaultGroupAsync = ref.watch(defaultGroupProvider);
 
@@ -242,6 +274,34 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
               _selectedGroupId != null ? 'Add Group Expense' : 'Add Expense',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
+            if (isGuest) ...[
+              const SizedBox(height: 8),
+              Builder(builder: (context) {
+                final notifier = ref.watch(guestExpenseProvider.notifier);
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, size: 16, color: AppColors.primary),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${notifier.count} of ${GuestExpenseNotifier.maxExpenses} expenses used',
+                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'Local only',
+                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
             const SizedBox(height: 20),
 
             TextField(
@@ -273,10 +333,11 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
 
             InkWell(
               onTap: () async {
+                final now = DateTime.now();
                 final picked = await showDatePicker(
                   context: context,
                   initialDate: _selectedDate,
-                  firstDate: DateTime(2020),
+                  firstDate: isGuest ? DateTime(now.year, now.month) : DateTime(2020),
                   lastDate: DateTime.now().add(const Duration(days: 1)),
                 );
                 if (picked != null) setState(() => _selectedDate = picked);
@@ -317,20 +378,22 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
                 ),
               ),
 
-            // Group selector
-            groupsAsync.when(
-              data: (groups) => groups.isEmpty
-                  ? const SizedBox.shrink()
-                  : _buildGroupSelector(groups),
-              loading: () => const SizedBox.shrink(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
-            if (_selectedGroupId != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'This expense will be shared with the group',
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            // Group selector (hidden for guests)
+            if (!isGuest) ...[
+              groupsAsync.when(
+                data: (groups) => groups.isEmpty
+                    ? const SizedBox.shrink()
+                    : _buildGroupSelector(groups),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
               ),
+              if (_selectedGroupId != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  'This expense will be shared with the group',
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ],
             ],
             const SizedBox(height: 20),
 

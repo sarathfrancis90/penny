@@ -20,6 +20,8 @@ class FinancesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isGuest = ref.watch(guestModeProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Finances')),
       body: RefreshIndicator(
@@ -33,11 +35,27 @@ class FinancesScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           children: [
             const SizedBox(height: 8),
-            _IncomeSection(currencyFormat: _currencyFormat),
+            if (isGuest)
+              _GuestLockedSection(
+                title: 'Income',
+                icon: Icons.account_balance_outlined,
+                iconColor: AppColors.success,
+                description: 'Track your salary, freelance income, and side hustles.',
+              )
+            else
+              _IncomeSection(currencyFormat: _currencyFormat),
             const SizedBox(height: 12),
             _BudgetsSection(currencyFormat: _currencyFormat),
             const SizedBox(height: 12),
-            _SavingsSection(currencyFormat: _currencyFormat),
+            if (isGuest)
+              _GuestLockedSection(
+                title: 'Savings',
+                icon: Icons.savings_outlined,
+                iconColor: AppColors.primary,
+                description: 'Set savings goals and track your progress toward them.',
+              )
+            else
+              _SavingsSection(currencyFormat: _currencyFormat),
             const SizedBox(height: 24),
           ],
         ),
@@ -196,6 +214,7 @@ class _BudgetsSection extends ConsumerWidget {
       ),
       data: (budgets) {
         final isEmpty = budgets.isEmpty;
+        final isGuest = ref.read(guestModeProvider);
 
         return _FinanceSectionCard(
           title: 'Budgets',
@@ -203,17 +222,21 @@ class _BudgetsSection extends ConsumerWidget {
           iconColor: AppColors.primary,
           summary: isEmpty
               ? ''
-              : '${currencyFormat.format(totalLimit)} allocated',
+              : isGuest
+                  ? 'Preview'
+                  : '${currencyFormat.format(totalLimit)} allocated',
           details: isEmpty
               ? ''
-              : '${currencyFormat.format(totalSpent)} spent \u00b7 ${usage.length} categor${usage.length == 1 ? 'y' : 'ies'}',
+              : isGuest
+                  ? 'Sample budgets based on your expense categories'
+                  : '${currencyFormat.format(totalSpent)} spent \u00b7 ${usage.length} categor${usage.length == 1 ? 'y' : 'ies'}',
           isEmpty: isEmpty,
           emptyLabel: 'No budgets yet',
           onManage: () {
-            if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+            if (isGuest) { showGuestSignUpPrompt(context); return; }
             context.push('/budgets');
           },
-          manageLabel: isEmpty ? 'Create Budget' : 'Manage Budgets',
+          manageLabel: isGuest ? 'Sign Up to Create Budgets' : (isEmpty ? 'Create Budget' : 'Manage Budgets'),
           defaultExpanded: true,
           overflowCount: usage.length > 3 ? usage.length - 3 : 0,
           children: usage.take(3).map((u) {
@@ -724,6 +747,85 @@ class _PreviewRow extends StatelessWidget {
           Expanded(child: leading),
           const SizedBox(width: 8),
           trailing,
+        ],
+      ),
+    );
+  }
+}
+
+// =============================================================================
+// Guest Locked Section
+// =============================================================================
+
+class _GuestLockedSection extends StatelessWidget {
+  const _GuestLockedSection({
+    required this.title,
+    required this.icon,
+    required this.iconColor,
+    required this.description,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color iconColor;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 20, color: iconColor),
+              ),
+              const SizedBox(width: 12),
+              Text(title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurface,
+                  )),
+              const Spacer(),
+              Icon(Icons.lock_outline, size: 16,
+                  color: theme.colorScheme.onSurfaceVariant),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(description,
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.colorScheme.onSurfaceVariant,
+              )),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => showGuestSignUpPrompt(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text('Sign Up to Track $title'),
+            ),
+          ),
         ],
       ),
     );

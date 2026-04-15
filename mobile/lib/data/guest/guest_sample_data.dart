@@ -10,8 +10,6 @@ import 'package:penny_mobile/data/models/savings_model.dart';
 
 Timestamp _ts(DateTime dt) => Timestamp.fromDate(dt);
 
-final _now = DateTime.now();
-
 List<ExpenseModel> guestSampleExpenses() {
   final now = DateTime.now();
   final thisMonth = DateTime(now.year, now.month);
@@ -193,8 +191,8 @@ List<ExpenseModel> guestSampleExpenses() {
 }
 
 List<IncomeSourceModel> guestSampleIncomeSources() {
-  final ts = _ts(_now);
-  final startDate = _ts(DateTime(_now.year, 1, 1));
+  final ts = _ts(DateTime.now());
+  final startDate = _ts(DateTime(DateTime.now().year, 1, 1));
 
   return [
     IncomeSourceModel(
@@ -235,8 +233,8 @@ List<IncomeSourceModel> guestSampleIncomeSources() {
 }
 
 List<BudgetModel> guestSampleBudgets() {
-  final ts = _ts(_now);
-  final period = BudgetPeriod(month: _now.month, year: _now.year);
+  final ts = _ts(DateTime.now());
+  final period = BudgetPeriod(month: DateTime.now().month, year: DateTime.now().year);
 
   return [
     BudgetModel(
@@ -273,8 +271,8 @@ List<BudgetModel> guestSampleBudgets() {
 }
 
 List<SavingsGoalModel> guestSampleSavingsGoals() {
-  final ts = _ts(_now);
-  final startDate = _ts(DateTime(_now.year, 1, 1));
+  final ts = _ts(DateTime.now());
+  final startDate = _ts(DateTime(DateTime.now().year, 1, 1));
 
   return [
     SavingsGoalModel(
@@ -321,7 +319,7 @@ List<SavingsGoalModel> guestSampleSavingsGoals() {
 }
 
 List<GroupModel> guestSampleGroups() {
-  final ts = _ts(_now);
+  final ts = _ts(DateTime.now());
 
   return [
     GroupModel(

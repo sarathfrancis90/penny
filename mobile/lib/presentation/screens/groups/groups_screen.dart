@@ -35,7 +35,9 @@ class GroupsScreen extends ConsumerWidget {
       ),
       body: groupsAsync.when(
         data: (groups) => groups.isEmpty
-            ? _EmptyState(onAdd: () => _showCreateGroup(context, ref))
+            ? ref.watch(guestModeProvider)
+                ? _GuestLockedState()
+                : _EmptyState(onAdd: () => _showCreateGroup(context, ref))
             : _GroupList(groups: groups),
         loading: () => ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -62,6 +64,39 @@ class GroupsScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (_) => _CreateGroupSheet(ref: ref),
+    );
+  }
+}
+
+class _GuestLockedState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock_outline, size: 48,
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+            const Text('Groups require an account',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Text(
+              'Create an account to split expenses with friends, family, or business partners.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => showGuestSignUpPrompt(context),
+              child: const Text('Create Account'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

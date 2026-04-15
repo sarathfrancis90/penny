@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
+import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
@@ -50,7 +51,16 @@ class ExpenseDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.edit_outlined),
             tooltip: 'Edit expense',
             onPressed: () {
-              if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+              if (ref.read(guestModeProvider)) {
+                if (expense.id.startsWith('guest_local_')) {
+                  _showEditSheet(context, ref);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sample data cannot be modified')),
+                  );
+                }
+                return;
+              }
               _showEditSheet(context, ref);
             },
           ),
@@ -58,7 +68,17 @@ class ExpenseDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.delete_outline, color: AppColors.error),
             tooltip: 'Delete expense',
             onPressed: () {
-              if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+              if (ref.read(guestModeProvider)) {
+                if (expense.id.startsWith('guest_local_')) {
+                  ref.read(guestExpenseProvider.notifier).delete(expense.id);
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sample data cannot be modified')),
+                  );
+                }
+                return;
+              }
               _confirmDelete(context, ref);
             },
           ),

@@ -92,4 +92,44 @@ class ExpenseModel {
       if (history != null) 'history': history,
     };
   }
+
+  /// Serialize for local Hive storage (Timestamp → millis).
+  Map<String, dynamic> toLocalMap() {
+    return {
+      'id': id,
+      'userId': userId,
+      'vendor': vendor,
+      'amount': amount,
+      'category': category,
+      'date': date.millisecondsSinceEpoch,
+      'expenseType': expenseType,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt.millisecondsSinceEpoch,
+      if (description != null) 'description': description,
+      if (receiptUrl != null) 'receiptUrl': receiptUrl,
+      if (notes != null) 'notes': notes,
+      'syncStatus': syncStatus,
+      if (localId != null) 'localId': localId,
+    };
+  }
+
+  /// Deserialize from local Hive storage (millis → Timestamp).
+  factory ExpenseModel.fromLocalMap(Map<String, dynamic> map) {
+    return ExpenseModel(
+      id: map['id'] as String,
+      userId: map['userId'] as String,
+      vendor: map['vendor'] as String,
+      amount: (map['amount'] as num).toDouble(),
+      category: map['category'] as String,
+      date: Timestamp.fromMillisecondsSinceEpoch(map['date'] as int),
+      expenseType: map['expenseType'] as String? ?? 'personal',
+      createdAt: Timestamp.fromMillisecondsSinceEpoch(map['createdAt'] as int),
+      updatedAt: Timestamp.fromMillisecondsSinceEpoch(map['updatedAt'] as int),
+      description: map['description'] as String?,
+      receiptUrl: map['receiptUrl'] as String?,
+      notes: map['notes'] as String?,
+      syncStatus: map['syncStatus'] as String?,
+      localId: map['localId'] as String?,
+    );
+  }
 }

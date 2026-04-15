@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:penny_mobile/data/guest/guest_expense_store.dart';
+import 'package:penny_mobile/data/guest/guest_migration_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/screens/auth/forgot_password_screen.dart';
@@ -31,9 +33,18 @@ import 'package:penny_mobile/data/models/expense_model.dart';
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier(Ref ref) {
     ref.listen(authStateProvider, (prev, next) {
-      // Clear guest mode when user signs in
-      if (next.valueOrNull != null && ref.read(guestModeProvider)) {
-        ref.read(guestModeProvider.notifier).state = false;
+      final user = next.valueOrNull;
+      if (user != null) {
+        // User just signed in — migrate any orphaned guest expenses.
+        // This covers: guest mode sign-up, app-killed-then-sign-in, and OAuth.
+        final guestNotifier = ref.read(guestExpenseProvider.notifier);
+        if (guestNotifier.count > 0) {
+          GuestMigrationService.migrateToFirestore(ref: ref, userId: user.uid);
+        }
+        // Clear guest mode if active
+        if (ref.read(guestModeProvider)) {
+          ref.read(guestModeProvider.notifier).state = false;
+        }
       }
       notifyListeners();
     });

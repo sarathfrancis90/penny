@@ -25,6 +25,7 @@ void main() async {
     // Initialize Hive first (needed by router for onboarding check)
     await Hive.initFlutter();
     await Hive.openBox('app_preferences');
+    await Hive.openBox('guest_expenses');
     debugPrint('[PENNY] Hive initialized');
 
     // Initialize Firebase

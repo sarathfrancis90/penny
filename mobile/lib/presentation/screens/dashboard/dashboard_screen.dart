@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
+import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
@@ -53,8 +54,11 @@ class DashboardScreen extends ConsumerWidget {
         tooltip: 'Add expense',
         onPressed: () {
           if (ref.read(guestModeProvider)) {
-            showGuestSignUpPrompt(context);
-            return;
+            final notifier = ref.read(guestExpenseProvider.notifier);
+            if (notifier.isFull) {
+              showGuestSignUpPrompt(context);
+              return;
+            }
           }
           showModalBottomSheet(
             context: context,
@@ -114,40 +118,61 @@ class _DashboardContent extends ConsumerWidget {
         children: [
           const SizedBox(height: 8),
 
-          // Guest mode banner
+          // Guest mode banner with expense count
           if (isGuest)
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.explore_outlined, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Exploring with sample data',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurface,
+            Builder(builder: (context) {
+              final guestCount = ref.watch(guestExpenseProvider).length;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.phone_android, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '$guestCount of ${GuestExpenseNotifier.maxExpenses} expenses \u00b7 Local only',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => showGuestSignUpPrompt(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text('Create Account', style: TextStyle(fontSize: 13)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(2),
+                      child: LinearProgressIndicator(
+                        value: guestCount / GuestExpenseNotifier.maxExpenses,
+                        minHeight: 3,
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          guestCount >= GuestExpenseNotifier.softLimitThreshold
+                              ? AppColors.warning
+                              : AppColors.primary,
+                        ),
                       ),
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () => showGuestSignUpPrompt(context),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text('Create Account', style: TextStyle(fontSize: 13)),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                ),
+              );
+            }),
 
           // Period pills
           const _PeriodSelector(),
