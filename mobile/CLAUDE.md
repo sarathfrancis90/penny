@@ -4,6 +4,10 @@
 
 Flutter mobile app for Penny — AI-powered expense tracker for Canadian self-incorporated professionals. iOS-first, Android later. Clean light theme with blue (#0A84FF) accent — inspired by Venmo/PayPal/Apple Wallet.
 
+## Deployment
+
+**Single source of truth: [`CICD.md`](./CICD.md).** Release flow is one git tag (`v*.*.*`) → autonomous publish to App Store production + Play Store production via GitHub Actions. Lanes live in `fastlane/Fastfile` (`ios ship`, `android ship`, plus `repair_and_submit` for App Store recovery). Toolchain pins: `.flutter-version`, `.ruby-version`, `Gemfile.lock`. **Do not modify the deployment pipeline without updating `CICD.md` in the same PR.**
+
 ---
 
 ## Architecture: Clean Architecture + Riverpod

@@ -55,3 +55,17 @@ android/app/*.keystore
 
 # Google Play service account keys
 playstore_assets/*.json
+
+# iOS provisioning profiles, certificates, ASC API keys (any location)
+**/AuthKey_*.p8
+*.mobileprovision
+*.cer
+*.p12
+
+# Build artifacts that should not be committed
+*.dSYM.zip
+Runner.ipa
+
+# Local validation captures
+*_validation.mp4
+*_validation.png

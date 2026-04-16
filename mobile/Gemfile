@@ -1,0 +1,9 @@
+source "https://rubygems.org"
+
+# Pin fastlane to the version used to ship the app from Sarath's MacBook,
+# so CI builds match local builds bit-for-bit. Bump this deliberately.
+gem "fastlane", "2.232.2"
+
+# Required by fastlane's `supply` action for Play Store uploads.
+plugins_path = File.join(File.dirname(__FILE__), "fastlane", "Pluginfile")
+eval_gemfile(plugins_path) if File.exist?(plugins_path)

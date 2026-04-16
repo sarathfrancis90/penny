@@ -195,6 +195,75 @@ platform :ios do
     )
   end
 
+  desc "Full CI publish: build IPA, upload to TestFlight, wait for processing, submit to App Store with auto-release"
+  lane :ship do |options|
+    app_version  = options[:version] || UI.user_error!("version: required (e.g. version:2.2.2)")
+    build_number = options[:build]   || UI.user_error!("build: required (e.g. build:#{ENV['GITHUB_RUN_NUMBER']})")
+    notes        = options[:notes]   || UI.user_error!("notes: required (release notes text)")
+
+    api_key = app_store_connect_api_key(
+      key_id: "P97VLS6M6Z",
+      issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+      key_filepath: KEY_FILEPATH,
+      in_house: false
+    )
+
+    # === BUILD ===
+    Dir.chdir("..") do
+      sh("flutter", "clean")
+      sh("flutter", "pub", "get")
+    end
+
+    cocoapods(podfile: "ios/Podfile", clean_install: true)
+
+    Dir.chdir("..") do
+      sh("flutter", "build", "ios", "--release", "--no-codesign",
+         "--build-name=#{app_version}",
+         "--build-number=#{build_number}")
+    end
+
+    update_code_signing_settings(
+      use_automatic_signing: true,
+      team_id: "H845PX7Q62",
+      path: "ios/Runner.xcodeproj"
+    )
+
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.penny.pennyMobile",
+      force: true,
+      skip_certificate_verification: true
+    )
+
+    profile_name = lane_context[SharedValues::SIGH_NAME]
+
+    build_app(
+      workspace: "ios/Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+      clean: true,
+      export_options: {
+        signingStyle: "manual",
+        teamID: "H845PX7Q62",
+        signingCertificate: "Apple Distribution",
+        provisioningProfiles: {
+          "com.penny.pennyMobile" => profile_name
+        }
+      }
+    )
+
+    # === UPLOAD TO TESTFLIGHT (wait for processing so submit can proceed) ===
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: false,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+
+    # === SUBMIT TO APP STORE ===
+    repair_and_submit(version: app_version, build: build_number, notes: notes)
+  end
+
 end
 
 platform :android do
@@ -214,6 +283,41 @@ platform :android do
       aab: "build/app/outputs/bundle/release/app-release.aab",
       json_key: "fastlane/play-store-key.json",
       package_name: "com.penny.penny_mobile"
+    )
+  end
+
+  desc "Full CI publish: build AAB, upload to Play Store production track at 100% rollout"
+  lane :ship do |options|
+    app_version  = options[:version] || UI.user_error!("version: required (e.g. version:2.2.2)")
+    build_number = options[:build]   || UI.user_error!("build: required (e.g. build:#{ENV['GITHUB_RUN_NUMBER']})")
+    notes        = options[:notes]   || UI.user_error!("notes: required (release notes text)")
+
+    # Write release notes to the locale path supply expects (en-US is Play Store default)
+    notes_dir = "metadata/android/en-US/changelogs"
+    FileUtils.mkdir_p("./fastlane/#{notes_dir}")
+    File.write("./fastlane/#{notes_dir}/#{build_number}.txt", notes)
+
+    # Build AAB with explicit version + build number
+    Dir.chdir("..") do
+      sh("flutter", "clean")
+      sh("flutter", "pub", "get")
+      sh("flutter", "build", "appbundle", "--release",
+         "--build-name=#{app_version}",
+         "--build-number=#{build_number}")
+    end
+
+    # Upload to Play Store PRODUCTION track at 100% rollout
+    supply(
+      track: "production",
+      rollout: "1.0",
+      aab: "build/app/outputs/bundle/release/app-release.aab",
+      json_key: "fastlane/play-store-key.json",
+      package_name: "com.penny.penny_mobile",
+      release_status: "completed",
+      skip_upload_metadata: false,
+      skip_upload_changelogs: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
     )
   end
 

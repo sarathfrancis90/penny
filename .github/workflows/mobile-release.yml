@@ -1,0 +1,227 @@
+name: Mobile Release
+
+# Trigger: pushing a v*.*.* tag ships to App Store production AND Play Store production
+# in parallel, no human in the loop. See mobile/CICD.md for the full runbook.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+concurrency:
+  group: mobile-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  derive:
+    name: Derive version + validate release notes
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.derive.outputs.version }}
+      build_number: ${{ steps.derive.outputs.build_number }}
+      release_notes: ${{ steps.derive.outputs.release_notes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Derive version, build, and release notes
+        id: derive
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          BUILD_NUMBER="${{ github.run_number }}"
+          NOTES_FILE="mobile/release_notes/v${VERSION}.txt"
+
+          if [ ! -f "$NOTES_FILE" ]; then
+            echo "::error::Release notes file $NOTES_FILE does not exist. Create it before tagging."
+            exit 1
+          fi
+
+          NOTES="$(cat "$NOTES_FILE")"
+
+          {
+            echo "version=$VERSION"
+            echo "build_number=$BUILD_NUMBER"
+            echo "release_notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "✅ version=$VERSION build=$BUILD_NUMBER notes_file=$NOTES_FILE"
+
+  ios:
+    name: iOS → TestFlight + App Store
+    needs: derive
+    runs-on: macos-14
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned tool versions
+        id: tools
+        working-directory: mobile
+        run: |
+          echo "flutter=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+          echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.tools.outputs.flutter }}
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.tools.outputs.ruby }}
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Restore App Store Connect API key
+        working-directory: mobile/fastlane
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          umask 077
+          printf '%s' "$ASC_API_KEY_P8" > AuthKey_P97VLS6M6Z.p8
+
+      - name: Restore distribution certificate to a temporary keychain
+        env:
+          IOS_DIST_CERT_P12_BASE64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          IOS_DIST_CERT_PASSWORD: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+          CERT_PATH="$RUNNER_TEMP/dist_cert.p12"
+
+          echo "$IOS_DIST_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$IOS_DIST_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+      - name: Restore provisioning profile
+        env:
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode \
+            > "$PROFILES_DIR/AppStore_com.penny.pennyMobile.mobileprovision"
+
+      - name: Ship to TestFlight + App Store
+        working-directory: mobile
+        env:
+          VERSION: ${{ needs.derive.outputs.version }}
+          BUILD_NUMBER: ${{ needs.derive.outputs.build_number }}
+          NOTES: ${{ needs.derive.outputs.release_notes }}
+        run: |
+          bundle exec fastlane ios ship \
+            version:"$VERSION" \
+            build:"$BUILD_NUMBER" \
+            notes:"$NOTES"
+
+      - name: Always cleanup keychain + secrets
+        if: always()
+        run: |
+          set +e
+          security delete-keychain "$RUNNER_TEMP/build.keychain-db" 2>/dev/null
+          rm -f "$RUNNER_TEMP/dist_cert.p12" mobile/fastlane/AuthKey_P97VLS6M6Z.p8
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/AppStore_com.penny.pennyMobile.mobileprovision"
+
+  android:
+    name: Android → Play Store production
+    needs: derive
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned tool versions
+        id: tools
+        working-directory: mobile
+        run: |
+          echo "flutter=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+          echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java (required for Android Gradle Plugin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.tools.outputs.flutter }}
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.tools.outputs.ruby }}
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Restore Android signing keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
+        run: |
+          set -euo pipefail
+          umask 077
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode \
+            > mobile/android/app/penny_release_key.jks
+          printf '%s' "$ANDROID_KEY_PROPERTIES" > mobile/android/key.properties
+
+      - name: Restore Play Store service-account key
+        env:
+          PLAY_STORE_KEY_JSON: ${{ secrets.PLAY_STORE_KEY_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$PLAY_STORE_KEY_JSON" > mobile/fastlane/play-store-key.json
+
+      - name: Ship to Play Store production
+        working-directory: mobile
+        env:
+          VERSION: ${{ needs.derive.outputs.version }}
+          BUILD_NUMBER: ${{ needs.derive.outputs.build_number }}
+          NOTES: ${{ needs.derive.outputs.release_notes }}
+        run: |
+          bundle exec fastlane android ship \
+            version:"$VERSION" \
+            build:"$BUILD_NUMBER" \
+            notes:"$NOTES"
+
+      - name: Always cleanup secrets
+        if: always()
+        run: |
+          rm -f mobile/android/app/penny_release_key.jks \
+                mobile/android/key.properties \
+                mobile/fastlane/play-store-key.json
+
+  summary:
+    name: Release summary
+    needs: [derive, ios, android]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print outcome
+        run: |
+          echo "## Mobile release v${{ needs.derive.outputs.version }} (build ${{ needs.derive.outputs.build_number }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Platform | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| iOS (TestFlight + App Store auto-release) | ${{ needs.ios.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Android (Play Store production 100% rollout) | ${{ needs.android.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Apple review typically takes 1–3 days. Play Store review takes a few hours." >> "$GITHUB_STEP_SUMMARY"
