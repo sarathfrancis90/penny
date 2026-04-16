@@ -127,7 +127,7 @@ platform :android do
     # Upload to Play Store internal track with metadata
     supply(
       track: "internal",
-      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      aab: "build/app/outputs/bundle/release/app-release.aab",
       json_key: "fastlane/play-store-key.json",
       package_name: "com.penny.penny_mobile"
     )
