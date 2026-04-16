@@ -57,7 +57,7 @@ class SettingsScreen extends ConsumerWidget {
               icon: Icons.calendar_today_outlined,
               title: 'Fiscal Year End',
               subtitle: prefsAsync.valueOrNull?['fiscalYearEnd'] as String? ?? 'December',
-              onTap: () {},
+              onTap: () => _showFiscalYearEndPicker(context, ref),
             ),
           ],
 
@@ -185,6 +185,48 @@ class SettingsScreen extends ConsumerWidget {
                         .doc(user.uid)
                         .set({
                       'preferences': {'currency': c}
+                    }, SetOptions(merge: true));
+                    HapticFeedback.selectionClick();
+                  }
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showFiscalYearEndPicker(BuildContext context, WidgetRef ref) {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    final current = ref.read(userPreferencesProvider).valueOrNull?['fiscalYearEnd']
+            as String? ??
+        'December';
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: months.map((month) {
+              return ListTile(
+                title: Text(month),
+                trailing: month == current
+                    ? const Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                onTap: () async {
+                  final user = ref.read(currentUserProvider);
+                  if (user != null) {
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .set({
+                      'preferences': {'fiscalYearEnd': month}
                     }, SetOptions(merge: true));
                     HapticFeedback.selectionClick();
                   }
