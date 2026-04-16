@@ -91,6 +91,90 @@ platform :ios do
     )
   end
 
+  desc "Repair v2.2.1: drop the stray en-US localization, set release notes on en-CA, attach build, submit for review"
+  lane :repair_and_submit do |options|
+    require 'spaceship'
+    target_version = options[:version] || "2.2.1"
+    build_number = options[:build] || "31"
+    notes = options[:notes] || "You can now edit your fiscal year-end month from Settings."
+
+    Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+      key_id: "P97VLS6M6Z",
+      issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+      filepath: KEY_FILEPATH
+    )
+
+    app = Spaceship::ConnectAPI::App.find("com.penny.pennyMobile")
+    UI.message("App: #{app.name} (id: #{app.id})")
+
+    versions = app.get_app_store_versions(filter: { versionString: target_version, platform: "IOS" })
+    UI.user_error!("No v#{target_version} found.") if versions.empty?
+    version = versions.first
+    UI.message("v#{version.version_string} state: #{version.app_store_state}")
+
+    # 1. Drop any en-US localization (the broken one fastlane created)
+    locs = version.get_app_store_version_localizations
+    locs.each do |loc|
+      UI.message("Locale: #{loc.locale}")
+      if loc.locale == "en-US"
+        Spaceship::ConnectAPI.delete_app_store_version_localization(app_store_version_localization_id: loc.id)
+        UI.success("  → deleted en-US localization")
+      end
+    end
+
+    # 2. Refetch and set release notes on en-CA
+    locs = version.get_app_store_version_localizations
+    en_ca = locs.find { |l| l.locale == "en-CA" }
+    UI.user_error!("en-CA localization not found — cannot proceed.") unless en_ca
+    Spaceship::ConnectAPI.patch_app_store_version_localization(
+      app_store_version_localization_id: en_ca.id,
+      attributes: { whatsNew: notes }
+    )
+    UI.success("Set release notes on en-CA: #{notes}")
+
+    # 3. Make sure the right build is attached
+    builds = app.get_builds(filter: { "preReleaseVersion.version" => target_version, version: build_number })
+    if builds.empty?
+      UI.message("Build #{target_version}+#{build_number} not found via filter; skipping attach (already attached?).")
+    else
+      build = builds.first
+      Spaceship::ConnectAPI.patch_app_store_version_with_build(
+        app_store_version_id: version.id,
+        build_id: build.id
+      )
+      UI.success("Attached build #{build_number}")
+    end
+
+    UI.success("Repair complete. Now submitting for review...")
+
+    # 4. Submit via deliver, skipping all metadata sync (we already set what we need above)
+    api_key = app_store_connect_api_key(
+      key_id: "P97VLS6M6Z",
+      issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+      key_filepath: KEY_FILEPATH,
+      in_house: false
+    )
+
+    deliver(
+      api_key: api_key,
+      app_identifier: "com.penny.pennyMobile",
+      app_version: target_version,
+      build_number: build_number,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      skip_metadata: true,
+      submit_for_review: true,
+      automatic_release: true,
+      force: true,
+      run_precheck_before_submit: false,
+      submission_information: {
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false,
+        export_compliance_encryption_updated: false
+      }
+    )
+  end
+
   desc "Build release IPA only"
   lane :build do
     Dir.chdir("..") do
