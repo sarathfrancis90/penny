@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/user/default-group
  * Get the user's default group
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const userId = tokenUserId || request.nextUrl.searchParams.get("userId");
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
  * POST /api/user/default-group
  * Set the user's default group
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const { userId: bodyUserId, groupId } = await request.json();
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
  * DELETE /api/user/default-group
  * Remove the user's default group
  */
-export async function DELETE(request: NextRequest) {
+async function deleteHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const userId = tokenUserId || request.nextUrl.searchParams.get("userId");
@@ -134,3 +135,6 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/user/default-group" });
+export const POST = withObservability(postHandler, { route: "/api/user/default-group" });
+export const DELETE = withObservability(deleteHandler, { route: "/api/user/default-group" });

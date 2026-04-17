@@ -7,13 +7,14 @@ import {
 } from "@/lib/budgetCalculations";
 import { Expense } from "@/lib/types";
 import { Timestamp } from "firebase-admin/firestore";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/budgets/usage/personal
  * Calculate budget usage for all personal budgets of a user
  * Query params: userId (required), month (optional), year (optional)
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
     console.error("Error details:", error instanceof Error ? error.message : String(error));
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return NextResponse.json(
-      { 
+      {
         error: "Failed to calculate budget usage",
         details: error instanceof Error ? error.message : String(error)
       },
@@ -144,3 +145,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/budgets/usage/personal" });

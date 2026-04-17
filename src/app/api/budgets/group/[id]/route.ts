@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * Helper function to check if user is admin/owner of a group
@@ -24,7 +25,7 @@ async function isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
  * GET /api/budgets/group/[id]
  * Get a specific group budget
  */
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -76,7 +77,7 @@ export async function GET(
  * PUT /api/budgets/group/[id]
  * Update a group budget (admin/owner only)
  */
-export async function PUT(
+async function putHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -156,7 +157,7 @@ export async function PUT(
  * DELETE /api/budgets/group/[id]
  * Delete a group budget (admin/owner only)
  */
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -221,3 +222,15 @@ export async function DELETE(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/budgets/group/[id]" },
+);
+export const PUT = withObservability(
+  putHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/budgets/group/[id]" },
+);
+export const DELETE = withObservability(
+  deleteHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/budgets/group/[id]" },
+);

@@ -7,13 +7,14 @@ import {
 } from "@/lib/budgetCalculations";
 import { Expense } from "@/lib/types";
 import { Timestamp } from "firebase-admin/firestore";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/budgets/usage/group/[groupId]
  * Calculate budget usage for all group budgets
  * Query params: userId (required), month (optional), year (optional)
  */
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -149,7 +150,7 @@ export async function GET(
     console.error("Error details:", error instanceof Error ? error.message : String(error));
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return NextResponse.json(
-      { 
+      {
         error: "Failed to calculate budget usage",
         details: error instanceof Error ? error.message : String(error)
       },
@@ -158,3 +159,7 @@ export async function GET(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/budgets/usage/group/[groupId]" },
+);
