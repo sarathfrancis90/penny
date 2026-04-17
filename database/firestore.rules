@@ -53,8 +53,13 @@ service cloud.firestore {
     
     // Check if user can approve expenses in group
     function canApproveExpenses(groupId) {
-      return isGroupMember(groupId) && 
+      return isGroupMember(groupId) &&
              get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.permissions.canApproveExpenses == true;
+    }
+
+    // Founder / staff admin (Firebase custom claims)
+    function isPlatformAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
     }
     
     // ============================================
@@ -285,8 +290,15 @@ service cloud.firestore {
     // ============================================
     
     match /analytics/{analyticsId} {
-      allow read: if false; // Only server-side reads
-      allow write: if false; // Only server-side writes
+      // Platform admins (Firebase custom claim) may read for dashboards.
+      allow read: if isPlatformAdmin();
+      allow write: if false; // Server-side (Admin SDK) writes only
+    }
+
+    // Store metrics — App Store + Play Store daily rollups (server-written).
+    match /store_metrics/{docId} {
+      allow read: if isPlatformAdmin();
+      allow write: if false; // Server-side (Admin SDK) via /api/cron/store-metrics
     }
     
     // ============================================
