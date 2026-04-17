@@ -390,17 +390,12 @@ async function pushVercelVars() {
     r ? okCount++ : failCount++;
   }
 
-  // Kill switches — default to false in production, true in preview
+  // Kill switch — OFF everywhere until manually flipped to true on prod.
+  // Prod-only deployment: no staging env, no preview observability.
   await vercelUpsertEnv({
     key: 'OBSERVABILITY_ENABLED',
     value: 'false',
-    target: prodOnly,
-    type: 'plain',
-  });
-  await vercelUpsertEnv({
-    key: 'OBSERVABILITY_ENABLED',
-    value: 'true',
-    target: prev,
+    target: allEnvs,
     type: 'plain',
   });
   await vercelUpsertEnv({
@@ -416,17 +411,12 @@ async function pushVercelVars() {
     type: 'plain',
   });
 
-  // Axiom dataset — different per env (we direct-ship logs rather than using Vercel Log Drains)
+  // Axiom dataset: single dataset for all envs (prod-only deployment).
+  // Log entries are tagged with env=production|preview|development for filtering.
   await vercelUpsertEnv({
     key: 'AXIOM_DATASET',
     value: 'penny-web-prod',
-    target: prodOnly,
-    type: 'plain',
-  });
-  await vercelUpsertEnv({
-    key: 'AXIOM_DATASET',
-    value: 'penny-web-staging',
-    target: prev,
+    target: allEnvs,
     type: 'plain',
   });
 
@@ -498,12 +488,12 @@ async function main() {
   console.log('Next steps (manual):');
   console.log('  1. Sign out + sign back in to Penny for the admin claim');
   console.log('     to appear in your ID token.');
-  console.log('  2. Create Axiom datasets penny-web-prod + penny-web-staging');
-  console.log('     in the Axiom UI (no Vercel integration needed).');
-  console.log('  3. (Later) Create penny-staging Firebase project manually in UI');
-  console.log('     and add NEXT_PUBLIC_FIREBASE_*_STAGING via this script.');
-  console.log('  4. Flip Vercel production OBSERVABILITY_ENABLED=true after');
-  console.log('     staging smoke test passes.');
+  console.log('  2. Smoke-test locally: set OBSERVABILITY_ENABLED=true in');
+  console.log('     .env.local, run `npm run dev`, trigger test events, verify');
+  console.log('     they appear in Sentry / PostHog / Axiom.');
+  console.log('  3. Merge PR #2 — prod deploy goes out with kill switch OFF.');
+  console.log('  4. Flip OBSERVABILITY_ENABLED=true in Vercel Production env');
+  console.log('     once ready. Monitor closely for first 24h.');
 }
 
 main().catch((e) => {

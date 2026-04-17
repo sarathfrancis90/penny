@@ -109,10 +109,13 @@ _Installed via Vercel's Axiom integration, which wires these automatically._
 
 ### Kill switch + environment
 
-| Name | Production | Staging | Preview |
+**Prod-only deployment** — no separate staging Firebase project. Preview
+deploys use the prod Firebase but are tagged with `env=preview` in telemetry.
+
+| Name | Production | Preview | Development |
 |---|---|---|---|
-| `OBSERVABILITY_ENABLED` | `true` _(flip last)_ | `true` | `false` until ready |
-| `OBSERVABILITY_ENV` | `production` | `staging` | `preview` |
+| `OBSERVABILITY_ENABLED` | `false` _(flip to `true` when ready)_ | `false` | `false` _(flip to `true` in `.env.local` for local smoke tests)_ |
+| `OBSERVABILITY_ENV` | `production` | `preview` | `development` |
 
 ## Bootstrap scripts
 

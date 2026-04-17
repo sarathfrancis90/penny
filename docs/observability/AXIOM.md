@@ -18,11 +18,16 @@ context (request-scoped user id, duration, route) than parsing raw stdout.
 ## One-time setup (done)
 
 1. Create account at https://app.axiom.co (workspace `pennyai-j75g`).
-2. Create datasets `penny-web-prod` and `penny-web-staging` in the Axiom UI.
+2. Create dataset `penny-web-prod` in the Axiom UI. All environments
+   (production, preview, development) ship to this single dataset; entries
+   are tagged with `env` for filtering.
 3. Create **Ingest** token at Settings → API tokens → Add API token → scope:
-   `Ingest` on both datasets. Paste as `AXIOM_TOKEN` env var in Vercel.
-4. `AXIOM_DATASET` is scoped per Vercel env: `penny-web-prod` on Production,
-   `penny-web-staging` on Preview. Both set by `scripts/bootstrap-accounts.ts`.
+   `Ingest` on `penny-web-prod`. Paste as `AXIOM_TOKEN` in Vercel.
+4. `AXIOM_DATASET=penny-web-prod` set for all Vercel environments by
+   `scripts/bootstrap-accounts.ts`.
+
+_(The `penny-web-staging` dataset was created earlier — safe to delete, or
+leave it empty at zero cost.)_
 
 No Vercel Marketplace integration needed. No paid plan needed.
 
