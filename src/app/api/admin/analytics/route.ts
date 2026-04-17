@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { isAdmin } from "@/lib/admin-auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 interface AnalyticsData {
   timestamp?: { toDate: () => Date };
@@ -14,7 +15,7 @@ interface AnalyticsData {
 }
 
 // GET - Get analytics data
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     // Check admin authentication
     if (!(await isAdmin())) {
@@ -163,3 +164,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/admin/analytics" });

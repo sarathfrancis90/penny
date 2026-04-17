@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { isAdmin } from "@/lib/admin-auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 // Pricing constants (update these as needed)
 const PRICING = {
@@ -64,7 +65,7 @@ interface CostBreakdown {
 }
 
 // GET - Get comprehensive cost breakdown
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     // Check admin authentication
     if (!(await isAdmin())) {
@@ -257,3 +258,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/admin/costs" });

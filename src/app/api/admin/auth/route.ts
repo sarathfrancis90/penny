@@ -7,9 +7,10 @@ import {
   getAdminSession,
   verifyAdminSession,
 } from "@/lib/admin-auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 // POST - Admin login
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
     const { username, password } = body;
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET - Check admin session
-export async function GET() {
+async function getHandler() {
   try {
     const session = await getAdminSession();
     
@@ -74,7 +75,7 @@ export async function GET() {
 }
 
 // DELETE - Admin logout
-export async function DELETE() {
+async function deleteHandler() {
   try {
     await clearAdminSession();
     
@@ -91,3 +92,6 @@ export async function DELETE() {
   }
 }
 
+export const POST = withObservability(postHandler, { route: "/api/admin/auth" });
+export const GET = withObservability(getHandler, { route: "/api/admin/auth" });
+export const DELETE = withObservability(deleteHandler, { route: "/api/admin/auth" });

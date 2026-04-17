@@ -3,9 +3,10 @@ import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { isAdmin } from "@/lib/admin-auth";
 import { getAuth } from "firebase-admin/auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 // GET - Export all data for a specific user
-export async function GET(
+async function getHandler(
   request: NextRequest,
   context: { params: Promise<{ userId: string }> }
 ) {
@@ -157,3 +158,7 @@ export async function GET(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/admin/users/[userId]/export" },
+);

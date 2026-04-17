@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { isAdmin } from "@/lib/admin-auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 interface ExpenseData {
   amount?: number;
@@ -13,7 +14,7 @@ interface AnalyticsData {
 }
 
 // DELETE - Delete all data for a user
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
@@ -102,7 +103,7 @@ export async function DELETE(
 }
 
 // GET - Get detailed user info
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
@@ -169,3 +170,11 @@ export async function GET(
   }
 }
 
+export const DELETE = withObservability(
+  deleteHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/admin/users/[userId]" },
+);
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/admin/users/[userId]" },
+);
