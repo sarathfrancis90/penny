@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
+import { withObservability } from "@/lib/observability/withObservability";
 
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -75,4 +76,9 @@ export async function POST(
     );
   }
 }
+
+export const POST = withObservability(
+  postHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]/archive" },
+);
 

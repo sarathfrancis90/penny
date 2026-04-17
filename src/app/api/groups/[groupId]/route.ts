@@ -4,11 +4,12 @@ import { adminDb } from "@/lib/firebase-admin";
 import { Group } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/groups/[groupId] - Get a specific group
  */
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -82,7 +83,7 @@ export async function GET(
 /**
  * PATCH /api/groups/[groupId] - Update a group
  */
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -277,13 +278,10 @@ export async function PATCH(
   }
 }
 
-// PUT is an alias for PATCH
-export const PUT = PATCH;
-
 /**
  * DELETE /api/groups/[groupId] - Permanently delete a group
  */
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -391,3 +389,19 @@ export async function DELETE(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]" },
+);
+export const PATCH = withObservability(
+  patchHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]" },
+);
+export const PUT = withObservability(
+  patchHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]" },
+);
+export const DELETE = withObservability(
+  deleteHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]" },
+);

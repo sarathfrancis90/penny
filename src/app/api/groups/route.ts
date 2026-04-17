@@ -193,3 +193,5 @@ async function postHandler(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/groups" });
+export const POST = withObservability(postHandler, { route: "/api/groups" });
