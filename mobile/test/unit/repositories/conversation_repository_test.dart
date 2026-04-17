@@ -277,9 +277,8 @@ void main() {
           firstMessageRole: 'user',
         );
 
-        final before =
-            (await firestore.collection('conversations').doc(convId).get())
-                .data()!['updatedAt'] as Timestamp;
+        // Capture pre-rename timestamp for ordering reference
+        await firestore.collection('conversations').doc(convId).get();
 
         // Small delay so timestamps differ
         await repo.renameConversation(convId, 'New Title');

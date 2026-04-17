@@ -11,7 +11,6 @@ import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
-import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/receipt_image_viewer.dart';
 
 class ExpenseDetailScreen extends ConsumerWidget {

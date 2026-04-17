@@ -111,13 +111,6 @@ void main() {
     });
 
     test('fromFirestore parses notification type preferences', () async {
-      final doc = await firestore
-          .collection('users')
-          .doc('user-1')
-          .collection('preferences')
-          .doc('notifications')
-          .get();
-
       // Set data manually since we need a specific structure
       await firestore
           .collection('users')

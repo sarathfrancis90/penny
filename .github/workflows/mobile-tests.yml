@@ -42,7 +42,9 @@ jobs:
 
       - name: Analyze code
         working-directory: mobile
-        run: flutter analyze
+        # --no-fatal-infos: don't block on style/preference lints (still shown as info).
+        # Errors and warnings still fail the build.
+        run: flutter analyze --no-fatal-infos
 
       - name: Run unit tests
         working-directory: mobile

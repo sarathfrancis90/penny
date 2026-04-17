@@ -1126,6 +1126,7 @@ class _CategoryTotals extends StatelessWidget {
 // ====== Section Title ======
 
 class _SectionTitle extends StatelessWidget {
+  // ignore: unused_element_parameter
   const _SectionTitle({required this.title, this.trailing});
 
   final String title;

@@ -1864,7 +1864,6 @@ void main() {
     });
 
     testWidgets('10.5 Group filter dropdown shows user groups', (t) async {
-      final now = DateTime.now();
       final ts = Timestamp.now();
 
       // Seed a group + membership

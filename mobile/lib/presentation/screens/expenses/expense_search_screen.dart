@@ -81,31 +81,31 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
     final underMatch = RegExp(r'under\s*\$?(\d+\.?\d*)').firstMatch(lower);
     if (overMatch != null) {
       minAmount = double.tryParse(overMatch.group(1)!);
-      searchTerm = searchTerm?.replaceAll(overMatch.group(0)!, '').trim();
+      searchTerm = searchTerm.replaceAll(overMatch.group(0)!, '').trim();
     }
     if (underMatch != null) {
       maxAmount = double.tryParse(underMatch.group(1)!);
-      searchTerm = searchTerm?.replaceAll(underMatch.group(0)!, '').trim();
+      searchTerm = searchTerm.replaceAll(underMatch.group(0)!, '').trim();
     }
 
     // Filter expenses
     var filtered = allExpenses.where((e) {
       // Date filter
-      if (startDate != null && e.date.toDate().isBefore(startDate!)) {
+      if (startDate != null && e.date.toDate().isBefore(startDate)) {
         return false;
       }
       // Amount filters
-      if (minAmount != null && e.amount < minAmount!) return false;
-      if (maxAmount != null && e.amount > maxAmount!) return false;
+      if (minAmount != null && e.amount < minAmount) return false;
+      if (maxAmount != null && e.amount > maxAmount) return false;
       // Text search on vendor, category, description
-      if (searchTerm != null && searchTerm!.isNotEmpty) {
+      if (searchTerm != null && searchTerm.isNotEmpty) {
         final vendorMatch =
-            e.vendor.toLowerCase().contains(searchTerm!);
+            e.vendor.toLowerCase().contains(searchTerm);
         final categoryMatch =
-            e.category.toLowerCase().contains(searchTerm!);
+            e.category.toLowerCase().contains(searchTerm);
         final descMatch = (e.description ?? '')
             .toLowerCase()
-            .contains(searchTerm!);
+            .contains(searchTerm);
         if (!vendorMatch && !categoryMatch && !descMatch) return false;
       }
       return true;
