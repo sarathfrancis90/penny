@@ -1,0 +1,33 @@
+# Critical paths require owner review.
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global default
+*                              @sarathfrancis
+
+# Backend API routes — data integrity and auth boundaries
+src/app/api/**                 @sarathfrancis
+
+# Observability + logging infrastructure
+src/lib/observability/**       @sarathfrancis
+sentry.*.config.ts             @sarathfrancis
+
+# Auth and admin
+src/lib/admin-auth.ts          @sarathfrancis
+src/lib/firebase-admin.ts      @sarathfrancis
+
+# Firestore rules
+database/firestore.rules       @sarathfrancis
+database/firestore.indexes.json @sarathfrancis
+database/storage.rules         @sarathfrancis
+
+# Privacy and compliance
+PRIVACY.md                     @sarathfrancis
+src/app/privacy/**             @sarathfrancis
+src/app/api/privacy/**         @sarathfrancis
+docs/observability/**          @sarathfrancis
+
+# Release pipelines
+.github/workflows/**           @sarathfrancis
+mobile/fastlane/**             @sarathfrancis
+mobile/CICD.md                 @sarathfrancis
+vercel.json                    @sarathfrancis
