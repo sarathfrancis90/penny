@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { BudgetNotificationService } from "@/lib/services/budgetNotificationService";
 import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 interface CreateExpenseRequest {
   vendor: string;
@@ -17,7 +18,7 @@ interface CreateExpenseRequest {
   groupId?: string | null;
 }
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
     const tokenUserId = await getAuthenticatedUserId(request);
@@ -396,7 +397,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to retrieve expenses (for future use)
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     // Extract userId from query parameters
     const { searchParams } = new URL(request.url);
@@ -425,3 +426,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const POST = withObservability(postHandler, { route: "/api/expenses" });
+export const GET = withObservability(getHandler, { route: "/api/expenses" });
