@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthGuard } from "@/components/auth-guard";
 import { Analytics } from "@vercel/analytics/next";
+import { ErrorBoundary } from "@/components/observability/ErrorBoundary";
+import { SentryUserBoundary } from "@/components/observability/SentryUserBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,7 +64,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthGuard>{children}</AuthGuard>
+          <ErrorBoundary fallbackLabel="Application">
+            <SentryUserBoundary />
+            <AuthGuard>{children}</AuthGuard>
+          </ErrorBoundary>
         </ThemeProvider>
         <Analytics />
       </body>
