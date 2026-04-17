@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * Helper function to check if user is admin/owner of a group
@@ -26,7 +27,7 @@ async function isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
  * List group budgets (filtered by groupId)
  * Query params: groupId (required), category (optional), month (optional), year (optional)
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const tokenUserId = await getAuthenticatedUserId(request);
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
  * POST /api/budgets/group
  * Create a new group budget (admin/owner only)
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
@@ -196,7 +197,7 @@ export async function POST(request: NextRequest) {
     console.error("Error details:", error instanceof Error ? error.message : String(error));
     console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
     return NextResponse.json(
-      { 
+      {
         error: "Failed to create budget",
         details: error instanceof Error ? error.message : String(error)
       },
@@ -205,3 +206,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/budgets/group" });
+export const POST = withObservability(postHandler, { route: "/api/budgets/group" });

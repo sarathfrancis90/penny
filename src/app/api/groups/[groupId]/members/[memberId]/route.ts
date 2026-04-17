@@ -4,11 +4,12 @@ import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * PATCH /api/groups/[groupId]/members/[memberId] - Update member role
  */
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string; memberId: string }> }
 ) {
@@ -206,13 +207,10 @@ export async function PATCH(
   }
 }
 
-// PUT is an alias for PATCH
-export const PUT = PATCH;
-
 /**
  * DELETE /api/groups/[groupId]/members/[memberId] - Remove member from group
  */
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string; memberId: string }> }
 ) {
@@ -513,3 +511,15 @@ export async function DELETE(
   }
 }
 
+export const PATCH = withObservability(
+  patchHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]/members/[memberId]" },
+);
+export const PUT = withObservability(
+  patchHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]/members/[memberId]" },
+);
+export const DELETE = withObservability(
+  deleteHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]/members/[memberId]" },
+);

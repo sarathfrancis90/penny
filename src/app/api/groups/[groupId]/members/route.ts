@@ -5,11 +5,12 @@ import { GroupMember, GroupRole } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
 import { randomBytes } from "crypto";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/groups/[groupId]/members - Get all members of a group
  */
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -71,7 +72,7 @@ export async function GET(
 /**
  * POST /api/groups/[groupId]/members - Invite a new member
  */
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ groupId: string }> }
 ) {
@@ -290,3 +291,11 @@ export async function POST(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]/members" },
+);
+export const POST = withObservability(
+  postHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/groups/[groupId]/members" },
+);

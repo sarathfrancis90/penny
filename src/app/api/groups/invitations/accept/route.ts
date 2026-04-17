@@ -4,11 +4,12 @@ import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * POST /api/groups/invitations/accept - Accept a group invitation
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
@@ -217,3 +218,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const POST = withObservability(postHandler, { route: "/api/groups/invitations/accept" });
