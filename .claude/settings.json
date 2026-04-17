@@ -1,5 +1,5 @@
 {
-  "env": {
-    "GOOGLE_API_KEY": "AIzaSyATGwX6Rg7RAyqvwjz4gBC8DiobVNwZ3B0"
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true
   }
 }
