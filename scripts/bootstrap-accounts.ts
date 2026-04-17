@@ -356,6 +356,7 @@ async function pushVercelVars() {
     ['SENTRY_PROJECT_WEB', env.SENTRY_PROJECT_WEB],
     ['POSTHOG_PERSONAL_API_KEY', env.POSTHOG_PERSONAL_API_KEY],
     ['POSTHOG_PROJECT_ID', env.POSTHOG_PROJECT_ID],
+    ['AXIOM_TOKEN', env.AXIOM_TOKEN],
     ['BETTERSTACK_API_KEY', env.BETTERSTACK_API_KEY],
     ['CRONITOR_API_KEY', env.CRONITOR_API_KEY],
     ['CRONITOR_STORE_METRICS_TOKEN', env.CRONITOR_STORE_METRICS_TOKEN],
@@ -411,6 +412,20 @@ async function pushVercelVars() {
   await vercelUpsertEnv({
     key: 'OBSERVABILITY_ENV',
     value: 'preview',
+    target: prev,
+    type: 'plain',
+  });
+
+  // Axiom dataset — different per env (we direct-ship logs rather than using Vercel Log Drains)
+  await vercelUpsertEnv({
+    key: 'AXIOM_DATASET',
+    value: 'penny-web-prod',
+    target: prodOnly,
+    type: 'plain',
+  });
+  await vercelUpsertEnv({
+    key: 'AXIOM_DATASET',
+    value: 'penny-web-staging',
     target: prev,
     type: 'plain',
   });
@@ -483,8 +498,8 @@ async function main() {
   console.log('Next steps (manual):');
   console.log('  1. Sign out + sign back in to Penny for the admin claim');
   console.log('     to appear in your ID token.');
-  console.log('  2. Install Axiom ↔ Vercel integration in the Vercel marketplace');
-  console.log('     (auto-wires AXIOM_TOKEN / AXIOM_DATASET per env).');
+  console.log('  2. Create Axiom datasets penny-web-prod + penny-web-staging');
+  console.log('     in the Axiom UI (no Vercel integration needed).');
   console.log('  3. (Later) Create penny-staging Firebase project manually in UI');
   console.log('     and add NEXT_PUBLIC_FIREBASE_*_STAGING via this script.');
   console.log('  4. Flip Vercel production OBSERVABILITY_ENABLED=true after');

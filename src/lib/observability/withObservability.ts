@@ -4,6 +4,18 @@ import { createLogger, type Logger } from './logger';
 import { generateRequestId, extractRequestId, REQUEST_ID_HEADER } from './requestId';
 import { reportError } from './errors';
 import { isObservabilityEnabled } from './env';
+import { shipToAxiom } from './axiomShip';
+
+function serializeError(err: unknown): Record<string, unknown> {
+  if (err instanceof Error) {
+    return {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    };
+  }
+  return { value: String(err) };
+}
 
 export interface ObservabilityContext {
   route: string;
@@ -38,11 +50,36 @@ export function withObservability(
         headers.set(REQUEST_ID_HEADER, requestId);
         const duration_ms = Date.now() - start;
         logger.info({ status: res.status, duration_ms }, 'request.end');
+        shipToAxiom({
+          _time: new Date().toISOString(),
+          level: 'info',
+          msg: 'request.end',
+          route: opts.route,
+          request_id: requestId,
+          method: req.method,
+          url: req.url,
+          status: res.status,
+          duration_ms,
+          user_id: obsCtx.userId,
+        });
         return new Response(res.body, { status: res.status, headers });
       } catch (err) {
         const duration_ms = Date.now() - start;
         logger.error({ err, duration_ms }, 'request.error');
         reportError(err, { route: opts.route, requestId, userId: obsCtx.userId });
+        shipToAxiom({
+          _time: new Date().toISOString(),
+          level: 'error',
+          msg: 'request.error',
+          route: opts.route,
+          request_id: requestId,
+          method: req.method,
+          url: req.url,
+          status: 500,
+          duration_ms,
+          user_id: obsCtx.userId,
+          err: serializeError(err),
+        });
         return new Response(
           JSON.stringify({ error: 'Internal server error', requestId }),
           {
