@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 // @ts-ignore - next-pwa doesn't have TypeScript definitions
 import withPWAInit from "next-pwa";
 
@@ -129,4 +130,15 @@ const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withPWA(nextConfig);
+const baseExport = withPWA(nextConfig);
+
+export default withSentryConfig(baseExport, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT_WEB,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
+  disableLogger: true,
+  automaticVercelMonitors: false,
+});

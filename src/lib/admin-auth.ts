@@ -1,5 +1,7 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
+import type { NextRequest } from "next/server";
+import { adminAuth } from "@/lib/firebase-admin";
 
 // Admin credentials - stored in environment variables
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "penny_admin_2024";
@@ -99,11 +101,86 @@ export async function clearAdminSession() {
 }
 
 /**
- * Check if user is admin (for middleware)
+ * Check if user is admin (for middleware) — legacy HMAC session path.
  */
 export async function isAdmin(): Promise<boolean> {
   const session = await getAdminSession();
   if (!session) return false;
   return verifyAdminSession(session);
+}
+
+// ---------------------------------------------------------------------------
+// Firebase custom-claims admin auth (new primary path)
+// ---------------------------------------------------------------------------
+
+/**
+ * Thrown by requireAdmin when the request lacks a valid admin token.
+ * The `status` field is the HTTP code the caller should return.
+ */
+export class AdminAuthError extends Error {
+  constructor(
+    public readonly status: 401 | 403,
+    message: string,
+  ) {
+    super(message);
+    this.name = "AdminAuthError";
+  }
+}
+
+export interface AdminAuthInfo {
+  uid: string;
+  email?: string;
+}
+
+/**
+ * Verifies the Firebase ID token on the Authorization header and asserts the
+ * `admin: true` custom claim. Throws AdminAuthError on failure.
+ *
+ * Client call pattern:
+ *   const token = await auth.currentUser?.getIdToken();
+ *   fetch('/api/admin/...', { headers: { Authorization: `Bearer ${token}` } })
+ */
+export async function requireAdmin(req: NextRequest): Promise<AdminAuthInfo> {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new AdminAuthError(401, "Missing bearer token");
+  }
+  const token = authHeader.slice("Bearer ".length);
+
+  let decoded: Awaited<ReturnType<typeof adminAuth.verifyIdToken>>;
+  try {
+    decoded = await adminAuth.verifyIdToken(token);
+  } catch {
+    throw new AdminAuthError(401, "Invalid token");
+  }
+
+  if (decoded.admin !== true) {
+    throw new AdminAuthError(403, "Admin claim required");
+  }
+  return { uid: decoded.uid, email: decoded.email };
+}
+
+/**
+ * Wrapper returning either a Response (on failure) or AdminAuthInfo (on success).
+ * Lets API routes early-return the response without try/catch boilerplate:
+ *
+ *   const auth = await verifyAdmin(req);
+ *   if (auth instanceof Response) return auth;
+ *   // auth.uid is available here
+ */
+export async function verifyAdmin(
+  req: NextRequest,
+): Promise<Response | AdminAuthInfo> {
+  try {
+    return await requireAdmin(req);
+  } catch (e) {
+    if (e instanceof AdminAuthError) {
+      return new Response(JSON.stringify({ error: e.message }), {
+        status: e.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    throw e;
+  }
 }
 

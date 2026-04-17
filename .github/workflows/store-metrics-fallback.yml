@@ -1,0 +1,43 @@
+name: Store metrics fallback
+
+# Runs 90 minutes after Vercel Cron. If Vercel missed a day, this job pings
+# Discord. Doesn't try to fetch store data itself — that'd double the auth
+# surface. Safety net only.
+
+on:
+  schedule:
+    - cron: '30 9 * * *' # 09:30 UTC = 04:30 America/Toronto
+  workflow_dispatch:
+
+concurrency:
+  group: store-metrics-fallback
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Vercel Cron wrote today's docs
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          DISCORD_WEBHOOK_ALERTS_WARNING: ${{ secrets.DISCORD_WEBHOOK_ALERTS_WARNING }}
+        run: |
+          set -euo pipefail
+          YESTERDAY=$(date -u -d "yesterday" +%F)
+          npm install -g firebase-tools@13
+          echo "Checking store_metrics/ios_${YESTERDAY} and store_metrics/android_${YESTERDAY}"
+          if ! firebase firestore:get "store_metrics/ios_${YESTERDAY}" \
+               --project "$FIREBASE_PROJECT_ID" --token "$FIREBASE_TOKEN" >/dev/null 2>&1; then
+            echo "iOS doc missing for $YESTERDAY"
+            curl -sS -X POST -H "Content-Type: application/json" \
+              -d "{\"content\":\":rotating_light: store-metrics cron missed iOS for ${YESTERDAY}\"}" \
+              "$DISCORD_WEBHOOK_ALERTS_WARNING" || true
+          fi
+          if ! firebase firestore:get "store_metrics/android_${YESTERDAY}" \
+               --project "$FIREBASE_PROJECT_ID" --token "$FIREBASE_TOKEN" >/dev/null 2>&1; then
+            echo "Android doc missing for $YESTERDAY"
+            curl -sS -X POST -H "Content-Type: application/json" \
+              -d "{\"content\":\":rotating_light: store-metrics cron missed Android for ${YESTERDAY}\"}" \
+              "$DISCORD_WEBHOOK_ALERTS_WARNING" || true
+          fi

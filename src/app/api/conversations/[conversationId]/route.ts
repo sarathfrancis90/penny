@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/conversations/[conversationId]
  * Get conversation with messages
  */
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
@@ -78,7 +79,7 @@ export async function GET(
  * PATCH /api/conversations/[conversationId]
  * Update conversation metadata
  */
-export async function PATCH(
+async function patchHandler(
   request: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
@@ -150,7 +151,7 @@ export async function PATCH(
  * DELETE /api/conversations/[conversationId]
  * Delete conversation and all messages
  */
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
@@ -208,3 +209,15 @@ export async function DELETE(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/conversations/[conversationId]" },
+);
+export const PATCH = withObservability(
+  patchHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/conversations/[conversationId]" },
+);
+export const DELETE = withObservability(
+  deleteHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/conversations/[conversationId]" },
+);

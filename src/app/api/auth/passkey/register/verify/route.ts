@@ -3,12 +3,13 @@ import { verifyPasskeyRegistration } from '@/lib/passkey-utils';
 import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { RegistrationResponseJSON } from '@simplewebauthn/types';
+import { withObservability } from '@/lib/observability/withObservability';
 
 /**
  * POST /api/auth/passkey/register/verify
  * Verify and complete passkey registration
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const { userId, response, deviceName } = await request.json();
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error verifying passkey registration:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to verify passkey registration',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -100,3 +101,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const POST = withObservability(postHandler, { route: '/api/auth/passkey/register/verify' });

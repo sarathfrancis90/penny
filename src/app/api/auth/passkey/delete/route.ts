@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { withObservability } from '@/lib/observability/withObservability';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
@@ -11,7 +12,7 @@ const JWT_SECRET = new TextEncoder().encode(
  * DELETE /api/auth/passkey/delete
  * Delete a specific passkey for the authenticated user
  */
-export async function DELETE(request: NextRequest) {
+async function deleteHandler(request: NextRequest) {
   try {
     // Get user ID from session
     const cookieStore = await cookies();
@@ -74,7 +75,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error deleting passkey:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to delete passkey',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -83,4 +84,4 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-
+export const DELETE = withObservability(deleteHandler, { route: '/api/auth/passkey/delete' });

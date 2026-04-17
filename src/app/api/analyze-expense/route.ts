@@ -5,6 +5,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { findMatchingGroup } from "@/lib/groupMatching";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
 let genAI: GoogleGenAI | null = null;
@@ -92,7 +93,7 @@ interface AnalyzeExpenseResponse {
 }
 
 
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   const startTime = Date.now();
   let userId: string | undefined;
   
@@ -370,9 +371,12 @@ async function trackAnalytics(data: {
 }
 
 // Handle unsupported methods
-export async function GET() {
+async function getHandler() {
   return NextResponse.json(
     { error: "Method not allowed. Use POST." },
     { status: 405 }
   );
 }
+
+export const POST = withObservability(postHandler, { route: "/api/analyze-expense" });
+export const GET = withObservability(getHandler, { route: "/api/analyze-expense" });

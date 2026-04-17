@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePasskeyAuthenticationOptions } from '@/lib/passkey-utils';
 import { adminDb } from '@/lib/firebase-admin';
+import { withObservability } from '@/lib/observability/withObservability';
 
 /**
  * POST /api/auth/passkey/authenticate/start
  * Generate authentication options for passkey login
  * Supports both identifier-first flow and conditional UI (autofill)
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const body = await request.json();
     const { email } = body;
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error starting passkey authentication:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to start passkey authentication',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -51,3 +52,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const POST = withObservability(postHandler, { route: '/api/auth/passkey/authenticate/start' });

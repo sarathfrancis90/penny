@@ -4,6 +4,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { deleteReceipt } from "@/lib/storageService";
 import { PushService } from "@/lib/services/pushService";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * Notify group members about an expense change (update or delete).
@@ -91,7 +92,7 @@ interface UpdateExpenseRequest {
 }
 
 // DELETE - Delete an expense
-export async function DELETE(
+async function deleteHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -180,7 +181,7 @@ export async function DELETE(
 }
 
 // PUT/PATCH - Update an expense
-export async function PUT(
+async function putHandler(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -283,5 +284,16 @@ export async function PUT(
 }
 
 // PATCH - Same as PUT for this use case
-export const PATCH = PUT;
+export const DELETE = withObservability(
+  deleteHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/expenses/[id]" },
+);
+export const PUT = withObservability(
+  putHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/expenses/[id]" },
+);
+export const PATCH = withObservability(
+  putHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/expenses/[id]" },
+);
 

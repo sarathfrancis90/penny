@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/conversations
  * List user conversations (paginated)
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const tokenUserId = await getAuthenticatedUserId(request);
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
  * POST /api/conversations
  * Create a new conversation with first message
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
@@ -140,3 +141,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/conversations" });
+export const POST = withObservability(postHandler, { route: "/api/conversations" });

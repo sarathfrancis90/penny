@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { isAdmin } from "@/lib/admin-auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 interface SystemConfig {
   ai: {
@@ -61,7 +62,7 @@ const DEFAULT_CONFIG: SystemConfig = {
 };
 
 // GET - Get current system configuration
-export async function GET() {
+async function getHandler() {
   try {
     // Check admin authentication
     if (!(await isAdmin())) {
@@ -103,7 +104,7 @@ export async function GET() {
 }
 
 // POST - Update system configuration
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     // Check admin authentication
     if (!(await isAdmin())) {
@@ -174,3 +175,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/admin/config" });
+export const POST = withObservability(postHandler, { route: "/api/admin/config" });

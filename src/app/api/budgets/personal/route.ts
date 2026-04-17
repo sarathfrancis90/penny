@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/budgets/personal
  * List all personal budgets for the authenticated user
  * Query params: category (optional), month (optional), year (optional)
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const tokenUserId = await getAuthenticatedUserId(request);
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
  * POST /api/budgets/personal
  * Create a new personal budget
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
@@ -140,3 +141,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/budgets/personal" });
+export const POST = withObservability(postHandler, { route: "/api/budgets/personal" });

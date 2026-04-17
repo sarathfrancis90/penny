@@ -3,6 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { isAdmin } from "@/lib/admin-auth";
 import { getAuth } from "firebase-admin/auth";
+import { withObservability } from "@/lib/observability/withObservability";
 
 interface SystemStats {
   database: {
@@ -56,7 +57,7 @@ function estimateCollectionSize(docCount: number, avgDocSizeKB: number): string 
 }
 
 // GET - Get comprehensive system statistics
-export async function GET() {
+async function getHandler() {
   try {
     // Check admin authentication
     if (!(await isAdmin())) {
@@ -257,3 +258,4 @@ export async function GET() {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/admin/system" });

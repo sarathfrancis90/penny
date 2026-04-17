@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
+import { withObservability } from '@/lib/observability/withObservability';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
@@ -11,7 +12,7 @@ const JWT_SECRET = new TextEncoder().encode(
  * Create a JWT session for an authenticated Firebase user
  * This bridges Firebase Authentication with the JWT session system used by passkeys
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const { userId, email } = await request.json();
 
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
  * DELETE /api/auth/session/create
  * Clear the JWT session (logout)
  */
-export async function DELETE() {
+async function deleteHandler() {
   try {
     const cookieStore = await cookies();
     cookieStore.delete('session');
@@ -75,7 +76,7 @@ export async function DELETE() {
   } catch (error) {
     console.error('Error clearing session:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to clear session',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -84,4 +85,5 @@ export async function DELETE() {
   }
 }
 
-
+export const POST = withObservability(postHandler, { route: '/api/auth/session/create' });
+export const DELETE = withObservability(deleteHandler, { route: '/api/auth/session/create' });

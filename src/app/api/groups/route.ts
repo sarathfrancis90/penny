@@ -3,11 +3,12 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Group, GroupMember, DEFAULT_ROLE_PERMISSIONS } from "@/lib/types";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/groups - Get all groups for the authenticated user
  */
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     // Get userId from query params (set by middleware/auth)
     const { searchParams } = new URL(request.url);
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/groups - Create a new group
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
     const tokenUserId = await getAuthenticatedUserId(request);
@@ -192,3 +193,5 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/groups" });
+export const POST = withObservability(postHandler, { route: "/api/groups" });

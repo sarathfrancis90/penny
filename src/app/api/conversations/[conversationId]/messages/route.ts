@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * GET /api/conversations/[conversationId]/messages
  * Get messages for a conversation (paginated)
  */
-export async function GET(
+async function getHandler(
   request: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
@@ -85,7 +86,7 @@ export async function GET(
  * POST /api/conversations/[conversationId]/messages
  * Add a new message to conversation
  */
-export async function POST(
+async function postHandler(
   request: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
@@ -180,3 +181,11 @@ export async function POST(
   }
 }
 
+export const GET = withObservability(
+  getHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/conversations/[conversationId]/messages" },
+);
+export const POST = withObservability(
+  postHandler as (req: NextRequest, ctx?: unknown) => Promise<Response>,
+  { route: "/api/conversations/[conversationId]/messages" },
+);

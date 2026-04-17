@@ -4,6 +4,7 @@ import { db } from "@/lib/firebase";
 import { isAdmin } from "@/lib/admin-auth";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { withObservability } from "@/lib/observability/withObservability";
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
@@ -21,7 +22,7 @@ if (!getApps().length) {
 }
 
 // GET - List all users (from Firebase Auth + expense data)
-export async function GET(request: NextRequest) {
+async function getHandler(request: NextRequest) {
   try {
     // Check admin authentication
     if (!(await isAdmin())) {
@@ -174,3 +175,4 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export const GET = withObservability(getHandler, { route: "/api/admin/users" });
