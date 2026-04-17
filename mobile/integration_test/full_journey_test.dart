@@ -9,6 +9,7 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 
 import 'package:penny_mobile/app.dart';
 import 'package:penny_mobile/data/services/auth_service.dart';
+import 'package:penny_mobile/data/services/oauth_service.dart';
 import 'package:penny_mobile/data/services/storage_service.dart';
 import 'package:penny_mobile/data/repositories/budget_repository.dart';
 import 'package:penny_mobile/data/repositories/expense_repository.dart';
@@ -37,6 +38,7 @@ class _FakeStorageService implements StorageService {
 
 List<Override> _overrides(MockFirebaseAuth auth, FakeFirebaseFirestore fs) => [
       authServiceProvider.overrideWithValue(AuthService(auth: auth)),
+      oauthServiceProvider.overrideWithValue(OAuthService(auth: auth)),
       expenseRepositoryProvider
           .overrideWithValue(ExpenseRepository(firestore: fs)),
       conversationRepositoryProvider
@@ -579,6 +581,7 @@ void main() {
     final box = await Hive.openBox('app_preferences');
     await box.put('onboarding_complete', true);
     await box.put('has_logged_in', true);
+    await Hive.openBox('guest_expenses');
   });
 
   // ====================================================================

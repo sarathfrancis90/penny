@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
-import 'package:penny_mobile/data/services/oauth_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -63,7 +62,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     });
 
     try {
-      final oauthService = OAuthService();
+      final oauthService = ref.read(oauthServiceProvider);
       if (provider == 'google') {
         await oauthService.signInWithGoogle();
       } else if (provider == 'apple') {
@@ -233,7 +232,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 // Apple (only show if available)
                 FutureBuilder<bool>(
-                  future: OAuthService().isAppleSignInAvailable(),
+                  future: ref.read(oauthServiceProvider).isAppleSignInAvailable(),
                   builder: (context, snapshot) {
                     if (snapshot.data != true) return const SizedBox.shrink();
                     return OutlinedButton.icon(

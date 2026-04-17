@@ -9,6 +9,7 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 
 import 'package:penny_mobile/app.dart';
 import 'package:penny_mobile/data/services/auth_service.dart';
+import 'package:penny_mobile/data/services/oauth_service.dart';
 import 'package:penny_mobile/data/repositories/budget_repository.dart';
 import 'package:penny_mobile/data/repositories/expense_repository.dart';
 import 'package:penny_mobile/data/repositories/conversation_repository.dart';
@@ -38,6 +39,7 @@ class _FakeStorageService implements StorageService {
 /// All overrides needed to run integration tests against fakes.
 List<Override> _overrides(MockFirebaseAuth auth, FakeFirebaseFirestore fs) => [
       authServiceProvider.overrideWithValue(AuthService(auth: auth)),
+      oauthServiceProvider.overrideWithValue(OAuthService(auth: auth)),
       expenseRepositoryProvider.overrideWithValue(ExpenseRepository(firestore: fs)),
       conversationRepositoryProvider.overrideWithValue(ConversationRepository(firestore: fs)),
       budgetRepositoryProvider.overrideWithValue(BudgetRepository(firestore: fs)),
@@ -61,12 +63,15 @@ MockFirebaseAuth _createAuth() => MockFirebaseAuth(
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive and mark onboarding as complete for tests
+  // Initialize Hive and mark onboarding as complete for tests.
+  // Must open both boxes that main.dart opens — guestExpenseProvider eagerly
+  // accesses 'guest_expenses' on first build, so it MUST be open before pumping.
   setUpAll(() async {
     await Hive.initFlutter();
-    final box = await Hive.openBox('app_preferences');
-    await box.put('onboarding_complete', true);
-    await box.put('has_logged_in', true);
+    final prefs = await Hive.openBox('app_preferences');
+    await prefs.put('onboarding_complete', true);
+    await prefs.put('has_logged_in', true);
+    await Hive.openBox('guest_expenses');
   });
 
   // ====== PHASE 1: Expense CRUD ======

@@ -1,24 +1,18 @@
 #!/bin/bash
-# Pre-push hook: runs Flutter tests before allowing push
-# Ensures no broken code reaches the remote
+# Pre-push hook: runs Flutter unit tests before allowing push.
+#
+# - Unit tests are STRICT (block push on failure). They're fast and stable.
+# - Integration tests are NOT run here — they belong in the GitHub Actions
+#   workflow (.github/workflows/mobile-tests.yml) and on-demand locally.
+#   Reason: integration tests are slow + simulator-dependent, and previously
+#   their output was being silently swallowed by `... | tail -1`, masking
+#   broken tests. CI is a more reliable place for them.
+#
+# Bypass (use sparingly): git push --no-verify
 
-set -e
+set -euo pipefail
 
-echo "🧪 Running pre-push tests..."
-
+echo "🧪 Running pre-push unit tests..."
 cd mobile
-
-# Unit tests (fast — always run)
-echo "  ▸ Unit tests..."
-flutter test test/ --reporter compact 2>&1 | tail -1
-
-# Integration tests only if simulator is booted
-BOOTED_SIM=$(xcrun simctl list devices booted | grep -o '[A-F0-9-]\{36\}' | head -1)
-if [ -n "$BOOTED_SIM" ]; then
-  echo "  ▸ Integration tests (simulator: $BOOTED_SIM)..."
-  flutter test integration_test/expense_crud_test.dart -d "$BOOTED_SIM" --reporter compact 2>&1 | tail -1
-else
-  echo "  ⚠ Skipping integration tests (no booted simulator)"
-fi
-
-echo "✅ All pre-push tests passed"
+flutter test test/ --reporter compact
+echo "✅ Unit tests passed"
