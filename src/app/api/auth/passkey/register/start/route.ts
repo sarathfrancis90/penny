@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generatePasskeyRegistrationOptions } from '@/lib/passkey-utils';
 import { adminDb } from '@/lib/firebase-admin';
+import { withObservability } from '@/lib/observability/withObservability';
 
 /**
  * POST /api/auth/passkey/register/start
  * Generate registration options for creating a new passkey
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const { userId, email, displayName } = await request.json();
 
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error starting passkey registration:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to start passkey registration',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -49,3 +50,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const POST = withObservability(postHandler, { route: '/api/auth/passkey/register/start' });

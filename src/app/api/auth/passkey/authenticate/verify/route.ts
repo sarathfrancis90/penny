@@ -5,6 +5,7 @@ import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import type { AuthenticationResponseJSON } from '@simplewebauthn/types';
 import { Timestamp } from 'firebase-admin/firestore';
+import { withObservability } from '@/lib/observability/withObservability';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
@@ -14,7 +15,7 @@ const JWT_SECRET = new TextEncoder().encode(
  * POST /api/auth/passkey/authenticate/verify
  * Verify passkey authentication and create session
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     const { challengeId, response } = await request.json();
 
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { 
+      {
         error: errorMessage,
         details: details
       },
@@ -171,3 +172,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export const POST = withObservability(postHandler, { route: '/api/auth/passkey/authenticate/verify' });

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { withObservability } from '@/lib/observability/withObservability';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
@@ -11,7 +12,7 @@ const JWT_SECRET = new TextEncoder().encode(
  * GET /api/auth/passkey/list
  * List all passkeys for the authenticated user
  */
-export async function GET() {
+async function getHandler() {
   try {
     // Get user ID from session
     const cookieStore = await cookies();
@@ -62,7 +63,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error listing passkeys:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to list passkeys',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
@@ -71,3 +72,4 @@ export async function GET() {
   }
 }
 
+export const GET = withObservability(getHandler, { route: '/api/auth/passkey/list' });
