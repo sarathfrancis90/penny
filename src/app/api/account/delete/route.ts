@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 /**
  * DELETE /api/account/delete
@@ -10,7 +11,7 @@ import { getAuthenticatedUserId } from "@/lib/auth-middleware";
  *
  * Requires: Bearer token authentication (Firebase ID token).
  */
-export async function DELETE(request: NextRequest) {
+async function deleteHandler(request: NextRequest) {
   try {
     const userId = await getAuthenticatedUserId(request);
     if (!userId) {
@@ -106,3 +107,5 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+export const DELETE = withObservability(deleteHandler, { route: "/api/account/delete" });

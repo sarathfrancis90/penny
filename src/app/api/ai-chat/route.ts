@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { withObservability } from "@/lib/observability/withObservability";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
 let genAI: GoogleGenAI | null = null;
@@ -15,7 +16,7 @@ function getGenAI(): GoogleGenAI {
  * POST /api/ai-chat
  * Handle conversational AI requests with function calling support
  */
-export async function POST(request: NextRequest) {
+async function postHandler(request: NextRequest) {
   try {
     // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
     const tokenUserId = await getAuthenticatedUserId(request);
@@ -160,3 +161,4 @@ Comparison:
   }
 }
 
+export const POST = withObservability(postHandler, { route: "/api/ai-chat" });
