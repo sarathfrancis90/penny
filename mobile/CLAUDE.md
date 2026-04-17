@@ -8,6 +8,10 @@ Flutter mobile app for Penny — AI-powered expense tracker for Canadian self-in
 
 **Single source of truth: [`CICD.md`](./CICD.md).** Release flow is one git tag (`v*.*.*`) → autonomous publish to App Store production + Play Store production via GitHub Actions. Lanes live in `fastlane/Fastfile` (`ios ship`, `android ship`, plus `repair_and_submit` for App Store recovery). Toolchain pins: `.flutter-version`, `.ruby-version`, `Gemfile.lock`. **Do not modify the deployment pipeline without updating `CICD.md` in the same PR.**
 
+## Production readiness state
+
+**Current state of the app vis-à-vis "shippable to real users" lives in [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).** Update it in the same PR as anything that materially changes that state (new monitoring, new gap discovered, security fix, etc.).
+
 ---
 
 ## Architecture: Clean Architecture + Riverpod
