@@ -12,26 +12,28 @@ export interface ObservabilityContext {
   userId?: string;
 }
 
-type Handler = (
-  req: NextRequest,
-  ctx: ObservabilityContext,
-) => Promise<Response> | Response;
-type PlainHandler = (req: NextRequest) => Promise<Response> | Response;
+// Next.js route handlers receive an optional second argument containing route
+// params (e.g. { params: Promise<{ id: string }> }). We pass it through untouched.
+type RouteArgs = [req: NextRequest, ctx?: unknown];
+
+type Handler = (...args: RouteArgs) => Promise<Response> | Response;
 
 export function withObservability(
-  handler: Handler | PlainHandler,
+  handler: Handler,
   opts: { route: string },
-): (req: NextRequest) => Promise<Response> {
-  return async (req: NextRequest) => {
+): (...args: RouteArgs) => Promise<Response> {
+  return async (req: NextRequest, routeCtx?: unknown) => {
     const requestId = extractRequestId(req.headers) ?? generateRequestId();
     const logger = createLogger(opts.route).child({ request_id: requestId });
-    const ctx: ObservabilityContext = { route: opts.route, logger, requestId };
+    const obsCtx: ObservabilityContext = { route: opts.route, logger, requestId };
     const start = Date.now();
 
     const execute = async (): Promise<Response> => {
       try {
         logger.info({ method: req.method, url: req.url }, 'request.start');
-        const res = await (handler as Handler)(req, ctx);
+        // Pass the route's native context (Next.js params etc.) through.
+        // Handlers that don't use it can simply ignore the second argument.
+        const res = await handler(req, routeCtx);
         const headers = new Headers(res.headers);
         headers.set(REQUEST_ID_HEADER, requestId);
         const duration_ms = Date.now() - start;
@@ -40,7 +42,7 @@ export function withObservability(
       } catch (err) {
         const duration_ms = Date.now() - start;
         logger.error({ err, duration_ms }, 'request.error');
-        reportError(err, { route: opts.route, requestId, userId: ctx.userId });
+        reportError(err, { route: opts.route, requestId, userId: obsCtx.userId });
         return new Response(
           JSON.stringify({ error: 'Internal server error', requestId }),
           {
