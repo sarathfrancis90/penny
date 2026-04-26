@@ -1,0 +1,8 @@
+What's new in 2.3.0:
+
+• Chat history is back! Tap the menu icon or swipe from the left edge to browse past conversations.
+• Conversations are grouped by date (Today, This Week, This Month, etc.) with pinned ones on top.
+• Search across all your conversations from the drawer.
+• Swipe a conversation left to archive it — with a quick Undo if you change your mind.
+• Smarter titles: Penny now names conversations automatically after a few messages.
+• Better VoiceOver support throughout the conversation list.
