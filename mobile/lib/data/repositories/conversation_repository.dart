@@ -20,16 +20,17 @@ class ConversationRepository {
             snap.docs.map(ConversationModel.fromFirestore).toList());
   }
 
-  /// Create a new conversation and its first message.
+  /// Create a new conversation and its first message. The placeholder title
+  /// is the first 6 words of [firstMessage] capped at 50 chars; the lazy AI
+  /// title flow upgrades it later. Receipt uploads (messages starting with
+  /// 📷) get the friendly placeholder "Receipt scan".
   Future<String> createConversation({
     required String userId,
     required String firstMessage,
     required String firstMessageRole,
   }) async {
     final now = Timestamp.now();
-    final title = firstMessage.length > 50
-        ? '${firstMessage.substring(0, 50)}...'
-        : firstMessage;
+    final title = placeholderTitleFor(firstMessage);
 
     final docRef = await _db.collection('conversations').add({
       'userId': userId,
@@ -46,6 +47,7 @@ class ConversationRepository {
         'firstMessageTimestamp': now,
         'lastAccessedAt': now,
         'isPinned': false,
+        'aiTitleGenerated': false,
       },
     });
 
@@ -63,6 +65,30 @@ class ConversationRepository {
     });
 
     return docRef.id;
+  }
+
+  /// Build the placeholder title used at conversation creation time. Mirrors
+  /// the web's `/api/conversations` POST handler: first 6 words, capped at
+  /// 50 chars, with "…" appended when truncated. The 📷 prefix used by the
+  /// mobile chat for receipt uploads gets a friendlier label.
+  static String placeholderTitleFor(String firstMessage) {
+    final trimmed = firstMessage.trim();
+    if (trimmed.startsWith('📷')) return 'Receipt scan';
+    final words = trimmed.split(RegExp(r'\s+'));
+    final first6 = words.take(6).join(' ');
+    if (first6.length <= 50) {
+      return first6.isEmpty ? 'New chat' : first6;
+    }
+    return '${first6.substring(0, 50)}…';
+  }
+
+  /// Fetch a single conversation. Returns null when the document does not
+  /// exist (e.g. it was just deleted, or the id is wrong).
+  Future<ConversationModel?> getConversation(String conversationId) async {
+    final doc =
+        await _db.collection('conversations').doc(conversationId).get();
+    if (!doc.exists) return null;
+    return ConversationModel.fromFirestore(doc);
   }
 
   /// Add a message to an existing conversation.

@@ -9,6 +9,7 @@ import 'package:penny_mobile/data/repositories/ai_repository.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/chat_provider.dart';
+import 'package:penny_mobile/presentation/screens/home/conversation_list_screen.dart';
 import 'package:penny_mobile/presentation/widgets/chat_bubble.dart';
 import 'package:penny_mobile/presentation/widgets/expense_card.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
@@ -124,6 +125,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final conversationId = chatState.conversationId;
 
     return Scaffold(
+      drawer: isGuest
+          ? null
+          : ConversationListDrawer(
+              onSelectConversation: (id) =>
+                  ref.read(chatProvider.notifier).loadConversation(id),
+              onNewConversation: () =>
+                  ref.read(chatProvider.notifier).newConversation(),
+            ),
+      drawerEdgeDragWidth: 24,
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -143,12 +153,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ],
         ),
         actions: [
-          if (!isGuest)
-            IconButton(
-              icon: const Icon(Icons.add_comment_outlined),
-              tooltip: 'New Chat',
-              onPressed: () => ref.read(chatProvider.notifier).newConversation(),
-            ),
           _NotificationBell(),
         ],
       ),

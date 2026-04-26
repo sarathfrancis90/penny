@@ -32,6 +32,21 @@ class AiRepository {
     throw Exception(data['error'] ?? 'AI chat failed');
   }
 
+  /// Ask the server to generate a Gemini-backed title for [conversationId].
+  /// Fire-and-forget: any failure is swallowed so the placeholder title set
+  /// at conversation-creation time persists. Caller should not await unless
+  /// they specifically want the result.
+  Future<void> requestTitleGeneration(String conversationId) async {
+    try {
+      await _api.post(
+        ApiEndpoints.generateConversationTitle(conversationId),
+        data: const <String, dynamic>{},
+      );
+    } catch (_) {
+      // Intentional swallow: the user already has a usable placeholder title.
+    }
+  }
+
   /// Analyze an expense from text and/or image.
   /// Returns parsed expense data (single or multiple).
   Future<AnalyzeExpenseResult> analyzeExpense({

@@ -9,4 +9,6 @@ abstract final class ApiEndpoints {
   static String groupMembers(String id) => '/api/groups/$id/members';
   static const acceptInvitation = '/api/groups/invitations/accept';
   static const groupBudgets = '/api/budgets/group';
+  static String generateConversationTitle(String id) =>
+      '/api/conversations/$id/generate-title';
 }

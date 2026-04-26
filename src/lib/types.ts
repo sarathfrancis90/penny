@@ -367,6 +367,7 @@ export interface Conversation {
     firstMessageTimestamp: Timestamp;
     lastAccessedAt: Timestamp;
     isPinned: boolean;
+    aiTitleGenerated?: boolean;
   };
 }
 

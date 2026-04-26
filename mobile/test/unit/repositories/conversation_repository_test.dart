@@ -33,9 +33,21 @@ void main() {
         expect(data['metadata']['isPinned'], false);
       });
 
-      test('truncates long title to 50 chars', () async {
-        final longMessage =
-            'A' * 100; // 100 chars
+      test('uses first 6 words as title for multi-word messages', () async {
+        final id = await repo.createConversation(
+          userId: 'user-1',
+          firstMessage:
+              'Lunch at Tim Hortons today was fifteen dollars and sixty cents',
+          firstMessageRole: 'user',
+        );
+
+        final doc = await firestore.collection('conversations').doc(id).get();
+        expect(doc.data()!['title'], 'Lunch at Tim Hortons today was');
+      });
+
+      test('caps single-word title at 50 chars with horizontal ellipsis',
+          () async {
+        final longMessage = 'A' * 100; // 100 chars, single "word"
         final id = await repo.createConversation(
           userId: 'user-1',
           firstMessage: longMessage,
@@ -44,8 +56,8 @@ void main() {
 
         final doc = await firestore.collection('conversations').doc(id).get();
         final title = doc.data()!['title'] as String;
-        expect(title.length, 53); // 50 chars + '...'
-        expect(title.endsWith('...'), true);
+        expect(title.length, 51); // 50 chars + 1-char "…"
+        expect(title.endsWith('…'), true);
       });
 
       test('uses full message as title when short enough', () async {
@@ -57,6 +69,18 @@ void main() {
 
         final doc = await firestore.collection('conversations').doc(id).get();
         expect(doc.data()!['title'], 'Hello Penny');
+      });
+
+      test('writes aiTitleGenerated: false in metadata at creation', () async {
+        final id = await repo.createConversation(
+          userId: 'user-1',
+          firstMessage: 'Hello',
+          firstMessageRole: 'user',
+        );
+
+        final doc = await firestore.collection('conversations').doc(id).get();
+        final meta = doc.data()!['metadata'] as Map<String, dynamic>;
+        expect(meta['aiTitleGenerated'], false);
       });
 
       test('creates first message in subcollection', () async {
@@ -422,6 +446,72 @@ void main() {
         expect(messages.first.role, 'user');
         expect(messages.last.role, 'assistant');
       });
+    });
+
+    group('getConversation', () {
+      test('returns the model when the document exists', () async {
+        final id = await repo.createConversation(
+          userId: 'user-1',
+          firstMessage: 'Hello',
+          firstMessageRole: 'user',
+        );
+
+        final conv = await repo.getConversation(id);
+        expect(conv, isNotNull);
+        expect(conv!.id, id);
+        expect(conv.userId, 'user-1');
+        expect(conv.title, 'Hello');
+        expect(conv.metadata.aiTitleGenerated, false);
+      });
+
+      test('returns null when the document does not exist', () async {
+        final conv = await repo.getConversation('does-not-exist');
+        expect(conv, isNull);
+      });
+    });
+  });
+
+  group('ConversationRepository.placeholderTitleFor', () {
+    test('takes the first 6 words and stops there', () {
+      expect(
+        ConversationRepository.placeholderTitleFor(
+            'Lunch at Tim Hortons today was fifteen dollars and sixty cents'),
+        'Lunch at Tim Hortons today was',
+      );
+    });
+
+    test('returns the full message verbatim when fewer than 6 words', () {
+      expect(
+        ConversationRepository.placeholderTitleFor('Hello Penny'),
+        'Hello Penny',
+      );
+    });
+
+    test('caps long single-word input at 50 chars with horizontal ellipsis',
+        () {
+      final out = ConversationRepository.placeholderTitleFor('A' * 100);
+      expect(out.length, 51);
+      expect(out.endsWith('…'), true);
+    });
+
+    test('special-cases the 📷 receipt-upload prefix', () {
+      expect(
+        ConversationRepository.placeholderTitleFor('📷 Receipt uploaded'),
+        'Receipt scan',
+      );
+    });
+
+    test('falls back to "New chat" for empty input', () {
+      expect(ConversationRepository.placeholderTitleFor(''), 'New chat');
+      expect(ConversationRepository.placeholderTitleFor('   '), 'New chat');
+    });
+
+    test('collapses arbitrary whitespace between words', () {
+      expect(
+        ConversationRepository.placeholderTitleFor(
+            'a    b\tc\nd  e f g h'),
+        'a b c d e f',
+      );
     });
   });
 }

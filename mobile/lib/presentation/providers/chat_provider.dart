@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/data/models/message_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
@@ -126,6 +128,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
           content: response,
         );
       }
+
+      _maybeTriggerAiTitle(convId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     } finally {
@@ -177,11 +181,30 @@ class ChatNotifier extends StateNotifier<ChatState> {
         role: 'assistant',
         content: responseText,
       );
+
+      _maybeTriggerAiTitle(convId);
     } catch (e) {
       state = state.copyWith(error: e.toString());
     } finally {
       state = state.copyWith(isAnalyzing: false);
     }
+  }
+
+  /// Lazy AI title: once a conversation has 3+ messages and hasn't been
+  /// AI-titled yet, ask the server to generate a Gemini title. Fire-and-
+  /// forget; the Firestore stream will reflow the new title into the UI.
+  void _maybeTriggerAiTitle(String conversationId) {
+    unawaited(() async {
+      try {
+        final conv = await conversationRepo.getConversation(conversationId);
+        if (conv == null) return;
+        if (conv.messageCount < 3) return;
+        if (conv.metadata.aiTitleGenerated) return;
+        await aiRepo.requestTitleGeneration(conversationId);
+      } catch (_) {
+        // Title gen is best-effort; placeholder title keeps the UI usable.
+      }
+    }());
   }
 
   /// Start a new conversation.
@@ -192,6 +215,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
   /// Load an existing conversation.
   void loadConversation(String conversationId) {
     state = ChatState(conversationId: conversationId);
+    unawaited(
+      conversationRepo.updateConversation(conversationId, {
+        'metadata.lastAccessedAt': Timestamp.now(),
+      }).catchError((_) {}),
+    );
   }
 
   /// Clear pending expenses after confirmation or dismissal.

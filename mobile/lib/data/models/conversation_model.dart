@@ -63,11 +63,17 @@ class ConversationMetadata {
     this.firstMessageTimestamp,
     required this.lastAccessedAt,
     required this.isPinned,
+    this.aiTitleGenerated = false,
   });
 
   final Timestamp? firstMessageTimestamp;
   final Timestamp lastAccessedAt;
   final bool isPinned;
+
+  /// True once the lazy AI title-generation flow has produced a Gemini title
+  /// for this conversation. Prevents repeated regeneration on every new
+  /// message past the threshold.
+  final bool aiTitleGenerated;
 
   factory ConversationMetadata.fromMap(Map<String, dynamic> map) {
     return ConversationMetadata(
@@ -75,6 +81,7 @@ class ConversationMetadata {
       lastAccessedAt:
           map['lastAccessedAt'] as Timestamp? ?? Timestamp.now(),
       isPinned: map['isPinned'] as bool? ?? false,
+      aiTitleGenerated: map['aiTitleGenerated'] as bool? ?? false,
     );
   }
 
@@ -84,6 +91,7 @@ class ConversationMetadata {
         'firstMessageTimestamp': firstMessageTimestamp,
       'lastAccessedAt': lastAccessedAt,
       'isPinned': isPinned,
+      'aiTitleGenerated': aiTitleGenerated,
     };
   }
 }
