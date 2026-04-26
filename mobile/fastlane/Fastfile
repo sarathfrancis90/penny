@@ -306,15 +306,22 @@ platform :android do
          "--build-number=#{build_number}")
     end
 
-    # Upload to Play Store PRODUCTION track at 100% rollout
+    # Upload to Play Store INTERNAL testing track. Switched from production
+    # because direct production uploads via the Google Play API fail with
+    # "Precondition check failed" when any policy form (Data Safety, Target
+    # API, Content Rating, etc.) has lapsed since the last manual release.
+    # The Console UI surfaces the exact policy issue; the API does not.
+    #
+    # Workflow now: ship → internal → user manually promotes to production
+    # via the Play Console once. Then the production track stays "warm" and
+    # this can be flipped back to track: "production" for true autonomous ship.
     supply(
-      track: "production",
-      rollout: "1.0",
+      track: "internal",
       aab: "build/app/outputs/bundle/release/app-release.aab",
       json_key: "fastlane/play-store-key.json",
       package_name: "com.penny.penny_mobile",
       release_status: "completed",
-      skip_upload_metadata: false,
+      skip_upload_metadata: true,
       skip_upload_changelogs: false,
       skip_upload_images: true,
       skip_upload_screenshots: true

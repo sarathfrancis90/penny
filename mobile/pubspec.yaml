@@ -1,7 +1,7 @@
 name: penny_mobile
 description: "Penny — AI-powered expense tracker for Canadian professionals"
 publish_to: 'none'
-version: 2.3.2+34
+version: 2.3.3+35
 
 environment:
   sdk: ^3.11.1
@@ -48,7 +48,11 @@ dependencies:
   hive_flutter: ^1.1.0
 
   # Connectivity
-  connectivity_plus: ^7.1.0
+  # Pinned to ^6.1.0 because connectivity_plus 7.1.x calls
+  # NWPath.isUltraConstrained which only exists in iOS 18.4+ SDK (Xcode 16.3+).
+  # The macos-14 CI runner ships with an older Xcode. Bump back to 7.x once
+  # CI is on macos-15 / Xcode 16.3+.
+  connectivity_plus: ^6.1.0
 
   # Utils
   intl: ^0.20.2
