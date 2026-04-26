@@ -4,6 +4,13 @@ source "https://rubygems.org"
 # so CI builds match local builds bit-for-bit. Bump this deliberately.
 gem "fastlane", "2.232.2"
 
+# Required by fastlane's `cocoapods` action in the iOS ship lane. Even though
+# CocoaPods is pre-installed on the macos-14 runner via Homebrew, `bundle
+# exec` isolates gem search to the Gemfile, so the action can't find the
+# binary without this entry. Pinned to ~> 1.16 because Flutter 3.x Podfiles
+# use features added after 1.10.
+gem "cocoapods", "~> 1.16"
+
 # Required by fastlane's `supply` action for Play Store uploads.
 plugins_path = File.join(File.dirname(__FILE__), "fastlane", "Pluginfile")
 eval_gemfile(plugins_path) if File.exist?(plugins_path)

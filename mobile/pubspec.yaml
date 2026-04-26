@@ -1,7 +1,7 @@
 name: penny_mobile
 description: "Penny — AI-powered expense tracker for Canadian professionals"
 publish_to: 'none'
-version: 2.3.1+33
+version: 2.3.2+34
 
 environment:
   sdk: ^3.11.1
