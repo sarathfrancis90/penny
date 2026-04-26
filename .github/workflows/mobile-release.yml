@@ -28,7 +28,11 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${GITHUB_REF#refs/tags/v}"
-          BUILD_NUMBER="${{ github.run_number }}"
+          # Offset by 100 so the first Mobile Release workflow run (run_number=1)
+          # produces build_number=101 — safely higher than any version code that
+          # was uploaded by hand before this workflow existed (max prior was 31).
+          # Future runs auto-increment cleanly via github.run_number.
+          BUILD_NUMBER=$(( ${{ github.run_number }} + 100 ))
           NOTES_FILE="mobile/release_notes/v${VERSION}.txt"
 
           if [ ! -f "$NOTES_FILE" ]; then
