@@ -1,0 +1,92 @@
+version: 2
+updates:
+  # Root Next.js / Vitest / ESLint stack
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Toronto
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - npm
+    # Block major bumps on high-blast-radius runtime deps. Minor/patch still
+    # flow automatically. Majors for these need a human-driven PR with a
+    # migration check.
+    ignore:
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "firebase"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "firebase-admin"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@google/genai"
+        update-types: ["version-update:semver-major"]
+    groups:
+      next-stack:
+        patterns: ["next", "next-*", "eslint-config-next"]
+      react-stack:
+        patterns: ["react", "react-*", "@types/react*"]
+      radix:
+        patterns: ["@radix-ui/*"]
+      testing:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "jsdom"]
+      firebase:
+        patterns: ["firebase", "firebase-admin", "@google/genai"]
+
+  # Flutter / Dart packages
+  - package-ecosystem: pub
+    directory: /mobile
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Toronto
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - flutter
+    groups:
+      firebase-flutter:
+        patterns: ["firebase_*", "cloud_firestore"]
+      riverpod:
+        patterns: ["*riverpod*"]
+
+  # Android Gradle (AGP, Kotlin plugin, Play Services)
+  - package-ecosystem: gradle
+    directory: /mobile/android
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - android
+
+  # Fastlane (Gemfile)
+  - package-ecosystem: bundler
+    directory: /mobile
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - fastlane
+
+  # GitHub Actions versions (actions/checkout@v4, subosito/flutter-action@v2, etc.)
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Toronto
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
