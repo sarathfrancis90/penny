@@ -4,10 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'mobile/lib/**'
-      - 'mobile/test/**'
-      - 'mobile/pubspec.yaml'
-      - 'mobile/.flutter-version'
+      - 'mobile/**'
       - '.github/workflows/mobile-tests.yml'
   pull_request:
     branches: [main]
@@ -15,14 +12,49 @@ on:
       - 'mobile/**'
       - '.github/workflows/mobile-tests.yml'
 
-jobs:
-  test:
-    name: Flutter Analyze + Unit Tests
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+concurrency:
+  # Cancel stale PR runs (force-pushes pile up expensive macOS minutes).
+  # Don't cancel on main pushes — let them all complete.
+  group: mobile-tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: Detect path changes
+    runs-on: ubuntu-latest
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+      android: ${{ steps.filter.outputs.android }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          # iOS/Android smoke only run on platform-native or dep-lock edits.
+          # Pure mobile/lib/** Dart edits are caught by analyze_test on ubuntu —
+          # no need to spend macOS minutes on them.
+          filters: |
+            ios:
+              - 'mobile/ios/**'
+              - 'mobile/pubspec.yaml'
+              - 'mobile/pubspec.lock'
+              - 'mobile/.flutter-version'
+              - '.github/workflows/mobile-tests.yml'
+            android:
+              - 'mobile/android/**'
+              - 'mobile/pubspec.yaml'
+              - 'mobile/pubspec.lock'
+              - 'mobile/.flutter-version'
+              - '.github/workflows/mobile-tests.yml'
+
+  analyze_test:
+    name: Flutter Analyze + Format + Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Read pinned Flutter version
         id: flutter
@@ -39,6 +71,12 @@ jobs:
       - name: Install dependencies
         working-directory: mobile
         run: flutter pub get
+
+      - name: Dart format check
+        working-directory: mobile
+        # Fails if any file in lib/ or test/ would be reformatted.
+        # Run `dart format lib test` locally to fix before pushing.
+        run: dart format --set-exit-if-changed lib test
 
       - name: Analyze code
         working-directory: mobile
@@ -57,3 +95,81 @@ jobs:
           name: flutter-coverage
           path: mobile/coverage/lcov.info
           retention-days: 7
+
+  android_smoke:
+    name: Android debug build smoke
+    needs: [changes, analyze_test]
+    if: needs.changes.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned Flutter version
+        id: flutter
+        working-directory: mobile
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java (matches release pipeline)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Build debug APK (no signing required)
+        working-directory: mobile
+        # Debug builds use Flutter's auto-generated debug keystore.
+        # key.properties is loaded conditionally in build.gradle.kts.
+        run: flutter build apk --debug
+
+  ios_smoke:
+    name: iOS debug build smoke
+    needs: [changes, analyze_test]
+    if: needs.changes.outputs.ios == 'true'
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned tool versions
+        id: tools
+        working-directory: mobile
+        run: |
+          echo "flutter=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+          echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.tools.outputs.flutter }}
+          channel: stable
+          cache: true
+
+      - name: Setup Ruby + Bundler (for CocoaPods cache)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.tools.outputs.ruby }}
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Build iOS (no codesign, debug)
+        working-directory: mobile
+        # --no-codesign skips signing entirely. Exercises Podfile +
+        # Xcode build graph — catches the breakage modes that today
+        # only surface on a release tag push.
+        run: flutter build ios --no-codesign --debug
