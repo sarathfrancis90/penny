@@ -147,7 +147,19 @@ Release notes live as plain-text files at `mobile/release_notes/v<version>.txt`.
 - The pipeline reads `mobile/release_notes/v${VERSION}.txt` and **fails fast if missing**, so you can never ship without notes.
 - iOS notes go to the `en-CA` localization's `whatsNew` field.
 - Android notes go to the `en-US` localization (Play Store default).
-- Keep them under 4000 chars for iOS / 500 chars for Android (use the shorter of the two as your guide).
+- **Hard cap: 500 characters** (Play Store limit). The `derive` job counts characters (not bytes — UTF-8 punctuation like `•` and `—` is one char). The App Store cap is 4000 chars; the Play Store cap is the binding constraint.
+
+## Pre-flight validation (mobile-release.yml `derive` job)
+
+Before any platform job runs, `derive` enforces three fail-fast checks against the tag:
+
+| Check | Failure mode |
+|---|---|
+| `mobile/release_notes/v${VERSION}.txt` exists | Tag rejected; create the notes file and re-tag |
+| Notes ≤ 500 chars (Play) and ≤ 4000 chars (App Store) | Tag rejected; trim and re-tag |
+| `mobile/pubspec.yaml` `version:` semver matches the tag (without `v`) | Tag rejected; update pubspec and re-tag |
+
+The pubspec/tag check is anti-mistake, not anti-malice — anything in a PR can modify any file. It exists so you don't accidentally ship a `2.3.5+37` build under a `v2.4.0` tag.
 
 ---
 

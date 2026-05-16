@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Derive version, build, and release notes
+      - name: Derive version, build, and validate
         id: derive
         run: |
           set -euo pipefail
@@ -40,17 +40,52 @@ jobs:
             exit 1
           fi
 
+          # Heredoc-injection guard: a future release notes file could contain a
+          # bare `EOF` line which would terminate the GITHUB_OUTPUT heredoc below
+          # early and turn subsequent lines into workflow outputs (a known Actions
+          # injection class). Random per-run delimiter eliminates the risk; the
+          # explicit check is belt-and-suspenders.
+          DELIM="EOF_$(openssl rand -hex 16)"
+          if grep -qxF "$DELIM" "$NOTES_FILE"; then
+            echo "::error file=${NOTES_FILE}::Release notes contain a line matching the random delimiter (1 in 2^128 — re-run)."
+            exit 1
+          fi
+
+          # Count CHARACTERS, not bytes. Play Store limit is documented in
+          # characters; UTF-8 multi-byte glyphs (em-dash, smart quotes) would
+          # over-count under bash `${#var}`.
+          NOTES_LEN=$(python3 -c "import sys; print(len(open(sys.argv[1], encoding='utf-8').read().rstrip('\n')))" "$NOTES_FILE")
+
+          IOS_MAX=4000
+          ANDROID_MAX=500
+          if [ "$NOTES_LEN" -gt "$IOS_MAX" ]; then
+            echo "::error file=${NOTES_FILE}::Release notes are ${NOTES_LEN} chars; App Store limit is ${IOS_MAX}. Trim and re-tag."
+            exit 1
+          fi
+          if [ "$NOTES_LEN" -gt "$ANDROID_MAX" ]; then
+            echo "::error file=${NOTES_FILE}::Release notes are ${NOTES_LEN} chars; Play Store limit is ${ANDROID_MAX}. Trim and re-tag."
+            exit 1
+          fi
+
+          # Pubspec version must match the tag (anti-mistake, not anti-malice).
+          PUBSPEC_SEMVER=$(grep -E '^version:' mobile/pubspec.yaml | head -1 \
+            | sed -E 's/^version:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*$/\1/')
+          if [ "$PUBSPEC_SEMVER" != "$VERSION" ]; then
+            echo "::error file=mobile/pubspec.yaml::pubspec.yaml version ($PUBSPEC_SEMVER) does not match tag (v$VERSION). Update pubspec.yaml and re-tag."
+            exit 1
+          fi
+
           NOTES="$(cat "$NOTES_FILE")"
 
           {
             echo "version=$VERSION"
             echo "build_number=$BUILD_NUMBER"
-            echo "release_notes<<EOF"
+            echo "release_notes<<$DELIM"
             echo "$NOTES"
-            echo "EOF"
+            echo "$DELIM"
           } >> "$GITHUB_OUTPUT"
 
-          echo "✅ version=$VERSION build=$BUILD_NUMBER notes_file=$NOTES_FILE"
+          echo "✅ version=$VERSION build=$BUILD_NUMBER notes_len=$NOTES_LEN notes_file=$NOTES_FILE"
 
   ios:
     name: iOS → TestFlight + App Store
