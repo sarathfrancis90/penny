@@ -8,19 +8,31 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig.json'
+      - 'vitest.config.ts'
+      - '.github/workflows/backend-tests.yml'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'vitest.config.ts'
+      - '.github/workflows/backend-tests.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
-    name: Lint & Type Check
+    name: Lint, Type Check, Unit Tests, Build
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,5 +49,43 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Unit tests (Vitest)
+        run: npm test
+
       - name: Verify build
         run: npm run build
+
+  audit:
+    name: npm audit (prod deps)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install (no scripts — audit only needs the tree)
+        run: npm ci --ignore-scripts
+
+      - name: Audit production dependencies
+        env:
+          # Default: warn only. next, firebase-admin, and friends are runtime
+          # deps; high-severity advisories there are routine and the team can't
+          # always upgrade on demand. Set repo variable NPM_AUDIT_BLOCKING=true
+          # once prod deps are clean to convert warnings into hard blocks.
+          BLOCKING: ${{ vars.NPM_AUDIT_BLOCKING == 'true' }}
+        run: |
+          set +e
+          npm audit --omit=dev --audit-level=high
+          EXIT=$?
+          set -e
+          if [ "$EXIT" -ne 0 ]; then
+            if [ "$BLOCKING" = "true" ]; then
+              echo "::error::npm audit found high/critical advisories in production dependencies. Unset NPM_AUDIT_BLOCKING to demote to warning."
+              exit $EXIT
+            else
+              echo "::warning::npm audit found advisories (non-blocking — set NPM_AUDIT_BLOCKING=true to enforce)."
+            fi
+          fi
