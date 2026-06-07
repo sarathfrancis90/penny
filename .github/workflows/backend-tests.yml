@@ -1,6 +1,7 @@
 name: Backend Tests
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -13,6 +14,7 @@ on:
       - 'tsconfig.json'
       - 'tsconfig.api.json'
       - 'Dockerfile.api'
+      - '.github/workflows/backend-tests.yml'
   pull_request:
     branches: [main]
     paths:
@@ -22,6 +24,7 @@ on:
       - 'scripts/api/**'
       - 'tsconfig.api.json'
       - 'Dockerfile.api'
+      - '.github/workflows/backend-tests.yml'
 
 jobs:
   test:
