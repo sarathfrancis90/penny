@@ -18,21 +18,31 @@ let adminMessaging: Messaging;
 function initializeFirebaseAdmin() {
   if (getApps().length === 0) {
     if (!process.env.FIREBASE_ADMIN_CREDENTIALS) {
-      throw new Error(
-        'FIREBASE_ADMIN_CREDENTIALS environment variable is not set. ' +
-        'Please add your Firebase service account JSON to .env.local'
-      );
-    }
-
-    try {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
-      adminApp = initializeApp({
-        credential: cert(serviceAccount),
-      });
-      console.log('✅ Firebase Admin initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to parse FIREBASE_ADMIN_CREDENTIALS:', error);
-      throw new Error('Invalid Firebase Admin credentials JSON');
+      if (process.env.FIREBASE_ADMIN_ALLOW_BUILD_FALLBACK === 'true') {
+        adminApp = initializeApp({
+          projectId:
+            process.env.FIREBASE_PROJECT_ID ||
+            process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+            'penny-ci',
+        });
+        console.log('Firebase Admin initialized with build-only fallback credentials');
+      } else {
+        throw new Error(
+          'FIREBASE_ADMIN_CREDENTIALS environment variable is not set. ' +
+          'Please add your Firebase service account JSON to .env.local'
+        );
+      }
+    } else {
+      try {
+        const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+        adminApp = initializeApp({
+          credential: cert(serviceAccount),
+        });
+        console.log('Firebase Admin initialized successfully');
+      } catch (error) {
+        console.error('Failed to parse FIREBASE_ADMIN_CREDENTIALS:', error);
+        throw new Error('Invalid Firebase Admin credentials JSON');
+      }
     }
   } else {
     adminApp = getApps()[0];
