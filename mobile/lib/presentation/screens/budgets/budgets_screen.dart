@@ -65,8 +65,9 @@ class _BudgetsContent extends ConsumerWidget {
     final percentage = totalLimit > 0 ? (totalSpent / totalLimit * 100) : 0.0;
     final remaining = totalLimit - totalSpent;
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
-    final monthName = DateFormat('MMMM yyyy')
-        .format(DateTime(period.year, period.month));
+    final monthName = DateFormat(
+      'MMMM yyyy',
+    ).format(DateTime(period.year, period.month));
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -87,18 +88,26 @@ class _BudgetsContent extends ConsumerWidget {
             ),
             child: Column(
               children: [
-                Text(monthName,
-                    style: TextStyle(
-                        fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  monthName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(height: 16),
 
                 // Progress ring
                 Semantics(
-                  label: 'Budget progress: ${percentage.toStringAsFixed(0)} percent, '
+                  label:
+                      'Budget progress: ${percentage.toStringAsFixed(0)} percent, '
                       '${formatter.format(totalSpent)} spent of ${formatter.format(totalLimit)}',
                   value: '${percentage.toStringAsFixed(0)} percent',
                   child: TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0, end: percentage.clamp(0, 100)),
+                    tween: Tween<double>(
+                      begin: 0,
+                      end: percentage.clamp(0, 100),
+                    ),
                     duration: const Duration(milliseconds: 1200),
                     curve: Curves.easeOutBack,
                     builder: (context, animatedPercentage, child) {
@@ -108,33 +117,46 @@ class _BudgetsContent extends ConsumerWidget {
                         child: CustomPaint(
                           painter: _ProgressRingPainter(
                             percentage: animatedPercentage,
-                            color: BudgetUsage.computeStatus(percentage) ==
+                            color:
+                                BudgetUsage.computeStatus(percentage) ==
                                     BudgetStatus.safe
                                 ? AppColors.primary
                                 : BudgetUsage.computeStatus(percentage) ==
-                                        BudgetStatus.warning
-                                    ? AppColors.warning
-                                    : AppColors.error,
+                                      BudgetStatus.warning
+                                ? AppColors.warning
+                                : AppColors.error,
                             trackColor: Theme.of(context).dividerColor,
                           ),
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('Spent',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                Text(
+                                  'Spent',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
                                 AnimatedCounter(
-                                    value: totalSpent,
-                                    decimals: 0,
-                                    style: const TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w700)),
-                                Text('of ${formatter.format(totalLimit)}',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                                  value: totalSpent,
+                                  decimals: 0,
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  'of ${formatter.format(totalLimit)}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -149,15 +171,15 @@ class _BudgetsContent extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: remaining >= 0
-                        ? AppColors.success
-                        : AppColors.error,
+                    color: remaining >= 0 ? AppColors.success : AppColors.error,
                   ),
                 ),
                 Text(
                   '${percentage.toStringAsFixed(0)}% of monthly limit reached',
                   style: TextStyle(
-                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -172,41 +194,51 @@ class _BudgetsContent extends ConsumerWidget {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.account_balance_wallet_outlined,
-                        size: 48, color: Theme.of(context).hintColor),
+                    Icon(
+                      Icons.account_balance_wallet_outlined,
+                      size: 48,
+                      color: Theme.of(context).hintColor,
+                    ),
                     SizedBox(height: 12),
-                    Text('No budgets yet',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      'No budgets yet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     SizedBox(height: 4),
-                    Text('Tap + to create your first budget',
-                        style: TextStyle(
-                            fontSize: 14, color: Theme.of(context).hintColor)),
+                    Text(
+                      'Tap + to create your first budget',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
                   ],
                 ),
               ),
             )
           else ...[
-            Text('CATEGORIES',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    letterSpacing: 1)),
+            Text(
+              'CATEGORIES',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 12),
             ...usage.asMap().entries.map((entry) {
               final budgets = ref.watch(budgetsProvider).valueOrNull ?? [];
-              final budget = budgets.where(
-                (b) => b.category == entry.value.category,
-              ).firstOrNull;
+              final budget = budgets
+                  .where((b) => b.category == entry.value.category)
+                  .firstOrNull;
               return AnimatedListItem(
                 index: entry.key,
-                child: _BudgetCategoryCard(
-                  usage: entry.value,
-                  budget: budget,
-                ),
+                child: _BudgetCategoryCard(usage: entry.value, budget: budget),
               );
             }),
           ],
@@ -225,49 +257,50 @@ class _BudgetCategoryCard extends ConsumerWidget {
   final BudgetModel? budget;
 
   Color get _statusColor => switch (usage.status) {
-        BudgetStatus.safe => AppColors.success,
-        BudgetStatus.warning => AppColors.warning,
-        BudgetStatus.critical => AppColors.error,
-        BudgetStatus.over => AppColors.error,
-      };
+    BudgetStatus.safe => AppColors.success,
+    BudgetStatus.warning => AppColors.warning,
+    BudgetStatus.critical => AppColors.error,
+    BudgetStatus.over => AppColors.error,
+  };
 
   String get _statusLabel => switch (usage.status) {
-        BudgetStatus.safe => 'Safe',
-        BudgetStatus.warning => 'Warning',
-        BudgetStatus.critical => 'Critical',
-        BudgetStatus.over => 'Over',
-      };
+    BudgetStatus.safe => 'Safe',
+    BudgetStatus.warning => 'Warning',
+    BudgetStatus.critical => 'Critical',
+    BudgetStatus.over => 'Over',
+  };
 
   Color get _barColor => switch (usage.status) {
-        BudgetStatus.safe => AppColors.primary,
-        BudgetStatus.warning => AppColors.warning,
-        BudgetStatus.critical => AppColors.error,
-        BudgetStatus.over => AppColors.error,
-      };
+    BudgetStatus.safe => AppColors.primary,
+    BudgetStatus.warning => AppColors.warning,
+    BudgetStatus.critical => AppColors.error,
+    BudgetStatus.over => AppColors.error,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     final label = _shortenCategory(usage.category);
+    final openEditBudget = budget != null
+        ? () => showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            builder: (_) =>
+                _EditBudgetSheet(ref: ref, budget: budget!, category: label),
+          )
+        : null;
 
     return Semantics(
       container: true,
-      label: '$label budget: ${formatter.format(usage.totalSpent)} of '
+      button: openEditBudget != null,
+      onTap: openEditBudget,
+      label:
+          '$label budget: ${formatter.format(usage.totalSpent)} of '
           '${formatter.format(usage.budgetLimit)}, '
           '${usage.percentageUsed.toStringAsFixed(0)} percent, '
           'Status: $_statusLabel',
       child: GestureDetector(
-        onTap: budget != null
-            ? () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => _EditBudgetSheet(
-                    ref: ref,
-                    budget: budget!,
-                    category: label,
-                  ),
-                )
-            : null,
+        onTap: openEditBudget,
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
@@ -281,20 +314,27 @@ class _BudgetCategoryCard extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(label,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                   Text(
                     '${formatter.format(usage.totalSpent)} / ${formatter.format(usage.budgetLimit)}',
                     style: TextStyle(
-                        fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               Semantics(
-                label: '${usage.percentageUsed.toStringAsFixed(0)} percent used',
+                label:
+                    '${usage.percentageUsed.toStringAsFixed(0)} percent used',
                 value: '${usage.percentageUsed.toStringAsFixed(0)} percent',
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
@@ -311,13 +351,18 @@ class _BudgetCategoryCard extends ConsumerWidget {
                 children: [
                   Semantics(
                     label: 'Status: $_statusLabel',
-                    child: _StatusBadge(label: _statusLabel, color: _statusColor),
+                    child: _StatusBadge(
+                      label: _statusLabel,
+                      color: _statusColor,
+                    ),
                   ),
                   const Spacer(),
                   Text(
                     '${usage.percentageUsed.toStringAsFixed(0)}%',
                     style: TextStyle(
-                        fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -355,15 +400,24 @@ class _StatusBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 }
 
 class _ProgressRingPainter extends CustomPainter {
-  _ProgressRingPainter({required this.percentage, required this.color, required this.trackColor});
+  _ProgressRingPainter({
+    required this.percentage,
+    required this.color,
+    required this.trackColor,
+  });
 
   final double percentage;
   final Color color;
@@ -402,7 +456,9 @@ class _ProgressRingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _ProgressRingPainter old) =>
-      old.percentage != percentage || old.color != color || old.trackColor != trackColor;
+      old.percentage != percentage ||
+      old.color != color ||
+      old.trackColor != trackColor;
 }
 
 class _CreateBudgetSheet extends StatefulWidget {
@@ -437,7 +493,9 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
     try {
       final user = widget.ref.read(currentUserProvider);
       final period = widget.ref.read(budgetPeriodProvider);
-      await widget.ref.read(budgetRepositoryProvider).createBudget(
+      await widget.ref
+          .read(budgetRepositoryProvider)
+          .createBudget(
             userId: user!.uid,
             category: _selectedCategory!,
             monthlyLimit: amount,
@@ -453,7 +511,10 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -465,15 +526,19 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Create Budget',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Create Budget',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
 
           DropdownButtonFormField<String>(
@@ -482,7 +547,10 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
             isExpanded: true,
             items: expenseCategories.map((c) {
               final short = c.length > 40 ? '${c.substring(0, 40)}...' : c;
-              return DropdownMenuItem(value: c, child: Text(short, style: const TextStyle(fontSize: 14)));
+              return DropdownMenuItem(
+                value: c,
+                child: Text(short, style: const TextStyle(fontSize: 14)),
+              );
             }).toList(),
             onChanged: (v) => setState(() => _selectedCategory = v),
           ),
@@ -492,17 +560,22 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                hintText: 'Monthly limit', prefixText: '\$ '),
+              hintText: 'Monthly limit',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: 20),
 
           // Settings section
-          Text('SETTINGS',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  letterSpacing: 1)),
+          Text(
+            'SETTINGS',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              letterSpacing: 1,
+            ),
+          ),
           const SizedBox(height: 12),
 
           // Rollover toggle
@@ -512,13 +585,21 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Rollover unused budget',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Rollover unused budget',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     SizedBox(height: 2),
-                    Text('Carry forward unspent amount to next month',
-                        style: TextStyle(
-                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Carry forward unspent amount to next month',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -535,15 +616,19 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
           Row(
             children: [
               const Expanded(
-                child: Text('Alert threshold',
-                    style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                child: Text(
+                  'Alert threshold',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                ),
               ),
-              Text('${_alertThreshold.round()}%',
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary)),
+              Text(
+                '${_alertThreshold.round()}%',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
             ],
           ),
           Slider(
@@ -563,13 +648,21 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Budget notifications',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Budget notifications',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     SizedBox(height: 2),
-                    Text('Get notified when approaching limit',
-                        style: TextStyle(
-                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Get notified when approaching limit',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -586,8 +679,13 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
             onPressed: _saving ? null : _save,
             child: _saving
                 ? const SizedBox(
-                    height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Create Budget'),
           ),
         ],
@@ -644,25 +742,27 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
       await widget.ref
           .read(budgetRepositoryProvider)
           .updateBudget(widget.budget.id, {
-        'monthlyLimit': amount,
-        'settings': BudgetSettings(
-          rollover: _rollover,
-          alertThreshold: _alertThreshold,
-          notificationsEnabled: _notificationsEnabled,
-        ).toMap(),
-      });
+            'monthlyLimit': amount,
+            'settings': BudgetSettings(
+              rollover: _rollover,
+              alertThreshold: _alertThreshold,
+              notificationsEnabled: _notificationsEnabled,
+            ).toMap(),
+          });
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Budget updated')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Budget updated')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -676,7 +776,8 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Budget'),
         content: Text(
-            'Are you sure you want to delete the budget for "${widget.category}"?'),
+          'Are you sure you want to delete the budget for "${widget.category}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -684,8 +785,10 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete',
-                style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -700,15 +803,17 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Budget deleted')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Budget deleted')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -727,31 +832,40 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Edit Budget',
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          Text(
+            'Edit Budget',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
-          Text(widget.category,
-              style: TextStyle(
-                  fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            widget.category,
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _amountController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                hintText: 'Monthly limit', prefixText: '\$ '),
+              hintText: 'Monthly limit',
+              prefixText: '\$ ',
+            ),
             autofocus: true,
           ),
           const SizedBox(height: 20),
 
           // Settings section
-          Text('SETTINGS',
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  letterSpacing: 1)),
+          Text(
+            'SETTINGS',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              letterSpacing: 1,
+            ),
+          ),
           const SizedBox(height: 12),
 
           // Rollover toggle
@@ -761,13 +875,21 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Rollover unused budget',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Rollover unused budget',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     SizedBox(height: 2),
-                    Text('Carry forward unspent amount to next month',
-                        style: TextStyle(
-                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Carry forward unspent amount to next month',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -784,15 +906,19 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
           Row(
             children: [
               const Expanded(
-                child: Text('Alert threshold',
-                    style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                child: Text(
+                  'Alert threshold',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                ),
               ),
-              Text('${_alertThreshold.round()}%',
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary)),
+              Text(
+                '${_alertThreshold.round()}%',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
             ],
           ),
           Slider(
@@ -812,13 +938,21 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Budget notifications',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Budget notifications',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     SizedBox(height: 2),
-                    Text('Get notified when approaching limit',
-                        style: TextStyle(
-                            fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                    Text(
+                      'Get notified when approaching limit',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -838,14 +972,19 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Save'),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: _saving ? null : _delete,
-            child: const Text('Delete Budget',
-                style: TextStyle(color: AppColors.error)),
+            child: const Text(
+              'Delete Budget',
+              style: TextStyle(color: AppColors.error),
+            ),
           ),
         ],
       ),

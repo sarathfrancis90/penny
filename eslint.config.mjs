@@ -18,6 +18,7 @@ export default [
       ".next/**",
       "out/**",
       "build/**",
+      "dist/**",
       "next-env.d.ts",
       "mobile/**",
       "**/*.d.ts",

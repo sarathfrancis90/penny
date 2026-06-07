@@ -34,7 +34,8 @@ class SavingsScreen extends ConsumerWidget {
         ],
       ),
       body: goalsAsync.when(
-        data: (_) => _SavingsContent(onAdd: () => _showCreateGoal(context, ref)),
+        data: (_) =>
+            _SavingsContent(onAdd: () => _showCreateGoal(context, ref)),
         loading: () => const ShimmerCardAndCards(cardCount: 3),
         error: (e, _) => ErrorState(
           message: 'Could not load savings goals',
@@ -76,7 +77,8 @@ class _SavingsContent extends ConsumerWidget {
 
           // Total portfolio
           Semantics(
-            label: 'Total portfolio: ${formatter.format(totalSaved)}, '
+            label:
+                'Total portfolio: ${formatter.format(totalSaved)}, '
                 'across ${goals.length} goal${goals.length == 1 ? '' : 's'}',
             container: true,
             child: Container(
@@ -87,12 +89,15 @@ class _SavingsContent extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  Text('TOTAL PORTFOLIO',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          letterSpacing: 1)),
+                  Text(
+                    'TOTAL PORTFOLIO',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      letterSpacing: 1,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   AnimatedCounter(
                     value: totalSaved,
@@ -106,7 +111,9 @@ class _SavingsContent extends ConsumerWidget {
                   Text(
                     'across ${goals.length} goal${goals.length == 1 ? '' : 's'}',
                     style: TextStyle(
-                        fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -119,15 +126,18 @@ class _SavingsContent extends ConsumerWidget {
             PennyEmptyState(
               lottieAsset: 'assets/lottie/empty_box.json',
               title: 'No savings goals yet',
-              subtitle: 'Set a target amount and track your progress.\nGreat for emergency funds, vacations, or big purchases.',
+              subtitle:
+                  'Set a target amount and track your progress.\nGreat for emergency funds, vacations, or big purchases.',
               onAction: onAdd,
               actionLabel: 'Create your first goal',
             )
           else
-            ...goals.asMap().entries.map((entry) => AnimatedListItem(
-                  index: entry.key,
-                  child: _SavingsGoalCard(goal: entry.value),
-                )),
+            ...goals.asMap().entries.map(
+              (entry) => AnimatedListItem(
+                index: entry.key,
+                child: _SavingsGoalCard(goal: entry.value),
+              ),
+            ),
 
           const SizedBox(height: 24),
         ],
@@ -142,11 +152,11 @@ class _SavingsGoalCard extends ConsumerWidget {
   final SavingsGoalModel goal;
 
   Color _priorityColor(BuildContext context) => switch (goal.priority) {
-        'critical' => AppColors.error,
-        'high' => AppColors.warning,
-        'medium' => AppColors.primary,
-        _ => Theme.of(context).colorScheme.onSurfaceVariant,
-      };
+    'critical' => AppColors.error,
+    'high' => AppColors.warning,
+    'medium' => AppColors.primary,
+    _ => Theme.of(context).colorScheme.onSurfaceVariant,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -158,6 +168,13 @@ class _SavingsGoalCard extends ConsumerWidget {
     final targetStr = goal.targetDate != null
         ? DateFormat('MMM yyyy').format(goal.targetDate!.toDate())
         : null;
+    void openGoalActions() {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => _SavingsGoalActionsSheet(ref: ref, goal: goal),
+      );
+    }
 
     return Dismissible(
       key: Key(goal.id),
@@ -173,14 +190,14 @@ class _SavingsGoalCard extends ConsumerWidget {
         HapticFeedback.mediumImpact();
       },
       child: GestureDetector(
-        onTap: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => _SavingsGoalActionsSheet(ref: ref, goal: goal),
-        ),
+        behavior: HitTestBehavior.opaque,
+        onTap: openGoalActions,
         child: Semantics(
           container: true,
-          label: '${goal.name}, '
+          button: true,
+          onTap: openGoalActions,
+          label:
+              '${goal.name}, '
               '${formatter.format(goal.currentAmount)} of ${formatter.format(goal.targetAmount)}, '
               '${progress.toStringAsFixed(0)} percent complete, '
               '${goal.priority} priority'
@@ -204,9 +221,13 @@ class _SavingsGoalCard extends ConsumerWidget {
                           Text(emoji, style: const TextStyle(fontSize: 24)),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(goal.name,
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600)),
+                            child: Text(
+                              goal.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -214,19 +235,26 @@ class _SavingsGoalCard extends ConsumerWidget {
                       Text(
                         '${formatter.format(goal.currentAmount)} / ${formatter.format(goal.targetAmount)}',
                         style: TextStyle(
-                            fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
                           _PriorityBadge(
-                              label: '${goal.priority} priority',
-                              color: _priorityColor(context)),
+                            label: '${goal.priority} priority',
+                            color: _priorityColor(context),
+                          ),
                           if (targetStr != null) ...[
                             const SizedBox(width: 8),
-                            Text('by $targetStr',
-                                style: TextStyle(
-                                    fontSize: 12, color: Theme.of(context).hintColor)),
+                            Text(
+                              'by $targetStr',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).hintColor,
+                              ),
+                            ),
                           ],
                         ],
                       ),
@@ -235,7 +263,11 @@ class _SavingsGoalCard extends ConsumerWidget {
                         Text(
                           '${formatter.format(goal.monthlyContribution)}/mo contribution',
                           style: TextStyle(
-                              fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ],
@@ -256,13 +288,16 @@ class _SavingsGoalCard extends ConsumerWidget {
                         height: 60,
                         child: CustomPaint(
                           painter: _MiniProgressRing(
-                              percentage: animatedProgress,
-                              trackColor: Theme.of(context).dividerColor),
+                            percentage: animatedProgress,
+                            trackColor: Theme.of(context).dividerColor,
+                          ),
                           child: Center(
                             child: Text(
                               '${animatedProgress.toStringAsFixed(0)}%',
                               style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w700),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
@@ -292,9 +327,14 @@ class _PriorityBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 }
@@ -310,20 +350,31 @@ class _MiniProgressRing extends CustomPainter {
     final radius = size.width / 2 - 4;
     const strokeWidth = 5.0;
 
-    canvas.drawCircle(center, radius,
-        Paint()..style = PaintingStyle.stroke..strokeWidth = strokeWidth..color = trackColor);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..color = trackColor,
+    );
 
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
       -math.pi / 2,
       (percentage / 100) * 2 * math.pi,
       false,
-      Paint()..style = PaintingStyle.stroke..strokeWidth = strokeWidth..strokeCap = StrokeCap.round..color = AppColors.primary,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..color = AppColors.primary,
     );
   }
 
   @override
-  bool shouldRepaint(covariant _MiniProgressRing old) => old.percentage != percentage || old.trackColor != trackColor;
+  bool shouldRepaint(covariant _MiniProgressRing old) =>
+      old.percentage != percentage || old.trackColor != trackColor;
 }
 
 class _CreateGoalSheet extends StatefulWidget {
@@ -342,7 +393,18 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
   String _priority = 'medium';
   bool _saving = false;
 
-  static const _categories = ['emergency_fund', 'travel', 'education', 'health', 'house_down_payment', 'car', 'wedding', 'retirement', 'investment', 'custom'];
+  static const _categories = [
+    'emergency_fund',
+    'travel',
+    'education',
+    'health',
+    'house_down_payment',
+    'car',
+    'wedding',
+    'retirement',
+    'investment',
+    'custom',
+  ];
   static const _priorities = ['low', 'medium', 'high', 'critical'];
 
   @override
@@ -362,7 +424,9 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
     setState(() => _saving = true);
     try {
       final user = widget.ref.read(currentUserProvider);
-      await widget.ref.read(savingsRepositoryProvider).createSavingsGoal(
+      await widget.ref
+          .read(savingsRepositoryProvider)
+          .createSavingsGoal(
             userId: user!.uid,
             name: name,
             category: _category,
@@ -375,7 +439,10 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -387,48 +454,81 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Create Savings Goal',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Create Savings Goal',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
-          TextField(controller: _nameController,
-              decoration: const InputDecoration(hintText: 'Goal name')),
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(hintText: 'Goal name'),
+          ),
           const SizedBox(height: 12),
-          TextField(controller: _targetController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(hintText: 'Target amount', prefixText: '\$ ')),
+          TextField(
+            controller: _targetController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              hintText: 'Target amount',
+              prefixText: '\$ ',
+            ),
+          ),
           const SizedBox(height: 12),
-          TextField(controller: _monthlyController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(hintText: 'Monthly contribution', prefixText: '\$ ')),
+          TextField(
+            controller: _monthlyController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              hintText: 'Monthly contribution',
+              prefixText: '\$ ',
+            ),
+          ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _category,
             decoration: const InputDecoration(hintText: 'Category'),
-            items: _categories.map((c) =>
-                DropdownMenuItem(value: c, child: Text(c.replaceAll('_', ' ')))).toList(),
-            onChanged: (v) { if (v != null) setState(() => _category = v); },
+            items: _categories
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(c.replaceAll('_', ' ')),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _category = v);
+            },
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _priority,
             decoration: const InputDecoration(hintText: 'Priority'),
-            items: _priorities.map((p) =>
-                DropdownMenuItem(value: p, child: Text(p))).toList(),
-            onChanged: (v) { if (v != null) setState(() => _priority = v); },
+            items: _priorities
+                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _priority = v);
+            },
           ),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Create Goal'),
           ),
         ],
@@ -451,16 +551,18 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(goal.name,
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          Text(
+            goal.name,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           ListTile(
             leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
             title: const Text('Edit Goal'),
             subtitle: const Text('Update name, target, or contribution'),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
             tileColor: Theme.of(context).cardColor,
             onTap: () {
               Navigator.pop(context);
@@ -473,20 +575,22 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ListTile(
-            leading:
-                const Icon(Icons.add_circle_outline, color: AppColors.success),
+            leading: const Icon(
+              Icons.add_circle_outline,
+              color: AppColors.success,
+            ),
             title: const Text('Add Contribution'),
             subtitle: const Text('Record a deposit toward this goal'),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
             tileColor: Theme.of(context).cardColor,
             onTap: () {
               Navigator.pop(context);
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
-                builder: (_) =>
-                    _AddContributionSheet(ref: ref, goal: goal),
+                builder: (_) => _AddContributionSheet(ref: ref, goal: goal),
               );
             },
           ),
@@ -521,16 +625,18 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
     _nameController = TextEditingController(text: widget.goal.name);
     _targetController = TextEditingController(
       text: widget.goal.targetAmount.toStringAsFixed(
-          widget.goal.targetAmount == widget.goal.targetAmount.roundToDouble()
-              ? 0
-              : 2),
+        widget.goal.targetAmount == widget.goal.targetAmount.roundToDouble()
+            ? 0
+            : 2,
+      ),
     );
     _monthlyController = TextEditingController(
       text: widget.goal.monthlyContribution.toStringAsFixed(
-          widget.goal.monthlyContribution ==
-                  widget.goal.monthlyContribution.roundToDouble()
-              ? 0
-              : 2),
+        widget.goal.monthlyContribution ==
+                widget.goal.monthlyContribution.roundToDouble()
+            ? 0
+            : 2,
+      ),
     );
     _priority = _priorities.contains(widget.goal.priority)
         ? widget.goal.priority
@@ -556,28 +662,29 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
       final progress = target > 0
           ? (widget.goal.currentAmount / target * 100)
           : 0.0;
-      await widget.ref.read(savingsRepositoryProvider).updateSavingsGoal(
-        widget.goal.id,
-        {
-          'name': name,
-          'targetAmount': target,
-          'monthlyContribution': monthly,
-          'priority': _priority,
-          'progressPercentage': progress,
-        },
-      );
+      await widget.ref
+          .read(savingsRepositoryProvider)
+          .updateSavingsGoal(widget.goal.id, {
+            'name': name,
+            'targetAmount': target,
+            'monthlyContribution': monthly,
+            'priority': _priority,
+            'progressPercentage': progress,
+          });
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Savings goal updated')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Savings goal updated')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -598,8 +705,10 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Edit Savings Goal',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Edit Savings Goal',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -608,26 +717,27 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: _targetController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                hintText: 'Target amount', prefixText: '\$ '),
+              hintText: 'Target amount',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _monthlyController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                hintText: 'Monthly contribution', prefixText: '\$ '),
+              hintText: 'Monthly contribution',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _priority,
             decoration: const InputDecoration(hintText: 'Priority'),
             items: _priorities
-                .map(
-                    (p) => DropdownMenuItem(value: p, child: Text(p)))
+                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
                 .toList(),
             onChanged: (v) {
               if (v != null) setState(() => _priority = v);
@@ -641,7 +751,10 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Save Changes'),
           ),
         ],
@@ -684,15 +797,19 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Added \$${amount.toStringAsFixed(0)} to ${widget.goal.name}')),
+            content: Text(
+              'Added \$${amount.toStringAsFixed(0)} to ${widget.goal.name}',
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -716,21 +833,26 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Add Contribution',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Add Contribution',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
           Text(
             '${formatter.format(remaining)} remaining to goal',
             style: TextStyle(
-                fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 20),
           TextField(
             controller: _amountController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-                hintText: 'Amount', prefixText: '\$ '),
+              hintText: 'Amount',
+              prefixText: '\$ ',
+            ),
             autofocus: true,
           ),
           const SizedBox(height: 20),
@@ -741,7 +863,10 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Add Contribution'),
           ),
         ],

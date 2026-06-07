@@ -5,13 +5,23 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'scripts/api/**'
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig.json'
+      - 'tsconfig.api.json'
+      - 'Dockerfile.api'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'scripts/api/**'
+      - 'tsconfig.api.json'
+      - 'Dockerfile.api'
 
 jobs:
   test:
@@ -25,7 +35,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -34,8 +44,20 @@ jobs:
       - name: TypeScript type check
         run: npx tsc --noEmit
 
+      - name: API TypeScript type check
+        run: npm run api:typecheck
+
       - name: Lint
         run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: API checks
+        run: npm run api:check
+
+      - name: API contract check
+        run: npm run api:contract
 
       - name: Verify build
         run: npm run build

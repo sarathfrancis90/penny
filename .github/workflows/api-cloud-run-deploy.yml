@@ -1,0 +1,123 @@
+name: Deploy API to Cloud Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'scripts/api/**'
+      - 'Dockerfile.api'
+      - 'cloudbuild.api.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.api.json'
+
+concurrency:
+  group: api-cloud-run-${{ github.ref }}-${{ inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'staging' }}
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      API_ENV: ${{ inputs.environment || 'staging' }}
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION || 'northamerica-northeast1' }}
+      ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REPOSITORY || 'penny-api' }}
+      CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'penny-api' }}
+      CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT || 'penny-api-runtime' }}
+      API_CORS_ORIGINS: ${{ vars.API_CORS_ORIGINS }}
+      FIREBASE_AUTH_PROJECT_ID: ${{ vars.FIREBASE_AUTH_PROJECT_ID }}
+      FIRESTORE_PROJECT_ID: ${{ vars.FIRESTORE_PROJECT_ID }}
+      FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID }}
+      GEMINI_SECRET_NAME: ${{ vars.GEMINI_SECRET_NAME || 'penny-gemini-api-key' }}
+      CRON_SECRET_NAME: ${{ vars.CRON_SECRET_NAME || 'penny-cron-secret' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify API
+        run: npm run api:check && npm run api:contract
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Build container
+        run: |
+          IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/${CLOUD_RUN_SERVICE}:${GITHUB_SHA}"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          docker build -f Dockerfile.api -t "$IMAGE" .
+
+      - name: Push container
+        run: docker push "$IMAGE"
+
+      - name: Deploy Cloud Run service
+        run: |
+          MIN_INSTANCES=0
+          if [ "$API_ENV" = "production" ]; then MIN_INSTANCES=1; fi
+          FIRESTORE_TARGET_PROJECT="${FIRESTORE_PROJECT_ID:-$GCP_PROJECT_ID}"
+          ENV_VARS="NODE_ENV=production,OBSERVABILITY_ENV=${API_ENV},FIREBASE_PROJECT_ID=${GCP_PROJECT_ID},FIRESTORE_PROJECT_ID=${FIRESTORE_TARGET_PROJECT}"
+          if [ -n "$FIREBASE_AUTH_PROJECT_ID" ]; then
+            ENV_VARS="${ENV_VARS},FIREBASE_AUTH_PROJECT_ID=${FIREBASE_AUTH_PROJECT_ID}"
+          fi
+          if [ -n "$API_CORS_ORIGINS" ]; then
+            ENV_VARS="${ENV_VARS},API_CORS_ORIGINS=${API_CORS_ORIGINS}"
+          fi
+          if [ -n "$FIRESTORE_DATABASE_ID" ]; then
+            ENV_VARS="${ENV_VARS},FIRESTORE_DATABASE_ID=${FIRESTORE_DATABASE_ID}"
+          fi
+          gcloud run deploy "$CLOUD_RUN_SERVICE" \
+            --image "$IMAGE" \
+            --platform managed \
+            --region "$GCP_REGION" \
+            --service-account "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+            --allow-unauthenticated \
+            --port 8080 \
+            --cpu 1 \
+            --memory 512Mi \
+            --concurrency 80 \
+            --timeout 120s \
+            --min-instances "$MIN_INSTANCES" \
+            --set-env-vars "$ENV_VARS" \
+            --set-secrets "GEMINI_API_KEY=${GEMINI_SECRET_NAME}:latest,CRON_SECRET=${CRON_SECRET_NAME}:latest" \
+            --quiet
+
+      - name: Smoke health endpoint
+        if: vars.API_BASE_URL != ''
+        env:
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+        run: npm run api:smoke

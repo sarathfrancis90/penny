@@ -19,7 +19,9 @@ class NotificationPreferencesScreen extends ConsumerWidget {
     if (settingsAsync.valueOrNull == null && !settingsAsync.isLoading) {
       final user = ref.read(currentUserProvider);
       if (user != null) {
-        ref.read(notificationPreferencesRepoProvider).initializeDefaults(user.uid);
+        ref
+            .read(notificationPreferencesRepoProvider)
+            .initializeDefaults(user.uid);
       }
     }
 
@@ -40,8 +42,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           _GlobalMuteToggle(
             value: settings.globalMute,
-            onChanged: (value) =>
-                _updateSetting(ref, {'globalMute': value}),
+            onChanged: (value) => _updateSetting(ref, {'globalMute': value}),
           ),
           _QuietHoursRow(
             startTime: settings.quietHoursStart,
@@ -61,7 +62,11 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                 preference: prefs.forType(type),
                 disabled: settings.globalMute,
                 onTap: () => _showTypePreferenceSheet(
-                    context, ref, type, prefs.forType(type)),
+                  context,
+                  ref,
+                  type,
+                  prefs.forType(type),
+                ),
               ),
             const SizedBox(height: 24),
           ],
@@ -104,7 +109,9 @@ class NotificationPreferencesScreen extends ConsumerWidget {
               Text(
                 'No push notifications during these hours',
                 style: TextStyle(
-                    fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 20),
               StatefulBuilder(
@@ -156,7 +163,8 @@ class NotificationPreferencesScreen extends ConsumerWidget {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   child: const Text('Save'),
                 ),
@@ -240,19 +248,27 @@ class _GlobalMuteToggle extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(Icons.do_not_disturb_on_outlined,
-              size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            Icons.do_not_disturb_on_outlined,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Pause All Notifications',
-                    style:
-                        TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                Text('Temporarily mute all notifications',
-                    style:
-                        TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  'Pause All Notifications',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  'Temporarily mute all notifications',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -280,36 +296,59 @@ class _QuietHoursRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return Semantics(
+      button: true,
+      label: 'Quiet Hours $startTime - $endTime',
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          children: [
-            Icon(Icons.bedtime_outlined,
-                size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Quiet Hours',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-                  Text('No push notifications during these hours',
-                      style: TextStyle(
-                          fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            children: [
+              Icon(
+                Icons.bedtime_outlined,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-            Text('$startTime - $endTime',
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quiet Hours',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      'No push notifications during these hours',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '$startTime - $endTime',
                 style: TextStyle(
-                    fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_right,
-                size: 18, color: Theme.of(context).hintColor),
-          ],
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: Theme.of(context).hintColor,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -341,12 +380,14 @@ class _TimePickerRow extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w500)),
-            Text(time.format(context),
-                style: const TextStyle(
-                    fontSize: 15, color: AppColors.primary)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              time.format(context),
+              style: const TextStyle(fontSize: 15, color: AppColors.primary),
+            ),
           ],
         ),
       ),
@@ -373,34 +414,49 @@ class _NotificationTypeRow extends StatelessWidget {
 
     return Opacity(
       opacity: opacity,
-      child: InkWell(
+      child: Semantics(
+        button: !disabled,
+        label: '${type.label} ${type.description}',
         onTap: disabled ? null : onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              const SizedBox(width: 4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(type.label,
+        child: InkWell(
+          onTap: disabled ? null : onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              children: [
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        type.label,
                         style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 2),
-                    Text(type.description,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        type.description,
                         style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                  ],
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _StatusIndicators(preference: preference),
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right,
-                  size: 18, color: Theme.of(context).hintColor),
-            ],
+                _StatusIndicators(preference: preference),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: Theme.of(context).hintColor,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -420,20 +476,25 @@ class _StatusIndicators extends StatelessWidget {
         if (preference.inApp)
           Padding(
             padding: EdgeInsets.only(right: 4),
-            child: Icon(Icons.inbox_outlined,
-                size: 16, color: Theme.of(context).hintColor),
+            child: Icon(
+              Icons.inbox_outlined,
+              size: 16,
+              color: Theme.of(context).hintColor,
+            ),
           ),
         if (preference.push)
           Padding(
             padding: EdgeInsets.only(right: 4),
-            child: Icon(Icons.notifications_active_outlined,
-                size: 16, color: Theme.of(context).hintColor),
+            child: Icon(
+              Icons.notifications_active_outlined,
+              size: 16,
+              color: Theme.of(context).hintColor,
+            ),
           ),
         if (preference.frequency != 'realtime')
           Text(
             preference.frequency,
-            style: TextStyle(
-                fontSize: 11, color: Theme.of(context).hintColor),
+            style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
           ),
       ],
     );
@@ -484,13 +545,18 @@ class _TypePreferenceSheetState extends State<_TypePreferenceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.type.label,
-              style: const TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(
+            widget.type.label,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
-          Text(widget.type.description,
-              style: TextStyle(
-                  fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            widget.type.description,
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 20),
 
           // In-App toggle
@@ -516,11 +582,14 @@ class _TypePreferenceSheetState extends State<_TypePreferenceSheet> {
           const SizedBox(height: 16),
 
           // Frequency dropdown
-          Text('Frequency',
-              style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            'Frequency',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
@@ -550,18 +619,21 @@ class _TypePreferenceSheetState extends State<_TypePreferenceSheet> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                widget.onSave(NotificationTypePreference(
-                  inApp: _inApp,
-                  push: _push,
-                  frequency: _frequency,
-                ));
+                widget.onSave(
+                  NotificationTypePreference(
+                    inApp: _inApp,
+                    push: _push,
+                    frequency: _frequency,
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: const Text('Save'),
             ),
@@ -593,18 +665,30 @@ class _ToggleRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w500)),
-                Text(subtitle,
-                    style: TextStyle(
-                        fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),

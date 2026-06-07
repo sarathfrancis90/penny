@@ -3,12 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class ApiClient {
   ApiClient({required String baseUrl})
-      : _dio = Dio(BaseOptions(
+    : _dio = Dio(
+        BaseOptions(
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 30),
           headers: {'Content-Type': 'application/json'},
-        )) {
+        ),
+      ) {
     _dio.interceptors.add(_AuthInterceptor());
   }
 
@@ -31,15 +33,12 @@ class ApiClient {
     return _dio.get<T>(path, queryParameters: queryParameters);
   }
 
-  Future<Response<T>> patch<T>(
-    String path, {
-    Object? data,
-  }) {
+  Future<Response<T>> patch<T>(String path, {Object? data}) {
     return _dio.patch<T>(path, data: data);
   }
 
   Future<Response<T>> delete<T>(String path) {
-    return _dio.delete<T>(path);
+    return _dio.delete<T>(path, data: const <String, Object?>{});
   }
 }
 

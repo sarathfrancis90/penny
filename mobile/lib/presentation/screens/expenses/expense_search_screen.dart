@@ -46,8 +46,7 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
       return;
     }
 
-    final allExpenses =
-        ref.read(allExpensesProvider).valueOrNull ?? [];
+    final allExpenses = ref.read(allExpensesProvider).valueOrNull ?? [];
     final lower = query.toLowerCase().trim();
     final now = DateTime.now();
 
@@ -99,21 +98,18 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
       if (maxAmount != null && e.amount > maxAmount) return false;
       // Text search on vendor, category, description
       if (searchTerm != null && searchTerm.isNotEmpty) {
-        final vendorMatch =
-            e.vendor.toLowerCase().contains(searchTerm);
-        final categoryMatch =
-            e.category.toLowerCase().contains(searchTerm);
-        final descMatch = (e.description ?? '')
-            .toLowerCase()
-            .contains(searchTerm);
+        final vendorMatch = e.vendor.toLowerCase().contains(searchTerm);
+        final categoryMatch = e.category.toLowerCase().contains(searchTerm);
+        final descMatch = (e.description ?? '').toLowerCase().contains(
+          searchTerm,
+        );
         if (!vendorMatch && !categoryMatch && !descMatch) return false;
       }
       return true;
     }).toList();
 
     // Sort by date descending
-    filtered.sort(
-        (a, b) => b.date.toDate().compareTo(a.date.toDate()));
+    filtered.sort((a, b) => b.date.toDate().compareTo(a.date.toDate()));
 
     setState(() {
       _results = filtered;
@@ -121,8 +117,19 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
     });
   }
 
+  void _refreshActiveSearch() {
+    final query = _controller.text;
+    if (!_hasSearched || query.trim().isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _search(query);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(allExpensesProvider, (_, __) => _refreshActiveSearch());
+
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return Scaffold(
@@ -154,57 +161,68 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
         ],
       ),
       body: !_hasSearched
-          ? _SearchHints(onTap: (q) {
-              _controller.text = q;
-              _search(q);
-            })
+          ? _SearchHints(
+              onTap: (q) {
+                _controller.text = q;
+                _search(q);
+              },
+            )
           : _results.isEmpty
-              ? Center(
-                  child: Text('No expenses found',
-                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _results.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          '${_results.length} result${_results.length == 1 ? '' : 's'}',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                      );
-                    }
-                    final e = _results[index - 1];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).cardColor,
-                        child: Text(
-                          formatter.format(e.amount).substring(0, 1),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ),
-                      title: Text(e.vendor,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600)),
-                      subtitle: Text(
-                          '${e.category} • ${DateFormat('MMM d').format(e.date.toDate())}',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                      trailing: Text(formatter.format(e.amount),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w600)),
-                      onTap: () {
-                        context.push('/expenses/detail', extra: e);
-                      },
-                    );
-                  },
+          ? Center(
+              child: Text(
+                'No expenses found',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _results.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(
+                      '${_results.length} result${_results.length == 1 ? '' : 's'}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  );
+                }
+                final e = _results[index - 1];
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).cardColor,
+                    child: Text(
+                      formatter.format(e.amount).substring(0, 1),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                  title: Text(
+                    e.vendor,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    '${e.category} • ${DateFormat('MMM d').format(e.date.toDate())}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  trailing: Text(
+                    formatter.format(e.amount),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  onTap: () {
+                    context.push('/expenses/detail', extra: e);
+                  },
+                );
+              },
+            ),
     );
   }
 }
@@ -231,22 +249,24 @@ class _SearchHints extends StatelessWidget {
         children: [
           Icon(Icons.search, size: 36, color: Theme.of(context).hintColor),
           const SizedBox(height: 12),
-          const Text('Search your expenses',
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w600)),
+          const Text(
+            'Search your expenses',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
-          Text('Try natural language queries:',
-              style: TextStyle(
-                  fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            'Try natural language queries:',
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: hints.map((h) {
-              return ActionChip(
-                label: Text(h),
-                onPressed: () => onTap(h),
-              );
+              return ActionChip(label: Text(h), onPressed: () => onTap(h));
             }).toList(),
           ),
         ],

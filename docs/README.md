@@ -6,6 +6,23 @@ Welcome to the Penny documentation! This folder contains comprehensive guides fo
 
 ## 📖 Documentation Index
 
+### 🤖 [Agentic Engineering](agents/)
+Repository operating manual for agents. Start here for deep codebase analysis, file ownership, contracts, workflows, validation, and known drift.
+
+| Document | Description |
+|----------|-------------|
+| [Agent Docs Index](agents/README.md) | Reading order and maintenance rules |
+| [Repository Guide](agents/REPOSITORY_GUIDE.md) | Product, architecture, domains, and high-risk flows |
+| [Web App Guide](agents/WEB_APP_GUIDE.md) | Next.js routes, APIs, auth, UI, and observability |
+| [Mobile App Guide](agents/MOBILE_APP_GUIDE.md) | Flutter architecture, repositories, routing, and release context |
+| [Firebase and Data Contracts](agents/FIREBASE_AND_DATA_CONTRACTS.md) | Firestore, storage, indexes, categories, and model contracts |
+| [Agent Workflows](agents/AGENT_WORKFLOWS.md) | Agent execution playbooks and validation matrix |
+| [Testing and Release](agents/TESTING_AND_RELEASE.md) | Local checks, CI, Firebase deploy, and mobile release |
+| [Known Gaps](agents/KNOWN_GAPS.md) | Documented code/doc drift and risk hotspots |
+| [Complete File Map](agents/FILE_MAP.md) | Generated inventory covering tracked and nonignored working-tree files |
+
+---
+
 ### 🗄️ [Database](database/)
 Complete database documentation, schema, and DevOps guides.
 
@@ -151,4 +168,3 @@ When adding new features:
 
 **Last Updated**: November 17, 2025  
 **Status**: ✅ Complete and up-to-date
-

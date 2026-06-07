@@ -92,6 +92,11 @@ Open [http://localhost:3000](http://localhost:3000) to see the app!
 
 ## 📚 Documentation
 
+### 🤖 Agentic Engineering
+- [**Agent Guide**](AGENTS.md) - Required reading order and non-negotiable agent rules
+- [**Agent Documentation Index**](docs/agents/README.md) - Complete agent operating manual
+- [**Complete File Map**](docs/agents/FILE_MAP.md) - Generated inventory covering tracked and nonignored working-tree files
+
 ### 🗄️ Database
 - [**Database Schema**](docs/database/DATABASE_SCHEMA.md) - Complete database structure
 - [**DevOps Guide**](docs/database/DATABASE_DEVOPS_GUIDE.md) - CI/CD and best practices

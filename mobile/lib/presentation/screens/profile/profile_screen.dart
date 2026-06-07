@@ -102,13 +102,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 await FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(currentUser.uid)
-                                    .set(
-                                  {
-                                    'displayName': name,
-                                    'updatedAt': FieldValue.serverTimestamp(),
-                                  },
-                                  SetOptions(merge: true),
-                                );
+                                    .set({
+                                      'displayName': name,
+                                      'updatedAt': FieldValue.serverTimestamp(),
+                                    }, SetOptions(merge: true));
 
                                 HapticFeedback.mediumImpact();
 
@@ -123,7 +120,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   ScaffoldMessenger.of(ctx).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          'Failed to update name: ${e.toString()}'),
+                                        'Failed to update name: ${e.toString()}',
+                                      ),
                                     ),
                                   );
                                 }
@@ -196,10 +194,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               if (hasPhoto)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline,
-                      color: AppColors.error),
-                  title: const Text('Remove Photo',
-                      style: TextStyle(color: AppColors.error)),
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.error,
+                  ),
+                  title: const Text(
+                    'Remove Photo',
+                    style: TextStyle(color: AppColors.error),
+                  ),
                   onTap: () {
                     Navigator.of(ctx).pop();
                     _removeAvatar();
@@ -244,13 +246,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       await user.updatePhotoURL(downloadUrl);
       await user.reload();
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-        {
-          'photoURL': downloadUrl,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'photoURL': downloadUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
       ref.invalidate(authStateProvider);
       HapticFeedback.mediumImpact();
@@ -286,13 +285,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
       await user.updatePhotoURL(null);
       await user.reload();
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-        {
-          'photoURL': FieldValue.delete(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'photoURL': FieldValue.delete(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
       ref.invalidate(authStateProvider);
       HapticFeedback.mediumImpact();
@@ -328,127 +324,129 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           HapticFeedback.lightImpact();
         },
         child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          const SizedBox(height: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            const SizedBox(height: 16),
 
-          // User info
-          Center(
-            child: Column(
-              children: [
-                // Avatar with camera badge
-                GestureDetector(
-                  onTap: _showAvatarOptions,
-                  child: Stack(
-                    children: [
-                      _buildAvatar(user),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(context).scaffoldBackgroundColor,
-                              width: 2,
+            // User info
+            Center(
+              child: Column(
+                children: [
+                  // Avatar with camera badge
+                  GestureDetector(
+                    onTap: _showAvatarOptions,
+                    child: Stack(
+                      children: [
+                        _buildAvatar(user),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(
+                                  context,
+                                ).scaffoldBackgroundColor,
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 14,
+                              color: Colors.white,
                             ),
                           ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            size: 14,
-                            color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Display name (tappable)
+                  GestureDetector(
+                    onTap: _showEditNameSheet,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          user?.displayName ?? 'User',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Display name (tappable)
-                GestureDetector(
-                  onTap: _showEditNameSheet,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        user?.displayName ?? 'User',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.edit_outlined,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.edit_outlined,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                // Email
-                const SizedBox(height: 2),
-                Text(
-                  user?.email ?? '',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-
-                // Email verification badge
-                const SizedBox(height: 6),
-                _buildEmailVerificationBadge(user),
-
-                // Member since
-                if (user?.metadata.creationTime != null) ...[
-                  const SizedBox(height: 4),
+                  // Email
+                  const SizedBox(height: 2),
                   Text(
-                    'Member since ${DateFormat('MMMM yyyy').format(user!.metadata.creationTime!)}',
+                    user?.email ?? '',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
+
+                  // Email verification badge
+                  const SizedBox(height: 6),
+                  _buildEmailVerificationBadge(user),
+
+                  // Member since
+                  if (user?.metadata.creationTime != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Member since ${DateFormat('MMMM yyyy').format(user!.metadata.creationTime!)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // Navigation links
-          _ProfileTile(
-            icon: Icons.notifications_outlined,
-            title: 'Notifications',
-            subtitle: 'Manage alerts and preferences',
-            onTap: () => context.push('/notifications'),
-          ),
-          _ProfileTile(
-            icon: Icons.settings_outlined,
-            title: 'Settings',
-            subtitle: 'Currency, fiscal year, theme',
-            onTap: () => context.push('/settings'),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Sign out
-          TextButton(
-            onPressed: () => ref.read(authServiceProvider).signOut(),
-            child: const Text(
-              'Sign Out',
-              style: TextStyle(color: Color(0xFFFF3B30)),
+            // Navigation links
+            _ProfileTile(
+              icon: Icons.notifications_outlined,
+              title: 'Notifications',
+              subtitle: 'Manage alerts and preferences',
+              onTap: () => context.push('/notifications'),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
+            _ProfileTile(
+              icon: Icons.settings_outlined,
+              title: 'Settings',
+              subtitle: 'Currency, fiscal year, theme',
+              onTap: () => context.push('/settings'),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Sign out
+            TextButton(
+              onPressed: () => ref.read(authServiceProvider).signOut(),
+              child: const Text(
+                'Sign Out',
+                style: TextStyle(color: Color(0xFFFF3B30)),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
@@ -465,7 +463,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               CircleAvatar(
                 radius: 40,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                child: const Icon(Icons.person_outline, size: 40, color: AppColors.primary),
+                child: const Icon(
+                  Icons.person_outline,
+                  size: 40,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -665,38 +667,55 @@ class _ProfileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return Semantics(
+      button: true,
+      label: '$title $subtitle',
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
-              child: Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w500)),
-                  Text(subtitle,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
                       style: TextStyle(
-                          fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Icon(Icons.chevron_right, color: Theme.of(context).hintColor),
-          ],
+              Icon(Icons.chevron_right, color: Theme.of(context).hintColor),
+            ],
+          ),
         ),
       ),
     );

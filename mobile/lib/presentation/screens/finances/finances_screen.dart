@@ -15,8 +15,10 @@ import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 class FinancesScreen extends ConsumerWidget {
   const FinancesScreen({super.key});
 
-  static final _currencyFormat =
-      NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+  static final _currencyFormat = NumberFormat.currency(
+    symbol: '\$',
+    decimalDigits: 0,
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +42,8 @@ class FinancesScreen extends ConsumerWidget {
                 title: 'Income',
                 icon: Icons.account_balance_outlined,
                 iconColor: AppColors.success,
-                description: 'Track your salary, freelance income, and side hustles.',
+                description:
+                    'Track your salary, freelance income, and side hustles.',
               )
             else
               _IncomeSection(currencyFormat: _currencyFormat),
@@ -52,7 +55,8 @@ class FinancesScreen extends ConsumerWidget {
                 title: 'Savings',
                 icon: Icons.savings_outlined,
                 iconColor: AppColors.primary,
-                description: 'Set savings goals and track your progress toward them.',
+                description:
+                    'Set savings goals and track your progress toward them.',
               )
             else
               _SavingsSection(currencyFormat: _currencyFormat),
@@ -110,20 +114,23 @@ class _IncomeSection extends ConsumerWidget {
           title: 'Income',
           icon: Icons.account_balance_outlined,
           iconColor: AppColors.success,
-          summary:
-              isEmpty ? '' : '${currencyFormat.format(totalMonthly)}/mo',
+          summary: isEmpty ? '' : '${currencyFormat.format(totalMonthly)}/mo',
           details: isEmpty
               ? ''
               : '${activeSources.length} active source${activeSources.length == 1 ? '' : 's'}',
           isEmpty: isEmpty,
           emptyLabel: 'No income sources yet',
           onManage: () {
-            if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+            if (ref.read(guestModeProvider)) {
+              showGuestSignUpPrompt(context);
+              return;
+            }
             context.push('/income');
           },
           manageLabel: isEmpty ? 'Add Income' : 'Manage Income',
-          overflowCount:
-              activeSources.length > 3 ? activeSources.length - 3 : 0,
+          overflowCount: activeSources.length > 3
+              ? activeSources.length - 3
+              : 0,
           children: activeSources.take(3).map((source) {
             return _PreviewRow(
               leading: Text(
@@ -173,11 +180,11 @@ class _BudgetsSection extends ConsumerWidget {
   final NumberFormat currencyFormat;
 
   Color _barColor(BudgetStatus status) => switch (status) {
-        BudgetStatus.safe => AppColors.primary,
-        BudgetStatus.warning => AppColors.warning,
-        BudgetStatus.critical => AppColors.error,
-        BudgetStatus.over => AppColors.error,
-      };
+    BudgetStatus.safe => AppColors.primary,
+    BudgetStatus.warning => AppColors.warning,
+    BudgetStatus.critical => AppColors.error,
+    BudgetStatus.over => AppColors.error,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -223,20 +230,25 @@ class _BudgetsSection extends ConsumerWidget {
           summary: isEmpty
               ? ''
               : isGuest
-                  ? 'Preview'
-                  : '${currencyFormat.format(totalLimit)} allocated',
+              ? 'Preview'
+              : '${currencyFormat.format(totalLimit)} allocated',
           details: isEmpty
               ? ''
               : isGuest
-                  ? 'Sample budgets based on your expense categories'
-                  : '${currencyFormat.format(totalSpent)} spent \u00b7 ${usage.length} categor${usage.length == 1 ? 'y' : 'ies'}',
+              ? 'Sample budgets based on your expense categories'
+              : '${currencyFormat.format(totalSpent)} spent \u00b7 ${usage.length} categor${usage.length == 1 ? 'y' : 'ies'}',
           isEmpty: isEmpty,
           emptyLabel: 'No budgets yet',
           onManage: () {
-            if (isGuest) { showGuestSignUpPrompt(context); return; }
+            if (isGuest) {
+              showGuestSignUpPrompt(context);
+              return;
+            }
             context.push('/budgets');
           },
-          manageLabel: isGuest ? 'Sign Up to Create Budgets' : (isEmpty ? 'Create Budget' : 'Manage Budgets'),
+          manageLabel: isGuest
+              ? 'Sign Up to Create Budgets'
+              : (isEmpty ? 'Create Budget' : 'Manage Budgets'),
           defaultExpanded: true,
           overflowCount: usage.length > 3 ? usage.length - 3 : 0,
           children: usage.take(3).map((u) {
@@ -262,8 +274,7 @@ class _BudgetsSection extends ConsumerWidget {
                         '${currencyFormat.format(u.totalSpent)}/${currencyFormat.format(u.budgetLimit)}',
                         style: TextStyle(
                           fontSize: 12,
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -275,8 +286,9 @@ class _BudgetsSection extends ConsumerWidget {
                       value: (u.percentageUsed / 100).clamp(0.0, 1.0),
                       minHeight: 6,
                       backgroundColor: Theme.of(context).dividerColor,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(_barColor(u.status)),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        _barColor(u.status),
+                      ),
                     ),
                   ),
                 ],
@@ -342,30 +354,30 @@ class _SavingsSection extends ConsumerWidget {
       ),
       data: (goals) {
         final isEmpty = goals.isEmpty;
-        final activeGoals =
-            goals.where((g) => g.status == 'active').toList();
-        final progressPercent =
-            totalTarget > 0 ? (totalSaved / totalTarget * 100) : 0.0;
+        final activeGoals = goals.where((g) => g.status == 'active').toList();
+        final progressPercent = totalTarget > 0
+            ? (totalSaved / totalTarget * 100)
+            : 0.0;
 
         return _FinanceSectionCard(
           title: 'Savings',
           icon: Icons.savings_outlined,
           iconColor: AppColors.primary,
-          summary: isEmpty
-              ? ''
-              : '${currencyFormat.format(totalSaved)} saved',
+          summary: isEmpty ? '' : '${currencyFormat.format(totalSaved)} saved',
           details: isEmpty
               ? ''
               : '${progressPercent.toStringAsFixed(0)}% progress \u00b7 ${activeGoals.length} goal${activeGoals.length == 1 ? '' : 's'}',
           isEmpty: isEmpty,
           emptyLabel: 'No savings goals yet',
           onManage: () {
-            if (ref.read(guestModeProvider)) { showGuestSignUpPrompt(context); return; }
+            if (ref.read(guestModeProvider)) {
+              showGuestSignUpPrompt(context);
+              return;
+            }
             context.push('/savings');
           },
           manageLabel: isEmpty ? 'Add Goal' : 'Manage Savings',
-          overflowCount:
-              activeGoals.length > 3 ? activeGoals.length - 3 : 0,
+          overflowCount: activeGoals.length > 3 ? activeGoals.length - 3 : 0,
           children: activeGoals.take(3).map((goal) {
             final goalProgress = goal.targetAmount > 0
                 ? (goal.currentAmount / goal.targetAmount).clamp(0.0, 1.0)
@@ -396,8 +408,7 @@ class _SavingsSection extends ConsumerWidget {
                         '${currencyFormat.format(goal.currentAmount)}/${currencyFormat.format(goal.targetAmount)}',
                         style: TextStyle(
                           fontSize: 12,
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -410,7 +421,8 @@ class _SavingsSection extends ConsumerWidget {
                       minHeight: 6,
                       backgroundColor: Theme.of(context).dividerColor,
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.primary),
+                        AppColors.primary,
+                      ),
                     ),
                   ),
                 ],
@@ -476,8 +488,10 @@ class _FinanceSectionCardState extends State<_FinanceSectionCard>
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _chevronTurns =
-        Tween<double>(begin: 0.0, end: 0.5).animate(_chevronController);
+    _chevronTurns = Tween<double>(
+      begin: 0.0,
+      end: 0.5,
+    ).animate(_chevronController);
     if (_expanded) _chevronController.value = 1.0;
   }
 
@@ -501,6 +515,12 @@ class _FinanceSectionCardState extends State<_FinanceSectionCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final canToggle = !widget.isLoading && !widget.isEmpty;
+    final cardLabel = [
+      widget.title,
+      if (widget.summary.isNotEmpty) widget.summary,
+      if (widget.details.isNotEmpty) widget.details,
+    ].join(' ');
 
     return Container(
       decoration: BoxDecoration(
@@ -511,81 +531,91 @@ class _FinanceSectionCardState extends State<_FinanceSectionCard>
       child: Column(
         children: [
           // Header — always visible, tappable to expand/collapse
-          InkWell(
-            onTap: widget.isLoading || widget.isEmpty ? null : _toggle,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  // Icon in tinted circle
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: widget.iconColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(widget.icon, size: 20, color: widget.iconColor),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Title + details
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              widget.title,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                            if (widget.summary.isNotEmpty) ...[
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  widget.summary,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.onSurface,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        if (widget.details.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            widget.details,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // Chevron (only when there's content to expand)
-                  if (!widget.isLoading && !widget.isEmpty)
-                    RotationTransition(
-                      turns: _chevronTurns,
+          Semantics(
+            button: canToggle,
+            label: cardLabel,
+            onTap: canToggle ? _toggle : null,
+            child: InkWell(
+              onTap: canToggle ? _toggle : null,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Icon in tinted circle
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: widget.iconColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Icon(
-                        Icons.expand_more,
-                        color: theme.colorScheme.onSurfaceVariant,
+                        widget.icon,
+                        size: 20,
+                        color: widget.iconColor,
                       ),
                     ),
-                ],
+                    const SizedBox(width: 12),
+
+                    // Title + details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                widget.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                              if (widget.summary.isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    widget.summary,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (widget.details.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.details,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    // Chevron (only when there's content to expand)
+                    if (canToggle)
+                      RotationTransition(
+                        turns: _chevronTurns,
+                        child: Icon(
+                          Icons.expand_more,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -598,10 +628,10 @@ class _FinanceSectionCardState extends State<_FinanceSectionCard>
             child: _expanded && !widget.isLoading && !widget.isEmpty
                 ? _buildExpandedContent(theme)
                 : widget.isLoading
-                    ? _buildShimmerContent(theme)
-                    : widget.isEmpty
-                        ? _buildEmptyContent(theme)
-                        : const SizedBox.shrink(),
+                ? _buildShimmerContent(theme)
+                : widget.isEmpty
+                ? _buildEmptyContent(theme)
+                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -794,23 +824,30 @@ class _GuestLockedSection extends StatelessWidget {
                 child: Icon(icon, size: 20, color: iconColor),
               ),
               const SizedBox(width: 12),
-              Text(title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.onSurface,
-                  )),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
               const Spacer(),
-              Icon(Icons.lock_outline, size: 16,
-                  color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.lock_outline,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(description,
-              style: TextStyle(
-                fontSize: 14,
-                color: theme.colorScheme.onSurfaceVariant,
-              )),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 14,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,

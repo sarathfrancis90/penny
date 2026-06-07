@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>Penny — Mobile App · 10-minute Engineering Walkthrough</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css" id="theme" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --penny-blue: #0a84fb;
+        --penny-blue-soft: #5ac8fa;
+        --penny-bg: #0c0f14;
+        --penny-surface: #161a22;
+        --penny-text: #e6e9ef;
+        --penny-text-dim: #9aa3b2;
+        --penny-success: #34c759;
+        --penny-warning: #ff9f0a;
+        --penny-error: #ff3b30;
+      }
+
+      .reveal {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--penny-bg);
+        color: var(--penny-text);
+        font-weight: 400;
+      }
+
+      .reveal .slides section {
+        text-align: left;
+        padding: 0 40px;
+        font-size: 22px;
+      }
+
+      .reveal h1,
+      .reveal h2,
+      .reveal h3,
+      .reveal h4 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: var(--penny-text);
+        text-transform: none;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.3em;
+      }
+      .reveal h1 { font-size: 2.4em; }
+      .reveal h2 { font-size: 1.35em; line-height: 1.15; }
+      .reveal h3 { font-size: 0.95em; color: var(--penny-blue); margin-top: 0.2em; }
+
+      .reveal p, .reveal li { color: var(--penny-text); line-height: 1.4; font-size: 0.78em; }
+      .reveal ul { display: block; margin: 0 0 0 1.1em; }
+      .reveal li + li { margin-top: 0.25em; }
+      .reveal strong { color: var(--penny-blue-soft); font-weight: 600; }
+      .reveal em { color: var(--penny-text-dim); font-style: normal; }
+
+      .reveal code,
+      .reveal pre code {
+        font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+        font-size: 0.62em;
+        line-height: 1.35;
+      }
+      .reveal pre {
+        background: #0a0d12;
+        border: 1px solid #1f2530;
+        border-radius: 8px;
+        box-shadow: none;
+        padding: 10px 14px;
+        width: 100%;
+        max-width: 100%;
+        margin: 0.4em 0 0;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+      .reveal pre code { padding: 0; white-space: pre-wrap; word-break: break-word; }
+
+      /* Title slide */
+      .title-slide { text-align: center !important; }
+      .title-slide .logo {
+        font-size: 4em;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        background: linear-gradient(135deg, var(--penny-blue), var(--penny-blue-soft));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .title-slide .tagline {
+        font-size: 1.15em;
+        color: var(--penny-text-dim);
+        margin-top: 0.2em;
+      }
+      .badges {
+        margin-top: 1.2em;
+        display: flex;
+        gap: 0.6em;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .badge {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.55em;
+        padding: 0.4em 0.8em;
+        border: 1px solid #2a3142;
+        border-radius: 999px;
+        color: var(--penny-text-dim);
+        background: var(--penny-surface);
+      }
+      .badge .dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--penny-blue);
+        margin-right: 0.5em;
+        vertical-align: middle;
+      }
+
+      /* Two-column layout */
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
+      }
+      .two-col.tight { grid-template-columns: 220px minmax(0, 1fr); }
+      .two-col.media-right { grid-template-columns: minmax(0, 1fr) 220px; }
+
+      /* Phone screenshot rendering */
+      .device-frame {
+        width: 220px;
+        height: auto;
+        max-height: 480px;
+        object-fit: contain;
+        border-radius: 22px;
+        border: 1px solid #232b3a;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+        display: block;
+        margin: 0;
+      }
+      .screenshot-row {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        align-items: flex-start;
+        margin-top: 0.2em;
+      }
+      .screenshot-row .device-frame { width: 200px; max-height: 460px; }
+
+      /* Demo video */
+      .demo-video {
+        width: 300px !important;
+        max-width: 300px !important;
+        height: auto !important;
+        max-height: 600px !important;
+        margin: 0.4em auto 0 !important;
+        display: block;
+        border-radius: 14px;
+        border: 1px solid #232b3a;
+        box-shadow: 0 18px 60px rgba(10, 132, 251, 0.22);
+        background: #000;
+      }
+
+      .reveal .slide-number {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--penny-text-dim);
+      }
+
+      .reveal .progress { color: var(--penny-blue); }
+
+      /* Slide eyebrow / label */
+      .eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.6em;
+        color: var(--penny-blue);
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        margin-bottom: 0.4em;
+        display: block;
+      }
+
+      /* Stats / KPI inline */
+      .stat-row {
+        display: flex;
+        gap: 28px;
+        margin-top: 0.6em;
+        flex-wrap: wrap;
+      }
+      .stat {
+        background: var(--penny-surface);
+        border-left: 3px solid var(--penny-blue);
+        padding: 14px 18px;
+        border-radius: 6px;
+        min-width: 140px;
+      }
+      .stat .n {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.8em;
+        color: var(--penny-text);
+        font-weight: 700;
+        line-height: 1;
+      }
+      .stat .l {
+        display: block;
+        font-size: 0.45em;
+        color: var(--penny-text-dim);
+        margin-top: 0.3em;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      /* Footnote */
+      .footnote {
+        position: absolute;
+        bottom: 18px;
+        left: 60px;
+        right: 60px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.4em;
+        color: var(--penny-text-dim);
+      }
+
+      /* Architecture diagram */
+      .arch-diagram { width: 100%; height: auto; max-height: 60vh; }
+
+      /* Closing slide */
+      .closing-slide { text-align: center !important; }
+      .closing-slide .qr-row {
+        display: flex; gap: 60px; justify-content: center; align-items: center;
+        margin-top: 1.5em;
+      }
+      .closing-slide a { color: var(--penny-blue-soft); }
+
+      .placeholder {
+        background: repeating-linear-gradient(
+          135deg,
+          #1a202b,
+          #1a202b 12px,
+          #131820 12px,
+          #131820 24px
+        );
+        color: var(--penny-text-dim);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.55em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border-radius: 16px;
+        border: 1px dashed #2a3142;
+      }
+      .placeholder.device { width: 320px; height: 640px; margin: 0 auto; }
+      .placeholder.video { width: 100%; height: 60vh; }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <!-- Slide 1: Title -->
+        <section class="title-slide">
+          <div class="logo">Penny</div>
+          <div class="tagline">AI expense tracker for Canadian self-incorporated professionals</div>
+          <div class="badges">
+            <span class="badge"><span class="dot"></span>Flutter · Riverpod</span>
+            <span class="badge"><span class="dot"></span>Firebase · Firestore</span>
+            <span class="badge"><span class="dot"></span>Gemini · Next.js API</span>
+            <span class="badge"><span class="dot"></span>iOS-first · Android shipped</span>
+          </div>
+          <aside class="notes">
+            10-minute engineering walkthrough of the Penny mobile app. Focus:
+            architecture, AI integration, Firestore design, TS↔Dart type parity,
+            CI/CD. Skip business/marketing framing. Open with the problem on the
+            next slide — keep this title to ~15 seconds.
+          </aside>
+        </section>
+
+        <!-- Slide 2: Problem -->
+        <section>
+          <span class="eyebrow">The problem</span>
+          <h2>Self-incorporated in Canada means doing the CRA's job</h2>
+          <div class="two-col">
+            <ul>
+              <li>Every business expense must map to a <strong>T2125</strong> tax category</li>
+              <li><strong>38 distinct categories</strong> across General, Home Office, Vehicle</li>
+              <li>Manual entry: receipts → spreadsheet → year-end accountant scramble</li>
+              <li>Existing apps target <em>consumer</em> finance, not Canadian incorporation</li>
+            </ul>
+            <div class="stat-row">
+              <div class="stat"><div class="n">38</div><span class="l">T2125 categories</span></div>
+              <div class="stat"><div class="n">3</div><span class="l">category groups</span></div>
+              <div class="stat"><div class="n">1</div><span class="l">tax filing per year</span></div>
+            </div>
+          </div>
+          <aside class="notes">
+            Canadian self-employment / single-shareholder corporations file T2125.
+            That form has a fixed taxonomy — General Business, Home Office, Vehicle.
+            Mint and YNAB don't help: their categories don't map to CRA.
+            Penny owns that pain. ~40s.
+          </aside>
+        </section>
+
+        <!-- Slide 3: Architecture -->
+        <section>
+          <span class="eyebrow">Architecture</span>
+          <h2>Hybrid backend: Firestore for CRUD, Next.js for the smart stuff</h2>
+          <svg class="arch-diagram" viewBox="0 0 1200 480" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#5ac8fa" />
+              </marker>
+              <marker id="arrow-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#9aa3b2" />
+              </marker>
+            </defs>
+
+            <!-- Flutter client -->
+            <rect x="40" y="180" width="220" height="120" rx="14" fill="#161a22" stroke="#0a84fb" stroke-width="2" />
+            <text x="150" y="218" text-anchor="middle" fill="#e6e9ef" font-family="Inter" font-weight="700" font-size="22">Flutter App</text>
+            <text x="150" y="246" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">Riverpod · GoRouter</text>
+            <text x="150" y="266" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">Clean Architecture</text>
+
+            <!-- Firestore (direct) -->
+            <rect x="480" y="60" width="280" height="120" rx="14" fill="#161a22" stroke="#34c759" stroke-width="2" />
+            <text x="620" y="98" text-anchor="middle" fill="#e6e9ef" font-family="Inter" font-weight="700" font-size="20">Cloud Firestore</text>
+            <text x="620" y="125" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">expenses · budgets · groups</text>
+            <text x="620" y="145" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">income · savings · notifications</text>
+            <text x="620" y="165" text-anchor="middle" fill="#34c759" font-family="JetBrains Mono" font-size="11">real-time streams · offline cache</text>
+
+            <!-- Next.js API -->
+            <rect x="480" y="300" width="280" height="120" rx="14" fill="#161a22" stroke="#5ac8fa" stroke-width="2" />
+            <text x="620" y="338" text-anchor="middle" fill="#e6e9ef" font-family="Inter" font-weight="700" font-size="20">Next.js API Routes</text>
+            <text x="620" y="365" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">/api/ai-chat · /api/analyze-expense</text>
+            <text x="620" y="385" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">/api/groups · /api/expenses</text>
+            <text x="620" y="405" text-anchor="middle" fill="#5ac8fa" font-family="JetBrains Mono" font-size="11">Firebase Admin · multi-doc txns</text>
+
+            <!-- Gemini -->
+            <rect x="900" y="300" width="260" height="120" rx="14" fill="#161a22" stroke="#ff9f0a" stroke-width="2" />
+            <text x="1030" y="338" text-anchor="middle" fill="#e6e9ef" font-family="Inter" font-weight="700" font-size="20">Google Gemini</text>
+            <text x="1030" y="365" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="12">OCR · NLP · function calling</text>
+            <text x="1030" y="392" text-anchor="middle" fill="#ff9f0a" font-family="JetBrains Mono" font-size="11">@google/genai · server-only</text>
+
+            <!-- Firebase Auth (left edge) -->
+            <rect x="40" y="60" width="220" height="80" rx="14" fill="#161a22" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="4 4" />
+            <text x="150" y="95" text-anchor="middle" fill="#e6e9ef" font-family="Inter" font-weight="700" font-size="16">Firebase Auth</text>
+            <text x="150" y="118" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="11">ID token → both lanes</text>
+
+            <!-- Storage -->
+            <rect x="40" y="340" width="220" height="80" rx="14" fill="#161a22" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="4 4" />
+            <text x="150" y="375" text-anchor="middle" fill="#e6e9ef" font-family="Inter" font-weight="700" font-size="16">Cloud Storage</text>
+            <text x="150" y="398" text-anchor="middle" fill="#9aa3b2" font-family="JetBrains Mono" font-size="11">receipt images</text>
+
+            <!-- Arrows: client → firestore (direct) -->
+            <line x1="260" y1="220" x2="480" y2="120" stroke="#34c759" stroke-width="2.5" marker-end="url(#arrow)" />
+            <text x="320" y="160" fill="#34c759" font-family="JetBrains Mono" font-size="12">FlutterFire SDK</text>
+
+            <!-- Arrows: client → API -->
+            <line x1="260" y1="260" x2="480" y2="360" stroke="#5ac8fa" stroke-width="2.5" marker-end="url(#arrow)" />
+            <text x="300" y="335" fill="#5ac8fa" font-family="JetBrains Mono" font-size="12">Dio + Bearer token</text>
+
+            <!-- API → Gemini -->
+            <line x1="760" y1="360" x2="900" y2="360" stroke="#ff9f0a" stroke-width="2.5" marker-end="url(#arrow)" />
+
+            <!-- API → Firestore (admin) -->
+            <line x1="620" y1="300" x2="620" y2="180" stroke="#9aa3b2" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrow-dim)" />
+            <text x="640" y="245" fill="#9aa3b2" font-family="JetBrains Mono" font-size="11">Admin SDK</text>
+          </svg>
+          <aside class="notes">
+            Two lanes from the Flutter client:
+            (1) Direct FlutterFire to Firestore — used for all CRUD reads/writes
+            because real-time streams + offline cache for free, and Firestore
+            security rules enforce per-user/per-group access.
+            (2) Next.js API over Dio with a Firebase ID token, used only when we
+            need the Gemini API key (server-side), Admin SDK, or multi-doc
+            transactions (e.g. group create = group doc + member doc + activity log).
+            Auth flows through both. ~75s — this is the architectural spine of the talk.
+          </aside>
+        </section>
+
+        <!-- Slide 4: AI Chat UX -->
+        <section>
+          <span class="eyebrow">UX · headline feature</span>
+          <h2>Conversational expense entry, not forms</h2>
+          <div class="two-col tight">
+            <img class="device-frame" src="assets/screenshots/01-chat.png" alt="AI chat screen" />
+            <div>
+              <ul>
+                <li>Home tab is a <strong>chat surface</strong> — type or snap a receipt</li>
+                <li>Conversations persist as Firestore subcollections (<code>conversations/{id}/messages</code>)</li>
+                <li><code>StateNotifierProvider</code> for the active thread; <code>StreamProvider</code> for history</li>
+                <li>Receipt images live in Cloud Storage, URL on the message doc</li>
+              </ul>
+              <pre><code class="language-dart">@riverpod
+class Chat extends _$Chat {
+  Future&lt;void&gt; send(String text, {File? receipt}) async {
+    state = state.copyWith(status: Sending());
+    final r = await ref.read(aiRepositoryProvider)
+        .analyzeExpense(text: text, image: receipt);
+    state = state.copyWith(extracted: r);
+  }
+}</code></pre>
+            </div>
+          </div>
+          <aside class="notes">
+            The Home tab is deliberately a chat UI, not a form-with-fields. People
+            already know how to text. The Riverpod StateNotifier keeps in-flight
+            chat state local; persisted conversations stream from Firestore. ~45s.
+          </aside>
+        </section>
+
+        <!-- Slide 5: Demo video -->
+        <section>
+          <span class="eyebrow">Live demo · the core loop</span>
+          <h2>Text → AI → confirm · then receipt → AI → confirm</h2>
+          <video class="demo-video" controls autoplay muted loop playsinline preload="metadata">
+            <source src="assets/demo.mp4" type="video/mp4" />
+            <div class="placeholder video">demo.mp4 not yet captured</div>
+          </video>
+          <aside class="notes">
+            Roughly 65–75 seconds.
+            Flow A (text): "$45 lunch at Tim Hortons today" → Gemini extracts vendor,
+            amount, date, suggests "Meals and entertainment", confirm → expense
+            written via direct Firestore write → Dashboard updates live via the
+            stream listener.
+            Flow B (receipt): tap attach → pick image → /api/analyze-expense round-trip
+            with base64 image → same extract-and-confirm flow.
+            Talk over the video; pause if needed (Space toggles).
+          </aside>
+        </section>
+
+        <!-- Slide 6: Dashboard -->
+        <section>
+          <span class="eyebrow">Real-time analytics</span>
+          <h2>Dashboard streams Firestore directly into fl_chart</h2>
+          <div class="two-col tight">
+            <img class="device-frame" src="assets/screenshots/02-dashboard.png" alt="Dashboard screen" />
+            <div>
+              <ul>
+                <li><code>StreamProvider</code> on <code>expenses.where(userId).orderBy(date)</code></li>
+                <li>Aggregations client-side over the stream — no precomputed rollups</li>
+                <li>fl_chart for trend lines + category donut</li>
+                <li>Pull-to-refresh just resubscribes; offline cache fills gaps</li>
+              </ul>
+              <pre><code class="language-dart">Stream&lt;List&lt;ExpenseModel&gt;&gt; personalExpenses(String userId) =&gt;
+  _firestore.collection('expenses')
+    .where('userId', isEqualTo: userId)
+    .where('expenseType', isEqualTo: 'personal')
+    .orderBy('date', descending: true)
+    .snapshots()
+    .map((s) =&gt; s.docs.map(ExpenseModel.fromFirestore).toList());</code></pre>
+            </div>
+          </div>
+          <aside class="notes">
+            One stream, all the views derived from it. Firestore charges by read,
+            so we read once and pivot in-memory. Works offline because FlutterFire
+            persists the snapshot cache. ~45s.
+          </aside>
+        </section>
+
+        <!-- Slide 7: T2125 Categories -->
+        <section>
+          <span class="eyebrow">Domain</span>
+          <h2>CRA T2125 categories — canonical strings, mirrored TS ↔ Dart</h2>
+          <div class="two-col tight">
+            <img class="device-frame" src="assets/screenshots/03-categories.png" alt="Categories in app" />
+            <div>
+              <p style="margin:0 0 0.4em"><em>Source of truth:</em> <code>src/lib/categories.ts</code>; Dart mirrors the exact strings — written to Firestore as raw labels.</p>
+              <pre><code class="language-typescript">export const expenseCategories = [
+  "Advertising (Promotion, gift cards etc.)",
+  "Meals and entertainment",  // ... 19 General
+  "Home Office - Electricity", // ... 9 Home Office
+  "Vehicle - Fuel (gasoline, propane, oil)", // ... 10 Vehicle
+] as const;</code></pre>
+              <ul>
+                <li>Gemini is prompted with the literal list — no fuzzy mapping</li>
+                <li>Drift between TS and Dart is a release blocker</li>
+              </ul>
+            </div>
+          </div>
+          <aside class="notes">
+            Why exact strings? Because Firestore queries are string-equality and
+            because reports go straight to an accountant who's looking for these
+            phrases on the T2125 form. Any rename is a data migration. ~55s.
+          </aside>
+        </section>
+
+        <!-- Slide 8: Budgets -->
+        <section>
+          <span class="eyebrow">Discipline</span>
+          <h2>Budgets stream the same source; alerts are server-side</h2>
+          <div class="two-col tight">
+            <img class="device-frame" src="assets/screenshots/04-budgets.png" alt="Budgets screen" />
+            <div>
+              <ul>
+                <li>Per-category monthly limits in <code>budgets_personal</code> / <code>budgets_group</code></li>
+                <li>Usage = expenses stream filtered by month + category, computed client-side</li>
+                <li>Server checks breach on each <code>POST /api/expenses</code> and writes the <code>notifications</code> doc — client never decides "you went over"</li>
+                <li>FCM push fired from the same code path</li>
+              </ul>
+            </div>
+          </div>
+          <aside class="notes">
+            The interesting bit is the split: read-side budget math is client-side
+            (cheap, instant), but the "you're over" event is server-authoritative
+            so two devices can't race each other into duplicate alerts. ~45s.
+          </aside>
+        </section>
+
+        <!-- Slide 9: Groups + security rules -->
+        <section>
+          <span class="eyebrow">Multi-user</span>
+          <h2>Groups: 4 roles, enforced by 750-line Firestore rules</h2>
+          <div class="two-col tight">
+            <img class="device-frame" src="assets/screenshots/05-groups.png" alt="Groups screen" />
+            <div>
+              <p style="margin:0 0 0.4em">Roles: <strong>owner → admin → member → viewer</strong>. Permissions denormalized into each <code>groupMembers</code> doc — rules branch on a single <code>get()</code>.</p>
+              <pre><code class="language-javascript">match /groupMembers/{membershipId} {
+  allow get: if isAuthenticated() &amp;&amp;
+    (resource.data.userId == request.auth.uid ||
+     isGroupMember(resource.data.groupId));
+  // Server-only — created on group create or invite accept
+  allow create: if false;
+  allow update: if isGroupOwner(resource.data.groupId) ||
+                   request.auth.uid == resource.data.userId;
+}</code></pre>
+              <ul>
+                <li><code>allow create: if false</code> — only the API can mint memberships</li>
+                <li>Group creation = one multi-doc txn: group + owner member + activity</li>
+              </ul>
+            </div>
+          </div>
+          <aside class="notes">
+            Important callout for engineers: Firestore rules enforce mobile-side
+            because mobile uses the client SDK. The Next.js web app uses Admin SDK
+            and bypasses rules — so the rules can't be the only line of defense
+            for server-side flows. That's why critical writes (memberships,
+            notifications) are server-only at the rule layer. ~60s.
+          </aside>
+        </section>
+
+        <!-- Slide 10: Income + Savings -->
+        <section>
+          <span class="eyebrow">Whole financial picture</span>
+          <h2>Income tracking · Savings goals</h2>
+          <div class="screenshot-row">
+            <img class="device-frame" src="assets/screenshots/06-income.png" alt="Income screen" />
+            <img class="device-frame" src="assets/screenshots/07-savings.png" alt="Savings screen" />
+          </div>
+          <ul style="margin-top: 0.8em;">
+            <li>Recurring income sources — taxable / non-taxable split for year-end</li>
+            <li>Savings goals roll up monthly contributions and project completion</li>
+            <li>Same pattern: direct Firestore writes, real-time stream back to UI</li>
+          </ul>
+          <aside class="notes">
+            These two screens round out the financial picture. They share the same
+            architecture as expenses/budgets — just different collections. ~35s.
+          </aside>
+        </section>
+
+        <!-- Slide 11: Engineering Highlights -->
+        <section>
+          <span class="eyebrow">Engineering</span>
+          <h2>What's under the hood</h2>
+          <div class="two-col">
+            <div>
+              <h3>State &amp; structure</h3>
+              <ul>
+                <li>Clean Architecture: <code>data → domain → presentation</code></li>
+                <li>Riverpod <code>@riverpod</code> codegen — typed, zero runtime lookups</li>
+                <li>GoRouter <code>ShellRoute</code> for the 5-tab bottom nav</li>
+                <li>Offline: FlutterFire cache + Hive for draft forms</li>
+              </ul>
+              <h3>Type parity</h3>
+              <ul>
+                <li>Every Firestore model: TS source in <code>src/lib/types.ts</code>, Dart mirror in <code>data/models/</code></li>
+                <li>Drift is a release blocker</li>
+              </ul>
+            </div>
+            <div>
+              <h3>CI/CD</h3>
+              <ul>
+                <li>Single trigger: <code>git tag v*.*.*</code></li>
+                <li>Parallel iOS (macos-15 → TestFlight → App Store auto-release) + Android (ubuntu → AAB → Play 100% rollout)</li>
+                <li>Versioning from tag; build number = <code>github.run_number + 100</code></li>
+                <li>Fastlane lanes: <code>ios ship</code>, <code>android ship</code>, <code>repair_and_submit</code></li>
+              </ul>
+              <pre><code class="language-bash">git tag v2.3.5 &amp;&amp; git push --tags
+# ~90 min later: live on both stores</code></pre>
+            </div>
+          </div>
+          <aside class="notes">
+            One tag triggers the whole release. The 90-minute number is honest —
+            mostly Apple processing. The fastlane repair_and_submit lane exists
+            because App Store Connect sometimes leaves a draft in a broken
+            "missing metadata" state; the lane fixes it without human clicks. ~60s.
+          </aside>
+        </section>
+
+        <!-- Slide 12: Closing -->
+        <section class="closing-slide">
+          <div class="logo" style="font-size:3em; font-weight:800; letter-spacing:-0.05em;
+            background:linear-gradient(135deg,#0a84fb,#5ac8fa);
+            -webkit-background-clip:text; background-clip:text; color:transparent;">Penny</div>
+          <p class="tagline" style="color: var(--penny-text-dim); margin-top: 0.4em;">
+            Shipping to TestFlight + Play Store on every <code>v*.*.*</code> tag.
+          </p>
+          <div class="badges" style="margin-top: 2em;">
+            <span class="badge"><span class="dot"></span>Flutter 3.x · Dart 3</span>
+            <span class="badge"><span class="dot"></span>Firebase + Gemini</span>
+            <span class="badge"><span class="dot"></span>iOS · Android live</span>
+          </div>
+          <p style="margin-top: 2em; color: var(--penny-text-dim); font-size: 0.7em;">
+            Thank you · questions?
+          </p>
+          <aside class="notes">
+            Wrap. 15 seconds. Take questions.
+          </aside>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        slideNumber: 'c/t',
+        transition: 'slide',
+        backgroundTransition: 'fade',
+        width: 1280,
+        height: 800,
+        margin: 0.06,
+        plugins: [RevealHighlight, RevealNotes],
+      });
+    </script>
+  </body>
+</html>

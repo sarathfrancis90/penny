@@ -54,8 +54,10 @@ class GroupDetailScreen extends ConsumerWidget {
           // Invite button (owner/admin only)
           if (isOwnerOrAdmin)
             IconButton(
-              icon: const Icon(Icons.person_add_outlined,
-                  color: AppColors.primary),
+              icon: const Icon(
+                Icons.person_add_outlined,
+                color: AppColors.primary,
+              ),
               tooltip: 'Invite member',
               onPressed: () => _showInviteSheet(context, ref, group),
             ),
@@ -78,6 +80,7 @@ class GroupDetailScreen extends ConsumerWidget {
       floatingActionButton: canAddExpenses
           ? FloatingActionButton(
               backgroundColor: AppColors.primary,
+              tooltip: 'Add group expense',
               onPressed: () =>
                   _showAddExpenseSheet(context, ref, group, user!.uid),
               child: const Icon(Icons.add, color: Colors.white),
@@ -91,140 +94,183 @@ class GroupDetailScreen extends ConsumerWidget {
           HapticFeedback.lightImpact();
         },
         child: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          const SizedBox(height: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            const SizedBox(height: 8),
 
-          // Group header
-          _GroupHeader(group: group),
-          const SizedBox(height: 24),
+            // Group header
+            _GroupHeader(group: group),
+            const SizedBox(height: 24),
 
-          // Stats row
-          _StatsRow(group: group),
-          const SizedBox(height: 24),
+            // Stats row
+            _StatsRow(group: group),
+            const SizedBox(height: 24),
 
-          // Members section
-          Text('MEMBERS',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 1)),
-          const SizedBox(height: 12),
+            // Members section
+            Text(
+              'MEMBERS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 12),
 
-          membersAsync.when(
-            data: (members) => members.isEmpty
-                ? Text('No members',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))
-                : Column(
-                    children: members
-                        .map((m) => _MemberTile(
+            membersAsync.when(
+              data: (members) => members.isEmpty
+                  ? Text(
+                      'No members',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    )
+                  : Column(
+                      children: members
+                          .map(
+                            (m) => _MemberTile(
                               member: m,
                               groupId: groupId,
                               isOwnerOrAdmin: isOwnerOrAdmin,
                               currentUserId: user?.uid ?? '',
-                            ))
-                        .toList(),
-                  ),
-            loading: () =>
-                const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Error: $e'),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Group Budgets section
-          _GroupBudgetsSection(
-              groupId: groupId, isOwnerOrAdmin: isOwnerOrAdmin),
-
-          // Group Income section (Batch G)
-          _GroupIncomeSection(
-              groupId: groupId, isOwnerOrAdmin: isOwnerOrAdmin),
-
-          // Group Savings section (Batch G)
-          _GroupSavingsSection(
-              groupId: groupId, isOwnerOrAdmin: isOwnerOrAdmin),
-
-          // Pending approval section (Batch F) — owners/admins only
-          if (isOwnerOrAdmin)
-            _PendingApprovalSection(groupId: groupId),
-
-          // Group Expenses section
-          Text('GROUP EXPENSES',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 1)),
-          const SizedBox(height: 12),
-
-          expensesAsync.when(
-            data: (expenses) => expenses.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Icon(Icons.receipt_long_outlined, size: 32,
-                              color: Theme.of(context).hintColor),
-                          const SizedBox(height: 8),
-                          Text('No expenses yet',
-                              style: TextStyle(fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                          if (canAddExpenses) ...[
-                            const SizedBox(height: 8),
-                            TextButton(
-                              onPressed: () => _showAddExpenseSheet(
-                                  context, ref, group, user!.uid),
-                              child: const Text('Add first expense'),
                             ),
-                          ],
-                        ],
-                      ),
+                          )
+                          .toList(),
                     ),
-                  )
-                : Column(
-                    children: expenses
-                        .map((e) => ExpenseListTile(expense: e))
-                        .toList(),
-                  ),
-            loading: () =>
-                const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Error loading expenses: $e'),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Actions
-          if (group.settings.requireApproval)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.verified_outlined, size: 16,
-                      color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text('Expense approval required',
-                      style: TextStyle(fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                ],
-              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Text('Error: $e'),
             ),
 
-          if (group.description != null &&
-              group.description!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(group.description!,
+            const SizedBox(height: 24),
+
+            // Group Budgets section
+            _GroupBudgetsSection(
+              groupId: groupId,
+              isOwnerOrAdmin: isOwnerOrAdmin,
+            ),
+
+            // Group Income section (Batch G)
+            _GroupIncomeSection(
+              groupId: groupId,
+              isOwnerOrAdmin: isOwnerOrAdmin,
+            ),
+
+            // Group Savings section (Batch G)
+            _GroupSavingsSection(
+              groupId: groupId,
+              isOwnerOrAdmin: isOwnerOrAdmin,
+            ),
+
+            // Pending approval section (Batch F) — owners/admins only
+            if (isOwnerOrAdmin) _PendingApprovalSection(groupId: groupId),
+
+            // Group Expenses section
+            Text(
+              'GROUP EXPENSES',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            expensesAsync.when(
+              data: (expenses) => expenses.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.receipt_long_outlined,
+                              size: 32,
+                              color: Theme.of(context).hintColor,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'No expenses yet',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (canAddExpenses) ...[
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () => _showAddExpenseSheet(
+                                  context,
+                                  ref,
+                                  group,
+                                  user!.uid,
+                                ),
+                                child: const Text('Add first expense'),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    )
+                  : Column(
+                      children: expenses
+                          .map((e) => ExpenseListTile(expense: e))
+                          .toList(),
+                    ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Text('Error loading expenses: $e'),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Actions
+            if (group.settings.requireApproval)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.verified_outlined,
+                      size: 16,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Expense approval required',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            if (group.description != null && group.description!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                group.description!,
                 style: TextStyle(
-                    fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+
+            // Recent activity section (Batch E)
+            _RecentActivitySection(groupId: groupId),
+
+            const SizedBox(height: 24),
           ],
-
-          // Recent activity section (Batch E)
-          _RecentActivitySection(groupId: groupId),
-
-          const SizedBox(height: 24),
-        ],
-      ),
+        ),
       ),
     );
   }
 
-  void _showInviteSheet(
-      BuildContext context, WidgetRef ref, GroupModel group) {
+  void _showInviteSheet(BuildContext context, WidgetRef ref, GroupModel group) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -232,8 +278,7 @@ class GroupDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditSheet(
-      BuildContext context, WidgetRef ref, GroupModel group) {
+  void _showEditSheet(BuildContext context, WidgetRef ref, GroupModel group) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -242,7 +287,11 @@ class GroupDetailScreen extends ConsumerWidget {
   }
 
   void _showAddExpenseSheet(
-      BuildContext context, WidgetRef ref, GroupModel group, String userId) {
+    BuildContext context,
+    WidgetRef ref,
+    GroupModel group,
+    String userId,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -256,7 +305,10 @@ class GroupDetailScreen extends ConsumerWidget {
   }
 
   void _confirmLeaveGroup(
-      BuildContext context, WidgetRef ref, GroupModel group) {
+    BuildContext context,
+    WidgetRef ref,
+    GroupModel group,
+  ) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -265,17 +317,19 @@ class GroupDetailScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.exit_to_app, size: 48,
-                  color: AppColors.warning),
+              const Icon(Icons.exit_to_app, size: 48, color: AppColors.warning),
               const SizedBox(height: 16),
-              const Text('Leave Group?',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w600)),
+              const Text(
+                'Leave Group?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
               Text(
                 'You will no longer see this group\'s expenses or be able to add new ones.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -290,7 +344,8 @@ class GroupDetailScreen extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.warning),
+                        backgroundColor: AppColors.warning,
+                      ),
                       onPressed: () async {
                         Navigator.pop(ctx);
                         try {
@@ -332,7 +387,10 @@ class GroupDetailScreen extends ConsumerWidget {
   }
 
   void _confirmDeleteGroup(
-      BuildContext context, WidgetRef ref, GroupModel group) {
+    BuildContext context,
+    WidgetRef ref,
+    GroupModel group,
+  ) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -341,17 +399,23 @@ class GroupDetailScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded, size: 48,
-                  color: AppColors.error),
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 48,
+                color: AppColors.error,
+              ),
               const SizedBox(height: 16),
-              const Text('Delete Group?',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w600)),
+              const Text(
+                'Delete Group?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
               Text(
                 'This will permanently delete the group and all its data. This cannot be undone.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -366,7 +430,8 @@ class GroupDetailScreen extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error),
+                        backgroundColor: AppColors.error,
+                      ),
                       onPressed: () async {
                         Navigator.pop(ctx);
                         try {
@@ -437,17 +502,21 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     if (email.isEmpty || !email.contains('@')) return;
 
     // Check if member already exists or is already invited
-    final members = widget.ref.read(groupMembersProvider(widget.groupId)).valueOrNull ?? [];
-    final existing = members.where(
-        (m) => m.userEmail.toLowerCase() == email.toLowerCase()).firstOrNull;
+    final members =
+        widget.ref.read(groupMembersProvider(widget.groupId)).valueOrNull ?? [];
+    final existing = members
+        .where((m) => m.userEmail.toLowerCase() == email.toLowerCase())
+        .firstOrNull;
     if (existing != null) {
       final status = existing.status;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(status == 'invited'
-                ? '$email has already been invited'
-                : '$email is already a ${existing.role} in this group'),
+            content: Text(
+              status == 'invited'
+                  ? '$email has already been invited'
+                  : '$email is already a ${existing.role} in this group',
+            ),
             backgroundColor: AppColors.warning,
           ),
         );
@@ -458,7 +527,9 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     setState(() => _sending = true);
     try {
       final user = widget.ref.read(currentUserProvider);
-      await widget.ref.read(groupRepositoryProvider).inviteMember(
+      await widget.ref
+          .read(groupRepositoryProvider)
+          .inviteMember(
             groupId: widget.groupId,
             email: email,
             role: _role,
@@ -492,15 +563,19 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Invite Member',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Invite Member',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _emailController,
@@ -519,10 +594,12 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
               prefixIcon: Icon(Icons.badge_outlined),
             ),
             items: _roles
-                .map((r) => DropdownMenuItem(
-                      value: r,
-                      child: Text(r[0].toUpperCase() + r.substring(1)),
-                    ))
+                .map(
+                  (r) => DropdownMenuItem(
+                    value: r,
+                    child: Text(r[0].toUpperCase() + r.substring(1)),
+                  ),
+                )
                 .toList(),
             onChanged: (v) {
               if (v != null) setState(() => _role = v);
@@ -533,9 +610,13 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
             onPressed: _sending ? null : _sendInvite,
             child: _sending
                 ? const SizedBox(
-                    height: 20, width: 20,
+                    height: 20,
+                    width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Send Invite'),
           ),
         ],
@@ -564,7 +645,16 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
   late String _color;
   bool _saving = false;
 
-  static const _icons = ['👥', '👨‍👩‍👧‍👦', '🏢', '🏠', '✈️', '🎯', '💼', '🎉'];
+  static const _icons = [
+    '👥',
+    '👨‍👩‍👧‍👦',
+    '🏢',
+    '🏠',
+    '✈️',
+    '🎯',
+    '💼',
+    '🎉',
+  ];
   static const _colors = [
     '#0A84FF', // Blue
     '#34C759', // Green
@@ -580,8 +670,9 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.group.name);
-    _descController =
-        TextEditingController(text: widget.group.description ?? '');
+    _descController = TextEditingController(
+      text: widget.group.description ?? '',
+    );
     _requireApproval = widget.group.settings.requireApproval;
     _allowMemberInvites = widget.group.settings.allowMemberInvites;
     _icon = widget.group.icon ?? '👥';
@@ -602,7 +693,9 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
     setState(() => _saving = true);
     try {
       final user = widget.ref.read(currentUserProvider);
-      await widget.ref.read(groupRepositoryProvider).updateGroup(
+      await widget.ref
+          .read(groupRepositoryProvider)
+          .updateGroup(
             groupId: widget.group.id,
             userId: user!.uid,
             updates: {
@@ -645,21 +738,30 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Edit Group',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Edit Group',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
 
           // Icon picker
-          Text('Icon', style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            'Icon',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -671,7 +773,8 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
                 child: GestureDetector(
                   onTap: () => setState(() => _icon = icon),
                   child: Container(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: selected
                           ? AppColors.primary.withValues(alpha: 0.1)
@@ -682,7 +785,8 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
                           : null,
                     ),
                     child: Center(
-                        child: Text(icon, style: const TextStyle(fontSize: 22))),
+                      child: Text(icon, style: const TextStyle(fontSize: 22)),
+                    ),
                   ),
                 ),
               );
@@ -691,9 +795,14 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
           const SizedBox(height: 16),
 
           // Color picker
-          Text('Color', style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            'Color',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -706,7 +815,8 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
                 child: GestureDetector(
                   onTap: () => setState(() => _color = hex),
                   child: Container(
-                    width: 36, height: 36,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: color,
                       shape: BoxShape.circle,
@@ -731,34 +841,52 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: _descController,
-            decoration:
-                const InputDecoration(hintText: 'Description (optional)'),
+            decoration: const InputDecoration(
+              hintText: 'Description (optional)',
+            ),
             maxLines: 2,
           ),
           const SizedBox(height: 16),
 
           // Settings section
-          Text('Settings', style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            'Settings',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 4),
           SwitchListTile(
-            title: const Text('Require expense approval',
-                style: TextStyle(fontSize: 15)),
-            subtitle: Text('Admins must approve member expenses',
-                style: TextStyle(
-                    fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            title: const Text(
+              'Require expense approval',
+              style: TextStyle(fontSize: 15),
+            ),
+            subtitle: Text(
+              'Admins must approve member expenses',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             value: _requireApproval,
             onChanged: (v) => setState(() => _requireApproval = v),
             activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Allow member invites',
-                style: TextStyle(fontSize: 15)),
-            subtitle: Text('Members can invite others to the group',
-                style: TextStyle(
-                    fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            title: const Text(
+              'Allow member invites',
+              style: TextStyle(fontSize: 15),
+            ),
+            subtitle: Text(
+              'Members can invite others to the group',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             value: _allowMemberInvites,
             onChanged: (v) => setState(() => _allowMemberInvites = v),
             activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
@@ -769,9 +897,13 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
             onPressed: _saving ? null : _save,
             child: _saving
                 ? const SizedBox(
-                    height: 20, width: 20,
+                    height: 20,
+                    width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Save Changes'),
           ),
         ],
@@ -834,7 +966,9 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(_date);
       // Group expenses go through the API for atomic operations
-      await widget.ref.read(apiClientProvider).post(
+      await widget.ref
+          .read(apiClientProvider)
+          .post(
             ApiEndpoints.expenses,
             data: {
               'userId': widget.userId,
@@ -874,16 +1008,19 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Add Expense to ${widget.groupName}',
-              style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          Text(
+            'Add Expense to ${widget.groupName}',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _vendorController,
@@ -913,12 +1050,16 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
             ),
             isExpanded: true,
             items: expenseCategories
-                .map((c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(c,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 14)),
-                    ))
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(
+                      c,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                )
                 .toList(),
             onChanged: (v) {
               if (v != null) setState(() => _category = v);
@@ -941,9 +1082,13 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
             onPressed: _saving ? null : _save,
             child: _saving
                 ? const SizedBox(
-                    height: 20, width: 20,
+                    height: 20,
+                    width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Add Expense'),
           ),
         ],
@@ -973,44 +1118,54 @@ class _GroupHeader extends StatelessWidget {
           Hero(
             tag: 'group-icon-${group.id}',
             child: Container(
-              width: 64, height: 64,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
-                  child: Text(icon, style: const TextStyle(fontSize: 32))),
+                child: Text(icon, style: const TextStyle(fontSize: 32)),
+              ),
             ),
           ),
           const SizedBox(height: 12),
           Hero(
             tag: 'group-name-${group.id}',
-            flightShuttleBuilder: (
-              flightContext,
-              animation,
-              flightDirection,
-              fromHeroContext,
-              toHeroContext,
-            ) {
-              return DefaultTextStyle(
-                style: DefaultTextStyle.of(toHeroContext).style,
-                child: toHeroContext.widget,
-              );
-            },
+            flightShuttleBuilder:
+                (
+                  flightContext,
+                  animation,
+                  flightDirection,
+                  fromHeroContext,
+                  toHeroContext,
+                ) {
+                  return DefaultTextStyle(
+                    style: DefaultTextStyle.of(toHeroContext).style,
+                    child: toHeroContext.widget,
+                  );
+                },
             child: Material(
               type: MaterialType.transparency,
-              child: Text(group.name,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w700)),
+              child: Text(
+                group.name,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
-          if (group.description != null &&
-              group.description!.isNotEmpty) ...[
+          if (group.description != null && group.description!.isNotEmpty) ...[
             const SizedBox(height: 4),
-            Text(group.description!,
-                style: TextStyle(
-                    fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center),
+            Text(
+              group.description!,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ],
       ),
@@ -1075,14 +1230,26 @@ class _StatCard extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 6),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w700)),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
         ),
@@ -1104,19 +1271,19 @@ class _MemberTile extends ConsumerWidget {
   final String currentUserId;
 
   Color _roleColor(BuildContext context) => switch (member.role) {
-        'owner' => AppColors.primary,
-        'admin' => const Color(0xFF607D8B), // blue-grey
-        'member' => AppColors.success,
-        _ => Theme.of(context).colorScheme.onSurfaceVariant,
-      };
+    'owner' => AppColors.primary,
+    'admin' => const Color(0xFF607D8B), // blue-grey
+    'member' => AppColors.success,
+    _ => Theme.of(context).colorScheme.onSurfaceVariant,
+  };
 
   String _roleLabel() => switch (member.role) {
-        'owner' => 'Owner',
-        'admin' => 'Admin',
-        'member' => 'Member',
-        'viewer' => 'Viewer',
-        _ => member.role,
-      };
+    'owner' => 'Owner',
+    'admin' => 'Admin',
+    'member' => 'Member',
+    'viewer' => 'Viewer',
+    _ => member.role,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1125,7 +1292,8 @@ class _MemberTile extends ConsumerWidget {
         .toUpperCase();
     // Can manage this member: must be owner/admin, member is not owner,
     // and the member is not the current user.
-    final canManage = isOwnerOrAdmin &&
+    final canManage =
+        isOwnerOrAdmin &&
         member.role != 'owner' &&
         member.userId != currentUserId;
 
@@ -1144,52 +1312,76 @@ class _MemberTile extends ConsumerWidget {
               CircleAvatar(
                 radius: 18,
                 backgroundColor: Theme.of(context).cardColor,
-                child: Text(initial,
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w600)),
+                child: Text(
+                  initial,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(member.userName ?? member.userEmail,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
+                    Text(
+                      member.userName ?? member.userEmail,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     if (member.userName != null)
-                      Text(member.userEmail,
-                          style: TextStyle(
-                              fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text(
+                        member.userEmail,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                   ],
                 ),
               ),
               if (member.status == 'invited')
                 Container(
                   margin: const EdgeInsets.only(right: 6),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text('invited',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.warning)),
+                  child: Text(
+                    'invited',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.warning,
+                    ),
+                  ),
                 ),
               Semantics(
                 label: 'Role: ${_roleLabel()}',
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: _roleColor(context).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(_roleLabel(),
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _roleColor(context))),
+                  child: Text(
+                    _roleLabel(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _roleColor(context),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -1210,40 +1402,59 @@ class _MemberTile extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Manage $displayName',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              Text(
+                'Manage $displayName',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text('Current role: ${_roleLabel()}',
-                  style: TextStyle(fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text(
+                'Current role: ${_roleLabel()}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 20),
 
               // Change role options
-              Text('CHANGE ROLE',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      letterSpacing: 1)),
+              Text(
+                'CHANGE ROLE',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  letterSpacing: 1,
+                ),
+              ),
               const SizedBox(height: 8),
               ...['admin', 'member', 'viewer']
                   .where((r) => r != member.role)
-                  .map((role) => ListTile(
-                        leading: Icon(
-                          role == 'admin'
-                              ? Icons.shield_outlined
-                              : role == 'member'
-                                  ? Icons.person_outline
-                                  : Icons.visibility_outlined,
-                          color: AppColors.primary,
-                        ),
-                        title: Text('${role[0].toUpperCase()}${role.substring(1)}'),
-                        dense: true,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        onTap: () async {
-                          Navigator.pop(ctx);
-                          await _changeRole(context, ref, role);
-                        },
-                      )),
+                  .map(
+                    (role) => ListTile(
+                      leading: Icon(
+                        role == 'admin'
+                            ? Icons.shield_outlined
+                            : role == 'member'
+                            ? Icons.person_outline
+                            : Icons.visibility_outlined,
+                        color: AppColors.primary,
+                      ),
+                      title: Text(
+                        '${role[0].toUpperCase()}${role.substring(1)}',
+                      ),
+                      dense: true,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      onTap: () async {
+                        Navigator.pop(ctx);
+                        await _changeRole(context, ref, role);
+                      },
+                    ),
+                  ),
 
               const SizedBox(height: 16),
               const Divider(),
@@ -1251,13 +1462,18 @@ class _MemberTile extends ConsumerWidget {
 
               // Remove member
               ListTile(
-                leading: const Icon(Icons.person_remove_outlined,
-                    color: AppColors.error),
-                title: const Text('Remove from Group',
-                    style: TextStyle(color: AppColors.error)),
+                leading: const Icon(
+                  Icons.person_remove_outlined,
+                  color: AppColors.error,
+                ),
+                title: const Text(
+                  'Remove from Group',
+                  style: TextStyle(color: AppColors.error),
+                ),
                 dense: true,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _confirmRemoveMember(context, ref, displayName);
@@ -1270,7 +1486,11 @@ class _MemberTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _changeRole(BuildContext context, WidgetRef ref, String newRole) async {
+  Future<void> _changeRole(
+    BuildContext context,
+    WidgetRef ref,
+    String newRole,
+  ) async {
     try {
       final api = ref.read(apiClientProvider);
       final memberId = member.userId;
@@ -1282,7 +1502,9 @@ class _MemberTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${member.userName ?? member.userEmail} is now ${newRole[0].toUpperCase()}${newRole.substring(1)}'),
+            content: Text(
+              '${member.userName ?? member.userEmail} is now ${newRole[0].toUpperCase()}${newRole.substring(1)}',
+            ),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1300,7 +1522,11 @@ class _MemberTile extends ConsumerWidget {
     }
   }
 
-  void _confirmRemoveMember(BuildContext context, WidgetRef ref, String displayName) {
+  void _confirmRemoveMember(
+    BuildContext context,
+    WidgetRef ref,
+    String displayName,
+  ) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -1309,17 +1535,26 @@ class _MemberTile extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.person_remove_outlined, size: 48,
-                  color: AppColors.error),
+              const Icon(
+                Icons.person_remove_outlined,
+                size: 48,
+                color: AppColors.error,
+              ),
               const SizedBox(height: 16),
-              Text('Remove $displayName?',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w600)),
+              Text(
+                'Remove $displayName?',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 'This member will be removed from the group and will no longer have access.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -1334,7 +1569,8 @@ class _MemberTile extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error),
+                        backgroundColor: AppColors.error,
+                      ),
                       onPressed: () async {
                         Navigator.pop(ctx);
                         await _removeMember(context, ref);
@@ -1362,7 +1598,9 @@ class _MemberTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${member.userName ?? member.userEmail} has been removed'),
+            content: Text(
+              '${member.userName ?? member.userEmail} has been removed',
+            ),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1400,13 +1638,9 @@ class _OverflowMenu extends ConsumerWidget {
     if (user == null) return;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set(
-        {'preferences': {'defaultGroupId': groupId}},
-        SetOptions(merge: true),
-      );
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'preferences': {'defaultGroupId': groupId},
+      }, SetOptions(merge: true));
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1435,13 +1669,9 @@ class _OverflowMenu extends ConsumerWidget {
     if (user == null) return;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .set(
-        {'preferences': {'defaultGroupId': null}},
-        SetOptions(merge: true),
-      );
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'preferences': {'defaultGroupId': null},
+      }, SetOptions(merge: true));
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1468,11 +1698,13 @@ class _OverflowMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final defaultGroupAsync = ref.watch(defaultGroupProvider);
-    final isDefault =
-        defaultGroupAsync.valueOrNull == groupId;
+    final isDefault = defaultGroupAsync.valueOrNull == groupId;
 
     return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      icon: Icon(
+        Icons.more_vert,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
       onSelected: (value) {
         switch (value) {
           case 'set_default':
@@ -1491,8 +1723,7 @@ class _OverflowMenu extends ConsumerWidget {
             value: 'set_default',
             child: Row(
               children: [
-                Icon(Icons.star_outline, size: 20,
-                    color: AppColors.primary),
+                Icon(Icons.star_outline, size: 20, color: AppColors.primary),
                 SizedBox(width: 8),
                 Text('Set as Default Group'),
               ],
@@ -1503,8 +1734,11 @@ class _OverflowMenu extends ConsumerWidget {
             value: 'clear_default',
             child: Row(
               children: [
-                Icon(Icons.star_border, size: 20,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.star_border,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 SizedBox(width: 8),
                 Text('Clear Default Group'),
               ],
@@ -1515,8 +1749,7 @@ class _OverflowMenu extends ConsumerWidget {
             value: 'leave',
             child: Row(
               children: [
-                Icon(Icons.exit_to_app, size: 20,
-                    color: AppColors.warning),
+                Icon(Icons.exit_to_app, size: 20, color: AppColors.warning),
                 SizedBox(width: 8),
                 Text('Leave Group'),
               ],
@@ -1527,11 +1760,9 @@ class _OverflowMenu extends ConsumerWidget {
             value: 'delete',
             child: Row(
               children: [
-                Icon(Icons.delete_outline, size: 20,
-                    color: AppColors.error),
+                Icon(Icons.delete_outline, size: 20, color: AppColors.error),
                 SizedBox(width: 8),
-                Text('Delete Group',
-                    style: TextStyle(color: AppColors.error)),
+                Text('Delete Group', style: TextStyle(color: AppColors.error)),
               ],
             ),
           ),
@@ -1555,9 +1786,15 @@ class _PendingApprovalSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('PENDING APPROVAL (${pending.length})',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                    color: AppColors.warning, letterSpacing: 1)),
+            Text(
+              'PENDING APPROVAL (${pending.length})',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.warning,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 12),
             ...pending.map((e) => _PendingExpenseTile(expense: e)),
             const SizedBox(height: 24),
@@ -1591,16 +1828,31 @@ class _PendingExpenseTile extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: Text(expense.vendor,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                child: Text(
+                  expense.vendor,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-              Text(formatter.format(expense.amount),
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              Text(
+                formatter.format(expense.amount),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 4),
-          Text('${expense.category} • ${DateFormat('MMM d').format(expense.date.toDate())}',
-              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            '${expense.category} • ${DateFormat('MMM d').format(expense.date.toDate())}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -1618,7 +1870,9 @@ class _PendingExpenseTile extends ConsumerWidget {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () => _approve(context, ref),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                  ),
                   child: const Text('Approve'),
                 ),
               ),
@@ -1633,20 +1887,26 @@ class _PendingExpenseTile extends ConsumerWidget {
     try {
       final user = ref.read(currentUserProvider);
       if (user == null) return;
-      await ref.read(expenseRepositoryProvider).approveExpense(
-          expenseId: expense.id, userId: user.uid);
+      await ref
+          .read(expenseRepositoryProvider)
+          .approveExpense(expenseId: expense.id, userId: user.uid);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense approved'),
-              backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('Expense approved'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'),
-              backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -1662,19 +1922,30 @@ class _PendingExpenseTile extends ConsumerWidget {
     try {
       final user = ref.read(currentUserProvider);
       if (user == null) return;
-      await ref.read(expenseRepositoryProvider).rejectExpense(
-          expenseId: expense.id, userId: user.uid, reason: reason.isEmpty ? null : reason);
+      await ref
+          .read(expenseRepositoryProvider)
+          .rejectExpense(
+            expenseId: expense.id,
+            userId: user.uid,
+            reason: reason.isEmpty ? null : reason,
+          );
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Expense rejected'),
-              backgroundColor: AppColors.warning, behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('Expense rejected'),
+            backgroundColor: AppColors.warning,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -1699,15 +1970,19 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Reject Expense',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const Text(
+            'Reject Expense',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
@@ -1743,9 +2018,15 @@ class _RecentActivitySection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 24),
-            Text('RECENT ACTIVITY',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 1)),
+            Text(
+              'RECENT ACTIVITY',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 12),
             ...recent.map((a) => _ActivityTile(activity: a)),
           ],
@@ -1772,13 +2053,21 @@ class _ActivityTile extends StatelessWidget {
           Expanded(
             child: Text(
               activity.displayText,
-              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
+              style: TextStyle(
+                fontSize: 13,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(activity.timeAgo,
-              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            activity.timeAgo,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -1788,7 +2077,10 @@ class _ActivityTile extends StatelessWidget {
 // ====== Group Budgets Section ======
 
 class _GroupBudgetsSection extends ConsumerWidget {
-  const _GroupBudgetsSection({required this.groupId, required this.isOwnerOrAdmin});
+  const _GroupBudgetsSection({
+    required this.groupId,
+    required this.isOwnerOrAdmin,
+  });
   final String groupId;
   final bool isOwnerOrAdmin;
 
@@ -1803,12 +2095,15 @@ class _GroupBudgetsSection extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('BUDGETS',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    letterSpacing: 1)),
+            Text(
+              'BUDGETS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
+            ),
             if (isOwnerOrAdmin)
               TextButton.icon(
                 onPressed: () => _showAddBudgetSheet(context, ref),
@@ -1831,17 +2126,28 @@ class _GroupBudgetsSection extends ConsumerWidget {
                 child: Center(
                   child: Column(
                     children: [
-                      Icon(Icons.pie_chart_outline, size: 32,
-                          color: Theme.of(context).hintColor),
+                      Icon(
+                        Icons.pie_chart_outline,
+                        size: 32,
+                        color: Theme.of(context).hintColor,
+                      ),
                       const SizedBox(height: 8),
-                      Text('No budgets set',
-                          style: TextStyle(fontSize: 14,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      Text(
+                        'No budgets set',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       if (isOwnerOrAdmin) ...[
                         const SizedBox(height: 4),
-                        Text('Set spending limits for your group',
-                            style: TextStyle(fontSize: 12,
-                                color: Theme.of(context).hintColor)),
+                        Text(
+                          'Set spending limits for your group',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).hintColor,
+                          ),
+                        ),
                       ],
                     ],
                   ),
@@ -1858,10 +2164,12 @@ class _GroupBudgetsSection extends ConsumerWidget {
                 children: budgets.map((budget) {
                   // Calculate spent for this category this month
                   final spent = expenses
-                      .where((e) =>
-                          e.category == budget.category &&
-                          e.date.toDate().month == now.month &&
-                          e.date.toDate().year == now.year)
+                      .where(
+                        (e) =>
+                            e.category == budget.category &&
+                            e.date.toDate().month == now.month &&
+                            e.date.toDate().year == now.year,
+                      )
                       .fold(0.0, (total, e) => total + e.amount);
                   final percentage = budget.monthlyLimit > 0
                       ? (spent / budget.monthlyLimit * 100)
@@ -1872,7 +2180,10 @@ class _GroupBudgetsSection extends ConsumerWidget {
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -1882,10 +2193,14 @@ class _GroupBudgetsSection extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
-                              child: Text(budget.category,
-                                  style: const TextStyle(
-                                      fontSize: 14, fontWeight: FontWeight.w500),
-                                  overflow: TextOverflow.ellipsis),
+                              child: Text(
+                                budget.category,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                             Text(
                               '\$${spent.toStringAsFixed(0)} / \$${budget.monthlyLimit.toStringAsFixed(0)}',
@@ -1895,10 +2210,10 @@ class _GroupBudgetsSection extends ConsumerWidget {
                                 color: status == BudgetStatus.over
                                     ? AppColors.error
                                     : status == BudgetStatus.critical
-                                        ? AppColors.error
-                                        : status == BudgetStatus.warning
-                                            ? AppColors.warning
-                                            : AppColors.textSecondary,
+                                    ? AppColors.error
+                                    : status == BudgetStatus.warning
+                                    ? AppColors.warning
+                                    : AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -1912,10 +2227,10 @@ class _GroupBudgetsSection extends ConsumerWidget {
                             color: status == BudgetStatus.over
                                 ? AppColors.error
                                 : status == BudgetStatus.critical
-                                    ? AppColors.error
-                                    : status == BudgetStatus.warning
-                                        ? AppColors.warning
-                                        : AppColors.primary,
+                                ? AppColors.error
+                                : status == BudgetStatus.warning
+                                ? AppColors.warning
+                                : AppColors.primary,
                             minHeight: 6,
                           ),
                         ),
@@ -1923,8 +2238,11 @@ class _GroupBudgetsSection extends ConsumerWidget {
                         Text(
                           '${percentage.toStringAsFixed(0)}% used',
                           style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            fontSize: 11,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -1988,8 +2306,10 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Add Group Budget',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const Text(
+            'Add Group Budget',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 16),
 
           // Category dropdown
@@ -2001,7 +2321,12 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
             ),
             isExpanded: true,
             items: expenseCategories
-                .map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis)))
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(c, overflow: TextOverflow.ellipsis),
+                  ),
+                )
                 .toList(),
             onChanged: (v) => setState(() => _selectedCategory = v),
           ),
@@ -2022,8 +2347,14 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
           FilledButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Create Budget'),
           ),
         ],
@@ -2039,7 +2370,9 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
     setState(() => _saving = true);
     try {
       final user = widget.ref.read(currentUserProvider);
-      final membership = widget.ref.read(currentUserMembershipProvider(widget.groupId)).valueOrNull;
+      final membership = widget.ref
+          .read(currentUserMembershipProvider(widget.groupId))
+          .valueOrNull;
       final repo = GroupBudgetRepository();
       await repo.createGroupBudget(
         groupId: widget.groupId,
@@ -2052,9 +2385,9 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create budget: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to create budget: $e')));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -2083,34 +2416,60 @@ class _GroupIncomeSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text('GROUP INCOME',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 1)),
-                ),
-                if (sources.isNotEmpty)
-                  Text('${formatter.format(totalMonthly)}/mo',
-                      style: const TextStyle(fontSize: 12,
-                          fontWeight: FontWeight.w600, color: AppColors.success)),
-                if (isOwnerOrAdmin) ...[
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _showAddIncomeSheet(context, ref),
-                    child: const Icon(Icons.add_circle_outline,
-                        size: 20, color: AppColors.primary),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: isOwnerOrAdmin
+                  ? () => _showAddIncomeSheet(context, ref)
+                  : null,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'GROUP INCOME',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        letterSpacing: 1,
+                      ),
+                    ),
                   ),
+                  if (sources.isNotEmpty)
+                    Text(
+                      '${formatter.format(totalMonthly)}/mo',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.success,
+                      ),
+                    ),
+                  if (isOwnerOrAdmin) ...[
+                    const SizedBox(width: 8),
+                    Semantics(
+                      button: true,
+                      label: 'Add group income source',
+                      onTap: () => _showAddIncomeSheet(context, ref),
+                      child: const Icon(
+                        Icons.add_circle_outline,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
             const SizedBox(height: 12),
             if (sources.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 24),
-                child: Text('No income sources yet',
-                    style: TextStyle(fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                child: Text(
+                  'No income sources yet',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               )
             else ...[
               ...sources.map((s) => _GroupIncomeTile(source: s)),
@@ -2150,13 +2509,18 @@ class _GroupIncomeTile extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 36, height: 36,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: AppColors.success.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Center(
-              child: Icon(Icons.trending_up, size: 18, color: AppColors.success),
+              child: Icon(
+                Icons.trending_up,
+                size: 18,
+                color: AppColors.success,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -2164,16 +2528,31 @@ class _GroupIncomeTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(source.name,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                Text('${source.category} • ${source.frequencyLabel}',
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(
+                  source.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '${source.category} • ${source.frequencyLabel}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(formatter.format(source.amount),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700,
-                  color: AppColors.success)),
+          Text(
+            formatter.format(source.amount),
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.success,
+            ),
+          ),
         ],
       ),
     );
@@ -2199,10 +2578,22 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
   bool _saving = false;
 
   static const _categories = [
-    'salary', 'freelance', 'bonus', 'investment',
-    'rental', 'side_hustle', 'gift', 'other',
+    'salary',
+    'freelance',
+    'bonus',
+    'investment',
+    'rental',
+    'side_hustle',
+    'gift',
+    'other',
   ];
-  static const _frequencies = ['monthly', 'biweekly', 'weekly', 'yearly', 'once'];
+  static const _frequencies = [
+    'monthly',
+    'biweekly',
+    'weekly',
+    'yearly',
+    'once',
+  ];
 
   @override
   void dispose() {
@@ -2222,28 +2613,36 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
     try {
       final user = widget.ref.read(currentUserProvider);
       if (user == null) return;
-      await widget.ref.read(groupIncomeRepositoryProvider).createGroupIncomeSource(
-        groupId: widget.groupId,
-        addedBy: user.uid,
-        name: name,
-        category: _category,
-        amount: amount,
-        frequency: _frequency,
-        isRecurring: _isRecurring,
-        taxable: _taxable,
-      );
+      await widget.ref
+          .read(groupIncomeRepositoryProvider)
+          .createGroupIncomeSource(
+            groupId: widget.groupId,
+            addedBy: user.uid,
+            name: name,
+            category: _category,
+            amount: amount,
+            frequency: _frequency,
+            isRecurring: _isRecurring,
+            taxable: _taxable,
+          );
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Income source added'),
-              backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('Income source added'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -2255,15 +2654,19 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Add Group Income',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Add Group Income',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -2292,10 +2695,18 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
               prefixIcon: Icon(Icons.category_outlined),
             ),
             items: _categories
-                .map((c) => DropdownMenuItem(value: c,
-                    child: Text(c[0].toUpperCase() + c.substring(1).replaceAll('_', ' '))))
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(
+                      c[0].toUpperCase() + c.substring(1).replaceAll('_', ' '),
+                    ),
+                  ),
+                )
                 .toList(),
-            onChanged: (v) { if (v != null) setState(() => _category = v); },
+            onChanged: (v) {
+              if (v != null) setState(() => _category = v);
+            },
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -2305,17 +2716,26 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
               prefixIcon: Icon(Icons.repeat),
             ),
             items: _frequencies
-                .map((f) => DropdownMenuItem(value: f,
-                    child: Text(f[0].toUpperCase() + f.substring(1))))
+                .map(
+                  (f) => DropdownMenuItem(
+                    value: f,
+                    child: Text(f[0].toUpperCase() + f.substring(1)),
+                  ),
+                )
                 .toList(),
-            onChanged: (v) { if (v != null) setState(() => _frequency = v); },
+            onChanged: (v) {
+              if (v != null) setState(() => _frequency = v);
+            },
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
                 child: SwitchListTile(
-                  title: const Text('Recurring', style: TextStyle(fontSize: 14)),
+                  title: const Text(
+                    'Recurring',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   value: _isRecurring,
                   onChanged: (v) => setState(() => _isRecurring = v),
                   contentPadding: EdgeInsets.zero,
@@ -2337,8 +2757,14 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Add Income Source'),
           ),
         ],
@@ -2369,34 +2795,60 @@ class _GroupSavingsSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text('GROUP SAVINGS',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 1)),
-                ),
-                if (goals.isNotEmpty)
-                  Text('${formatter.format(totalSaved)} / ${formatter.format(totalTarget)}',
-                      style: const TextStyle(fontSize: 12,
-                          fontWeight: FontWeight.w600, color: AppColors.primary)),
-                if (isOwnerOrAdmin) ...[
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => _showAddSavingsSheet(context, ref),
-                    child: const Icon(Icons.add_circle_outline,
-                        size: 20, color: AppColors.primary),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: isOwnerOrAdmin
+                  ? () => _showAddSavingsSheet(context, ref)
+                  : null,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'GROUP SAVINGS',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        letterSpacing: 1,
+                      ),
+                    ),
                   ),
+                  if (goals.isNotEmpty)
+                    Text(
+                      '${formatter.format(totalSaved)} / ${formatter.format(totalTarget)}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  if (isOwnerOrAdmin) ...[
+                    const SizedBox(width: 8),
+                    Semantics(
+                      button: true,
+                      label: 'Add group savings goal',
+                      onTap: () => _showAddSavingsSheet(context, ref),
+                      child: const Icon(
+                        Icons.add_circle_outline,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
             const SizedBox(height: 12),
             if (goals.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 24),
-                child: Text('No savings goals yet',
-                    style: TextStyle(fontSize: 13,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                child: Text(
+                  'No savings goals yet',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
               )
             else ...[
               ...goals.map((g) => _GroupSavingsGoalCard(goal: g)),
@@ -2433,53 +2885,76 @@ class _GroupSavingsGoalCard extends ConsumerWidget {
       onTap: () => _showContributionSheet(context, ref),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 22)),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(goal.name,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                    Text('${formatter.format(goal.currentAmount)} of ${formatter.format(goal.targetAmount)}',
-                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                  ],
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 22)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        goal.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        '${formatter.format(goal.currentAmount)} of ${formatter.format(goal.targetAmount)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${progress.toStringAsFixed(0)}%',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: progress >= 100
+                        ? AppColors.success
+                        : AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress / 100,
+                backgroundColor: Theme.of(context).dividerColor,
+                color: progress >= 100 ? AppColors.success : AppColors.primary,
+                minHeight: 6,
+              ),
+            ),
+            if (goal.monthlyContribution > 0) ...[
+              const SizedBox(height: 6),
+              Text(
+                '${formatter.format(goal.monthlyContribution)}/mo contribution',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              Text('${progress.toStringAsFixed(0)}%',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
-                      color: progress >= 100 ? AppColors.success : AppColors.primary)),
             ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress / 100,
-              backgroundColor: Theme.of(context).dividerColor,
-              color: progress >= 100 ? AppColors.success : AppColors.primary,
-              minHeight: 6,
-            ),
-          ),
-          if (goal.monthlyContribution > 0) ...[
-            const SizedBox(height: 6),
-            Text('${formatter.format(goal.monthlyContribution)}/mo contribution',
-                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
-        ],
+        ),
       ),
-    ));
+    );
   }
 
   void _showContributionSheet(BuildContext context, WidgetRef ref) {
@@ -2517,21 +2992,30 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
     try {
       final user = widget.ref.read(currentUserProvider);
       if (user == null) return;
-      await widget.ref.read(groupSavingsRepositoryProvider)
+      await widget.ref
+          .read(groupSavingsRepositoryProvider)
           .addGroupContribution(widget.goal.id, amount, user.uid);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('\$${amount.toStringAsFixed(2)} added to ${widget.goal.name}'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '\$${amount.toStringAsFixed(2)} added to ${widget.goal.name}',
+            ),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Failed: $e'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -2544,23 +3028,35 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Add Contribution',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(
+            'Add Contribution',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 4),
-          Text('${widget.goal.name} — ${formatter.format(remaining)} remaining',
-              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            '${widget.goal.name} — ${formatter.format(remaining)} remaining',
+            style: TextStyle(
+              fontSize: 13,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
           const SizedBox(height: 16),
           TextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
+            decoration: const InputDecoration(
+              hintText: 'Amount',
+              prefixText: '\$ ',
+            ),
             autofocus: true,
           ),
           const SizedBox(height: 16),
@@ -2568,8 +3064,14 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
             onPressed: _saving ? null : _save,
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Add Contribution'),
           ),
         ],
@@ -2596,9 +3098,16 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
   bool _saving = false;
 
   static const _categories = [
-    'emergency_fund', 'travel', 'education', 'health',
-    'house_down_payment', 'car', 'wedding', 'retirement',
-    'investment', 'custom',
+    'emergency_fund',
+    'travel',
+    'education',
+    'health',
+    'house_down_payment',
+    'car',
+    'wedding',
+    'retirement',
+    'investment',
+    'custom',
   ];
   static const _priorities = ['low', 'medium', 'high', 'critical'];
 
@@ -2623,27 +3132,35 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
     try {
       final user = widget.ref.read(currentUserProvider);
       if (user == null) return;
-      await widget.ref.read(groupSavingsRepositoryProvider).createGroupSavingsGoal(
-        groupId: widget.groupId,
-        createdBy: user.uid,
-        name: name,
-        category: _category,
-        targetAmount: target,
-        monthlyContribution: contribution,
-        priority: _priority,
-      );
+      await widget.ref
+          .read(groupSavingsRepositoryProvider)
+          .createGroupSavingsGoal(
+            groupId: widget.groupId,
+            createdBy: user.uid,
+            name: name,
+            category: _category,
+            targetAmount: target,
+            monthlyContribution: contribution,
+            priority: _priority,
+          );
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Savings goal created'),
-              backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
+          const SnackBar(
+            content: Text('Savings goal created'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -2655,15 +3172,19 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Add Savings Goal',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Add Savings Goal',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -2703,11 +3224,19 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
             ),
             isExpanded: true,
             items: _categories
-                .map((c) => DropdownMenuItem(value: c,
-                    child: Text(c[0].toUpperCase() + c.substring(1).replaceAll('_', ' '),
-                        overflow: TextOverflow.ellipsis)))
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(
+                      c[0].toUpperCase() + c.substring(1).replaceAll('_', ' '),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
                 .toList(),
-            onChanged: (v) { if (v != null) setState(() => _category = v); },
+            onChanged: (v) {
+              if (v != null) setState(() => _category = v);
+            },
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -2717,17 +3246,29 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
               prefixIcon: Icon(Icons.priority_high),
             ),
             items: _priorities
-                .map((p) => DropdownMenuItem(value: p,
-                    child: Text(p[0].toUpperCase() + p.substring(1))))
+                .map(
+                  (p) => DropdownMenuItem(
+                    value: p,
+                    child: Text(p[0].toUpperCase() + p.substring(1)),
+                  ),
+                )
                 .toList(),
-            onChanged: (v) { if (v != null) setState(() => _priority = v); },
+            onChanged: (v) {
+              if (v != null) setState(() => _priority = v);
+            },
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Create Goal'),
           ),
         ],

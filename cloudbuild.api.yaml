@@ -1,0 +1,49 @@
+substitutions:
+  _REGION: northamerica-northeast1
+  _SERVICE: penny-api
+  _REPOSITORY: penny-api
+  _RUNTIME_SERVICE_ACCOUNT: penny-api-runtime
+  _ENV: staging
+  _API_CORS_ORIGINS: http://localhost:3000
+  _FIREBASE_AUTH_PROJECT_ID: penny-f4acd
+  _FIRESTORE_PROJECT_ID: penny-f4acd
+  _FIRESTORE_DATABASE_ID: (default)
+  _GEMINI_SECRET: penny-gemini-api-key
+  _CRON_SECRET: penny-cron-secret
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - Dockerfile.api
+      - -t
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE}:${SHORT_SHA}
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE}:${SHORT_SHA}
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE}:${SHORT_SHA}
+      - --platform=managed
+      - --region=${_REGION}
+      - --service-account=${_RUNTIME_SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com
+      - --allow-unauthenticated
+      - --port=8080
+      - --cpu=1
+      - --memory=512Mi
+      - --concurrency=80
+      - --timeout=120s
+      - --set-env-vars=NODE_ENV=production,OBSERVABILITY_ENV=${_ENV},FIREBASE_PROJECT_ID=${PROJECT_ID},FIREBASE_AUTH_PROJECT_ID=${_FIREBASE_AUTH_PROJECT_ID},FIRESTORE_PROJECT_ID=${_FIRESTORE_PROJECT_ID},API_CORS_ORIGINS=${_API_CORS_ORIGINS},FIRESTORE_DATABASE_ID=${_FIRESTORE_DATABASE_ID}
+      - --set-secrets=GEMINI_API_KEY=${_GEMINI_SECRET}:latest,CRON_SECRET=${_CRON_SECRET}:latest
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_SERVICE}:${SHORT_SHA}

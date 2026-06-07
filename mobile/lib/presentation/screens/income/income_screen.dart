@@ -32,7 +32,8 @@ class IncomeScreen extends ConsumerWidget {
         ],
       ),
       body: sourcesAsync.when(
-        data: (_) => _IncomeContent(onAdd: () => _showCreateIncome(context, ref)),
+        data: (_) =>
+            _IncomeContent(onAdd: () => _showCreateIncome(context, ref)),
         loading: () => const ShimmerCardAndList(),
         error: (e, _) => ErrorState(
           message: 'Could not load income sources',
@@ -74,7 +75,8 @@ class _IncomeContent extends ConsumerWidget {
 
           // Monthly summary
           Semantics(
-            label: 'Monthly income: ${formatter.format(totalMonthly)} per month',
+            label:
+                'Monthly income: ${formatter.format(totalMonthly)} per month',
             container: true,
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -87,7 +89,9 @@ class _IncomeContent extends ConsumerWidget {
                   Text(
                     DateFormat('MMMM yyyy').format(DateTime.now()),
                     style: TextStyle(
-                        fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -126,30 +130,43 @@ class _IncomeContent extends ConsumerWidget {
             PennyEmptyState(
               lottieAsset: 'assets/lottie/empty_box.json',
               title: 'No income sources',
-              subtitle: 'Add your salary, freelance gigs, or side income.\nPenny uses this to calculate your cash flow and net savings.',
+              subtitle:
+                  'Add your salary, freelance gigs, or side income.\nPenny uses this to calculate your cash flow and net savings.',
               onAction: onAdd,
               actionLabel: 'Add your first income source',
             )
           else ...[
-            Text('ACTIVE SOURCES',
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    letterSpacing: 1)),
+            Text(
+              'ACTIVE SOURCES',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
+            ),
             const SizedBox(height: 12),
-            ...activeSources.asMap().entries.map((entry) => AnimatedListItem(
-                  index: entry.key,
-                  child: _IncomeSourceTile(source: entry.value),
-                )),
+            ...activeSources.asMap().entries.map(
+              (entry) => AnimatedListItem(
+                index: entry.key,
+                child: _IncomeSourceTile(source: entry.value),
+              ),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total Monthly Income',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                Text(formatter.format(totalMonthly),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                const Text(
+                  'Total Monthly Income',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  formatter.format(totalMonthly),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ],
             ),
           ],
@@ -166,19 +183,26 @@ class _IncomeSourceTile extends ConsumerWidget {
   final IncomeSourceModel source;
 
   IconData get _icon => switch (source.category) {
-        'salary' => Icons.business_center_outlined,
-        'freelance' => Icons.laptop_outlined,
-        'bonus' => Icons.card_giftcard_outlined,
-        'investment' => Icons.trending_up_outlined,
-        'rental' => Icons.home_outlined,
-        'side_hustle' => Icons.rocket_launch_outlined,
-        'gift' => Icons.redeem_outlined,
-        _ => Icons.attach_money_outlined,
-      };
+    'salary' => Icons.business_center_outlined,
+    'freelance' => Icons.laptop_outlined,
+    'bonus' => Icons.card_giftcard_outlined,
+    'investment' => Icons.trending_up_outlined,
+    'rental' => Icons.home_outlined,
+    'side_hustle' => Icons.rocket_launch_outlined,
+    'gift' => Icons.redeem_outlined,
+    _ => Icons.attach_money_outlined,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    void openEditIncome() {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => _EditIncomeSheet(ref: ref, source: source),
+      );
+    }
 
     return Dismissible(
       key: Key(source.id),
@@ -194,13 +218,13 @@ class _IncomeSourceTile extends ConsumerWidget {
         HapticFeedback.mediumImpact();
       },
       child: GestureDetector(
-        onTap: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (_) => _EditIncomeSheet(ref: ref, source: source),
-        ),
+        behavior: HitTestBehavior.opaque,
+        onTap: openEditIncome,
         child: Semantics(
-          label: '${source.name}, ${source.category}, '
+          button: true,
+          onTap: openEditIncome,
+          label:
+              '${source.name}, ${source.category}, '
               '${formatter.format(source.amount)}${source.frequencyLabel}, '
               '${source.isActive ? 'active' : 'inactive'}',
           container: true,
@@ -209,21 +233,30 @@ class _IncomeSourceTile extends ConsumerWidget {
             child: Row(
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(_icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  child: Icon(
+                    _icon,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(source.name,
-                          style: const TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.w600)),
+                      Text(
+                        source.name,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
@@ -232,7 +265,8 @@ class _IncomeSourceTile extends ConsumerWidget {
                           Semantics(
                             label: source.isActive ? 'Active' : 'Inactive',
                             child: Container(
-                              width: 6, height: 6,
+                              width: 6,
+                              height: 6,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: source.isActive
@@ -242,16 +276,23 @@ class _IncomeSourceTile extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          Text(source.isActive ? 'Active' : 'Inactive',
-                              style: TextStyle(
-                                  fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                          Text(
+                            source.isActive ? 'Active' : 'Inactive',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
                 Semantics(
-                  label: 'Amount: ${formatter.format(source.amount)}${source.frequencyLabel}',
+                  label:
+                      'Amount: ${formatter.format(source.amount)}${source.frequencyLabel}',
                   child: Text(
                     '${formatter.format(source.amount)}${source.frequencyLabel}',
                     style: const TextStyle(
@@ -282,8 +323,13 @@ class _Tag extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(label,
-          style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
     );
   }
 }
@@ -304,8 +350,23 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
   bool _taxable = true;
   bool _saving = false;
 
-  static const _categories = ['salary', 'freelance', 'bonus', 'investment', 'rental', 'side_hustle', 'gift', 'other'];
-  static const _frequencies = ['monthly', 'biweekly', 'weekly', 'yearly', 'once'];
+  static const _categories = [
+    'salary',
+    'freelance',
+    'bonus',
+    'investment',
+    'rental',
+    'side_hustle',
+    'gift',
+    'other',
+  ];
+  static const _frequencies = [
+    'monthly',
+    'biweekly',
+    'weekly',
+    'yearly',
+    'once',
+  ];
 
   @override
   void dispose() {
@@ -322,7 +383,9 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
     setState(() => _saving = true);
     try {
       final user = widget.ref.read(currentUserProvider);
-      await widget.ref.read(incomeRepositoryProvider).createIncomeSource(
+      await widget.ref
+          .read(incomeRepositoryProvider)
+          .createIncomeSource(
             userId: user!.uid,
             name: name,
             category: _category,
@@ -336,7 +399,10 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -348,15 +414,19 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Add Income Source',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Add Income Source',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -366,23 +436,37 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
           TextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
+            decoration: const InputDecoration(
+              hintText: 'Amount',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _category,
             decoration: const InputDecoration(hintText: 'Category'),
-            items: _categories.map((c) =>
-                DropdownMenuItem(value: c, child: Text(c.replaceAll('_', ' ')))).toList(),
-            onChanged: (v) { if (v != null) setState(() => _category = v); },
+            items: _categories
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(c.replaceAll('_', ' ')),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _category = v);
+            },
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _frequency,
             decoration: const InputDecoration(hintText: 'Frequency'),
-            items: _frequencies.map((f) =>
-                DropdownMenuItem(value: f, child: Text(f))).toList(),
-            onChanged: (v) { if (v != null) setState(() => _frequency = v); },
+            items: _frequencies
+                .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                .toList(),
+            onChanged: (v) {
+              if (v != null) setState(() => _frequency = v);
+            },
           ),
           const SizedBox(height: 12),
           SwitchListTile(
@@ -396,8 +480,14 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Add Source'),
           ),
         ],
@@ -432,9 +522,15 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
     'rental',
     'side_hustle',
     'gift',
-    'other'
+    'other',
   ];
-  static const _frequencies = ['monthly', 'biweekly', 'weekly', 'yearly', 'once'];
+  static const _frequencies = [
+    'monthly',
+    'biweekly',
+    'weekly',
+    'yearly',
+    'once',
+  ];
 
   @override
   void initState() {
@@ -442,7 +538,8 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
     _nameController = TextEditingController(text: widget.source.name);
     _amountController = TextEditingController(
       text: widget.source.amount.toStringAsFixed(
-          widget.source.amount == widget.source.amount.roundToDouble() ? 0 : 2),
+        widget.source.amount == widget.source.amount.roundToDouble() ? 0 : 2,
+      ),
     );
     _category = _categories.contains(widget.source.category)
         ? widget.source.category
@@ -467,29 +564,30 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
 
     setState(() => _saving = true);
     try {
-      await widget.ref.read(incomeRepositoryProvider).updateIncomeSource(
-        widget.source.id,
-        {
-          'name': name,
-          'amount': amount,
-          'category': _category,
-          'frequency': _frequency,
-          'isRecurring': _frequency != 'once',
-          'taxable': _taxable,
-        },
-      );
+      await widget.ref
+          .read(incomeRepositoryProvider)
+          .updateIncomeSource(widget.source.id, {
+            'name': name,
+            'amount': amount,
+            'category': _category,
+            'frequency': _frequency,
+            'isRecurring': _frequency != 'once',
+            'taxable': _taxable,
+          });
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Income source updated')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Income source updated')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed: $e'), backgroundColor: AppColors.error),
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -510,8 +608,10 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Edit Income Source',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const Text(
+            'Edit Income Source',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -520,18 +620,23 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: _amountController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            decoration:
-                const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              hintText: 'Amount',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             value: _category,
             decoration: const InputDecoration(hintText: 'Category'),
             items: _categories
-                .map((c) => DropdownMenuItem(
-                    value: c, child: Text(c.replaceAll('_', ' '))))
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c,
+                    child: Text(c.replaceAll('_', ' ')),
+                  ),
+                )
                 .toList(),
             onChanged: (v) {
               if (v != null) setState(() => _category = v);
@@ -564,7 +669,10 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Save Changes'),
           ),
         ],
