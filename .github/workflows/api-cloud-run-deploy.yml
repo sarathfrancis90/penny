@@ -11,17 +11,6 @@ on:
         options:
           - staging
           - production
-  push:
-    branches: [main]
-    paths:
-      - 'apps/api/**'
-      - 'packages/**'
-      - 'scripts/api/**'
-      - 'Dockerfile.api'
-      - 'cloudbuild.api.yaml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.api.json'
 
 concurrency:
   group: api-cloud-run-${{ github.ref }}-${{ inputs.environment || 'staging' }}

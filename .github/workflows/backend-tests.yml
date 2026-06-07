@@ -27,6 +27,13 @@ jobs:
   test:
     name: Lint & Type Check
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyCIBuildOnly0000000000000000000000
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: penny-ci.firebaseapp.com
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: penny-ci
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: penny-ci.appspot.com
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "000000000000"
+      NEXT_PUBLIC_FIREBASE_APP_ID: 1:000000000000:web:0000000000000000000000
 
     steps:
       - name: Checkout code
