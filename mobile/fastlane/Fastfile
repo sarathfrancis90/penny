@@ -1,6 +1,39 @@
 default_platform(:ios)
 
 KEY_FILEPATH = File.expand_path("AuthKey_P97VLS6M6Z.p8", File.dirname(__FILE__))
+IOS_BUNDLE_ID = "com.penny.pennyMobile"
+IOS_TEAM_ID = "H845PX7Q62"
+IOS_DISTRIBUTION_IDENTITY = "Apple Distribution"
+ANDROID_PACKAGE_NAME = "com.penny.penny_mobile"
+ANDROID_METADATA_PATH = File.expand_path("metadata/android", File.dirname(__FILE__))
+
+def ios_app_store_export_options(profile_name)
+  {
+    signingStyle: "manual",
+    teamID: IOS_TEAM_ID,
+    signingCertificate: IOS_DISTRIBUTION_IDENTITY,
+    provisioningProfiles: {
+      IOS_BUNDLE_ID => profile_name
+    }
+  }
+end
+
+def ios_distribution_xcargs(profile_name)
+  [
+    "CODE_SIGN_STYLE=Manual",
+    "DEVELOPMENT_TEAM=#{IOS_TEAM_ID}",
+    "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
+    "CODE_SIGN_IDENTITY='#{IOS_DISTRIBUTION_IDENTITY}'"
+  ].join(" ")
+end
+
+def write_android_changelog(build_number, notes)
+  return unless build_number && notes
+
+  notes_dir = File.join(ANDROID_METADATA_PATH, "en-US", "changelogs")
+  FileUtils.mkdir_p(notes_dir)
+  File.write(File.join(notes_dir, "#{build_number}.txt"), notes)
+end
 
 platform :ios do
 
@@ -15,13 +48,13 @@ platform :ios do
 
     produce(
       username: "sarathfrancis90@icloud.com",
-      app_identifier: "com.penny.pennyMobile",
+      app_identifier: IOS_BUNDLE_ID,
       app_name: "Penny - AI Expense Tracker",
       language: "English",
       app_version: "1.0.0",
       sku: "penny-mobile-001",
-      team_id: "H845PX7Q62",
-      itc_team_id: "H845PX7Q62",
+      team_id: IOS_TEAM_ID,
+      itc_team_id: IOS_TEAM_ID,
       skip_devcenter: true
     )
   end
@@ -60,22 +93,26 @@ platform :ios do
       sh(*build_args)
     end
 
-    # Enable automatic signing
-    update_code_signing_settings(
-      use_automatic_signing: true,
-      team_id: "H845PX7Q62",
-      path: "ios/Runner.xcodeproj"
-    )
-
     # Fetch or create App Store distribution provisioning profile
     get_provisioning_profile(
       api_key: api_key,
-      app_identifier: "com.penny.pennyMobile",
+      app_identifier: IOS_BUNDLE_ID,
       force: true,
       skip_certificate_verification: true
     )
 
     profile_name = lane_context[SharedValues::SIGH_NAME]
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      team_id: IOS_TEAM_ID,
+      path: "ios/Runner.xcodeproj",
+      targets: ["Runner"],
+      build_configurations: ["Release"],
+      code_sign_identity: IOS_DISTRIBUTION_IDENTITY,
+      profile_name: profile_name,
+      bundle_identifier: IOS_BUNDLE_ID
+    )
 
     # Archive and export IPA with explicit profile mapping
     build_app(
@@ -83,14 +120,9 @@ platform :ios do
       scheme: "Runner",
       export_method: "app-store",
       clean: true,
-      export_options: {
-        signingStyle: "manual",
-        teamID: "H845PX7Q62",
-        signingCertificate: "Apple Distribution",
-        provisioningProfiles: {
-          "com.penny.pennyMobile" => profile_name
-        }
-      }
+      codesigning_identity: IOS_DISTRIBUTION_IDENTITY,
+      xcargs: ios_distribution_xcargs(profile_name),
+      export_options: ios_app_store_export_options(profile_name)
     )
 
     # Upload to TestFlight
@@ -119,7 +151,7 @@ platform :ios do
       filepath: KEY_FILEPATH
     )
 
-    app = Spaceship::ConnectAPI::App.find("com.penny.pennyMobile")
+    app = Spaceship::ConnectAPI::App.find(IOS_BUNDLE_ID)
     UI.message("App: #{app.name} (id: #{app.id})")
 
     versions = app.get_app_store_versions(filter: { versionString: target_version, platform: "IOS" })
@@ -172,7 +204,7 @@ platform :ios do
 
     deliver(
       api_key: api_key,
-      app_identifier: "com.penny.pennyMobile",
+      app_identifier: IOS_BUNDLE_ID,
       app_version: target_version,
       build_number: build_number,
       skip_binary_upload: true,
@@ -198,7 +230,7 @@ platform :ios do
 
     update_code_signing_settings(
       use_automatic_signing: true,
-      team_id: "H845PX7Q62",
+      team_id: IOS_TEAM_ID,
       path: "ios/Runner.xcodeproj"
     )
 
@@ -237,34 +269,34 @@ platform :ios do
          "--build-number=#{build_number}")
     end
 
-    update_code_signing_settings(
-      use_automatic_signing: true,
-      team_id: "H845PX7Q62",
-      path: "ios/Runner.xcodeproj"
-    )
-
     get_provisioning_profile(
       api_key: api_key,
-      app_identifier: "com.penny.pennyMobile",
+      app_identifier: IOS_BUNDLE_ID,
       force: true,
       skip_certificate_verification: true
     )
 
     profile_name = lane_context[SharedValues::SIGH_NAME]
 
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      team_id: IOS_TEAM_ID,
+      path: "ios/Runner.xcodeproj",
+      targets: ["Runner"],
+      build_configurations: ["Release"],
+      code_sign_identity: IOS_DISTRIBUTION_IDENTITY,
+      profile_name: profile_name,
+      bundle_identifier: IOS_BUNDLE_ID
+    )
+
     build_app(
       workspace: "ios/Runner.xcworkspace",
       scheme: "Runner",
       export_method: "app-store",
       clean: true,
-      export_options: {
-        signingStyle: "manual",
-        teamID: "H845PX7Q62",
-        signingCertificate: "Apple Distribution",
-        provisioningProfiles: {
-          "com.penny.pennyMobile" => profile_name
-        }
-      }
+      codesigning_identity: IOS_DISTRIBUTION_IDENTITY,
+      xcargs: ios_distribution_xcargs(profile_name),
+      export_options: ios_app_store_export_options(profile_name)
     )
 
     # === UPLOAD TO TESTFLIGHT (wait for processing so submit can proceed) ===
@@ -298,11 +330,7 @@ platform :android do
     build_number = options[:build]
     notes        = options[:notes]
 
-    if build_number && notes
-      notes_dir = "metadata/android/en-US/changelogs"
-      FileUtils.mkdir_p("./fastlane/#{notes_dir}")
-      File.write("./fastlane/#{notes_dir}/#{build_number}.txt", notes)
-    end
+    write_android_changelog(build_number, notes)
 
     Dir.chdir("..") do
       sh("flutter", "clean")
@@ -319,8 +347,9 @@ platform :android do
       track: "internal",
       aab: "build/app/outputs/bundle/release/app-release.aab",
       json_key: "fastlane/play-store-key.json",
-      package_name: "com.penny.penny_mobile",
+      package_name: ANDROID_PACKAGE_NAME,
       release_status: "completed",
+      metadata_path: ANDROID_METADATA_PATH,
       skip_upload_metadata: true,
       skip_upload_changelogs: build_number.nil? || notes.nil?,
       skip_upload_images: true,
@@ -340,9 +369,7 @@ platform :android do
     notes        = options[:notes]   || UI.user_error!("notes: required (release notes text)")
 
     # Write release notes to the locale path supply expects (en-US is Play Store default)
-    notes_dir = "metadata/android/en-US/changelogs"
-    FileUtils.mkdir_p("./fastlane/#{notes_dir}")
-    File.write("./fastlane/#{notes_dir}/#{build_number}.txt", notes)
+    write_android_changelog(build_number, notes)
 
     # Build AAB with explicit version + build number
     Dir.chdir("..") do
@@ -359,8 +386,9 @@ platform :android do
       track: "internal",
       aab: "build/app/outputs/bundle/release/app-release.aab",
       json_key: "fastlane/play-store-key.json",
-      package_name: "com.penny.penny_mobile",
+      package_name: ANDROID_PACKAGE_NAME,
       release_status: "completed",
+      metadata_path: ANDROID_METADATA_PATH,
       skip_upload_metadata: true,
       skip_upload_changelogs: false,
       skip_upload_images: true,
@@ -373,19 +401,16 @@ platform :android do
     build_number = options[:build] || UI.user_error!("build: required")
     notes        = options[:notes]
 
-    if notes
-      notes_dir = "metadata/android/en-US/changelogs"
-      FileUtils.mkdir_p("./fastlane/#{notes_dir}")
-      File.write("./fastlane/#{notes_dir}/#{build_number}.txt", notes)
-    end
+    write_android_changelog(build_number, notes)
 
     supply(
       track: "internal",
       track_promote_to: "production",
       json_key: "fastlane/play-store-key.json",
-      package_name: "com.penny.penny_mobile",
+      package_name: ANDROID_PACKAGE_NAME,
       release_status: "completed",
       rollout: 1.0,
+      metadata_path: ANDROID_METADATA_PATH,
       skip_upload_metadata: true,
       skip_upload_changelogs: notes.nil?,
       skip_upload_images: true,
@@ -397,7 +422,7 @@ platform :android do
   lane :metadata do
     supply(
       json_key: "fastlane/play-store-key.json",
-      package_name: "com.penny.penny_mobile",
+      package_name: ANDROID_PACKAGE_NAME,
       skip_upload_apk: true,
       skip_upload_aab: true
     )

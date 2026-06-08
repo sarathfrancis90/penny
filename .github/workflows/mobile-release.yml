@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       build_number:
-        description: 'Optional build number. Defaults to github.run_number + 100.'
+        description: 'Optional build number. Defaults to github.run_number + 10000 to stay above store build codes.'
         required: false
         type: string
 
@@ -52,7 +52,7 @@ jobs:
           if [ -n "${DISPATCH_BUILD:-}" ]; then
             BUILD_NUMBER="$DISPATCH_BUILD"
           else
-            BUILD_NUMBER=$(( ${{ github.run_number }} + 100 ))
+            BUILD_NUMBER=$(( ${{ github.run_number }} + 10000 ))
           fi
 
           PUBSPEC_VERSION="$(awk '/^version:/ {print $2; exit}' mobile/pubspec.yaml)"

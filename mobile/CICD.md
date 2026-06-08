@@ -45,7 +45,7 @@ Versioning rule:
 - **Tag** = `v<major>.<minor>.<patch>` (e.g. `v2.2.2`)
 - **Manual dispatch version** = same value without the `v` prefix
 - **iOS `CFBundleShortVersionString`** = tag stripped of `v` prefix (e.g. `2.2.2`)
-- **iOS `CFBundleVersion`** (build number) = manual input or `${{ github.run_number }} + 100`
+- **iOS `CFBundleVersion`** (build number) = manual input or `${{ github.run_number }} + 10000`
 - **Android `versionName`** = same as iOS short version
 - **Android `versionCode`** = same build number
 
@@ -120,9 +120,9 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 | **iOS submit blocked: "whatsNew missing"** | `appStoreVersions ... not in valid state` | Run `fastlane repair_and_submit` — it drops stray locales and sets en-CA whatsNew via Spaceship. |
 | **iOS submit blocked: "English (U.S.) - Description / Keywords / Support URL required"** | A previous deliver call created a blank en-US locale | Same: `fastlane repair_and_submit` cleans up the stray locale. |
 | **iOS upload rejected: "Invalid Pre-Release Train. The train version 'X.Y.Z' is closed"** | Marketing version was already shipped to App Store | Bump the marketing version (e.g. `2.2.0` → `2.2.1`). Build number alone is not enough once a train is closed. |
-| **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number + 100` unless manually overridden. Locally, bump `+N` in `pubspec.yaml`. |
+| **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump `+N` in `pubspec.yaml`. |
 | **Android upload: "Could not find aab file"** | Path mismatch | The Fastfile path is relative to `mobile/`, not `mobile/fastlane/`. Should be `build/app/outputs/bundle/release/app-release.aab`. (Already fixed in commit `162372f`.) |
-| **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number + 100` unless manually overridden. Locally, bump build number in `pubspec.yaml`. |
+| **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump build number in `pubspec.yaml`. |
 | **Pre-push hook hangs/fails** | Local push blocked | The hook is `.githooks/pre-push`, runs `flutter test`. If a test legitimately fails, fix it. To debug: `cd mobile && flutter test`. |
 | **CI iOS build fails: "No signing certificate"** | The base64 cert secret is wrong or the keychain step failed | Re-export the .p12 from Keychain Access (make sure to include the private key) and re-add `IOS_DIST_CERT_P12_BASE64`. |
 | **App Store version stuck after a failed submit** | Can't re-submit, locale rows half-filled | `fastlane repair_and_submit version:X build:Y notes:"..."` — handles all of it. Don't try to delete the version via API; Apple doesn't expose that endpoint. |
