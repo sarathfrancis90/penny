@@ -20,6 +20,8 @@ git push origin main --tags
 
 GitHub Actions uploads to **TestFlight** and **Play internal testing** only. After internal validation is clean, run **Mobile Production Promotion** manually from GitHub Actions with the validated version and build number.
 
+Manual internal dispatch also supports `platform=ios` or `platform=android` for store-specific retries without rebuilding the other platform.
+
 ---
 
 ## Architecture
@@ -50,6 +52,7 @@ Versioning rule:
 - **Android `versionCode`** = same build number
 
 The `pubspec.yaml` marketing version must match the tag/manual version. CI overrides the build number for uniqueness across re-runs.
+Manual dispatch accepts `platform=all` (default), `platform=ios`, or `platform=android`; tag pushes always upload both platforms.
 
 **Why internal-first?** Store-distributed binaries are validated before any production review/promotion starts.
 
@@ -122,6 +125,7 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 | **iOS upload rejected: "Invalid Pre-Release Train. The train version 'X.Y.Z' is closed"** | Marketing version was already shipped to App Store | Bump the marketing version (e.g. `2.2.0` → `2.2.1`). Build number alone is not enough once a train is closed. |
 | **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump `+N` in `pubspec.yaml`. |
 | **iOS upload rejected: "SDK version issue"** | App Store Connect requires iOS 26 SDK or later | Ensure Apple-facing workflow jobs use `runs-on: macos-26`, then rerun the internal release with a fresh build number. |
+| **iOS internal upload appears stuck in GitHub Actions** | `Upload TestFlight internal build` runs for a long time after signing succeeds | Cancel the stuck run if needed, then manually dispatch `Mobile Internal Release` with `platform=ios`. Internal TestFlight upload skips changelog metadata to avoid waiting for Apple build processing. |
 | **Android upload: "Could not find aab file"** | Path mismatch | The Fastfile path is relative to `mobile/`, not `mobile/fastlane/`. Should be `build/app/outputs/bundle/release/app-release.aab`. (Already fixed in commit `162372f`.) |
 | **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump build number in `pubspec.yaml`. |
 | **Pre-push hook hangs/fails** | Local push blocked | The hook is `.githooks/pre-push`, runs `flutter test`. If a test legitimately fails, fix it. To debug: `cd mobile && flutter test`. |
@@ -135,7 +139,7 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 Release notes live as plain-text files at `mobile/release_notes/v<version>.txt`. Each file is the **What's New** content for both iOS and Android.
 
 - The pipeline reads `mobile/release_notes/v${VERSION}.txt` and **fails fast if missing**, so you can never ship without notes.
-- iOS notes go to TestFlight changelog during internal release and to the `en-CA` localization's `whatsNew` field during production promotion.
+- iOS notes are required for release traceability and are applied to the `en-CA` localization's `whatsNew` field during production promotion. Internal TestFlight upload does not attach changelog metadata because that can force a processing wait even for internal-only validation.
 - Android notes go to the `en-US` localization (Play Store default).
 - Keep them under 4000 chars for iOS / 500 chars for Android (use the shorter of the two as your guide).
 

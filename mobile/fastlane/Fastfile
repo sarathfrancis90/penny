@@ -114,11 +114,11 @@ platform :ios do
       export_options: ios_app_store_export_options(profile_name)
     )
 
-    # Upload to TestFlight
+    # Internal uploads intentionally skip changelog metadata so Fastlane does not
+    # wait for Apple build processing before returning.
     upload_to_testflight(
       api_key: api_key,
-      skip_waiting_for_build_processing: true,
-      changelog: notes
+      skip_waiting_for_build_processing: true
     )
   end
 

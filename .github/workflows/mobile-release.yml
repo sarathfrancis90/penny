@@ -19,9 +19,18 @@ on:
         description: 'Optional build number. Defaults to github.run_number + 10000 to stay above store build codes.'
         required: false
         type: string
+      platform:
+        description: 'Platform to upload. Use ios/android for store-specific retries.'
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - ios
+          - android
 
 concurrency:
-  group: mobile-internal-release-${{ github.ref }}-${{ github.event.inputs.version || '' }}
+  group: mobile-internal-release-${{ github.ref }}-${{ github.event.inputs.version || github.ref_name }}-${{ github.event.inputs.platform || 'all' }}
   cancel-in-progress: false
 
 jobs:
@@ -88,6 +97,7 @@ jobs:
   ios:
     name: iOS -> TestFlight internal
     needs: derive
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'ios' }}
     runs-on: macos-26
     timeout-minutes: 90
 
@@ -175,6 +185,7 @@ jobs:
   android:
     name: Android -> Play internal
     needs: derive
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'android' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
