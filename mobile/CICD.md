@@ -35,7 +35,7 @@ tag v*.*.* or manual dispatch       manual promotion after validation
         └── Android: build AAB -> Play internal
 ```
 
-Internal jobs are independent. Production promotion is manual-only and guarded by the GitHub `production` environment.
+Internal jobs are independent. Apple-facing jobs run on GitHub's `macos-26` image so uploads are built with the iOS 26 SDK required by App Store Connect. Production promotion is manual-only and guarded by the GitHub `production` environment.
 
 ---
 
@@ -121,6 +121,7 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 | **iOS submit blocked: "English (U.S.) - Description / Keywords / Support URL required"** | A previous deliver call created a blank en-US locale | Same: `fastlane repair_and_submit` cleans up the stray locale. |
 | **iOS upload rejected: "Invalid Pre-Release Train. The train version 'X.Y.Z' is closed"** | Marketing version was already shipped to App Store | Bump the marketing version (e.g. `2.2.0` → `2.2.1`). Build number alone is not enough once a train is closed. |
 | **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump `+N` in `pubspec.yaml`. |
+| **iOS upload rejected: "SDK version issue"** | App Store Connect requires iOS 26 SDK or later | Ensure Apple-facing workflow jobs use `runs-on: macos-26`, then rerun the internal release with a fresh build number. |
 | **Android upload: "Could not find aab file"** | Path mismatch | The Fastfile path is relative to `mobile/`, not `mobile/fastlane/`. Should be `build/app/outputs/bundle/release/app-release.aab`. (Already fixed in commit `162372f`.) |
 | **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump build number in `pubspec.yaml`. |
 | **Pre-push hook hangs/fails** | Local push blocked | The hook is `.githooks/pre-push`, runs `flutter test`. If a test legitimately fails, fix it. To debug: `cd mobile && flutter test`. |
