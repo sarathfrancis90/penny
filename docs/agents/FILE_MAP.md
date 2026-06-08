@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every nonignored untracked file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 804
+- Total source-visible files: 809
 
 | Path | Area |
 |---|---|
@@ -64,6 +64,10 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `apps/api/src/routes/user/routes.ts` | standalone-api |
 | `apps/api/src/server.ts` | standalone-api |
 | `apps/api/src/services/__tests__/firebase-admin.test.ts` | standalone-api |
+| `apps/api/src/services/__tests__/firestore-budgets.notifications.test.ts` | standalone-api |
+| `apps/api/src/services/__tests__/firestore-expenses.notifications.test.ts` | standalone-api |
+| `apps/api/src/services/__tests__/firestore-groups.notifications.test.ts` | standalone-api |
+| `apps/api/src/services/__tests__/notifications.test.ts` | standalone-api |
 | `apps/api/src/services/accounts.ts` | standalone-api |
 | `apps/api/src/services/ai.ts` | standalone-api |
 | `apps/api/src/services/budgets.ts` | standalone-api |
@@ -79,6 +83,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `apps/api/src/services/gemini-ai.ts` | standalone-api |
 | `apps/api/src/services/groups.ts` | standalone-api |
 | `apps/api/src/services/index.ts` | standalone-api |
+| `apps/api/src/services/notifications.ts` | standalone-api |
 | `apps/api/src/services/production.ts` | standalone-api |
 | `apps/api/src/services/user-preferences.ts` | standalone-api |
 | `apps/api/src/types/fastify.d.ts` | standalone-api |

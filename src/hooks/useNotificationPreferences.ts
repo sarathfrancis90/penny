@@ -13,6 +13,8 @@ const DEFAULT_PREFERENCES: Record<NotificationType, {
 }> = {
   // Group notifications - High priority, realtime
   'group_expense_added': { inApp: true, push: true, frequency: 'realtime' },
+  'group_expense_updated': { inApp: true, push: true, frequency: 'realtime' },
+  'group_expense_deleted': { inApp: true, push: true, frequency: 'realtime' },
   'group_invitation': { inApp: true, push: true, frequency: 'realtime' },
   'group_member_joined': { inApp: true, push: false, frequency: 'realtime' },
   'group_member_left': { inApp: true, push: false, frequency: 'realtime' },

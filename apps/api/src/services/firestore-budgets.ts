@@ -15,6 +15,10 @@ import type {
   GroupBudgetUsageInput,
   UpdateBudgetInput,
 } from './budgets';
+import {
+  createNoopNotificationService,
+  type NotificationService,
+} from './notifications';
 
 function currentPeriod(): BudgetPeriod {
   const now = new Date();
@@ -232,7 +236,10 @@ function resolveUsagePeriod(input: BudgetUsageInput | GroupBudgetUsageInput) {
   };
 }
 
-export function createFirestoreBudgetService(db: Firestore): BudgetService {
+export function createFirestoreBudgetService(
+  db: Firestore,
+  notifications: NotificationService = createNoopNotificationService(),
+): BudgetService {
   return {
     async listPersonalBudgets(input) {
       const query = withBudgetFilters(
@@ -392,6 +399,25 @@ export function createFirestoreBudgetService(db: Firestore): BudgetService {
       };
 
       const docRef = await db.collection('budgets_group').add(budgetData);
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.userId,
+        type: 'group_settings_changed',
+        title: 'Group budget created',
+        bodyTemplate: `{actor} created a ${input.category} budget for {group}`,
+        category: 'group',
+        priority: 'low',
+        icon: 'budget',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: docRef.id,
+        relatedType: 'budget',
+        metadata: {
+          action: 'created',
+          category: input.category,
+          monthlyLimit: input.monthlyLimit,
+          period: input.period,
+        },
+      });
       return { id: docRef.id, ...budgetData };
     },
 
@@ -423,6 +449,25 @@ export function createFirestoreBudgetService(db: Firestore): BudgetService {
 
       await doc.ref.update(updateData);
       const updated = await doc.ref.get();
+      await notifications.notifyGroupMembers({
+        groupId: String(existing.groupId),
+        actorUserId: input.userId,
+        type: 'group_settings_changed',
+        title: 'Group budget updated',
+        bodyTemplate: `{actor} updated the ${existing.category} budget for {group}`,
+        category: 'group',
+        priority: 'low',
+        icon: 'budget',
+        actionUrl: `/groups/${existing.groupId}`,
+        relatedId: input.id,
+        relatedType: 'budget',
+        metadata: {
+          action: 'updated',
+          category: existing.category,
+          monthlyLimit: input.monthlyLimit ?? existing.monthlyLimit,
+          settingsChanged: Boolean(input.settings),
+        },
+      });
       return { id: updated.id, ...(updated.data() ?? {}) };
     },
 
@@ -437,6 +482,25 @@ export function createFirestoreBudgetService(db: Firestore): BudgetService {
         category: budget.category,
         'period.month': budget.period?.month,
         'period.year': budget.period?.year,
+      });
+      await notifications.notifyGroupMembers({
+        groupId: String(budget.groupId),
+        actorUserId: input.userId,
+        type: 'group_settings_changed',
+        title: 'Group budget deleted',
+        bodyTemplate: `{actor} deleted the ${budget.category} budget for {group}`,
+        category: 'group',
+        priority: 'low',
+        icon: 'budget',
+        actionUrl: `/groups/${budget.groupId}`,
+        relatedId: input.id,
+        relatedType: 'budget',
+        metadata: {
+          action: 'deleted',
+          category: budget.category,
+          monthlyLimit: budget.monthlyLimit,
+          period: budget.period,
+        },
       });
     },
 

@@ -14,6 +14,8 @@ import { Timestamp } from 'firebase/firestore';
 export enum NotificationType {
   // Group Activity
   GROUP_EXPENSE_ADDED = 'group_expense_added',
+  GROUP_EXPENSE_UPDATED = 'group_expense_updated',
+  GROUP_EXPENSE_DELETED = 'group_expense_deleted',
   GROUP_INVITATION = 'group_invitation',
   GROUP_MEMBER_JOINED = 'group_member_joined',
   GROUP_MEMBER_LEFT = 'group_member_left',
@@ -303,6 +305,20 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: Omit<NotificationPreferences, 'us
       frequency: 'realtime',
       priority: 'medium',
     },
+    [NotificationType.GROUP_EXPENSE_UPDATED]: {
+      inApp: true,
+      push: true,
+      email: false,
+      frequency: 'realtime',
+      priority: 'medium',
+    },
+    [NotificationType.GROUP_EXPENSE_DELETED]: {
+      inApp: true,
+      push: true,
+      email: false,
+      frequency: 'realtime',
+      priority: 'medium',
+    },
     [NotificationType.GROUP_INVITATION]: {
       inApp: true,
       push: true,
@@ -442,4 +458,3 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: Omit<NotificationPreferences, 'us
   soundEnabled: true,
   badgeCount: true,
 };
-

@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
 
 class GroupBudgetModel {
@@ -44,9 +46,13 @@ class GroupBudgetModel {
 }
 
 class GroupBudgetRepository {
-  GroupBudgetRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  GroupBudgetRepository({
+    required ApiClient apiClient,
+    FirebaseFirestore? firestore,
+  })  : _api = apiClient,
+        _db = firestore ?? FirebaseFirestore.instance;
 
+  final ApiClient _api;
   final FirebaseFirestore _db;
 
   /// Stream group budgets for a group and period.
@@ -70,31 +76,31 @@ class GroupBudgetRepository {
     required String setByRole,
     BudgetSettings settings = const BudgetSettings(),
   }) async {
-    final now = Timestamp.now();
-    final doc = await _db.collection('budgets_group').add({
-      'groupId': groupId,
-      'category': category,
-      'monthlyLimit': monthlyLimit,
-      'period': period.toMap(),
-      'setBy': setBy,
-      'setByRole': setByRole,
-      'settings': settings.toMap(),
-      'createdAt': now,
-      'updatedAt': now,
-    });
-    return doc.id;
+    final response = await _api.post(
+      ApiEndpoints.groupBudgets,
+      data: {
+        'groupId': groupId,
+        'userId': setBy,
+        'category': category,
+        'monthlyLimit': monthlyLimit,
+        'period': period.toMap(),
+        'settings': settings.toMap(),
+        'setByRole': setByRole,
+      },
+    );
+    final data = response.data as Map<String, dynamic>;
+    return data['id'] as String;
   }
 
   /// Update a group budget.
   Future<void> updateGroupBudget(String budgetId, Map<String, dynamic> updates) {
-    return _db.collection('budgets_group').doc(budgetId).update({
-      ...updates,
-      'updatedAt': Timestamp.now(),
-    });
+    return _api
+        .put(ApiEndpoints.groupBudgetById(budgetId), data: updates)
+        .then((_) => null);
   }
 
   /// Delete a group budget.
   Future<void> deleteGroupBudget(String budgetId) {
-    return _db.collection('budgets_group').doc(budgetId).delete();
+    return _api.delete(ApiEndpoints.groupBudgetById(budgetId)).then((_) => null);
   }
 }

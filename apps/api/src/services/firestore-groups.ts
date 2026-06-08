@@ -2,6 +2,10 @@ import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { randomBytes } from 'node:crypto';
 
 import type { CreateGroupInput, GroupRole, GroupService } from './groups';
+import {
+  createNoopNotificationService,
+  type NotificationService,
+} from './notifications';
 
 const DEFAULT_ROLE_PERMISSIONS = {
   owner: {
@@ -74,7 +78,10 @@ function isRole(value: unknown): value is GroupRole {
   return value === 'owner' || value === 'admin' || value === 'member' || value === 'viewer';
 }
 
-export function createFirestoreGroupService(db: Firestore): GroupService {
+export function createFirestoreGroupService(
+  db: Firestore,
+  notifications: NotificationService = createNoopNotificationService(),
+): GroupService {
   async function getActiveMembership(groupId: string, userId: string) {
     const doc = await db.collection('groupMembers').doc(`${groupId}_${userId}`).get();
     if (!doc.exists || doc.data()?.status !== 'active') {
@@ -196,11 +203,102 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
     },
 
     async updateGroup(input) {
-      await db.collection('groups').doc(input.groupId).update({
-        ...input.updates,
-        updatedAt: Timestamp.now(),
+      const membership = await getActiveMembership(input.groupId, input.userId);
+      const membershipData = membership.data() ?? {};
+      const isOwner = membershipData.role === 'owner';
+      const isAdmin = membershipData.role === 'admin' || isOwner;
+      if (!isAdmin) {
+        throw forbidden('Only owners and admins can update group details');
+      }
+
+      const now = Timestamp.now();
+      const groupRef = db.collection('groups').doc(input.groupId);
+      const groupDoc = await groupRef.get();
+      if (!groupDoc.exists) throw notFound('Group not found');
+      const currentGroup = groupDoc.data() ?? {};
+      const updateData: Record<string, unknown> = { updatedAt: now };
+      const changes: string[] = [];
+
+      if (input.updates.name !== undefined) {
+        if (
+          typeof input.updates.name !== 'string' ||
+          input.updates.name.trim().length < 2 ||
+          input.updates.name.trim().length > 100
+        ) {
+          throw badRequest('Name must be between 2 and 100 characters');
+        }
+        updateData.name = input.updates.name.trim();
+        changes.push('name');
+      }
+      if (input.updates.description !== undefined) {
+        updateData.description =
+          typeof input.updates.description === 'string'
+            ? input.updates.description.trim()
+            : '';
+        changes.push('description');
+      }
+      if (input.updates.color !== undefined) {
+        updateData.color = input.updates.color;
+        changes.push('color');
+      }
+      if (input.updates.icon !== undefined) {
+        updateData.icon = input.updates.icon;
+        changes.push('icon');
+      }
+      if (input.updates.settings !== undefined) {
+        if (!membershipData.permissions?.canManageSettings) {
+          throw forbidden('No permission to update group settings');
+        }
+        if (
+          !input.updates.settings ||
+          typeof input.updates.settings !== 'object' ||
+          Array.isArray(input.updates.settings)
+        ) {
+          throw badRequest('settings must be an object');
+        }
+        const cleanedSettings = Object.fromEntries(
+          Object.entries(input.updates.settings as Record<string, unknown>)
+            .filter(([, value]) => value !== undefined),
+        );
+        updateData.settings = {
+          ...(currentGroup.settings ?? {}),
+          ...cleanedSettings,
+        };
+        changes.push('settings');
+      }
+
+      if (changes.length === 0) {
+        throw badRequest('No valid group updates provided');
+      }
+
+      await groupRef.update(updateData);
+      await db.collection('groupActivities').doc().set({
+        groupId: input.groupId,
+        userId: input.userId,
+        userName:
+          membershipData.userName ?? membershipData.userEmail ?? 'Admin',
+        action: 'group_updated',
+        details: 'Updated group details',
+        metadata: { changes },
+        createdAt: now,
       });
-      const updated = await db.collection('groups').doc(input.groupId).get();
+
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.userId,
+        type: 'group_settings_changed',
+        title: 'Group updated',
+        bodyTemplate: '{actor} updated {group}',
+        category: 'group',
+        priority: 'low',
+        icon: 'settings',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: input.groupId,
+        relatedType: 'group',
+        metadata: { changes },
+      });
+
+      const updated = await groupRef.get();
       return { ...(updated.data() ?? {}), id: updated.id };
     },
 
@@ -265,6 +363,27 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
           membershipData.userName ?? membershipData.userEmail ?? 'Unknown User'
         }`,
         createdAt: now,
+      });
+
+      const recipients = members.docs
+        .map((doc) => doc.data().userId)
+        .filter((userId): userId is string => (
+          typeof userId === 'string' && userId !== input.userId
+        ));
+      await notifications.notifyUsers({
+        userIds: recipients,
+        type: 'group_settings_changed',
+        title: 'Group deleted',
+        body: `${membershipData.userName ?? membershipData.userEmail ?? 'Someone'} deleted the group`,
+        category: 'group',
+        priority: 'high',
+        icon: 'delete',
+        relatedId: input.groupId,
+        relatedType: 'group',
+        groupId: input.groupId,
+        actorId: input.userId,
+        actorName:
+          membershipData.userName ?? membershipData.userEmail ?? 'Someone',
       });
     },
 
@@ -337,6 +456,51 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
         createdAt: now,
       });
 
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.userId,
+        type: 'group_settings_changed',
+        title: 'Member invited',
+        bodyTemplate: `{actor} invited ${email} to {group}`,
+        category: 'group',
+        priority: 'low',
+        icon: 'member',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: invitationRef.id,
+        relatedType: 'member',
+        metadata: { email, role: input.role, invitationId: invitationRef.id },
+      });
+
+      const invitedUsers = await db
+        .collection('users')
+        .where('email', '==', email)
+        .limit(1)
+        .get();
+      const invitedUserId = invitedUsers.docs[0]?.id;
+      if (invitedUserId && invitedUserId !== input.userId) {
+        await notifications.notifyUsers({
+          userIds: [invitedUserId],
+          type: 'group_invitation',
+          title: 'Group invitation',
+          body: `${inviterData.userName ?? inviterData.userEmail ?? 'Someone'} invited you to join ${groupData.name}`,
+          category: 'group',
+          priority: 'high',
+          icon: 'invite',
+          actionUrl: `/groups/${input.groupId}`,
+          relatedId: input.groupId,
+          relatedType: 'group',
+          groupId: input.groupId,
+          actorId: input.userId,
+          actorName: inviterData.userName ?? inviterData.userEmail ?? 'Someone',
+          metadata: {
+            groupName: groupData.name,
+            groupIcon: groupData.icon,
+            invitationId: invitationRef.id,
+            role: input.role,
+          },
+        });
+      }
+
       return { invitationId: invitationRef.id, token };
     },
 
@@ -381,6 +545,26 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
         },
         createdAt: Timestamp.now(),
       });
+
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.requesterUserId,
+        type: 'group_role_changed',
+        title: 'Member role updated',
+        bodyTemplate: `{actor} changed ${targetData.userEmail ?? 'a member'} from ${targetData.role} to ${input.newRole}`,
+        category: 'group',
+        priority: 'medium',
+        icon: 'role',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: targetData.userId ?? target.id,
+        relatedType: 'member',
+        metadata: {
+          targetUserId: targetData.userId,
+          targetEmail: targetData.userEmail,
+          oldRole: targetData.role,
+          newRole: input.newRole,
+        },
+      });
     },
 
     async removeMember(input) {
@@ -394,6 +578,29 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
         }
         await target.ref.update({ status: 'left', leftAt: now, lastActivityAt: now });
         await decrementMemberCount(input.groupId);
+        await db.collection('groupActivities').doc().set({
+          groupId: input.groupId,
+          userId: input.requesterUserId,
+          userName: targetData.userName ?? targetData.userEmail ?? 'Member',
+          action: 'member_left',
+          details: `${targetData.userEmail} left the group`,
+          metadata: { userId: targetData.userId, email: targetData.userEmail },
+          createdAt: now,
+        });
+        await notifications.notifyGroupMembers({
+          groupId: input.groupId,
+          actorUserId: input.requesterUserId,
+          type: 'group_member_left',
+          title: 'Member left',
+          bodyTemplate: '{actor} left {group}',
+          category: 'group',
+          priority: 'low',
+          icon: 'member',
+          actionUrl: `/groups/${input.groupId}`,
+          relatedId: targetData.userId,
+          relatedType: 'member',
+          metadata: { userId: targetData.userId, email: targetData.userEmail },
+        });
         return;
       }
 
@@ -425,6 +632,44 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
           removedEmail: targetData.userEmail,
         },
         createdAt: now,
+      });
+
+      if (typeof targetData.userId === 'string') {
+        await notifications.notifyUsers({
+          userIds: [targetData.userId],
+          type: 'group_member_left',
+          title: 'Removed from group',
+          body: `You were removed from the group by ${requesterData.userName ?? requesterData.userEmail ?? 'an admin'}`,
+          category: 'group',
+          priority: 'medium',
+          icon: 'member',
+          relatedId: targetData.userId,
+          relatedType: 'member',
+          groupId: input.groupId,
+          actorId: input.requesterUserId,
+          actorName: requesterData.userName ?? requesterData.userEmail ?? 'Admin',
+          metadata: {
+            removedUserId: targetData.userId,
+            removedEmail: targetData.userEmail,
+          },
+        });
+      }
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.requesterUserId,
+        type: 'group_member_left',
+        title: 'Member removed',
+        bodyTemplate: `${targetData.userEmail ?? 'A member'} was removed from {group}`,
+        category: 'group',
+        priority: 'low',
+        icon: 'member',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: targetData.userId,
+        relatedType: 'member',
+        metadata: {
+          removedUserId: targetData.userId,
+          removedEmail: targetData.userEmail,
+        },
       });
     },
 
@@ -489,6 +734,21 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
         createdAt: now,
       });
 
+      await notifications.notifyGroupMembers({
+        groupId: invitation.groupId,
+        actorUserId: input.userId,
+        type: 'group_member_joined',
+        title: 'New member joined',
+        bodyTemplate: '{actor} joined {group}',
+        category: 'group',
+        priority: 'low',
+        icon: 'member',
+        actionUrl: `/groups/${invitation.groupId}`,
+        relatedId: input.userId,
+        relatedType: 'member',
+        metadata: { email: input.userEmail, role: invitation.role },
+      });
+
       return {
         groupId: invitation.groupId,
         groupName: invitation.groupName,
@@ -508,6 +768,27 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
         archivedBy: input.userId,
         updatedAt: Timestamp.now(),
       });
+      await db.collection('groupActivities').doc().set({
+        groupId: input.groupId,
+        userId: input.userId,
+        userName: data.userName ?? data.userEmail ?? 'Admin',
+        action: 'group_archived',
+        details: 'Archived group',
+        createdAt: Timestamp.now(),
+      });
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.userId,
+        type: 'group_settings_changed',
+        title: 'Group archived',
+        bodyTemplate: '{actor} archived {group}',
+        category: 'group',
+        priority: 'medium',
+        icon: 'archive',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: input.groupId,
+        relatedType: 'group',
+      });
     },
 
     async leaveGroup(input) {
@@ -522,6 +803,29 @@ export function createFirestoreGroupService(db: Firestore): GroupService {
         lastActivityAt: Timestamp.now(),
       });
       await decrementMemberCount(input.groupId);
+      await db.collection('groupActivities').doc().set({
+        groupId: input.groupId,
+        userId: input.userId,
+        userName: targetData.userName ?? targetData.userEmail ?? 'Member',
+        action: 'member_left',
+        details: `${targetData.userEmail} left the group`,
+        metadata: { userId: targetData.userId, email: targetData.userEmail },
+        createdAt: Timestamp.now(),
+      });
+      await notifications.notifyGroupMembers({
+        groupId: input.groupId,
+        actorUserId: input.userId,
+        type: 'group_member_left',
+        title: 'Member left',
+        bodyTemplate: '{actor} left {group}',
+        category: 'group',
+        priority: 'low',
+        icon: 'member',
+        actionUrl: `/groups/${input.groupId}`,
+        relatedId: targetData.userId,
+        relatedType: 'member',
+        metadata: { userId: targetData.userId, email: targetData.userEmail },
+      });
     },
   };
 }

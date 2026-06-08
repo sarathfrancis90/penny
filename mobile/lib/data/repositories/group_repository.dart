@@ -204,10 +204,9 @@ class GroupRepository {
 
   /// Leave a group by setting the user's membership status to 'left'.
   Future<void> leaveGroup(String groupId, String userId) async {
-    final docId = '${groupId}_$userId';
-    await _db.collection('groupMembers').doc(docId).update({
-      'status': 'left',
-      'lastActivityAt': FieldValue.serverTimestamp(),
-    });
+    await _api.post(
+      ApiEndpoints.groupLeave(groupId),
+      data: {'userId': userId},
+    );
   }
 }

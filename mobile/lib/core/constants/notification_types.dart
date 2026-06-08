@@ -7,6 +7,18 @@ enum NotificationType {
     'When a group member adds an expense',
     'group',
   ),
+  groupExpenseUpdated(
+    'group_expense_updated',
+    'Expense Updated',
+    'When a group member updates an expense',
+    'group',
+  ),
+  groupExpenseDeleted(
+    'group_expense_deleted',
+    'Expense Deleted',
+    'When a group member deletes an expense',
+    'group',
+  ),
   groupInvitation(
     'group_invitation',
     'Group Invitation',
@@ -103,6 +115,8 @@ const notificationCategories = [
     Icons.group_outlined,
     [
       NotificationType.groupExpenseAdded,
+      NotificationType.groupExpenseUpdated,
+      NotificationType.groupExpenseDeleted,
       NotificationType.groupInvitation,
       NotificationType.groupMemberJoined,
       NotificationType.groupMemberLeft,

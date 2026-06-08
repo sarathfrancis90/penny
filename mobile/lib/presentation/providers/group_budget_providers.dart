@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/data/repositories/group_budget_repository.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
+import 'package:penny_mobile/presentation/providers/providers.dart';
 
 /// Group budget repository provider.
 final groupBudgetRepositoryProvider = Provider<GroupBudgetRepository>((ref) {
-  return GroupBudgetRepository();
+  return GroupBudgetRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 /// Stream group budgets for a group (current period).

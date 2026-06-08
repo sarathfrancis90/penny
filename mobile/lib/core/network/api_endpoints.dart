@@ -7,8 +7,10 @@ abstract final class ApiEndpoints {
   static const groups = '/api/groups';
   static String groupById(String id) => '/api/groups/$id';
   static String groupMembers(String id) => '/api/groups/$id/members';
+  static String groupLeave(String id) => '/api/groups/$id/leave';
   static const acceptInvitation = '/api/groups/invitations/accept';
   static const groupBudgets = '/api/budgets/group';
+  static String groupBudgetById(String id) => '/api/budgets/group/$id';
   static String generateConversationTitle(String id) =>
       '/api/conversations/$id/generate-title';
 }

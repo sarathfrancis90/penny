@@ -4,34 +4,20 @@ This file records issues discovered during the full repository analysis. Treat t
 
 ## High Priority
 
-### Standalone Group Update Authorization Gap
+### Standalone Expense Side-Effect Parity Gap
 
-The standalone API group update route passes request body updates through to the Firestore group service, and the service updates the group document without a membership/role check.
-
-Risk:
-
-- A route can appear to satisfy the documented "validate group membership/role" policy while preserving an unsafe mutation path.
-- Future agents may copy this pattern into new group routes.
-
-What to inspect:
-
-- `apps/api/src/routes/groups/routes.ts`
-- `apps/api/src/services/firestore-groups.ts`
-- `mobile/lib/data/repositories/group_repository.dart`
-
-### Standalone Expense Side-Effect Gap
-
-The standalone expense create path writes the expense, group stats, and group activity, but does not yet port all side effects from the Next API path.
+The standalone expense path now creates group activity notifications and FCM push notifications for group expense create/update/delete. It still does not port every Next API side effect.
 
 Risk:
 
-- Mobile group expense creation through standalone API can miss notifications, push notifications, budget alerts, and approval-required behavior.
+- Mobile group expense creation through standalone API can still miss budget alerts and approval-required behavior.
 - Agents may assume `POST /api/expenses` is behaviorally equivalent to the Next route.
 
 What to inspect:
 
 - `apps/api/src/routes/expenses/routes.ts`
 - `apps/api/src/services/firestore-expenses.ts`
+- `apps/api/src/services/notifications.ts`
 - `src/app/api/expenses/route.ts`
 - `mobile/lib/presentation/widgets/expense_confirmation_sheet.dart`
 
@@ -48,9 +34,9 @@ What to inspect:
 - `apps/api/src/routes/expenses/routes.ts`
 - `docs/agents/generated/API_ROUTE_SURFACE.md`
 
-### Group Activity Collection Drift
+### Legacy Group Activity Collection Drift
 
-Some web group API routes write to `groupActivity` singular, while Firestore rules and mobile code reference `groupActivities` plural.
+Some legacy web group API routes write to `groupActivity` singular, while Firestore rules, mobile code, and standalone API services reference `groupActivities` plural.
 
 Risk:
 

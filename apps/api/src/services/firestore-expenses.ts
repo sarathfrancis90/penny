@@ -6,6 +6,11 @@ import type {
   ExpenseService,
   UpdateExpenseInput,
 } from './expenses';
+import {
+  createNoopNotificationService,
+  type NotificationService,
+  type NotifyGroupMembersInput,
+} from './notifications';
 
 function parseExpenseDate(date: string): Timestamp {
   const [year, month, day] = date.split('-').map(Number);
@@ -33,7 +38,10 @@ function canMutateExpense(expense: FirebaseFirestore.DocumentData, userId: strin
   return Boolean(expense.groupId && metadata?.approvalStatus);
 }
 
-export function createFirestoreExpenseService(db: Firestore): ExpenseService {
+export function createFirestoreExpenseService(
+  db: Firestore,
+  notifications: NotificationService = createNoopNotificationService(),
+): ExpenseService {
   return {
     async createExpense(input: CreateExpenseInput) {
       const now = Timestamp.now();
@@ -95,12 +103,35 @@ export function createFirestoreExpenseService(db: Firestore): ExpenseService {
         }
       });
 
+      if (input.groupId) {
+        await notifications.notifyGroupMembers({
+          groupId: input.groupId,
+          actorUserId: input.userId,
+          type: 'group_expense_added',
+          title: 'New expense added',
+          bodyTemplate: `{actor} added $${input.amount.toFixed(2)} at ${input.vendor}`,
+          category: 'group',
+          priority: 'medium',
+          icon: 'money',
+          actionUrl: `/groups/${input.groupId}`,
+          relatedId: expenseRef.id,
+          relatedType: 'expense',
+          metadata: {
+            expenseId: expenseRef.id,
+            vendor: input.vendor,
+            amount: input.amount,
+            category: input.category,
+          },
+        });
+      }
+
       return { id: expenseRef.id };
     },
 
     async updateExpense(input: UpdateExpenseInput) {
       const expenseRef = db.collection('expenses').doc(input.id);
       const now = Timestamp.now();
+      let notificationEvent: NotifyGroupMembersInput | undefined;
 
       await db.runTransaction(async (transaction) => {
         const snapshot = await transaction.get(expenseRef);
@@ -114,6 +145,7 @@ export function createFirestoreExpenseService(db: Firestore): ExpenseService {
             statusCode: 403,
           });
         }
+        const changes: string[] = [];
 
         const updateData: Record<string, unknown> = {
           updatedAt: now,
@@ -124,14 +156,75 @@ export function createFirestoreExpenseService(db: Firestore): ExpenseService {
           }),
         };
 
-        if (input.vendor !== undefined) updateData.vendor = input.vendor;
-        if (input.amount !== undefined) updateData.amount = input.amount;
-        if (input.date !== undefined) updateData.date = parseExpenseDate(input.date);
-        if (input.category !== undefined) updateData.category = input.category;
-        if (input.description !== undefined) updateData.description = input.description;
+        if (input.vendor !== undefined) {
+          updateData.vendor = input.vendor;
+          changes.push('vendor');
+        }
+        if (input.amount !== undefined) {
+          updateData.amount = input.amount;
+          changes.push('amount');
+        }
+        if (input.date !== undefined) {
+          updateData.date = parseExpenseDate(input.date);
+          changes.push('date');
+        }
+        if (input.category !== undefined) {
+          updateData.category = input.category;
+          changes.push('category');
+        }
+        if (input.description !== undefined) {
+          updateData.description = input.description;
+          changes.push('description');
+        }
 
         transaction.update(expenseRef, updateData);
+
+        if (existing.groupId && existing.expenseType === 'group') {
+          const vendor = input.vendor ?? existing.vendor ?? 'expense';
+          const amount = input.amount ?? existing.amount;
+          const category = input.category ?? existing.category;
+          transaction.set(db.collection('groupActivities').doc(), {
+            groupId: existing.groupId,
+            userId: input.userId,
+            userName: 'Member',
+            action: 'expense_updated',
+            details: `Updated expense at ${vendor}`,
+            metadata: {
+              expenseId: input.id,
+              vendor,
+              amount,
+              category,
+              changes,
+            },
+            createdAt: now,
+          });
+
+          notificationEvent = {
+            groupId: String(existing.groupId),
+            actorUserId: input.userId,
+            type: 'group_expense_updated',
+            title: 'Expense updated',
+            bodyTemplate: `{actor} updated ${vendor}${changes.length > 0 ? ` (${changes.join(', ')})` : ''}`,
+            category: 'group',
+            priority: 'medium',
+            icon: 'edit',
+            actionUrl: `/groups/${existing.groupId}`,
+            relatedId: input.id,
+            relatedType: 'expense',
+            metadata: {
+              expenseId: input.id,
+              vendor,
+              amount,
+              category,
+              changes,
+            },
+          };
+        }
       });
+
+      if (notificationEvent) {
+        await notifications.notifyGroupMembers(notificationEvent);
+      }
 
       return { id: input.id };
     },
@@ -139,6 +232,7 @@ export function createFirestoreExpenseService(db: Firestore): ExpenseService {
     async deleteExpense(input: DeleteExpenseInput) {
       const expenseRef = db.collection('expenses').doc(input.id);
       const now = Timestamp.now();
+      let notificationEvent: NotifyGroupMembersInput | undefined;
 
       await db.runTransaction(async (transaction) => {
         const snapshot = await transaction.get(expenseRef);
@@ -161,8 +255,47 @@ export function createFirestoreExpenseService(db: Firestore): ExpenseService {
             'stats.lastActivityAt': now,
             updatedAt: now,
           });
+
+          transaction.set(db.collection('groupActivities').doc(), {
+            groupId: existing.groupId,
+            userId: input.userId,
+            userName: 'Member',
+            action: 'expense_deleted',
+            details: `Deleted expense at ${existing.vendor ?? 'expense'}`,
+            metadata: {
+              expenseId: input.id,
+              vendor: existing.vendor,
+              amount: existing.amount,
+              category: existing.category,
+            },
+            createdAt: now,
+          });
+
+          notificationEvent = {
+            groupId: String(existing.groupId),
+            actorUserId: input.userId,
+            type: 'group_expense_deleted',
+            title: 'Expense deleted',
+            bodyTemplate: `{actor} deleted $${existing.amount.toFixed(2)} at ${existing.vendor ?? 'expense'}`,
+            category: 'group',
+            priority: 'medium',
+            icon: 'delete',
+            actionUrl: `/groups/${existing.groupId}`,
+            relatedId: input.id,
+            relatedType: 'expense',
+            metadata: {
+              expenseId: input.id,
+              vendor: existing.vendor,
+              amount: existing.amount,
+              category: existing.category,
+            },
+          };
         }
       });
+
+      if (notificationEvent) {
+        await notifications.notifyGroupMembers(notificationEvent);
+      }
     },
   };
 }

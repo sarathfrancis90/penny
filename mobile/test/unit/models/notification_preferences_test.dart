@@ -351,6 +351,8 @@ void main() {
 
     test('value strings match expected Firestore values', () {
       expect(NotificationType.groupExpenseAdded.value, 'group_expense_added');
+      expect(NotificationType.groupExpenseUpdated.value, 'group_expense_updated');
+      expect(NotificationType.groupExpenseDeleted.value, 'group_expense_deleted');
       expect(NotificationType.groupInvitation.value, 'group_invitation');
       expect(NotificationType.groupMemberJoined.value, 'group_member_joined');
       expect(NotificationType.groupMemberLeft.value, 'group_member_left');
@@ -365,8 +367,8 @@ void main() {
       expect(NotificationType.monthlySummary.value, 'monthly_summary');
     });
 
-    test('has 13 total notification types', () {
-      expect(NotificationType.values.length, 13);
+    test('has 15 total notification types', () {
+      expect(NotificationType.values.length, 15);
     });
   });
 
@@ -375,10 +377,10 @@ void main() {
       expect(notificationCategories.length, 3);
     });
 
-    test('group category has 6 types', () {
+    test('group category has 8 types', () {
       final groupCat =
           notificationCategories.firstWhere((c) => c.key == 'group');
-      expect(groupCat.types.length, 6);
+      expect(groupCat.types.length, 8);
       expect(groupCat.title, 'Group Activity');
     });
 
