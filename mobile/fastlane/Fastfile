@@ -18,15 +18,6 @@ def ios_app_store_export_options(profile_name)
   }
 end
 
-def ios_distribution_xcargs(profile_name)
-  [
-    "CODE_SIGN_STYLE=Manual",
-    "DEVELOPMENT_TEAM=#{IOS_TEAM_ID}",
-    "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'",
-    "CODE_SIGN_IDENTITY='#{IOS_DISTRIBUTION_IDENTITY}'"
-  ].join(" ")
-end
-
 def write_android_changelog(build_number, notes)
   return unless build_number && notes
 
@@ -120,8 +111,6 @@ platform :ios do
       scheme: "Runner",
       export_method: "app-store",
       clean: true,
-      codesigning_identity: IOS_DISTRIBUTION_IDENTITY,
-      xcargs: ios_distribution_xcargs(profile_name),
       export_options: ios_app_store_export_options(profile_name)
     )
 
@@ -294,8 +283,6 @@ platform :ios do
       scheme: "Runner",
       export_method: "app-store",
       clean: true,
-      codesigning_identity: IOS_DISTRIBUTION_IDENTITY,
-      xcargs: ios_distribution_xcargs(profile_name),
       export_options: ios_app_store_export_options(profile_name)
     )
 
