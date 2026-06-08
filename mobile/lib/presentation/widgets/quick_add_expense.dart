@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 
 /// Manual expense creation form — for adding expenses without AI.
@@ -58,10 +59,15 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
   Future<void> _save() async {
     final vendor = _vendorController.text.trim();
     final amount = double.tryParse(_amountController.text.trim());
-    if (vendor.isEmpty || amount == null || amount <= 0 || _selectedCategory == null) {
+    if (vendor.isEmpty ||
+        amount == null ||
+        amount <= 0 ||
+        _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields'),
-            backgroundColor: AppColors.warning),
+        const SnackBar(
+          content: Text('Please fill all required fields'),
+          backgroundColor: AppColors.warning,
+        ),
       );
       return;
     }
@@ -78,7 +84,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
       );
       if (result == GuestAddResult.limitReached) {
         if (mounted) {
-          showGuestSignUpPrompt(context);
+          showGuestSignUpPrompt(context, ref: ref);
         }
         return;
       }
@@ -97,13 +103,15 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
     // Duplicate check
     final user = ref.read(currentUserProvider);
     if (user != null) {
-      final duplicateResult = await ref.read(duplicateDetectorProvider).checkForDuplicate(
-        vendor: vendor,
-        amount: amount,
-        date: _selectedDate,
-        userId: user.uid,
-        groupId: _selectedGroupId,
-      );
+      final duplicateResult = await ref
+          .read(duplicateDetectorProvider)
+          .checkForDuplicate(
+            vendor: vendor,
+            amount: amount,
+            date: _selectedDate,
+            userId: user.uid,
+            groupId: _selectedGroupId,
+          );
       if (duplicateResult != null && mounted) {
         final addAnyway = await showDialog<bool>(
           context: context,
@@ -111,8 +119,14 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
             title: const Text('Possible Duplicate'),
             content: Text(duplicateResult.warningMessage),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add Anyway')),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Add Anyway'),
+              ),
             ],
           ),
         );
@@ -122,7 +136,9 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
 
     // Budget check for personal expenses
     if (_selectedGroupId == null) {
-      final usage = ref.read(budgetUsageForCategoryProvider(_selectedCategory!));
+      final usage = ref.read(
+        budgetUsageForCategoryProvider(_selectedCategory!),
+      );
       if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
         final proceed = await OverBudgetWarningSheet.show(
           context,
@@ -145,21 +161,25 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
 
       if (_selectedGroupId != null) {
         // Group expense — use API (triggers notifications + stats)
-        await ref.read(apiClientProvider).post(
-          '/api/expenses',
-          data: {
-            'vendor': vendor,
-            'amount': amount,
-            'category': _selectedCategory,
-            'date': dateStr,
-            'description': _descController.text.trim(),
-            'userId': user.uid,
-            'groupId': _selectedGroupId,
-          },
-        );
+        await ref
+            .read(apiClientProvider)
+            .post(
+              '/api/expenses',
+              data: {
+                'vendor': vendor,
+                'amount': amount,
+                'category': _selectedCategory,
+                'date': dateStr,
+                'description': _descController.text.trim(),
+                'userId': user.uid,
+                'groupId': _selectedGroupId,
+              },
+            );
       } else {
         // Personal expense — direct Firestore
-        await ref.read(expenseRepositoryProvider).savePersonalExpense(
+        await ref
+            .read(expenseRepositoryProvider)
+            .savePersonalExpense(
               userId: user.uid,
               vendor: vendor,
               amount: amount,
@@ -173,25 +193,29 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
       if (mounted) {
         final groupName = _selectedGroupId != null
             ? ref
-                  .read(userGroupsProvider)
-                  .valueOrNull
-                  ?.where((g) => g.id == _selectedGroupId)
-                  .firstOrNull
-                  ?.name ??
-              'group'
+                      .read(userGroupsProvider)
+                      .valueOrNull
+                      ?.where((g) => g.id == _selectedGroupId)
+                      .firstOrNull
+                      ?.name ??
+                  'group'
             : null;
 
         await SuccessOverlay.show(
           context,
           title: vendor,
-          subtitle: '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
+          subtitle:
+              '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
         );
         if (mounted) Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -205,22 +229,24 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
         value: '',
         child: Text('Personal', style: TextStyle(fontSize: 14)),
       ),
-      ...groups.map((g) => DropdownMenuItem(
-            value: g.id,
-            child: Row(
-              children: [
-                Text(g.icon ?? '👥', style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    g.name,
-                    style: const TextStyle(fontSize: 14),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+      ...groups.map(
+        (g) => DropdownMenuItem(
+          value: g.id,
+          child: Row(
+            children: [
+              Text(g.icon ?? '👥', style: const TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  g.name,
+                  style: const TextStyle(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-          )),
+              ),
+            ],
+          ),
+        ),
+      ),
     ];
 
     return DropdownButtonFormField<String>(
@@ -262,150 +288,238 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
 
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        left: 24,
+        right: 24,
+        top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _selectedGroupId != null ? 'Add Group Expense' : 'Add Expense',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            if (isGuest) ...[
-              const SizedBox(height: 8),
-              Builder(builder: (context) {
-                final notifier = ref.watch(guestExpenseProvider.notifier);
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final sheetHeight = constraints.maxHeight.isFinite
+              ? constraints.maxHeight
+              : MediaQuery.sizeOf(context).height * 0.92;
+
+          return SizedBox(
+            height: sheetHeight,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SheetHeader(
+                  title: _selectedGroupId != null
+                      ? 'Add Group Expense'
+                      : 'Add Expense',
+                ),
+                if (isGuest) ...[
+                  const SizedBox(height: 8),
+                  Builder(
+                    builder: (context) {
+                      final notifier = ref.watch(guestExpenseProvider.notifier);
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${notifier.count} of ${GuestExpenseNotifier.maxExpenses} expenses used',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              'Local only',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, size: 16, color: AppColors.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${notifier.count} of ${GuestExpenseNotifier.maxExpenses} expenses used',
-                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Local only',
-                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-            ],
-            const SizedBox(height: 20),
+                ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextField(
+                          controller: _vendorController,
+                          decoration: const InputDecoration(
+                            hintText: 'Vendor / Merchant',
+                          ),
+                          textCapitalization: TextCapitalization.words,
+                        ),
+                        const SizedBox(height: 12),
 
-            TextField(
-              controller: _vendorController,
-              decoration: const InputDecoration(hintText: 'Vendor / Merchant'),
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: 12),
+                        TextField(
+                          controller: _amountController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Amount',
+                            prefixText: '\$ ',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
 
-            TextField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
-            ),
-            const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          value: _selectedCategory,
+                          decoration: const InputDecoration(
+                            hintText: 'Category',
+                          ),
+                          isExpanded: true,
+                          menuMaxHeight: 300,
+                          items: expenseCategories.map((c) {
+                            final short = c.length > 40
+                                ? '${c.substring(0, 40)}...'
+                                : c;
+                            return DropdownMenuItem(
+                              value: c,
+                              child: Text(
+                                short,
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedCategory = v),
+                        ),
+                        const SizedBox(height: 12),
 
-            DropdownButtonFormField<String>(
-              value: _selectedCategory,
-              decoration: const InputDecoration(hintText: 'Category'),
-              isExpanded: true,
-              menuMaxHeight: 300,
-              items: expenseCategories.map((c) {
-                final short = c.length > 40 ? '${c.substring(0, 40)}...' : c;
-                return DropdownMenuItem(value: c, child: Text(short, style: const TextStyle(fontSize: 14)));
-              }).toList(),
-              onChanged: (v) => setState(() => _selectedCategory = v),
-            ),
-            const SizedBox(height: 12),
+                        InkWell(
+                          onTap: () async {
+                            final now = DateTime.now();
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: _selectedDate,
+                              firstDate: isGuest
+                                  ? DateTime(now.year, now.month)
+                                  : DateTime(2020),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 1),
+                              ),
+                            );
+                            if (picked != null) {
+                              setState(() => _selectedDate = picked);
+                            }
+                          },
+                          child: InputDecorator(
+                            decoration: const InputDecoration(hintText: 'Date'),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 18,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
 
-            InkWell(
-              onTap: () async {
-                final now = DateTime.now();
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _selectedDate,
-                  firstDate: isGuest ? DateTime(now.year, now.month) : DateTime(2020),
-                  lastDate: DateTime.now().add(const Duration(days: 1)),
-                );
-                if (picked != null) setState(() => _selectedDate = picked);
-              },
-              child: InputDecorator(
-                decoration: const InputDecoration(hintText: 'Date'),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
-                      ),
+                        TextField(
+                          controller: _descController,
+                          decoration: const InputDecoration(
+                            hintText: 'Description (optional)',
+                          ),
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Budget impact preview (personal only)
+                        if (_selectedGroupId == null &&
+                            _selectedCategory != null &&
+                            (double.tryParse(_amountController.text.trim()) ??
+                                    0) >
+                                0)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: BudgetImpactPreview(
+                              category: _selectedCategory!,
+                              amount:
+                                  double.tryParse(
+                                    _amountController.text.trim(),
+                                  ) ??
+                                  0,
+                            ),
+                          ),
+
+                        // Group selector (hidden for guests)
+                        if (!isGuest) ...[
+                          groupsAsync.when(
+                            data: (groups) => groups.isEmpty
+                                ? const SizedBox.shrink()
+                                : _buildGroupSelector(groups),
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
+                          ),
+                          if (_selectedGroupId != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'This expense will be shared with the group',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
+                        const SizedBox(height: 12),
+                      ],
                     ),
-                    Icon(Icons.calendar_today_outlined, size: 18,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: _descController,
-              decoration: const InputDecoration(hintText: 'Description (optional)'),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-
-            // Budget impact preview (personal only)
-            if (_selectedGroupId == null &&
-                _selectedCategory != null &&
-                (double.tryParse(_amountController.text.trim()) ?? 0) > 0)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: BudgetImpactPreview(
-                  category: _selectedCategory!,
-                  amount: double.tryParse(_amountController.text.trim()) ?? 0,
-                ),
-              ),
-
-            // Group selector (hidden for guests)
-            if (!isGuest) ...[
-              groupsAsync.when(
-                data: (groups) => groups.isEmpty
-                    ? const SizedBox.shrink()
-                    : _buildGroupSelector(groups),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-              if (_selectedGroupId != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'This expense will be shared with the group',
-                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _saving ? null : _save,
+                  child: _saving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          _selectedGroupId != null
+                              ? 'Add Group Expense'
+                              : 'Add Expense',
+                        ),
                 ),
               ],
-            ],
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: _saving ? null : _save,
-              child: _saving
-                  ? const SizedBox(height: 20, width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(_selectedGroupId != null ? 'Add Group Expense' : 'Add Expense'),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

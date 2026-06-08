@@ -10,7 +10,7 @@ For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [
 
 ## TL;DR
 
-✅ **Ready**: Build/release pipeline, code signing, crash reporting, Firestore security rules, branch protection, secrets management, autonomous publish to App Store + Play Store.
+✅ **Ready**: Build/release pipeline, code signing, crash reporting, Firestore security rules, branch protection, secrets management, internal-first TestFlight + Play internal release path, and explicit production promotion workflow.
 
 ⚠️ **Has known gaps but not blocking**: Integration test assertions are stale, 14 transitive npm vulns (mostly `xlsx`), web has no Sentry, no formal alerting beyond Crashlytics, no GDPR data export endpoint.
 
@@ -22,7 +22,8 @@ For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [
 
 ### Build & release
 - `mobile/CICD.md` runbook is the single source of truth.
-- Pipeline trigger: push a `v*.*.*` git tag → ships to App Store production (auto-release) AND Play Store production (100% rollout) in parallel.
+- Pipeline trigger: push a `v*.*.*` git tag or manually dispatch `Mobile Internal Release` → uploads TestFlight and Play internal builds only.
+- Production promotion is manual via `Mobile Production Promotion` after internal validation is clean.
 - Toolchain pinned: `mobile/.flutter-version`, `mobile/.ruby-version`, `mobile/Gemfile.lock`. CI matches local exactly.
 - All 10 GitHub repository secrets configured (verified via `gh secret list`).
 - Recovery lane `fastlane repair_and_submit` handles the "stuck App Store version" failure mode that bit us once (en-CA locale gotcha — see memory `feedback_ios_locale_gotcha`).
@@ -125,7 +126,7 @@ In rough priority order:
 1. **Rotate the leaked GOOGLE_API_KEY** in `.claude/settings.json` and remove from repo (use a personal env var instead).
 2. **Add Sentry to the web app** (~30 min) — without it, you're flying blind on web errors.
 3. **Set Crashlytics velocity alerts** in Firebase Console (~5 min).
-4. **First end-to-end pipeline validation**: tag `v2.2.2` with a tiny change (typo fix is fine) and watch the `Mobile Release` workflow run for real. Until you do this once, the pipeline is "should work" not "does work."
+4. **First end-to-end pipeline validation**: tag the next release and watch `Mobile Internal Release`, then manually run `Mobile Production Promotion` only after TestFlight/Play internal validation passes.
 5. **Migrate off `xlsx`** to fix the remaining web vulns (~1 hour).
 6. **Restore the `Backend Tests` workflow** — fix or delete.
 

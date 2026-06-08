@@ -29,7 +29,9 @@ class NotificationsScreen extends ConsumerWidget {
               onPressed: () {
                 final user = ref.read(currentUserProvider);
                 if (user != null) {
-                  ref.read(notificationRepositoryProvider).markAllAsRead(user.uid);
+                  ref
+                      .read(notificationRepositoryProvider)
+                      .markAllAsRead(user.uid);
                   HapticFeedback.lightImpact();
                 }
               },
@@ -59,7 +61,8 @@ class _EmptyState extends StatelessWidget {
     return const PennyEmptyState(
       lottieAsset: 'assets/lottie/empty_box.json',
       title: 'No notifications',
-      subtitle: "You're all caught up!\nBudget alerts and group activity will appear here.",
+      subtitle:
+          "You're all caught up!\nBudget alerts and group activity will appear here.",
     );
   }
 }
@@ -84,13 +87,11 @@ class _NotificationList extends ConsumerWidget {
             index: index,
             child: _NotificationTile(
               notification: n,
-              onTap: () {
-                if (!n.read) {
-                  ref.read(notificationRepositoryProvider).markAsRead(n.id);
-                }
-              },
+              onTap: () => _handleNotificationTap(context, ref, n),
               onDismiss: () {
-                ref.read(notificationRepositoryProvider).deleteNotification(n.id);
+                ref
+                    .read(notificationRepositoryProvider)
+                    .deleteNotification(n.id);
                 HapticFeedback.lightImpact();
               },
             ),
@@ -99,6 +100,86 @@ class _NotificationList extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _handleNotificationTap(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationModel notification,
+  ) async {
+    if (!notification.read) {
+      await ref
+          .read(notificationRepositoryProvider)
+          .markAsRead(notification.id);
+    }
+
+    HapticFeedback.selectionClick();
+    final route = _routeFor(notification);
+    if (!context.mounted) return;
+
+    if (route != null) {
+      context.push(route);
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          notification.read ? 'Notification opened' : 'Marked as read',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  String? _routeFor(NotificationModel notification) {
+    final metadata = notification.metadata ?? const <String, dynamic>{};
+    final actionUrl = notification.actionUrl;
+    if (actionUrl != null) {
+      final uri = Uri.tryParse(actionUrl);
+      final path = uri?.path ?? actionUrl;
+      if (_allowedDirectRoutes.contains(path) || path.startsWith('/groups/')) {
+        return path;
+      }
+    }
+
+    final groupId =
+        notification.groupId ??
+        metadata['groupId'] as String? ??
+        (notification.relatedType == 'group' ? notification.relatedId : null);
+    if (groupId != null && groupId.isNotEmpty) return '/groups/$groupId';
+
+    final relatedType =
+        notification.relatedType ?? metadata['relatedType'] as String?;
+    return switch (relatedType ?? notification.category) {
+      'budget' || 'budgets' => '/budgets',
+      'income' => '/income',
+      'savings' || 'saving' => '/savings',
+      'expense' || 'expenses' => '/dashboard',
+      'settings' => '/settings/notifications',
+      _ => switch (notification.type) {
+        'budget_warning' ||
+        'budget_exceeded' ||
+        'budget_critical' => '/budgets',
+        'income_reminder' || 'income_detected' => '/income',
+        'savings_goal' || 'savings_milestone' => '/savings',
+        'group_expense' || 'group_invitation' || 'member_joined' => '/groups',
+        _ => null,
+      },
+    };
+  }
+
+  static const _allowedDirectRoutes = {
+    '/',
+    '/dashboard',
+    '/finances',
+    '/groups',
+    '/profile',
+    '/budgets',
+    '/income',
+    '/savings',
+    '/settings',
+    '/settings/notifications',
+  };
 }
 
 class _NotificationTile extends ConsumerStatefulWidget {
@@ -122,10 +203,10 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
   NotificationModel get notification => widget.notification;
 
   Color get _priorityIndicator => switch (notification.priority) {
-        'critical' => AppColors.error,
-        'high' => AppColors.warning,
-        _ => Colors.transparent,
-      };
+    'critical' => AppColors.error,
+    'high' => AppColors.warning,
+    _ => Colors.transparent,
+  };
 
   bool get _isGroupInvitation =>
       notification.type == 'group_invitation' && !notification.read;
@@ -143,13 +224,14 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
         throw Exception('Missing invitation token');
       }
 
-      final result =
-          await ref.read(groupRepositoryProvider).acceptInvitation(
-                token: token,
-                userId: user.uid,
-                userEmail: user.email ?? '',
-                userName: user.displayName,
-              );
+      final result = await ref
+          .read(groupRepositoryProvider)
+          .acceptInvitation(
+            token: token,
+            userId: user.uid,
+            userEmail: user.email ?? '',
+            userName: user.displayName,
+          );
 
       await ref
           .read(notificationRepositoryProvider)
@@ -166,7 +248,8 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
         );
 
         // Navigate to the group
-        final groupId = result['groupId'] as String? ??
+        final groupId =
+            result['groupId'] as String? ??
             notification.metadata?['groupId'] as String?;
         if (groupId != null) {
           context.push('/groups/$groupId');
@@ -191,8 +274,7 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
     setState(() => _isProcessing = true);
 
     try {
-      final invitationId =
-          notification.metadata?['invitationId'] as String?;
+      final invitationId = notification.metadata?['invitationId'] as String?;
       if (invitationId == null) {
         throw Exception('Missing invitation ID');
       }
@@ -245,17 +327,24 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
       onDismissed: (_) => widget.onDismiss(),
       child: Semantics(
         button: true,
-        label: '${notification.read ? '' : 'Unread, '}'
+        label:
+            '${notification.read ? '' : 'Unread, '}'
             '${notification.title}, '
             '${notification.body}, '
             '${notification.timeAgo}'
-            '${notification.priority == 'critical' ? ', critical priority' : notification.priority == 'high' ? ', high priority' : ''}',
+            '${notification.priority == 'critical'
+                ? ', critical priority'
+                : notification.priority == 'high'
+                ? ', high priority'
+                : ''}',
         child: InkWell(
           onTap: widget.onTap,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: notification.read ? Theme.of(context).scaffoldBackgroundColor : Theme.of(context).cardColor,
+              color: notification.read
+                  ? Theme.of(context).scaffoldBackgroundColor
+                  : Theme.of(context).cardColor,
               border: Border(
                 left: BorderSide(
                   color: _priorityIndicator,
@@ -291,7 +380,9 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                           Text(
                             notification.timeAgo,
                             style: TextStyle(
-                                fontSize: 12, color: Theme.of(context).hintColor),
+                              fontSize: 12,
+                              color: Theme.of(context).hintColor,
+                            ),
                           ),
                         ],
                       ),
@@ -299,7 +390,9 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                       Text(
                         notification.body,
                         style: TextStyle(
-                            fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          fontSize: 13,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -308,7 +401,9 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                         Text(
                           notification.actorName!,
                           style: TextStyle(
-                              fontSize: 12, color: Theme.of(context).hintColor),
+                            fontSize: 12,
+                            color: Theme.of(context).hintColor,
+                          ),
                         ),
                       ],
 
@@ -319,38 +414,60 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: _isProcessing ? null : _declineInvitation,
+                                onPressed: _isProcessing
+                                    ? null
+                                    : _declineInvitation,
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  side: BorderSide(color: Theme.of(context).dividerColor),
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  foregroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  side: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                 ),
                                 child: _isProcessing
                                     ? const SizedBox(
-                                        height: 16, width: 16,
+                                        height: 16,
+                                        width: 16,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2))
-                                    : const Text('Decline',
-                                        style: TextStyle(fontSize: 13)),
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Decline',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: _isProcessing ? null : _acceptInvitation,
+                                onPressed: _isProcessing
+                                    ? null
+                                    : _acceptInvitation,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 8,
+                                  ),
                                 ),
                                 child: _isProcessing
                                     ? const SizedBox(
-                                        height: 16, width: 16,
+                                        height: 16,
+                                        width: 16,
                                         child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white))
-                                    : const Text('Accept',
-                                        style: TextStyle(fontSize: 13)),
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Accept',
+                                        style: TextStyle(fontSize: 13),
+                                      ),
                               ),
                             ),
                           ],
@@ -366,7 +483,8 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                   Semantics(
                     label: 'Unread',
                     child: Container(
-                      width: 8, height: 8,
+                      width: 8,
+                      height: 8,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.primary,
@@ -374,6 +492,24 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
                     ),
                   ),
                 ],
+                PopupMenuButton<String>(
+                  tooltip: 'Notification actions',
+                  onSelected: (value) {
+                    if (value == 'delete') widget.onDismiss();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: AppColors.error),
+                          SizedBox(width: 8),
+                          Text('Delete'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

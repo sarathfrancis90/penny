@@ -14,6 +14,7 @@ import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
 import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
 class SavingsScreen extends ConsumerWidget {
   const SavingsScreen({super.key});
@@ -49,6 +50,7 @@ class SavingsScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _CreateGoalSheet(ref: ref),
     );
   }
@@ -168,10 +170,16 @@ class _SavingsGoalCard extends ConsumerWidget {
     final targetStr = goal.targetDate != null
         ? DateFormat('MMM yyyy').format(goal.targetDate!.toDate())
         : null;
+    void deleteGoal() {
+      ref.read(savingsRepositoryProvider).deleteSavingsGoal(goal.id);
+      HapticFeedback.mediumImpact();
+    }
+
     void openGoalActions() {
       showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
+        useSafeArea: true,
         builder: (_) => _SavingsGoalActionsSheet(ref: ref, goal: goal),
       );
     }
@@ -186,8 +194,7 @@ class _SavingsGoalCard extends ConsumerWidget {
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
       onDismissed: (_) {
-        ref.read(savingsRepositoryProvider).deleteSavingsGoal(goal.id);
-        HapticFeedback.mediumImpact();
+        deleteGoal();
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -303,6 +310,14 @@ class _SavingsGoalCard extends ConsumerWidget {
                         ),
                       );
                     },
+                  ),
+                ),
+                IconButton(
+                  onPressed: deleteGoal,
+                  tooltip: 'Delete savings goal',
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.error,
                   ),
                 ),
               ],
@@ -463,10 +478,7 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Create Savings Goal',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Create Savings Goal'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -551,10 +563,7 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            goal.name,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          SheetHeader(title: goal.name),
           const SizedBox(height: 20),
           ListTile(
             leading: const Icon(Icons.edit_outlined, color: AppColors.primary),
@@ -569,6 +578,7 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
+                useSafeArea: true,
                 builder: (_) => _EditGoalSheet(ref: ref, goal: goal),
               );
             },
@@ -590,6 +600,7 @@ class _SavingsGoalActionsSheet extends StatelessWidget {
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
+                useSafeArea: true,
                 builder: (_) => _AddContributionSheet(ref: ref, goal: goal),
               );
             },
@@ -705,10 +716,7 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Edit Savings Goal',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Edit Savings Goal'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -833,17 +841,9 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Add Contribution',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${formatter.format(remaining)} remaining to goal',
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          SheetHeader(
+            title: 'Add Contribution',
+            subtitle: '${formatter.format(remaining)} remaining to goal',
           ),
           const SizedBox(height: 20),
           TextField(

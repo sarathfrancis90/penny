@@ -4,8 +4,10 @@ import 'package:share_plus/share_plus.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 
 class ExportService {
-  String generateCsv(List<ExpenseModel> expenses,
-      {Map<String, String>? groupNames}) {
+  String generateCsv(
+    List<ExpenseModel> expenses, {
+    Map<String, String>? groupNames,
+  }) {
     final buffer = StringBuffer();
     // BOM for Excel compatibility
     buffer.write('\uFEFF');
@@ -19,8 +21,9 @@ class ExportService {
       final category = _escapeCsv(e.category);
       final amount = e.amount.toStringAsFixed(2);
       final type = e.expenseType;
-      final group =
-          e.groupId != null ? _escapeCsv(groupNames?[e.groupId] ?? '') : '';
+      final group = e.groupId != null
+          ? _escapeCsv(groupNames?[e.groupId] ?? '')
+          : '';
       final desc = _escapeCsv(e.description ?? '');
       buffer.writeln('$date,$vendor,$category,$amount,$type,$group,$desc');
     }
@@ -34,12 +37,12 @@ class ExportService {
     return value;
   }
 
-  Future<void> shareExpenseCsv(
+  Future<ShareResult?> shareExpenseCsv(
     List<ExpenseModel> expenses, {
     Map<String, String>? groupNames,
     String? dateRangeLabel,
   }) async {
-    if (expenses.isEmpty) return;
+    if (expenses.isEmpty) return null;
 
     final csv = generateCsv(expenses, groupNames: groupNames);
     final fileName = 'penny_expenses_${dateRangeLabel ?? 'export'}.csv';
@@ -47,8 +50,6 @@ class ExportService {
     final file = File('${tempDir.path}/$fileName');
     await file.writeAsString(csv);
 
-    await SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)]),
-    );
+    return SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
   }
 }

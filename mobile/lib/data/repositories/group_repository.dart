@@ -6,16 +6,24 @@ import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 
 class GroupRepository {
-  GroupRepository({
-    required ApiClient apiClient,
-    FirebaseFirestore? firestore,
-  })  : _api = apiClient,
-        _db = firestore ?? FirebaseFirestore.instance;
+  GroupRepository({required ApiClient apiClient, FirebaseFirestore? firestore})
+    : _api = apiClient,
+      _db = firestore ?? FirebaseFirestore.instance;
 
   final ApiClient _api;
   final FirebaseFirestore _db;
 
   // ====== Firestore Reads (real-time) ======
+
+  /// Stream a single active group document.
+  Stream<GroupModel?> watchGroup(String groupId) {
+    return _db.collection('groups').doc(groupId).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      final data = doc.data();
+      if (data == null || data['status'] == 'deleted') return null;
+      return GroupModel.fromFirestore(doc);
+    });
+  }
 
   /// Stream groups where user is an active member.
   Stream<List<GroupModel>> watchUserGroups(String userId) {
@@ -26,30 +34,35 @@ class GroupRepository {
         .where('status', isEqualTo: 'active')
         .snapshots()
         .asyncMap((memberSnap) async {
-      if (memberSnap.docs.isEmpty) return <GroupModel>[];
+          if (memberSnap.docs.isEmpty) return <GroupModel>[];
 
-      final groupIds =
-          memberSnap.docs.map((d) => d.data()['groupId'] as String).toList();
+          final groupIds = memberSnap.docs
+              .map((d) => d.data()['groupId'] as String)
+              .toList();
 
-      // Firestore 'in' query limited to 10
-      final batches = <List<String>>[];
-      for (var i = 0; i < groupIds.length; i += 10) {
-        batches.add(groupIds.sublist(
-            i, i + 10 > groupIds.length ? groupIds.length : i + 10));
-      }
+          // Firestore 'in' query limited to 10
+          final batches = <List<String>>[];
+          for (var i = 0; i < groupIds.length; i += 10) {
+            batches.add(
+              groupIds.sublist(
+                i,
+                i + 10 > groupIds.length ? groupIds.length : i + 10,
+              ),
+            );
+          }
 
-      final groups = <GroupModel>[];
-      for (final batch in batches) {
-        final snap = await _db
-            .collection('groups')
-            .where(FieldPath.documentId, whereIn: batch)
-            .where('status', isEqualTo: 'active')
-            .get();
-        groups.addAll(snap.docs.map(GroupModel.fromFirestore));
-      }
+          final groups = <GroupModel>[];
+          for (final batch in batches) {
+            final snap = await _db
+                .collection('groups')
+                .where(FieldPath.documentId, whereIn: batch)
+                .where('status', isEqualTo: 'active')
+                .get();
+            groups.addAll(snap.docs.map(GroupModel.fromFirestore));
+          }
 
-      return groups;
-    });
+          return groups;
+        });
   }
 
   /// Stream members of a specific group.
@@ -59,13 +72,14 @@ class GroupRepository {
         .where('groupId', isEqualTo: groupId)
         .where('status', isEqualTo: 'active')
         .snapshots()
-        .map((snap) =>
-            snap.docs.map(GroupMemberModel.fromFirestore).toList());
+        .map((snap) => snap.docs.map(GroupMemberModel.fromFirestore).toList());
   }
 
   /// Get the current user's role in a group.
   Future<GroupMemberModel?> getUserMembership(
-      String groupId, String userId) async {
+    String groupId,
+    String userId,
+  ) async {
     final docId = '${groupId}_$userId';
     final doc = await _db.collection('groupMembers').doc(docId).get();
     if (!doc.exists) return null;
@@ -73,16 +87,19 @@ class GroupRepository {
   }
 
   /// Stream activity feed for a group.
-  Stream<List<GroupActivityModel>> watchGroupActivities(String groupId,
-      {int limit = 50}) {
+  Stream<List<GroupActivityModel>> watchGroupActivities(
+    String groupId, {
+    int limit = 50,
+  }) {
     return _db
         .collection('groupActivities')
         .where('groupId', isEqualTo: groupId)
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()
-        .map((snap) =>
-            snap.docs.map(GroupActivityModel.fromFirestore).toList());
+        .map(
+          (snap) => snap.docs.map(GroupActivityModel.fromFirestore).toList(),
+        );
   }
 
   /// Accept a group invitation via API.
@@ -159,11 +176,7 @@ class GroupRepository {
   }) async {
     final response = await _api.post(
       ApiEndpoints.groupMembers(groupId),
-      data: {
-        'email': email,
-        'role': role,
-        'userId': userId,
-      },
+      data: {'email': email, 'role': role, 'userId': userId},
     );
 
     final data = response.data as Map<String, dynamic>;

@@ -14,6 +14,7 @@ import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -37,6 +38,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -58,13 +60,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Edit Display Name',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const SheetHeader(title: 'Edit Display Name'),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: controller,
@@ -158,6 +154,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -166,14 +163,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 8),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
+                child: SheetHeader(title: 'Profile Photo'),
               ),
               const SizedBox(height: 16),
               ListTile(
@@ -488,7 +480,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => showGuestSignUpPrompt(context),
+                  onPressed: () => showGuestSignUpPrompt(context, ref: ref),
                   child: const Text('Create Account'),
                 ),
               ),

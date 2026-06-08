@@ -4,62 +4,54 @@
 
 ---
 
-## TL;DR — Ship a release
+## TL;DR — Ship an internal release
 
 ```bash
-# 1. Bump version in pubspec.yaml (e.g. 2.2.1 → 2.2.2)
+# 1. Bump version in pubspec.yaml (e.g. 2.3.4 → 2.3.5)
 # 2. Write release notes
-echo "Your changelog text here." > mobile/release_notes/v2.2.2.txt
+echo "Your changelog text here." > mobile/release_notes/v2.3.5.txt
 
-# 3. Commit, tag, push
-git add mobile/pubspec.yaml mobile/release_notes/v2.2.2.txt
-git commit -m "chore: Release v2.2.2"
-git tag v2.2.2
+# 3. Commit, tag, push. This uploads internal builds only.
+git add mobile/pubspec.yaml mobile/release_notes/v2.3.5.txt
+git commit -m "chore: Release v2.3.5"
+git tag v2.3.5
 git push origin main --tags
 ```
 
-That's it. GitHub Actions ships to **TestFlight + App Store (auto-release on Apple approval)** and **Play Store production (100% rollout)** in parallel. Apple review takes 1–3 days; Play Store review takes hours.
+GitHub Actions uploads to **TestFlight** and **Play internal testing** only. After internal validation is clean, run **Mobile Production Promotion** manually from GitHub Actions with the validated version and build number.
 
 ---
 
 ## Architecture
 
 ```
-git tag v*.*.*               PR opened / push to main
-        │                            │
-        ▼                            ▼
-.github/workflows/release.yml   .github/workflows/pr-checks.yml
-        │                            │
-        │                            └── flutter analyze + flutter test
-        │
-        ├── job: derive  (parse tag → version + build_number)
-        │
-        ├── job: ios   (macOS runner, parallel)
-        │      └── flutter build ios → IPA → TestFlight upload
-        │          └── wait for Apple processing (poll latest_testflight_build_number)
-        │              └── fastlane repair_and_submit → App Store auto-release
-        │
-        └── job: android (ubuntu runner, parallel)
-               └── flutter build appbundle → fastlane supply
-                   └── Play Store production track, 100% rollout
+tag v*.*.* or manual dispatch       manual promotion after validation
+        │                                          │
+        ▼                                          ▼
+.github/workflows/mobile-release.yml    .github/workflows/mobile-production-promotion.yml
+        │                                          │
+        ├── derive version/build/notes             ├── iOS: submit existing TestFlight build
+        ├── iOS: build IPA -> TestFlight           └── Android: promote internal -> production
+        └── Android: build AAB -> Play internal
 ```
 
-Both jobs are independent. A failure in one does NOT block the other (so an iOS code-signing flake doesn't block the Android release).
+Internal jobs are independent. Production promotion is manual-only and guarded by the GitHub `production` environment.
 
 ---
 
-## Single trigger: git tag `v*.*.*`
+## Internal release triggers
 
 Versioning rule:
 - **Tag** = `v<major>.<minor>.<patch>` (e.g. `v2.2.2`)
+- **Manual dispatch version** = same value without the `v` prefix
 - **iOS `CFBundleShortVersionString`** = tag stripped of `v` prefix (e.g. `2.2.2`)
-- **iOS `CFBundleVersion`** (build number) = `${{ github.run_number }}` (auto-increments per workflow run, globally unique)
+- **iOS `CFBundleVersion`** (build number) = manual input or `${{ github.run_number }} + 100`
 - **Android `versionName`** = same as iOS short version
-- **Android `versionCode`** = `${{ github.run_number }}`
+- **Android `versionCode`** = same build number
 
-The `pubspec.yaml` `version:` field is the source of truth for version+build, but CI overrides build with `--build-number=${{ github.run_number }}` for uniqueness across re-runs.
+The `pubspec.yaml` marketing version must match the tag/manual version. CI overrides the build number for uniqueness across re-runs.
 
-**Why tag-based?** Tags are explicit, deliberate, and immutable. Pushing a tag is a clear "ship it" signal. Branch pushes are too noisy.
+**Why internal-first?** Store-distributed binaries are validated before any production review/promotion starts.
 
 ---
 
@@ -70,8 +62,6 @@ Go to **GitHub repo → Settings → Secrets and variables → Actions → New r
 | Secret name | How to produce |
 |---|---|
 | `ASC_API_KEY_P8` | `cat mobile/fastlane/AuthKey_P97VLS6M6Z.p8` (paste full contents incl. BEGIN/END lines) |
-| `ASC_API_KEY_ID` | Literal: `P97VLS6M6Z` |
-| `ASC_API_ISSUER_ID` | Literal: `09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14` |
 | `IOS_DIST_CERT_P12_BASE64` | Export Apple Distribution cert from Keychain Access as `.p12` with a password, then `base64 -i Apple_Distribution.p12 \| pbcopy` |
 | `IOS_DIST_CERT_PASSWORD` | The password you used when exporting the .p12 above |
 | `IOS_PROVISIONING_PROFILE_BASE64` | `base64 -i mobile/AppStore_com.penny.pennyMobile.mobileprovision \| pbcopy` |
@@ -80,7 +70,7 @@ Go to **GitHub repo → Settings → Secrets and variables → Actions → New r
 | `ANDROID_KEY_PROPERTIES` | `cat mobile/android/key.properties` (paste full contents) |
 | `PLAY_STORE_KEY_JSON` | `cat mobile/fastlane/play-store-key.json` (paste full JSON) |
 
-After adding all 10 secrets, the pipeline is armed. There is no other config required.
+After adding all 8 secrets, the pipeline is armed. `ASC_API_KEY_ID` and `ASC_API_ISSUER_ID` are currently hardcoded in `mobile/fastlane/Fastfile`, so they are not consumed by GitHub Actions.
 
 ---
 
@@ -111,13 +101,12 @@ Every CI step is a normal Fastlane lane. To replicate the pipeline locally:
 
 ```bash
 cd mobile
-fastlane ios beta                                          # iOS → TestFlight
-fastlane ios repair_and_submit version:2.2.2 build:NN \   # iOS → App Store
-                                notes:"Your changelog"
-fastlane android beta                                      # Android → Play Store internal
-# Then promote internal → production manually in Play Console UI, OR:
-fastlane supply --track production --aab build/app/outputs/bundle/release/app-release.aab \
-                --json_key fastlane/play-store-key.json --package_name com.penny.penny_mobile
+fastlane ios internal version:2.3.5 build:NN notes:"Your changelog"
+fastlane android internal version:2.3.5 build:NN notes:"Your changelog"
+
+# After internal validation:
+fastlane ios promote version:2.3.5 build:NN notes:"Your changelog"
+fastlane android promote build:NN notes:"Your changelog"
 ```
 
 You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-store-key.json` present locally (gitignored).
@@ -131,9 +120,9 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 | **iOS submit blocked: "whatsNew missing"** | `appStoreVersions ... not in valid state` | Run `fastlane repair_and_submit` — it drops stray locales and sets en-CA whatsNew via Spaceship. |
 | **iOS submit blocked: "English (U.S.) - Description / Keywords / Support URL required"** | A previous deliver call created a blank en-US locale | Same: `fastlane repair_and_submit` cleans up the stray locale. |
 | **iOS upload rejected: "Invalid Pre-Release Train. The train version 'X.Y.Z' is closed"** | Marketing version was already shipped to App Store | Bump the marketing version (e.g. `2.2.0` → `2.2.1`). Build number alone is not enough once a train is closed. |
-| **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number` so this shouldn't happen on CI. Locally, bump `+N` in `pubspec.yaml`. |
+| **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number + 100` unless manually overridden. Locally, bump `+N` in `pubspec.yaml`. |
 | **Android upload: "Could not find aab file"** | Path mismatch | The Fastfile path is relative to `mobile/`, not `mobile/fastlane/`. Should be `build/app/outputs/bundle/release/app-release.aab`. (Already fixed in commit `162372f`.) |
-| **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number` — re-running the same workflow gets a new number. Locally, bump build number in `pubspec.yaml`. |
+| **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number + 100` unless manually overridden. Locally, bump build number in `pubspec.yaml`. |
 | **Pre-push hook hangs/fails** | Local push blocked | The hook is `.githooks/pre-push`, runs `flutter test`. If a test legitimately fails, fix it. To debug: `cd mobile && flutter test`. |
 | **CI iOS build fails: "No signing certificate"** | The base64 cert secret is wrong or the keychain step failed | Re-export the .p12 from Keychain Access (make sure to include the private key) and re-add `IOS_DIST_CERT_P12_BASE64`. |
 | **App Store version stuck after a failed submit** | Can't re-submit, locale rows half-filled | `fastlane repair_and_submit version:X build:Y notes:"..."` — handles all of it. Don't try to delete the version via API; Apple doesn't expose that endpoint. |
@@ -145,7 +134,7 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 Release notes live as plain-text files at `mobile/release_notes/v<version>.txt`. Each file is the **What's New** content for both iOS and Android.
 
 - The pipeline reads `mobile/release_notes/v${VERSION}.txt` and **fails fast if missing**, so you can never ship without notes.
-- iOS notes go to the `en-CA` localization's `whatsNew` field.
+- iOS notes go to TestFlight changelog during internal release and to the `en-CA` localization's `whatsNew` field during production promotion.
 - Android notes go to the `en-US` localization (Play Store default).
 - Keep them under 4000 chars for iOS / 500 chars for Android (use the shorter of the two as your guide).
 
@@ -170,7 +159,7 @@ When updating tools locally: bump the pin file, commit it, push. CI picks up the
 - **Bumping `pubspec.yaml` `version:`** — must be a deliberate human decision. Semantic-release tooling can do this from conventional commits if you want; for now it's manual.
 - **Writing release notes** — same reason. Two-line creative task.
 - **App Store / Play Store metadata changes** (description, keywords, screenshots) — these change rarely and are managed in the respective console UIs. The pipeline never touches them.
-- **Promoting from staged rollout to 100%** — N/A here because we ship at 100% directly. If you switch to staged (recommended for larger user base), you'll do `fastlane supply --rollout 1.0` manually after monitoring.
+- **Production promotion decision** — must be deliberate after internal validation. Use the manual `Mobile Production Promotion` workflow.
 
 ---
 
@@ -179,7 +168,7 @@ When updating tools locally: bump the pin file, commit it, push. CI picks up the
 If you're modifying the deployment pipeline, ALSO update:
 1. This file (`mobile/CICD.md`) — the runbook
 2. `mobile/fastlane/Fastfile` — the actual lanes
-3. `.github/workflows/release.yml` — the CI orchestration
+3. `.github/workflows/mobile-release.yml` and `.github/workflows/mobile-production-promotion.yml` — the CI orchestration
 4. `~/.claude/projects/-Users-sarathfrancis-work-git-Personal-penny/memory/reference_cicd_pipeline.md` — the AI memory snapshot
 
 If you discover a new failure mode, add it to the **Recovery procedures** table above. That table is the one part of this doc that gets read during 2am incidents.

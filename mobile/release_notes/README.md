@@ -2,7 +2,7 @@
 
 One file per release: `v<version>.txt` (matching the git tag, minus the `v` prefix is the version).
 
-The release pipeline (`.github/workflows/mobile-release.yml`) reads the file matching the pushed tag and uses it as **What's New in This Version** for both App Store (en-CA locale) and Play Store (en-US locale).
+The internal release pipeline (`.github/workflows/mobile-release.yml`) reads the file matching the pushed tag/manual version and uses it for the TestFlight changelog and Play internal changelog. The production promotion workflow reuses the same file for App Store `en-CA` notes and Play Store `en-US` notes.
 
 **The pipeline fails fast if the file is missing.** This is intentional — you cannot ship without versioned release notes.
 

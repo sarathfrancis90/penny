@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/quick_add_expense.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/expense_list_tile.dart';
 import 'package:penny_mobile/presentation/widgets/animated_counter.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
@@ -37,7 +38,7 @@ class DashboardScreen extends ConsumerWidget {
             tooltip: 'Export expenses',
             onPressed: () {
               if (ref.read(guestModeProvider)) {
-                showGuestSignUpPrompt(context);
+                showGuestSignUpPrompt(context, ref: ref);
                 return;
               }
               _showExportSheet(context, ref);
@@ -56,13 +57,14 @@ class DashboardScreen extends ConsumerWidget {
           if (ref.read(guestModeProvider)) {
             final notifier = ref.read(guestExpenseProvider.notifier);
             if (notifier.isFull) {
-              showGuestSignUpPrompt(context);
+              showGuestSignUpPrompt(context, ref: ref);
               return;
             }
           }
           showModalBottomSheet(
             context: context,
             isScrollControlled: true,
+            useSafeArea: true,
             builder: (_) => const QuickAddExpense(),
           );
         },
@@ -83,6 +85,7 @@ class DashboardScreen extends ConsumerWidget {
   void _showExportSheet(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       builder: (_) => _ExportSheet(ref: ref),
     );
   }
@@ -120,59 +123,77 @@ class _DashboardContent extends ConsumerWidget {
 
           // Guest mode banner with expense count
           if (isGuest)
-            Builder(builder: (context) {
-              final guestCount = ref.watch(guestExpenseProvider).length;
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.phone_android, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '$guestCount of ${GuestExpenseNotifier.maxExpenses} expenses \u00b7 Local only',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.onSurface,
+            Builder(
+              builder: (context) {
+                final guestCount = ref.watch(guestExpenseProvider).length;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.phone_android,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '$guestCount of ${GuestExpenseNotifier.maxExpenses} expenses \u00b7 Local only',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                           ),
-                        ),
-                        TextButton(
-                          onPressed: () => showGuestSignUpPrompt(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          TextButton(
+                            onPressed: () =>
+                                showGuestSignUpPrompt(context, ref: ref),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Create Account',
+                              style: TextStyle(fontSize: 13),
+                            ),
                           ),
-                          child: const Text('Create Account', style: TextStyle(fontSize: 13)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(2),
-                      child: LinearProgressIndicator(
-                        value: guestCount / GuestExpenseNotifier.maxExpenses,
-                        minHeight: 3,
-                        backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          guestCount >= GuestExpenseNotifier.softLimitThreshold
-                              ? AppColors.warning
-                              : AppColors.primary,
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: LinearProgressIndicator(
+                          value: guestCount / GuestExpenseNotifier.maxExpenses,
+                          minHeight: 3,
+                          backgroundColor: AppColors.primary.withValues(
+                            alpha: 0.15,
+                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            guestCount >=
+                                    GuestExpenseNotifier.softLimitThreshold
+                                ? AppColors.warning
+                                : AppColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }),
+                    ],
+                  ),
+                );
+              },
+            ),
 
           // Period pills
           const _PeriodSelector(),
@@ -184,10 +205,13 @@ class _DashboardContent extends ConsumerWidget {
 
           // Total spending card
           _TotalCard(
-            total: filteredExpenses.fold(0.0, (sum, e) => sum + e.amount),
-            trend: trend,
-            lastTotal: lastTotal,
-          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0, duration: 400.ms),
+                total: filteredExpenses.fold(0.0, (sum, e) => sum + e.amount),
+                trend: trend,
+                lastTotal: lastTotal,
+              )
+              .animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: 0.05, end: 0, duration: 400.ms),
           const SizedBox(height: 24),
 
           // Spending trend line chart
@@ -234,57 +258,66 @@ class _DashboardContent extends ConsumerWidget {
               child: Center(
                 child: Text(
                   'No expenses for this period',
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             )
           else
-            ...grouped.entries.expand((entry) => [
-                  Container(
-                    margin: const EdgeInsets.only(top: 16, bottom: 8),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 3,
-                          height: 16,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          entry.key,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).colorScheme.onSurface,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${entry.value.length} expense${entry.value.length == 1 ? '' : 's'}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
+            ...grouped.entries.expand(
+              (entry) => [
+                Container(
+                  margin: const EdgeInsets.only(top: 16, bottom: 8),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
                   ),
-                  ...entry.value.map((e) => ExpenseListTile(
-                        expense: e,
-                        onTap: () {
-                          context.push('/expenses/detail', extra: e);
-                        },
-                      )),
-                ]),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        entry.key,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${entry.value.length} expense${entry.value.length == 1 ? '' : 's'}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ...entry.value.map(
+                  (e) => ExpenseListTile(
+                    expense: e,
+                    onTap: () {
+                      context.push('/expenses/detail', extra: e);
+                    },
+                  ),
+                ),
+              ],
+            ),
 
           const SizedBox(height: 24),
         ],
@@ -294,7 +327,8 @@ class _DashboardContent extends ConsumerWidget {
 
   /// Groups expenses into date buckets: Today, Yesterday, This Week, Earlier.
   Map<String, List<ExpenseModel>> _groupExpensesByDate(
-      List<ExpenseModel> expenses) {
+    List<ExpenseModel> expenses,
+  ) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = today.subtract(const Duration(days: 1));
@@ -354,9 +388,13 @@ class _PeriodSelector extends ConsumerWidget {
               ButtonSegment(value: DashboardPeriod.thisWeek, label: Text('W')),
               ButtonSegment(value: DashboardPeriod.thisMonth, label: Text('M')),
               ButtonSegment(
-                  value: DashboardPeriod.lastMonth, label: Text('LM')),
+                value: DashboardPeriod.lastMonth,
+                label: Text('LM'),
+              ),
               ButtonSegment(
-                  value: DashboardPeriod.threeMonths, label: Text('3M')),
+                value: DashboardPeriod.threeMonths,
+                label: Text('3M'),
+              ),
               ButtonSegment(value: DashboardPeriod.thisYear, label: Text('Y')),
               ButtonSegment(
                 value: DashboardPeriod.custom,
@@ -406,11 +444,9 @@ class _PeriodSelector extends ConsumerWidget {
       context: context,
       firstDate: DateTime(2020),
       lastDate: now,
-      initialDateRange: ref.read(customDateRangeProvider) ??
-          DateTimeRange(
-            start: DateTime(now.year, now.month, 1),
-            end: now,
-          ),
+      initialDateRange:
+          ref.read(customDateRangeProvider) ??
+          DateTimeRange(start: DateTime(now.year, now.month, 1), end: now),
     );
 
     if (picked != null) {
@@ -431,7 +467,8 @@ class _FilterBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final groups = ref.watch(userGroupsProvider).valueOrNull ?? [];
 
-    final hasAnyFilter = filter.typeFilter != ExpenseTypeFilter.all ||
+    final hasAnyFilter =
+        filter.typeFilter != ExpenseTypeFilter.all ||
         filter.categoryFilter != null ||
         filter.groupIdFilter != null;
 
@@ -439,52 +476,58 @@ class _FilterBar extends ConsumerWidget {
     final tags = <_ActiveFilterTag>[];
 
     if (filter.typeFilter == ExpenseTypeFilter.personal) {
-      tags.add(_ActiveFilterTag(
-        label: 'Personal',
-        onRemove: () {
-          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-            typeFilter: ExpenseTypeFilter.all,
-          );
-        },
-      ));
+      tags.add(
+        _ActiveFilterTag(
+          label: 'Personal',
+          onRemove: () {
+            ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+              typeFilter: ExpenseTypeFilter.all,
+            );
+          },
+        ),
+      );
     } else if (filter.typeFilter == ExpenseTypeFilter.group &&
         filter.groupIdFilter == null) {
-      tags.add(_ActiveFilterTag(
-        label: 'Group',
-        onRemove: () {
-          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-            typeFilter: ExpenseTypeFilter.all,
-          );
-        },
-      ));
+      tags.add(
+        _ActiveFilterTag(
+          label: 'Group',
+          onRemove: () {
+            ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+              typeFilter: ExpenseTypeFilter.all,
+            );
+          },
+        ),
+      );
     }
 
     if (filter.groupIdFilter != null) {
-      final groupName = groups
-              .where((g) => g.id == filter.groupIdFilter)
-              .firstOrNull
-              ?.name ??
+      final groupName =
+          groups.where((g) => g.id == filter.groupIdFilter).firstOrNull?.name ??
           'Group';
-      tags.add(_ActiveFilterTag(
-        label: groupName,
-        onRemove: () {
-          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-            typeFilter: ExpenseTypeFilter.all,
-            groupIdFilter: () => null,
-          );
-        },
-      ));
+      tags.add(
+        _ActiveFilterTag(
+          label: groupName,
+          onRemove: () {
+            ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+              typeFilter: ExpenseTypeFilter.all,
+              groupIdFilter: () => null,
+            );
+          },
+        ),
+      );
     }
 
     if (filter.categoryFilter != null) {
-      tags.add(_ActiveFilterTag(
-        label: _shortenCategory(filter.categoryFilter!),
-        onRemove: () {
-          ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
-            categoryFilter: () => null,
-          );
-        },
-      ));
+      tags.add(
+        _ActiveFilterTag(
+          label: _shortenCategory(filter.categoryFilter!),
+          onRemove: () {
+            ref.read(expenseFilterProvider.notifier).state = filter.copyWith(
+              categoryFilter: () => null,
+            );
+          },
+        ),
+      );
     }
 
     return Row(
@@ -553,6 +596,7 @@ class _FilterBar extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _FilterBottomSheet(ref: ref),
     );
   }
@@ -643,26 +687,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Title
-            Text(
-              'Filter Expenses',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            const SheetHeader(title: 'Filter Expenses'),
             const SizedBox(height: 20),
 
             // TYPE section
@@ -677,12 +702,15 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             const SizedBox(height: 8),
             SegmentedButton<ExpenseTypeFilter>(
               segments: const [
+                ButtonSegment(value: ExpenseTypeFilter.all, label: Text('All')),
                 ButtonSegment(
-                    value: ExpenseTypeFilter.all, label: Text('All')),
+                  value: ExpenseTypeFilter.personal,
+                  label: Text('Personal'),
+                ),
                 ButtonSegment(
-                    value: ExpenseTypeFilter.personal, label: Text('Personal')),
-                ButtonSegment(
-                    value: ExpenseTypeFilter.group, label: Text('Group')),
+                  value: ExpenseTypeFilter.group,
+                  label: Text('Group'),
+                ),
               ],
               selected: {_typeFilter},
               onSelectionChanged: (set) {
@@ -728,16 +756,26 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                       value: null,
                       child: Text('All Groups'),
                     ),
-                    ...groups.map((g) => DropdownMenuItem<String?>(
-                          value: g.id,
-                          child: Row(
-                            children: [
-                              Text(g.icon ?? '', style: const TextStyle(fontSize: 16)),
-                              if (g.icon != null) const SizedBox(width: 8),
-                              Flexible(child: Text(g.name, overflow: TextOverflow.ellipsis)),
-                            ],
-                          ),
-                        )),
+                    ...groups.map(
+                      (g) => DropdownMenuItem<String?>(
+                        value: g.id,
+                        child: Row(
+                          children: [
+                            Text(
+                              g.icon ?? '',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            if (g.icon != null) const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                g.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -766,8 +804,10 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
               onTap: () => _showCategoryPicker(context, theme),
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: theme.dividerColor),
@@ -816,8 +856,9 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 Expanded(
                   child: FilledButton(
                     onPressed: () {
-                      widget.ref.read(expenseFilterProvider.notifier).state =
-                          ExpenseFilter(
+                      widget.ref
+                          .read(expenseFilterProvider.notifier)
+                          .state = ExpenseFilter(
                         typeFilter: _typeFilter,
                         categoryFilter: _categoryFilter,
                         groupIdFilter: _groupIdFilter,
@@ -848,8 +889,10 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           return Column(
             children: [
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
                 child: Row(
                   children: [
                     Text(
@@ -867,6 +910,11 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                         },
                         child: const Text('Clear'),
                       ),
+                    IconButton.filledTonal(
+                      onPressed: () => Navigator.pop(ctx),
+                      tooltip: 'Close',
+                      icon: const Icon(Icons.close),
+                    ),
                   ],
                 ),
               ),
@@ -896,51 +944,55 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                       },
                     ),
                     // Grouped categories
-                    ...categoryGroups.entries.expand((group) => [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                            child: Text(
-                              group.key.toUpperCase(),
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.8,
-                              ),
+                    ...categoryGroups.entries.expand(
+                      (group) => [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Text(
+                            group.key.toUpperCase(),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.8,
                             ),
                           ),
-                          ...group.value.map((cat) {
-                            var label = cat;
-                            final parenIdx = label.indexOf('(');
-                            if (parenIdx > 0) {
-                              label = label.substring(0, parenIdx).trim();
-                            }
-                            final isSelected = _categoryFilter == cat;
-                            return ListTile(
-                              dense: true,
-                              title: Text(
-                                label,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? theme.colorScheme.primary
-                                      : null,
-                                ),
+                        ),
+                        ...group.value.map((cat) {
+                          var label = cat;
+                          final parenIdx = label.indexOf('(');
+                          if (parenIdx > 0) {
+                            label = label.substring(0, parenIdx).trim();
+                          }
+                          final isSelected = _categoryFilter == cat;
+                          return ListTile(
+                            dense: true,
+                            title: Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : null,
                               ),
-                              trailing: isSelected
-                                  ? Icon(Icons.check,
-                                      size: 18,
-                                      color: theme.colorScheme.primary)
-                                  : null,
-                              onTap: () {
-                                setState(() => _categoryFilter = cat);
-                                Navigator.pop(ctx);
-                              },
-                            );
-                          }),
-                        ]),
+                            ),
+                            trailing: isSelected
+                                ? Icon(
+                                    Icons.check,
+                                    size: 18,
+                                    color: theme.colorScheme.primary,
+                                  )
+                                : null,
+                            onTap: () {
+                              setState(() => _categoryFilter = cat);
+                              Navigator.pop(ctx);
+                            },
+                          );
+                        }),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -972,7 +1024,8 @@ class _TotalCard extends StatelessWidget {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
     return Semantics(
-      label: 'Total spent: ${formatter.format(total)}'
+      label:
+          'Total spent: ${formatter.format(total)}'
           '${hasTrend ? ', ${isUp ? 'up' : 'down'} ${trend.abs().toStringAsFixed(1)} percent versus last month' : ''}',
       container: true,
       child: Container(
@@ -1040,8 +1093,7 @@ class _CategoryTotals extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
-    final maxAmount =
-        categories.isNotEmpty ? categories.first.amount : 1.0;
+    final maxAmount = categories.isNotEmpty ? categories.first.amount : 1.0;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1063,8 +1115,9 @@ class _CategoryTotals extends StatelessWidget {
             label = label.substring(0, parenIdx).trim();
           }
 
-          final fraction =
-              maxAmount > 0 ? (cat.amount / maxAmount).clamp(0.0, 1.0) : 0.0;
+          final fraction = maxAmount > 0
+              ? (cat.amount / maxAmount).clamp(0.0, 1.0)
+              : 0.0;
 
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1104,11 +1157,11 @@ class _CategoryTotals extends StatelessWidget {
                       child: LinearProgressIndicator(
                         value: value,
                         minHeight: 6,
-                        backgroundColor:
-                            AppColors.primary.withAlpha(25),
+                        backgroundColor: AppColors.primary.withAlpha(25),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           AppColors.primary.withAlpha(
-                              (128 + fraction * 127).round()),
+                            (128 + fraction * 127).round(),
+                          ),
                         ),
                       ),
                     );
@@ -1172,23 +1225,27 @@ class _ExportSheetState extends State<_ExportSheet> {
       DashboardPeriod.lastMonth => 'last_month',
       DashboardPeriod.threeMonths => '3_months',
       DashboardPeriod.thisYear => 'this_year',
-      DashboardPeriod.custom => customRange != null
-          ? '${DateFormat('yyyy-MM-dd').format(customRange.start)}_${DateFormat('yyyy-MM-dd').format(customRange.end)}'
-          : 'custom',
+      DashboardPeriod.custom =>
+        customRange != null
+            ? '${DateFormat('yyyy-MM-dd').format(customRange.start)}_${DateFormat('yyyy-MM-dd').format(customRange.end)}'
+            : 'custom',
     };
   }
 
   String _periodDisplayLabel(
-      DashboardPeriod period, DateTimeRange? customRange) {
+    DashboardPeriod period,
+    DateTimeRange? customRange,
+  ) {
     return switch (period) {
       DashboardPeriod.thisWeek => 'This Week',
       DashboardPeriod.thisMonth => 'This Month',
       DashboardPeriod.lastMonth => 'Last Month',
       DashboardPeriod.threeMonths => 'Last 3 Months',
       DashboardPeriod.thisYear => 'This Year',
-      DashboardPeriod.custom => customRange != null
-          ? '${DateFormat('MMM d').format(customRange.start)} - ${DateFormat('MMM d').format(customRange.end)}'
-          : 'Custom Range',
+      DashboardPeriod.custom =>
+        customRange != null
+            ? '${DateFormat('MMM d').format(customRange.start)} - ${DateFormat('MMM d').format(customRange.end)}'
+            : 'Custom Range',
     };
   }
 
@@ -1212,21 +1269,44 @@ class _ExportSheetState extends State<_ExportSheet> {
     setState(() => _exporting = true);
     try {
       final expenses = widget.ref.read(filteredExpensesProvider);
-      final groups =
-          widget.ref.read(userGroupsProvider).valueOrNull ?? [];
+      final groups = widget.ref.read(userGroupsProvider).valueOrNull ?? [];
       final groupNames = {for (final g in groups) g.id: g.name};
       final period = widget.ref.read(dashboardPeriodProvider);
       final customRange = widget.ref.read(customDateRangeProvider);
       final dateRangeLabel = _periodLabel(period, customRange);
 
-      await widget.ref.read(exportServiceProvider).shareExpenseCsv(
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+      final result = await widget.ref
+          .read(exportServiceProvider)
+          .shareExpenseCsv(
             expenses,
             groupNames: groupNames,
             dateRangeLabel: dateRangeLabel,
           );
 
       HapticFeedback.mediumImpact();
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        navigator.pop();
+        final status = result?.status.name;
+        if (status == 'success') {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Export ready to share'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (status == 'unavailable') {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Export created, but sharing is unavailable on this device',
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1255,10 +1335,7 @@ class _ExportSheetState extends State<_ExportSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Export Expenses',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
+            const SheetHeader(title: 'Export Expenses'),
             const SizedBox(height: 16),
 
             // Summary info
@@ -1273,8 +1350,11 @@ class _ExportSheetState extends State<_ExportSheet> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.date_range,
-                          size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.date_range,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         _periodDisplayLabel(period, customRange),
@@ -1289,8 +1369,11 @@ class _ExportSheetState extends State<_ExportSheet> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.filter_alt_outlined,
-                          size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.filter_alt_outlined,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         _filterSummary(filter),
@@ -1304,8 +1387,11 @@ class _ExportSheetState extends State<_ExportSheet> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.receipt_long_outlined,
-                          size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         '${expenses.length} expense${expenses.length == 1 ? '' : 's'}',
@@ -1330,7 +1416,9 @@ class _ExportSheetState extends State<_ExportSheet> {
                       height: 18,
                       width: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.file_download_outlined),
               label: Text(_exporting ? 'Generating...' : 'Export as CSV'),

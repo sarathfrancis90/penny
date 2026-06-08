@@ -122,7 +122,7 @@ class _IncomeSection extends ConsumerWidget {
           emptyLabel: 'No income sources yet',
           onManage: () {
             if (ref.read(guestModeProvider)) {
-              showGuestSignUpPrompt(context);
+              showGuestSignUpPrompt(context, ref: ref);
               return;
             }
             context.push('/income');
@@ -241,7 +241,7 @@ class _BudgetsSection extends ConsumerWidget {
           emptyLabel: 'No budgets yet',
           onManage: () {
             if (isGuest) {
-              showGuestSignUpPrompt(context);
+              showGuestSignUpPrompt(context, ref: ref);
               return;
             }
             context.push('/budgets');
@@ -371,7 +371,7 @@ class _SavingsSection extends ConsumerWidget {
           emptyLabel: 'No savings goals yet',
           onManage: () {
             if (ref.read(guestModeProvider)) {
-              showGuestSignUpPrompt(context);
+              showGuestSignUpPrompt(context, ref: ref);
               return;
             }
             context.push('/savings');
@@ -787,7 +787,7 @@ class _PreviewRow extends StatelessWidget {
 // Guest Locked Section
 // =============================================================================
 
-class _GuestLockedSection extends StatelessWidget {
+class _GuestLockedSection extends ConsumerWidget {
   const _GuestLockedSection({
     required this.title,
     required this.icon,
@@ -801,7 +801,7 @@ class _GuestLockedSection extends StatelessWidget {
   final String description;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Container(
@@ -852,7 +852,7 @@ class _GuestLockedSection extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => showGuestSignUpPrompt(context),
+              onPressed: () => showGuestSignUpPrompt(context, ref: ref),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary),

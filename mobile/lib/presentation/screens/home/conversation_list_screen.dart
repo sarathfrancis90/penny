@@ -14,21 +14,22 @@ import 'package:penny_mobile/presentation/providers/providers.dart';
 /// Streams the user's active conversations, sorted with pinned first then by
 /// most-recently updated. Bounded to keep the drawer snappy on large accounts;
 /// search uses [searchAllConversationsProvider] for full coverage.
-final conversationsListProvider =
-    StreamProvider<List<ConversationModel>>((ref) {
+final conversationsListProvider = StreamProvider<List<ConversationModel>>((
+  ref,
+) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
   return ref
       .watch(conversationRepositoryProvider)
       .watchConversations(user.uid)
       .map((conversations) {
-    conversations.sort((a, b) {
-      if (a.metadata.isPinned && !b.metadata.isPinned) return -1;
-      if (!a.metadata.isPinned && b.metadata.isPinned) return 1;
-      return b.updatedAt.compareTo(a.updatedAt);
-    });
-    return conversations;
-  });
+        conversations.sort((a, b) {
+          if (a.metadata.isPinned && !b.metadata.isPinned) return -1;
+          if (!a.metadata.isPinned && b.metadata.isPinned) return 1;
+          return b.updatedAt.compareTo(a.updatedAt);
+        });
+        return conversations;
+      });
 });
 
 /// One-shot Firestore query that returns ALL active conversations for the
@@ -37,21 +38,20 @@ final conversationsListProvider =
 /// search string (kept in the family key for natural cache invalidation).
 final searchAllConversationsProvider =
     FutureProvider.family<List<ConversationModel>, String>((ref, query) async {
-  if (query.isEmpty) return const [];
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return const [];
-  final snap = await FirebaseFirestore.instance
-      .collection('conversations')
-      .where('userId', isEqualTo: user.uid)
-      .where('status', isEqualTo: 'active')
-      .get();
-  final all = snap.docs.map(ConversationModel.fromFirestore).toList();
-  return all.where((c) {
-    return c.title.toLowerCase().contains(query) ||
-        c.lastMessagePreview.toLowerCase().contains(query);
-  }).toList()
-    ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-});
+      if (query.isEmpty) return const [];
+      final user = ref.watch(currentUserProvider);
+      if (user == null) return const [];
+      final snap = await FirebaseFirestore.instance
+          .collection('conversations')
+          .where('userId', isEqualTo: user.uid)
+          .where('status', isEqualTo: 'active')
+          .get();
+      final all = snap.docs.map(ConversationModel.fromFirestore).toList();
+      return all.where((c) {
+        return c.title.toLowerCase().contains(query) ||
+            c.lastMessagePreview.toLowerCase().contains(query);
+      }).toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    });
 
 sealed class _DrawerItem {
   const _DrawerItem();
@@ -191,12 +191,16 @@ class _ConversationListDrawerState
                     child: Text(
                       'Conversations',
                       style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w600),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_comment_outlined,
-                        color: AppColors.primary),
+                    icon: const Icon(
+                      Icons.add_comment_outlined,
+                      color: AppColors.primary,
+                    ),
                     tooltip: 'New conversation',
                     onPressed: () {
                       Navigator.pop(context);
@@ -226,15 +230,17 @@ class _ConversationListDrawerState
                       : null,
                   isDense: true,
                   filled: true,
-                  fillColor: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest,
+                  fillColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 0, horizontal: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 8,
+                  ),
                 ),
               ),
             ),
@@ -265,21 +271,24 @@ class _ConversationListDrawerState
             return switch (item) {
               _SectionHeaderItem() => _SectionHeader(label: item.label),
               _ConversationItem() => _ConversationTile(
-                  conversation: item.conversation,
-                  onTap: () {
-                    Navigator.pop(context);
-                    widget.onSelectConversation(item.conversation.id);
-                  },
-                ),
+                conversation: item.conversation,
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onSelectConversation(item.conversation.id);
+                },
+              ),
             };
           },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => Center(
-        child: Text('Could not load conversations',
-            style:
-                TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        child: Text(
+          'Could not load conversations',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       ),
     );
   }
@@ -304,9 +313,12 @@ class _ConversationListDrawerState
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => Center(
-        child: Text('Could not search conversations',
-            style:
-                TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        child: Text(
+          'Could not search conversations',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       ),
     );
   }
@@ -337,10 +349,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _ConversationTile extends ConsumerWidget {
-  const _ConversationTile({
-    required this.conversation,
-    required this.onTap,
-  });
+  const _ConversationTile({required this.conversation, required this.onTap});
 
   final ConversationModel conversation;
   final VoidCallback onTap;
@@ -353,7 +362,8 @@ class _ConversationTile extends ConsumerWidget {
 
     final tile = Semantics(
       button: true,
-      label: '${conversation.title}, '
+      label:
+          '${conversation.title}, '
           '${conversation.lastMessagePreview}, '
           '$timeAgo ago'
           '${conversation.metadata.isPinned ? ', pinned' : ''}',
@@ -377,9 +387,11 @@ class _ConversationTile extends ConsumerWidget {
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.chat_bubble_outline,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                child: Icon(
+                  Icons.chat_bubble_outline,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -389,7 +401,9 @@ class _ConversationTile extends ConsumerWidget {
                     Text(
                       conversation.title,
                       style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w500),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -397,24 +411,36 @@ class _ConversationTile extends ConsumerWidget {
                     Text(
                       conversation.lastMessagePreview,
                       style: TextStyle(
-                          fontSize: 12,
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              Text(timeAgo,
-                  style: TextStyle(
-                      fontSize: 11, color: Theme.of(context).hintColor)),
+              Text(
+                timeAgo,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).hintColor,
+                ),
+              ),
               if (conversation.metadata.isPinned)
                 const Padding(
                   padding: EdgeInsets.only(left: 4),
-                  child:
-                      Icon(Icons.push_pin, size: 12, color: AppColors.primary),
+                  child: Icon(
+                    Icons.push_pin,
+                    size: 12,
+                    color: AppColors.primary,
+                  ),
                 ),
+              IconButton(
+                onPressed: () => _showActionsSheet(context, ref),
+                tooltip: 'Conversation actions',
+                icon: const Icon(Icons.more_vert),
+              ),
             ],
           ),
         ),
@@ -432,49 +458,53 @@ class _ConversationTile extends ConsumerWidget {
       onHorizontalDragUpdate: (_) {},
       onHorizontalDragEnd: (_) {},
       child: Dismissible(
-      key: ValueKey('conv-${conversation.id}'),
-      direction: DismissDirection.endToStart,
-      movementDuration:
-          reduceMotion ? Duration.zero : const Duration(milliseconds: 200),
-      background: Container(
-        color: AppColors.warning,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 24),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.archive_outlined, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Archive',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-      confirmDismiss: (_) async {
-        HapticFeedback.mediumImpact();
-        return true;
-      },
-      onDismissed: (_) async {
-        final convId = conversation.id;
-        await repo.archiveConversation(convId);
-        _resetChatIfActive(ref, convId);
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Conversation archived'),
-              behavior: SnackBarBehavior.floating,
-              action: SnackBarAction(
-                label: 'Undo',
-                onPressed: () => repo.updateConversation(
-                  convId,
-                  {'status': 'active'},
+        key: ValueKey('conv-${conversation.id}'),
+        direction: DismissDirection.endToStart,
+        movementDuration: reduceMotion
+            ? Duration.zero
+            : const Duration(milliseconds: 200),
+        background: Container(
+          color: AppColors.warning,
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 24),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.archive_outlined, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'Archive',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ),
-          );
-        }
-      },
-      child: tile,
+            ],
+          ),
+        ),
+        confirmDismiss: (_) async {
+          HapticFeedback.mediumImpact();
+          return true;
+        },
+        onDismissed: (_) async {
+          final convId = conversation.id;
+          await repo.archiveConversation(convId);
+          _resetChatIfActive(ref, convId);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Conversation archived'),
+                behavior: SnackBarBehavior.floating,
+                action: SnackBarAction(
+                  label: 'Undo',
+                  onPressed: () =>
+                      repo.updateConversation(convId, {'status': 'active'}),
+                ),
+              ),
+            );
+          }
+        },
+        child: tile,
       ),
     );
   }
@@ -492,10 +522,8 @@ class _ConversationTile extends ConsumerWidget {
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
             label: 'Undo',
-            onPressed: () => repo.updateConversation(
-              convId,
-              {'status': 'active'},
-            ),
+            onPressed: () =>
+                repo.updateConversation(convId, {'status': 'active'}),
           ),
         ),
       );
@@ -531,8 +559,10 @@ class _ConversationTile extends ConsumerWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.edit_outlined,
-                    color: AppColors.primary),
+                leading: const Icon(
+                  Icons.edit_outlined,
+                  color: AppColors.primary,
+                ),
                 title: const Text('Rename'),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -540,8 +570,10 @@ class _ConversationTile extends ConsumerWidget {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.archive_outlined,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
+                leading: Icon(
+                  Icons.archive_outlined,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
                 title: const Text('Archive'),
                 onTap: () async {
                   Navigator.pop(ctx);
@@ -559,10 +591,14 @@ class _ConversationTile extends ConsumerWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete_outline,
-                    color: AppColors.error),
-                title: const Text('Delete',
-                    style: TextStyle(color: AppColors.error)),
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.error,
+                ),
+                title: const Text(
+                  'Delete',
+                  style: TextStyle(color: AppColors.error),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showDeleteConfirmation(context, ref);

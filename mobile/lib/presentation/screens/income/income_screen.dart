@@ -12,6 +12,7 @@ import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
 import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
 class IncomeScreen extends ConsumerWidget {
   const IncomeScreen({super.key});
@@ -47,6 +48,7 @@ class IncomeScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _CreateIncomeSheet(ref: ref),
     );
   }
@@ -196,10 +198,16 @@ class _IncomeSourceTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+    void deleteIncome() {
+      ref.read(incomeRepositoryProvider).deleteIncomeSource(source.id);
+      HapticFeedback.mediumImpact();
+    }
+
     void openEditIncome() {
       showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
+        useSafeArea: true,
         builder: (_) => _EditIncomeSheet(ref: ref, source: source),
       );
     }
@@ -214,8 +222,7 @@ class _IncomeSourceTile extends ConsumerWidget {
         child: const Icon(Icons.delete_outline, color: Colors.white),
       ),
       onDismissed: (_) {
-        ref.read(incomeRepositoryProvider).deleteIncomeSource(source.id);
-        HapticFeedback.mediumImpact();
+        deleteIncome();
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -300,6 +307,14 @@ class _IncomeSourceTile extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                       color: AppColors.success,
                     ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: deleteIncome,
+                  tooltip: 'Delete income source',
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.error,
                   ),
                 ),
               ],
@@ -423,10 +438,7 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Add Income Source',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Add Income Source'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -608,10 +620,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Edit Income Source',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Edit Income Source'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,

@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
 import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 
 /// A modal bottom sheet for confirming and editing an AI-parsed expense before
@@ -150,13 +151,15 @@ class _ExpenseConfirmationSheetState
     }
 
     // Duplicate check
-    final duplicateResult = await ref.read(duplicateDetectorProvider).checkForDuplicate(
-      vendor: vendor,
-      amount: amount,
-      date: _date,
-      userId: user.uid,
-      groupId: _selectedGroupId,
-    );
+    final duplicateResult = await ref
+        .read(duplicateDetectorProvider)
+        .checkForDuplicate(
+          vendor: vendor,
+          amount: amount,
+          date: _date,
+          userId: user.uid,
+          groupId: _selectedGroupId,
+        );
     if (duplicateResult != null && mounted) {
       final addAnyway = await showDialog<bool>(
         context: context,
@@ -164,8 +167,14 @@ class _ExpenseConfirmationSheetState
           title: const Text('Possible Duplicate'),
           content: Text(duplicateResult.warningMessage),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add Anyway')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Add Anyway'),
+            ),
           ],
         ),
       );
@@ -196,23 +205,27 @@ class _ExpenseConfirmationSheetState
       if (_selectedGroupId != null) {
         // Group expense — route through the API for atomic operations
         // (group stats update, activity log, member notifications).
-        await ref.read(apiClientProvider).post(
-          ApiEndpoints.expenses,
-          data: {
-            'userId': user.uid,
-            'vendor': vendor,
-            'amount': amount,
-            'category': _category,
-            'date': dateStr,
-            'description': description,
-            'groupId': _selectedGroupId,
-            'expenseType': 'group',
-            if (widget.receiptUrl != null) 'receiptUrl': widget.receiptUrl,
-          },
-        );
+        await ref
+            .read(apiClientProvider)
+            .post(
+              ApiEndpoints.expenses,
+              data: {
+                'userId': user.uid,
+                'vendor': vendor,
+                'amount': amount,
+                'category': _category,
+                'date': dateStr,
+                'description': description,
+                'groupId': _selectedGroupId,
+                'expenseType': 'group',
+                if (widget.receiptUrl != null) 'receiptUrl': widget.receiptUrl,
+              },
+            );
       } else {
         // Personal expense — direct Firestore write
-        await ref.read(expenseRepositoryProvider).savePersonalExpense(
+        await ref
+            .read(expenseRepositoryProvider)
+            .savePersonalExpense(
               userId: user.uid,
               vendor: vendor,
               amount: amount,
@@ -228,18 +241,19 @@ class _ExpenseConfirmationSheetState
       if (mounted) {
         final groupName = _selectedGroupId != null
             ? ref
-                  .read(userGroupsProvider)
-                  .valueOrNull
-                  ?.where((g) => g.id == _selectedGroupId)
-                  .firstOrNull
-                  ?.name ??
-              'group'
+                      .read(userGroupsProvider)
+                      .valueOrNull
+                      ?.where((g) => g.id == _selectedGroupId)
+                      .firstOrNull
+                      ?.name ??
+                  'group'
             : null;
 
         SuccessOverlay.show(
           context,
           title: vendor,
-          subtitle: '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
+          subtitle:
+              '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
         );
 
         widget.onSaved?.call();
@@ -299,19 +313,6 @@ class _ExpenseConfirmationSheetState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).dividerColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-
             // Header
             Row(
               children: [
@@ -322,21 +323,17 @@ class _ExpenseConfirmationSheetState
                     color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.receipt_long_outlined,
-                      color: AppColors.primary, size: 22),
+                  child: const Icon(
+                    Icons.receipt_long_outlined,
+                    color: AppColors.primary,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Confirm Expense',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w700)),
-                      Text('Review and edit details',
-                          style: TextStyle(
-                              fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                    ],
+                  child: const SheetHeader(
+                    title: 'Confirm Expense',
+                    subtitle: 'Review and edit details',
                   ),
                 ),
                 if (widget.expense.confidence != null)
@@ -376,14 +373,17 @@ class _ExpenseConfirmationSheetState
             const SizedBox(height: 6),
             TextField(
               controller: _amountController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 hintText: '0.00',
                 prefixText: '\$ ',
                 prefixStyle: TextStyle(
-                    fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
             const SizedBox(height: 14),
@@ -395,8 +395,10 @@ class _ExpenseConfirmationSheetState
               value: _category,
               isExpanded: true,
               decoration: const InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
               ),
               menuMaxHeight: 300,
               items: _buildCategoryItems(),
@@ -416,8 +418,10 @@ class _ExpenseConfirmationSheetState
               borderRadius: BorderRadius.circular(12),
               child: InputDecorator(
                 decoration: const InputDecoration(
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
                 ),
                 child: Text(
                   DateFormat('MMM d, yyyy').format(_date),
@@ -429,16 +433,18 @@ class _ExpenseConfirmationSheetState
 
             // Description (optional)
             _FieldLabel(
-                icon: Icons.notes_outlined,
-                label: 'Description',
-                optional: true),
+              icon: Icons.notes_outlined,
+              label: 'Description',
+              optional: true,
+            ),
             const SizedBox(height: 6),
             TextField(
               controller: _descriptionController,
               textCapitalization: TextCapitalization.sentences,
               maxLines: 2,
-              decoration:
-                  const InputDecoration(hintText: 'Additional notes...'),
+              decoration: const InputDecoration(
+                hintText: 'Additional notes...',
+              ),
             ),
             const SizedBox(height: 14),
 
@@ -467,7 +473,9 @@ class _ExpenseConfirmationSheetState
                   ? 'This expense will be shared with the group'
                   : 'This is a personal expense',
               style: TextStyle(
-                  fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -478,8 +486,7 @@ class _ExpenseConfirmationSheetState
                   child: SizedBox(
                     height: 48,
                     child: OutlinedButton(
-                      onPressed:
-                          _saving ? null : () => Navigator.pop(context),
+                      onPressed: _saving ? null : () => Navigator.pop(context),
                       child: const Text('Cancel'),
                     ),
                   ),
@@ -496,7 +503,9 @@ class _ExpenseConfirmationSheetState
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -521,27 +530,33 @@ class _ExpenseConfirmationSheetState
     final items = <DropdownMenuItem<String>>[];
     for (final entry in categoryGroups.entries) {
       // Group header (disabled)
-      items.add(DropdownMenuItem<String>(
-        enabled: false,
-        value: '__header_${entry.key}',
-        child: Text(
-          entry.key.toUpperCase(),
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5,
+      items.add(
+        DropdownMenuItem<String>(
+          enabled: false,
+          value: '__header_${entry.key}',
+          child: Text(
+            entry.key.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
-      ));
+      );
       // Category items
       for (final cat in entry.value) {
-        items.add(DropdownMenuItem<String>(
-          value: cat,
-          child: Text(cat,
+        items.add(
+          DropdownMenuItem<String>(
+            value: cat,
+            child: Text(
+              cat,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 14)),
-        ));
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        );
       }
     }
     return items;
@@ -574,9 +589,11 @@ class _ExpenseConfirmationSheetState
                 Text(g.icon ?? '', style: const TextStyle(fontSize: 16)),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(g.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 14)),
+                  child: Text(
+                    g.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                 ),
               ],
             ),
@@ -587,8 +604,9 @@ class _ExpenseConfirmationSheetState
           ? null
           : (v) {
               setState(() {
-                _selectedGroupId =
-                    (v == '__personal__' || v == null) ? null : v;
+                _selectedGroupId = (v == '__personal__' || v == null)
+                    ? null
+                    : v;
               });
             },
     );
@@ -612,13 +630,19 @@ class _FieldLabel extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: AppColors.primary),
         const SizedBox(width: 6),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
         if (optional) ...[
           const SizedBox(width: 4),
-          Text('(optional)',
-              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(
+            '(optional)',
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ],
     );
@@ -635,8 +659,8 @@ class _ConfidenceBadge extends StatelessWidget {
     final color = confidence >= 0.8
         ? AppColors.success
         : confidence >= 0.6
-            ? AppColors.warning
-            : AppColors.error;
+        ? AppColors.warning
+        : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -649,9 +673,14 @@ class _ConfidenceBadge extends StatelessWidget {
         children: [
           Icon(Icons.auto_awesome, size: 12, color: color),
           const SizedBox(width: 4),
-          Text('$pct%',
-              style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+          Text(
+            '$pct%',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
         ],
       ),
     );

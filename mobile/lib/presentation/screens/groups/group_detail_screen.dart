@@ -13,14 +13,28 @@ import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/models/group_savings_model.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
-import 'package:penny_mobile/data/repositories/group_budget_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_income_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_savings_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/expense_list_tile.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
+
+void _refreshGroupCaches(WidgetRef ref, String groupId) {
+  ref.invalidate(userGroupsProvider);
+  ref.invalidate(groupByIdProvider(groupId));
+  ref.invalidate(groupMembersProvider(groupId));
+  ref.invalidate(groupExpensesProvider(groupId));
+  ref.invalidate(pendingGroupExpensesProvider(groupId));
+  ref.invalidate(groupActivitiesProvider(groupId));
+  ref.invalidate(groupBudgetsProvider(groupId));
+  ref.invalidate(groupIncomeSourcesProvider(groupId));
+  ref.invalidate(groupSavingsGoalsProvider(groupId));
+  ref.invalidate(currentUserMembershipProvider(groupId));
+}
 
 class GroupDetailScreen extends ConsumerWidget {
   const GroupDetailScreen({super.key, required this.groupId});
@@ -29,11 +43,26 @@ class GroupDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final group = ref.watch(groupByIdProvider(groupId));
+    final groupAsync = ref.watch(groupByIdProvider(groupId));
+    final group = groupAsync.valueOrNull;
     final membersAsync = ref.watch(groupMembersProvider(groupId));
     final expensesAsync = ref.watch(groupExpensesProvider(groupId));
     final membershipAsync = ref.watch(currentUserMembershipProvider(groupId));
     final user = ref.watch(currentUserProvider);
+
+    if (groupAsync.isLoading && group == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (groupAsync.hasError && group == null) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(child: Text('Could not load group: ${groupAsync.error}')),
+      );
+    }
 
     if (group == null) {
       return Scaffold(
@@ -274,6 +303,7 @@ class GroupDetailScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _InviteMemberSheet(ref: ref, groupId: group.id),
     );
   }
@@ -282,6 +312,7 @@ class GroupDetailScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _EditGroupSheet(ref: ref, group: group),
     );
   }
@@ -295,6 +326,7 @@ class GroupDetailScreen extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _AddGroupExpenseSheet(
         ref: ref,
         groupId: group.id,
@@ -311,6 +343,7 @@ class GroupDetailScreen extends ConsumerWidget {
   ) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       builder: (ctx) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -535,6 +568,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
             role: _role,
             userId: user!.uid,
           );
+      _refreshGroupCaches(widget.ref, widget.groupId);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -572,10 +606,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Invite Member',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Invite Member'),
           const SizedBox(height: 20),
           TextField(
             controller: _emailController,
@@ -710,6 +741,7 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
               },
             },
           );
+      _refreshGroupCaches(widget.ref, widget.group.id);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -747,10 +779,7 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Edit Group',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Edit Group'),
           const SizedBox(height: 20),
 
           // Icon picker
@@ -980,6 +1009,7 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
               'expenseType': 'group',
             },
           );
+      _refreshGroupCaches(widget.ref, widget.groupId);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -1017,10 +1047,7 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Add Expense to ${widget.groupName}',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          SheetHeader(title: 'Add Expense to ${widget.groupName}'),
           const SizedBox(height: 20),
           TextField(
             controller: _vendorController,
@@ -1402,20 +1429,9 @@ class _MemberTile extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                'Manage $displayName',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Current role: ${_roleLabel()}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              SheetHeader(
+                title: 'Manage $displayName',
+                subtitle: 'Current role: ${_roleLabel()}',
               ),
               const SizedBox(height: 20),
 
@@ -1498,6 +1514,7 @@ class _MemberTile extends ConsumerWidget {
         '${ApiEndpoints.groupMembers(groupId)}/$memberId',
         data: {'newRole': newRole},
       );
+      _refreshGroupCaches(ref, groupId);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1594,6 +1611,7 @@ class _MemberTile extends ConsumerWidget {
       await api.delete(
         '${ApiEndpoints.groupMembers(groupId)}/$memberId?action=remove',
       );
+      _refreshGroupCaches(ref, groupId);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1641,6 +1659,7 @@ class _OverflowMenu extends ConsumerWidget {
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'preferences': {'defaultGroupId': groupId},
       }, SetOptions(merge: true));
+      ref.invalidate(defaultGroupProvider);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1672,6 +1691,7 @@ class _OverflowMenu extends ConsumerWidget {
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'preferences': {'defaultGroupId': null},
       }, SetOptions(merge: true));
+      ref.invalidate(defaultGroupProvider);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1890,6 +1910,8 @@ class _PendingExpenseTile extends ConsumerWidget {
       await ref
           .read(expenseRepositoryProvider)
           .approveExpense(expenseId: expense.id, userId: user.uid);
+      final groupId = expense.groupId;
+      if (groupId != null) _refreshGroupCaches(ref, groupId);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1916,6 +1938,7 @@ class _PendingExpenseTile extends ConsumerWidget {
     final reason = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (ctx) => _RejectReasonSheet(),
     );
     if (reason == null) return;
@@ -1929,6 +1952,8 @@ class _PendingExpenseTile extends ConsumerWidget {
             userId: user.uid,
             reason: reason.isEmpty ? null : reason,
           );
+      final groupId = expense.groupId;
+      if (groupId != null) _refreshGroupCaches(ref, groupId);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1979,10 +2004,7 @@ class _RejectReasonSheetState extends State<_RejectReasonSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Reject Expense',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Reject Expense'),
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
@@ -2268,6 +2290,7 @@ class _GroupBudgetsSection extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (context) => _AddGroupBudgetSheet(groupId: groupId, ref: ref),
     );
   }
@@ -2306,10 +2329,7 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Add Group Budget',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Add Group Budget'),
           const SizedBox(height: 16),
 
           // Category dropdown
@@ -2373,15 +2393,17 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
       final membership = widget.ref
           .read(currentUserMembershipProvider(widget.groupId))
           .valueOrNull;
-      final repo = GroupBudgetRepository();
-      await repo.createGroupBudget(
-        groupId: widget.groupId,
-        category: _selectedCategory!,
-        monthlyLimit: limit,
-        period: BudgetPeriod.current(),
-        setBy: user!.uid,
-        setByRole: membership?.role ?? 'member',
-      );
+      await widget.ref
+          .read(groupBudgetRepositoryProvider)
+          .createGroupBudget(
+            groupId: widget.groupId,
+            category: _selectedCategory!,
+            monthlyLimit: limit,
+            period: widget.ref.read(budgetPeriodProvider),
+            setBy: user!.uid,
+            setByRole: membership?.role ?? 'member',
+          );
+      _refreshGroupCaches(widget.ref, widget.groupId);
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
@@ -2487,6 +2509,7 @@ class _GroupIncomeSection extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _AddGroupIncomeSheet(ref: ref, groupId: groupId),
     );
   }
@@ -2625,6 +2648,7 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
             isRecurring: _isRecurring,
             taxable: _taxable,
           );
+      _refreshGroupCaches(widget.ref, widget.groupId);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -2663,10 +2687,7 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Add Group Income',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Add Group Income'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
@@ -2866,6 +2887,7 @@ class _GroupSavingsSection extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _AddGroupSavingsSheet(ref: ref, groupId: groupId),
     );
   }
@@ -2961,6 +2983,7 @@ class _GroupSavingsGoalCard extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _AddContributionSheet(ref: ref, goal: goal),
     );
   }
@@ -2995,6 +3018,7 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
       await widget.ref
           .read(groupSavingsRepositoryProvider)
           .addGroupContribution(widget.goal.id, amount, user.uid);
+      _refreshGroupCaches(widget.ref, widget.goal.groupId);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -3037,17 +3061,10 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Add Contribution',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${widget.goal.name} — ${formatter.format(remaining)} remaining',
-            style: TextStyle(
-              fontSize: 13,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+          SheetHeader(
+            title: 'Add Contribution',
+            subtitle:
+                '${widget.goal.name} - ${formatter.format(remaining)} remaining',
           ),
           const SizedBox(height: 16),
           TextField(
@@ -3143,6 +3160,7 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
             monthlyContribution: contribution,
             priority: _priority,
           );
+      _refreshGroupCaches(widget.ref, widget.groupId);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -3181,10 +3199,7 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Add Savings Goal',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
+          const SheetHeader(title: 'Add Savings Goal'),
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,

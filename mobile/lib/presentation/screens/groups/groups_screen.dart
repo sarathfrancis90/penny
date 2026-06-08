@@ -11,6 +11,7 @@ import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
 import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
@@ -36,8 +37,8 @@ class GroupsScreen extends ConsumerWidget {
       body: groupsAsync.when(
         data: (groups) => groups.isEmpty
             ? ref.watch(guestModeProvider)
-                ? _GuestLockedState()
-                : _EmptyState(onAdd: () => _showCreateGroup(context, ref))
+                  ? _GuestLockedState()
+                  : _EmptyState(onAdd: () => _showCreateGroup(context, ref))
             : _GroupList(groups: groups),
         loading: () => ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -57,41 +58,51 @@ class GroupsScreen extends ConsumerWidget {
 
   void _showCreateGroup(BuildContext context, WidgetRef ref) {
     if (ref.read(guestModeProvider)) {
-      showGuestSignUpPrompt(context);
+      showGuestSignUpPrompt(context, ref: ref);
       return;
     }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (_) => _CreateGroupSheet(ref: ref),
     );
   }
 }
 
-class _GuestLockedState extends StatelessWidget {
+class _GuestLockedState extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.lock_outline, size: 48,
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+            Icon(
+              Icons.lock_outline,
+              size: 48,
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
             const SizedBox(height: 16),
-            const Text('Groups require an account',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            const Text(
+              'Groups require an account',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Text(
               'Create an account to split expenses with friends, family, or business partners.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => showGuestSignUpPrompt(context),
+              onPressed: () => showGuestSignUpPrompt(context, ref: ref),
               child: const Text('Create Account'),
             ),
           ],
@@ -110,7 +121,8 @@ class _EmptyState extends StatelessWidget {
     return PennyEmptyState(
       lottieAsset: 'assets/lottie/empty_box.json',
       title: 'No groups yet',
-      subtitle: 'Groups let you split and track shared expenses.\nPerfect for households, trips, or business partners.',
+      subtitle:
+          'Groups let you split and track shared expenses.\nPerfect for households, trips, or business partners.',
       onAction: onAdd,
       actionLabel: 'Create Group',
     );
@@ -151,13 +163,14 @@ class _GroupCard extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: 'Group: ${group.name}, '
+      label:
+          'Group: ${group.name}, '
           '${group.stats.memberCount} members, '
           'total ${formatter.format(group.stats.totalAmount)}',
       child: InkWell(
         onTap: () {
           if (ref.read(guestModeProvider)) {
-            showGuestSignUpPrompt(context);
+            showGuestSignUpPrompt(context, ref: ref);
             return;
           }
           context.push('/groups/${group.id}');
@@ -176,7 +189,8 @@ class _GroupCard extends ConsumerWidget {
               Hero(
                 tag: 'group-icon-${group.id}',
                 child: Container(
-                  width: 48, height: 48,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: _parseColor(group.color, context),
                     borderRadius: BorderRadius.circular(12),
@@ -195,39 +209,59 @@ class _GroupCard extends ConsumerWidget {
                   children: [
                     Hero(
                       tag: 'group-name-${group.id}',
-                      flightShuttleBuilder: (
-                        flightContext,
-                        animation,
-                        flightDirection,
-                        fromHeroContext,
-                        toHeroContext,
-                      ) {
-                        return DefaultTextStyle(
-                          style: DefaultTextStyle.of(toHeroContext).style,
-                          child: toHeroContext.widget,
-                        );
-                      },
+                      flightShuttleBuilder:
+                          (
+                            flightContext,
+                            animation,
+                            flightDirection,
+                            fromHeroContext,
+                            toHeroContext,
+                          ) {
+                            return DefaultTextStyle(
+                              style: DefaultTextStyle.of(toHeroContext).style,
+                              child: toHeroContext.widget,
+                            );
+                          },
                       child: Material(
                         type: MaterialType.transparency,
-                        child: Text(group.name,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        child: Text(
+                          group.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.people_outline, size: 14,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        Icon(
+                          Icons.people_outline,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 4),
-                        Text('${group.stats.memberCount} members',
-                            style: TextStyle(
-                                fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text(
+                          '${group.stats.memberCount} members',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                         const SizedBox(width: 12),
-                        Text(formatter.format(group.stats.totalAmount),
-                            style: TextStyle(
-                                fontSize: 13, fontWeight: FontWeight.w600,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        Text(
+                          formatter.format(group.stats.totalAmount),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -245,8 +279,9 @@ class _GroupCard extends ConsumerWidget {
   Color _parseColor(String? hex, BuildContext context) {
     if (hex == null || hex.isEmpty) return Theme.of(context).cardColor;
     try {
-      return Color(int.parse(hex.replaceFirst('#', '0xFF')))
-          .withValues(alpha: 0.15);
+      return Color(
+        int.parse(hex.replaceFirst('#', '0xFF')),
+      ).withValues(alpha: 0.15);
     } catch (_) {
       return Theme.of(context).cardColor;
     }
@@ -268,7 +303,16 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
   bool _requireApproval = false;
   bool _saving = false;
 
-  static const _icons = ['👥', '👨‍👩‍👧‍👦', '🏢', '🏠', '✈️', '🎯', '💼', '🎉'];
+  static const _icons = [
+    '👥',
+    '👨‍👩‍👧‍👦',
+    '🏢',
+    '🏠',
+    '✈️',
+    '🎯',
+    '💼',
+    '🎉',
+  ];
 
   @override
   void dispose() {
@@ -284,7 +328,9 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
     setState(() => _saving = true);
     try {
       final user = widget.ref.read(currentUserProvider);
-      await widget.ref.read(groupRepositoryProvider).createGroup(
+      await widget.ref
+          .read(groupRepositoryProvider)
+          .createGroup(
             userId: user!.uid,
             name: name,
             description: _descController.text.trim(),
@@ -298,8 +344,10 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'),
-              backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -311,15 +359,16 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
-        left: 24, right: 24, top: 24,
+        left: 24,
+        right: 24,
+        top: 24,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Create Group',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+          const SheetHeader(title: 'Create Group'),
           const SizedBox(height: 20),
 
           // Icon picker
@@ -333,7 +382,8 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
                 child: GestureDetector(
                   onTap: () => setState(() => _icon = icon),
                   child: Container(
-                    width: 44, height: 44,
+                    width: 44,
+                    height: 44,
                     decoration: BoxDecoration(
                       color: selected
                           ? AppColors.primary.withValues(alpha: 0.1)
@@ -344,7 +394,8 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
                           : null,
                     ),
                     child: Center(
-                        child: Text(icon, style: const TextStyle(fontSize: 22))),
+                      child: Text(icon, style: const TextStyle(fontSize: 22)),
+                    ),
                   ),
                 ),
               );
@@ -360,15 +411,23 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
           TextField(
             controller: _descController,
             decoration: const InputDecoration(
-                hintText: 'Description (optional)'),
+              hintText: 'Description (optional)',
+            ),
             maxLines: 2,
           ),
           const SizedBox(height: 12),
           SwitchListTile(
-            title: const Text('Require expense approval',
-                style: TextStyle(fontSize: 15)),
-            subtitle: Text('Admins must approve member expenses',
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            title: const Text(
+              'Require expense approval',
+              style: TextStyle(fontSize: 15),
+            ),
+            subtitle: Text(
+              'Admins must approve member expenses',
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
             value: _requireApproval,
             onChanged: (v) => setState(() => _requireApproval = v),
             activeColor: AppColors.primary,
@@ -378,9 +437,14 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
           ElevatedButton(
             onPressed: _saving ? null : _save,
             child: _saving
-                ? const SizedBox(height: 20, width: 20,
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Create Group'),
           ),
         ],

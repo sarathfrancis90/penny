@@ -52,6 +52,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     context.go('/auth/login');
   }
 
+  void _goToNextPage() {
+    if (_currentPage >= _pages.length - 1) return;
+    _controller.nextPage(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _goToPreviousPage() {
+    if (_currentPage <= 0) return;
+    _controller.previousPage(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +87,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
@@ -97,6 +115,29 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onSignIn: _goToLogin,
                   );
                 },
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
+              child: Row(
+                children: [
+                  if (_currentPage > 0)
+                    TextButton.icon(
+                      onPressed: _goToPreviousPage,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('Back'),
+                    )
+                  else
+                    const SizedBox(width: 96),
+                  const Spacer(),
+                  if (_currentPage < _pages.length - 1)
+                    FilledButton.icon(
+                      onPressed: _goToNextPage,
+                      icon: const Icon(Icons.arrow_forward),
+                      label: const Text('Next'),
+                    ),
+                ],
               ),
             ),
 
@@ -169,14 +210,14 @@ class _OnboardingPage extends StatelessWidget {
                 ? Center(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
-                      child: Image.asset('assets/icon/penny_icon.png', width: 88, height: 88),
+                      child: Image.asset(
+                        'assets/icon/penny_icon.png',
+                        width: 88,
+                        height: 88,
+                      ),
                     ),
                   )
-                : Icon(
-                    data.icon,
-                    size: 72,
-                    color: AppColors.primary,
-                  ),
+                : Icon(data.icon, size: 72, color: AppColors.primary),
           ),
           const SizedBox(height: 48),
 
@@ -187,7 +228,7 @@ class _OnboardingPage extends StatelessWidget {
               fontSize: 26,
               fontWeight: FontWeight.w700,
               color: Theme.of(context).colorScheme.onSurface,
-              letterSpacing: -0.5,
+              letterSpacing: 0,
             ),
             textAlign: TextAlign.center,
           ),
@@ -220,10 +261,7 @@ class _OnboardingPage extends StatelessWidget {
               onPressed: onSignIn,
               child: Text(
                 'Already have an account? Sign In',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.primary,
-                ),
+                style: TextStyle(fontSize: 14, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 12),

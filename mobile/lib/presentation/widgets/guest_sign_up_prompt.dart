@@ -1,25 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/presentation/providers/guest_provider.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
 /// Shows a bottom sheet prompting the guest to create an account.
 /// Returns `true` if the user chose to sign up (navigated to signup).
-Future<bool> showGuestSignUpPrompt(BuildContext context) async {
+Future<bool> showGuestSignUpPrompt(
+  BuildContext context, {
+  WidgetRef? ref,
+}) async {
   final result = await showModalBottomSheet<bool>(
     context: context,
+    useSafeArea: true,
     builder: (ctx) => SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.person_add_outlined, size: 48, color: AppColors.primary),
-            const SizedBox(height: 16),
-            const Text(
-              'Create an Account',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            SheetHeader(
+              title: 'Create an Account',
+              onClose: () => Navigator.pop(ctx, false),
             ),
             const SizedBox(height: 8),
+            const Icon(
+              Icons.person_add_outlined,
+              size: 48,
+              color: AppColors.primary,
+            ),
+            const SizedBox(height: 16),
             Text(
               'Sign up to save your expenses, budgets, and financial data securely across all your devices.',
               textAlign: TextAlign.center,
@@ -50,6 +61,9 @@ Future<bool> showGuestSignUpPrompt(BuildContext context) async {
   );
 
   if (result == true && context.mounted) {
+    if (ref != null) {
+      setGuestMode(ref, false);
+    }
     context.go('/auth/signup');
     return true;
   }

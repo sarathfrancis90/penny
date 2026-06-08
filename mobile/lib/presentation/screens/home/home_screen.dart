@@ -13,6 +13,7 @@ import 'package:penny_mobile/presentation/screens/home/conversation_list_screen.
 import 'package:penny_mobile/presentation/widgets/chat_bubble.dart';
 import 'package:penny_mobile/presentation/widgets/expense_card.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
+import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -80,12 +81,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _showImageSourcePicker() {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       builder: (context) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SheetHeader(title: 'Add Receipt Photo'),
+              const SizedBox(height: 8),
               ListTile(
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: const Text('Take Photo'),
@@ -140,21 +144,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: Image.asset('assets/icon/penny_icon.png', width: 28, height: 28),
+              child: Image.asset(
+                'assets/icon/penny_icon.png',
+                width: 28,
+                height: 28,
+              ),
             ),
             const SizedBox(width: 8),
             Text(
               'Penny',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primary,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
             ),
           ],
         ),
-        actions: [
-          _NotificationBell(),
-        ],
+        actions: [_NotificationBell()],
       ),
       body: Column(
         children: [
@@ -163,14 +169,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: isGuest
                 ? const _GuestChatPreview()
                 : conversationId == null
-                    ? _EmptyState(onSuggestionTap: (text) {
-                        _controller.text = text;
-                        _sendMessage();
-                      })
-                    : _MessageList(
-                        conversationId: conversationId,
-                        scrollController: _scrollController,
-                      ),
+                ? _EmptyState(
+                    onSuggestionTap: (text) {
+                      _controller.text = text;
+                      _sendMessage();
+                    },
+                  )
+                : _MessageList(
+                    conversationId: conversationId,
+                    scrollController: _scrollController,
+                  ),
           ),
 
           if (!isGuest) ...[
@@ -178,11 +186,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             if (chatState.isLoading || chatState.isAnalyzing)
               Semantics(
                 liveRegion: true,
-                label: chatState.isAnalyzing
-                    ? 'Analyzing expense'
-                    : 'Thinking',
+                label: chatState.isAnalyzing ? 'Analyzing expense' : 'Thinking',
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       SizedBox(
@@ -211,7 +220,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             // Error
             if (chatState.error != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 child: Text(
                   chatState.error!,
                   style: const TextStyle(fontSize: 13, color: AppColors.error),
@@ -316,10 +328,7 @@ class _PendingExpensePanel extends StatelessWidget {
                 if (i > 0)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Divider(
-                      height: 1,
-                      color: theme.dividerColor,
-                    ),
+                    child: Divider(height: 1, color: theme.dividerColor),
                   ),
                 ExpenseCard(
                   expense: pendingExpenses.expenses[i],
@@ -357,9 +366,7 @@ class _ActionBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(
-          top: BorderSide(color: Theme.of(context).dividerColor),
-        ),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: SafeArea(
         top: false,
@@ -424,7 +431,9 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.chat_bubble_outline,
               size: 48,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -441,7 +450,9 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.4,
               ),
             ),
@@ -483,7 +494,9 @@ class _MessageList extends ConsumerWidget {
           return Center(
             child: Text(
               'Send a message to get started',
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           );
         }
@@ -568,8 +581,10 @@ class _InputBar extends StatelessWidget {
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 fillColor: Colors.transparent,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
               ),
               onSubmitted: (_) => onSend(),
             ),
@@ -603,9 +618,7 @@ class _NotificationBell extends ConsumerWidget {
         label: Text('$unread', style: const TextStyle(fontSize: 10)),
         child: const Icon(Icons.notifications_outlined),
       ),
-      tooltip: unread > 0
-          ? '$unread unread notifications'
-          : 'Notifications',
+      tooltip: unread > 0 ? '$unread unread notifications' : 'Notifications',
       onPressed: () => context.push('/notifications'),
     );
   }
@@ -626,7 +639,8 @@ class _GuestChatPreview extends StatelessWidget {
           timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
         ),
         ChatBubble(
-          content: 'Got it! I\'ve categorized this as:\n\n'
+          content:
+              'Got it! I\'ve categorized this as:\n\n'
               'Vendor: Tim Hortons\n'
               'Amount: \$14.50\n'
               'Category: Meals and entertainment\n\n'
@@ -640,7 +654,8 @@ class _GuestChatPreview extends StatelessWidget {
           timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
         ),
         ChatBubble(
-          content: 'This month you\'ve spent \$65.50 on Meals and entertainment '
+          content:
+              'This month you\'ve spent \$65.50 on Meals and entertainment '
               'across 3 transactions. That\'s 13% of your \$500 budget.',
           isUser: false,
           timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
@@ -651,9 +666,9 @@ class _GuestChatPreview extends StatelessWidget {
 }
 
 /// Locked input bar for guest mode.
-class _GuestInputBar extends StatelessWidget {
+class _GuestInputBar extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -681,7 +696,7 @@ class _GuestInputBar extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () => showGuestSignUpPrompt(context),
+            onPressed: () => showGuestSignUpPrompt(context, ref: ref),
             child: const Text('Sign Up'),
           ),
         ],

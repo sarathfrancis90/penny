@@ -27,7 +27,11 @@ platform :ios do
   end
 
   desc "Build release IPA and upload to TestFlight"
-  lane :beta do
+  lane :beta do |options|
+    app_version  = options[:version]
+    build_number = options[:build]
+    notes        = options[:notes]
+
     api_key = app_store_connect_api_key(
       key_id: "P97VLS6M6Z",
       issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
@@ -48,7 +52,12 @@ platform :ios do
     )
 
     Dir.chdir("..") do
-      sh("flutter", "build", "ios", "--release", "--no-codesign")
+      build_args = ["flutter", "build", "ios", "--release", "--no-codesign"]
+      if app_version && build_number
+        build_args << "--build-name=#{app_version}"
+        build_args << "--build-number=#{build_number}"
+      end
+      sh(*build_args)
     end
 
     # Enable automatic signing
@@ -87,8 +96,14 @@ platform :ios do
     # Upload to TestFlight
     upload_to_testflight(
       api_key: api_key,
-      skip_waiting_for_build_processing: true
+      skip_waiting_for_build_processing: true,
+      changelog: notes
     )
+  end
+
+  desc "Internal-first release: build IPA and upload to TestFlight only"
+  lane :internal do |options|
+    beta(version: options[:version], build: options[:build], notes: options[:notes])
   end
 
   desc "Repair v2.2.1: drop the stray en-US localization, set release notes on en-CA, attach build, submit for review"
@@ -195,7 +210,7 @@ platform :ios do
     )
   end
 
-  desc "Full CI publish: build IPA, upload to TestFlight, wait for processing, submit to App Store with auto-release"
+  desc "Legacy full publish: build IPA, upload to TestFlight, then submit to App Store with auto-release"
   lane :ship do |options|
     app_version  = options[:version] || UI.user_error!("version: required (e.g. version:2.2.2)")
     build_number = options[:build]   || UI.user_error!("build: required (e.g. build:#{ENV['GITHUB_RUN_NUMBER']})")
@@ -264,29 +279,61 @@ platform :ios do
     repair_and_submit(version: app_version, build: build_number, notes: notes)
   end
 
+  desc "Submit an already validated TestFlight build to App Store review"
+  lane :promote do |options|
+    app_version  = options[:version] || UI.user_error!("version: required (e.g. version:2.3.5)")
+    build_number = options[:build]   || UI.user_error!("build: required")
+    notes        = options[:notes]   || UI.user_error!("notes: required (release notes text)")
+
+    repair_and_submit(version: app_version, build: build_number, notes: notes)
+  end
+
 end
 
 platform :android do
 
-  desc "Build release AAB and upload to Google Play (internal track)"
-  lane :beta do
-    # Flutter build
+  desc "Build release AAB and upload to Google Play internal testing"
+  lane :beta do |options|
+    app_version  = options[:version]
+    build_number = options[:build]
+    notes        = options[:notes]
+
+    if build_number && notes
+      notes_dir = "metadata/android/en-US/changelogs"
+      FileUtils.mkdir_p("./fastlane/#{notes_dir}")
+      File.write("./fastlane/#{notes_dir}/#{build_number}.txt", notes)
+    end
+
     Dir.chdir("..") do
       sh("flutter", "clean")
       sh("flutter", "pub", "get")
-      sh("flutter", "build", "appbundle", "--release")
+      build_args = ["flutter", "build", "appbundle", "--release"]
+      if app_version && build_number
+        build_args << "--build-name=#{app_version}"
+        build_args << "--build-number=#{build_number}"
+      end
+      sh(*build_args)
     end
 
-    # Upload to Play Store internal track with metadata
     supply(
       track: "internal",
       aab: "build/app/outputs/bundle/release/app-release.aab",
       json_key: "fastlane/play-store-key.json",
-      package_name: "com.penny.penny_mobile"
+      package_name: "com.penny.penny_mobile",
+      release_status: "completed",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: build_number.nil? || notes.nil?,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
     )
   end
 
-  desc "Full CI publish: build AAB, upload to Play Store production track at 100% rollout"
+  desc "Internal-first release: build AAB and upload to Play internal testing"
+  lane :internal do |options|
+    beta(version: options[:version], build: options[:build], notes: options[:notes])
+  end
+
+  desc "Deprecated alias: build AAB and upload to Play internal testing"
   lane :ship do |options|
     app_version  = options[:version] || UI.user_error!("version: required (e.g. version:2.2.2)")
     build_number = options[:build]   || UI.user_error!("build: required (e.g. build:#{ENV['GITHUB_RUN_NUMBER']})")
@@ -306,15 +353,8 @@ platform :android do
          "--build-number=#{build_number}")
     end
 
-    # Upload to Play Store INTERNAL testing track. Switched from production
-    # because direct production uploads via the Google Play API fail with
-    # "Precondition check failed" when any policy form (Data Safety, Target
-    # API, Content Rating, etc.) has lapsed since the last manual release.
-    # The Console UI surfaces the exact policy issue; the API does not.
-    #
-    # Workflow now: ship → internal → user manually promotes to production
-    # via the Play Console once. Then the production track stays "warm" and
-    # this can be flipped back to track: "production" for true autonomous ship.
+    # Deprecated alias kept for local compatibility. CI uses android internal
+    # for Play internal testing and android promote for production promotion.
     supply(
       track: "internal",
       aab: "build/app/outputs/bundle/release/app-release.aab",
@@ -323,6 +363,31 @@ platform :android do
       release_status: "completed",
       skip_upload_metadata: true,
       skip_upload_changelogs: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Promote the validated Play internal release to production"
+  lane :promote do |options|
+    build_number = options[:build] || UI.user_error!("build: required")
+    notes        = options[:notes]
+
+    if notes
+      notes_dir = "metadata/android/en-US/changelogs"
+      FileUtils.mkdir_p("./fastlane/#{notes_dir}")
+      File.write("./fastlane/#{notes_dir}/#{build_number}.txt", notes)
+    end
+
+    supply(
+      track: "internal",
+      track_promote_to: "production",
+      json_key: "fastlane/play-store-key.json",
+      package_name: "com.penny.penny_mobile",
+      release_status: "completed",
+      rollout: 1.0,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: notes.nil?,
       skip_upload_images: true,
       skip_upload_screenshots: true
     )

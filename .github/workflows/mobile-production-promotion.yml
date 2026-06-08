@@ -1,0 +1,162 @@
+name: Mobile Production Promotion
+
+# Manual-only promotion after TestFlight + Play internal validation is clean.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Marketing version, without v prefix. Must match existing release notes.'
+        required: true
+        type: string
+      build_number:
+        description: 'Validated build number to promote.'
+        required: true
+        type: string
+
+concurrency:
+  group: mobile-production-promotion-${{ github.event.inputs.version }}-${{ github.event.inputs.build_number }}
+  cancel-in-progress: false
+
+jobs:
+  derive:
+    name: Validate promotion inputs
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.derive.outputs.version }}
+      build_number: ${{ steps.derive.outputs.build_number }}
+      release_notes: ${{ steps.derive.outputs.release_notes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate version, build, and release notes
+        id: derive
+        env:
+          VERSION: ${{ github.event.inputs.version }}
+          BUILD_NUMBER: ${{ github.event.inputs.build_number }}
+        run: |
+          set -euo pipefail
+
+          if ! printf '%s' "$BUILD_NUMBER" | grep -Eq '^[0-9]+$'; then
+            echo "::error::Build number must be numeric."
+            exit 1
+          fi
+
+          NOTES_FILE="mobile/release_notes/v${VERSION}.txt"
+          if [ ! -f "$NOTES_FILE" ]; then
+            echo "::error::Release notes file $NOTES_FILE does not exist."
+            exit 1
+          fi
+
+          NOTES="$(cat "$NOTES_FILE")"
+
+          {
+            echo "version=$VERSION"
+            echo "build_number=$BUILD_NUMBER"
+            echo "release_notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+  ios:
+    name: iOS -> App Store review
+    needs: derive
+    runs-on: macos-15
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned Ruby
+        id: tools
+        working-directory: mobile
+        run: echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.tools.outputs.ruby }}
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Restore App Store Connect API key
+        working-directory: mobile/fastlane
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          umask 077
+          printf '%s' "$ASC_API_KEY_P8" > AuthKey_P97VLS6M6Z.p8
+
+      - name: Submit validated TestFlight build for App Store review
+        working-directory: mobile
+        env:
+          VERSION: ${{ needs.derive.outputs.version }}
+          BUILD_NUMBER: ${{ needs.derive.outputs.build_number }}
+          NOTES: ${{ needs.derive.outputs.release_notes }}
+        run: |
+          bundle exec fastlane ios promote \
+            version:"$VERSION" \
+            build:"$BUILD_NUMBER" \
+            notes:"$NOTES"
+
+      - name: Cleanup App Store Connect API key
+        if: always()
+        run: rm -f mobile/fastlane/AuthKey_P97VLS6M6Z.p8
+
+  android:
+    name: Android -> Play production
+    needs: derive
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned Ruby
+        id: tools
+        working-directory: mobile
+        run: echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ steps.tools.outputs.ruby }}
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Restore Play Store service-account key
+        env:
+          PLAY_STORE_KEY_JSON: ${{ secrets.PLAY_STORE_KEY_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$PLAY_STORE_KEY_JSON" > mobile/fastlane/play-store-key.json
+
+      - name: Promote Play internal release to production
+        working-directory: mobile
+        env:
+          BUILD_NUMBER: ${{ needs.derive.outputs.build_number }}
+          NOTES: ${{ needs.derive.outputs.release_notes }}
+        run: |
+          bundle exec fastlane android promote \
+            build:"$BUILD_NUMBER" \
+            notes:"$NOTES"
+
+      - name: Cleanup Play Store key
+        if: always()
+        run: rm -f mobile/fastlane/play-store-key.json
+
+  summary:
+    name: Promotion summary
+    needs: [derive, ios, android]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print outcome
+        run: |
+          echo "## Mobile production promotion v${{ needs.derive.outputs.version }} (build ${{ needs.derive.outputs.build_number }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Platform | Target | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| iOS | App Store review / auto-release | ${{ needs.ios.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Android | Play production | ${{ needs.android.result }} |" >> "$GITHUB_STEP_SUMMARY"
