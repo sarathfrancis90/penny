@@ -15,6 +15,8 @@ export default defineConfig({
       'apps/**/__tests__/**/*.{ts,tsx}',
       'packages/**/*.test.{ts,tsx}',
       'packages/**/__tests__/**/*.{ts,tsx}',
+      'scripts/**/*.test.{ts,tsx}',
+      'scripts/**/__tests__/**/*.{ts,tsx}',
     ],
     exclude: ['node_modules', '.next', 'dist'],
   },

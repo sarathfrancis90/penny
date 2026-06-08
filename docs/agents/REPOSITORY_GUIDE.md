@@ -13,8 +13,10 @@ Penny is an AI-assisted expense, group spending, budgeting, income, savings, and
 
 ## Repository Shape
 
-- `src/` contains the Next.js web app, API routes, shared TypeScript types, Firebase clients, server helpers, services, hooks, and UI components.
-- `mobile/` contains the Flutter app with clean-ish feature layering, Riverpod providers, Firebase integrations, native project files, and fastlane release automation.
+- `src/` contains the Next.js web app, legacy/web API routes, shared TypeScript types, Firebase clients, server helpers, services, hooks, and UI components.
+- `apps/api/` contains the standalone Fastify API used for active mobile backend work.
+- `packages/shared/` contains shared contracts reused by the standalone API.
+- `mobile/` contains the Flutter iOS/Android app with layer-oriented data/presentation structure, Riverpod providers, Firebase integrations, native project files, and fastlane release automation.
 - `database/` contains Firestore rules, indexes, storage rules, and database-focused documentation.
 - `docs/` contains historical and current product, technical, launch, implementation, and agent documentation.
 - `.github/` contains CI, Firebase deploy, mobile release, and fallback metrics workflows.
@@ -22,11 +24,15 @@ Penny is an AI-assisted expense, group spending, budgeting, income, savings, and
 
 ## Runtime Architecture
 
-### Web and API
+### Web and Next API
 
-The web application is a Next.js App Router project. `src/app/layout.tsx` wraps the app with theme, authentication, error boundary, analytics, Sentry user context, consent, and Vercel performance components. `src/components/AuthGuard.tsx` enforces client-side route access for public and protected pages.
+The web application is a Next.js App Router project. `src/app/layout.tsx` wraps the app with theme, authentication, error boundary, analytics, Sentry user context, consent, and Vercel performance components. `src/components/auth-guard.tsx` enforces client-side route access for public and protected pages.
 
-API routes under `src/app/api/**/route.ts` implement AI analysis, chat, expenses, groups, budgets, conversations, passkeys, account deletion, admin console endpoints, observability proxies, privacy deletion, health checks, and scheduled metrics. Most routes use `withObservability()` from `src/lib/observability/middleware.ts` for request IDs, logging, spans, and structured error capture.
+API routes under `src/app/api/**/route.ts` implement the Next/web API surface, including legacy or compatibility behavior for AI analysis, chat, expenses, groups, budgets, conversations, passkeys, account deletion, admin console endpoints, observability proxies, privacy deletion, health checks, and scheduled metrics. Most routes use `withObservability()` from `src/lib/observability/withObservability.ts` for request IDs, logging, spans, and structured error capture.
+
+### Standalone API
+
+The active dedicated API for mobile backend work is the Fastify service under `apps/api`. `apps/api/src/app.ts` builds the app, `apps/api/src/server.ts` starts production, route modules live under `apps/api/src/routes/`, and services live under `apps/api/src/services/`. Route contracts are centralized in `scripts/api/route-surface.ts` and generated to `docs/api/openapi.json`.
 
 ### Mobile
 
@@ -35,7 +41,7 @@ The Flutter app starts in `mobile/lib/main.dart`, initializes Firebase, Crashlyt
 Mobile uses a hybrid backend model:
 
 - Direct Firestore streams/writes for many user-owned resources.
-- Next API routes for AI, expense analysis, group operations requiring server authority, and other complex transactions.
+- Standalone Fastify API routes for AI, expense analysis, group operations requiring server authority, and other complex transactions.
 - Dio-based HTTP with Firebase ID token injection in `mobile/lib/core/network/api_client.dart`.
 
 ### Firebase
@@ -65,10 +71,10 @@ Important web files:
 
 Important mobile files:
 
-- `mobile/lib/features/expenses/data/models/expense.dart`
-- `mobile/lib/features/expenses/data/repositories/expense_repository.dart`
-- `mobile/lib/features/expenses/presentation/providers/expense_providers.dart`
-- `mobile/lib/features/expenses/presentation/screens/**`
+- `mobile/lib/data/models/expense_model.dart`
+- `mobile/lib/data/repositories/expense_repository.dart`
+- `mobile/lib/presentation/providers/expense_providers.dart`
+- `mobile/lib/presentation/screens/expenses/**`
 - `mobile/lib/core/constants/categories.dart`
 
 Key contract: category strings must match exactly across web, mobile, AI prompts, and stored data.
@@ -85,16 +91,21 @@ Important web files:
 - `src/app/api/conversations/**/route.ts`
 - `src/hooks/useConversations.ts`
 - `src/hooks/useConversationHistory.ts`
+- `apps/api/src/routes/ai/routes.ts`
+- `apps/api/src/routes/conversations/routes.ts`
+- `apps/api/src/services/ai.ts`
+- `apps/api/src/services/conversations.ts`
 
 Important mobile files:
 
-- `mobile/lib/features/chat/data/models/chat_message.dart`
-- `mobile/lib/features/chat/data/models/conversation.dart`
-- `mobile/lib/features/chat/data/repositories/ai_repository.dart`
-- `mobile/lib/features/chat/data/repositories/conversation_repository.dart`
-- `mobile/lib/features/chat/presentation/**`
+- `mobile/lib/data/models/message_model.dart`
+- `mobile/lib/data/models/conversation_model.dart`
+- `mobile/lib/data/repositories/ai_repository.dart`
+- `mobile/lib/data/repositories/conversation_repository.dart`
+- `mobile/lib/presentation/providers/chat_provider.dart`
+- `mobile/lib/presentation/screens/home/**`
 
-AI routes currently use Gemini via `@google/genai`. API key handling and model selection live in the API route implementations.
+AI routes currently use Gemini via `@google/genai`. API key handling and model selection live in server-side route/service implementations.
 
 ### Groups
 
@@ -104,22 +115,27 @@ Important web files:
 
 - `src/app/groups/**`
 - `src/app/api/groups/**/route.ts`
-- `src/components/GroupSelector.tsx`
+- `src/components/groups/group-selector.tsx`
 - `src/components/groups/**`
-- `src/lib/groupService.ts`
 - `src/hooks/useGroups.ts`
+- `apps/api/src/routes/groups/routes.ts`
+- `apps/api/src/services/groups.ts`
+- `apps/api/src/services/firestore-groups.ts`
 
 Important mobile files:
 
-- `mobile/lib/features/groups/data/models/**`
-- `mobile/lib/features/groups/data/repositories/group_repository.dart`
-- `mobile/lib/features/groups/presentation/**`
+- `mobile/lib/data/models/group_model.dart`
+- `mobile/lib/data/models/group_member_model.dart`
+- `mobile/lib/data/models/group_activity_model.dart`
+- `mobile/lib/data/repositories/group_repository.dart`
+- `mobile/lib/presentation/providers/group_providers.dart`
+- `mobile/lib/presentation/screens/groups/**`
 
 Key contract: group membership controls access. Any group data route must validate membership server-side or be safely constrained by Firestore rules and query filters.
 
 ### Budgets
 
-Types: budget interfaces in `src/lib/types.ts` and mobile `mobile/lib/features/budgets/data/models/budget.dart`.
+Types: budget interfaces in `src/lib/types.ts` and mobile `mobile/lib/data/models/budget_model.dart`.
 
 Important files:
 
@@ -127,7 +143,12 @@ Important files:
 - `src/app/api/expenses/route.ts` for post-expense budget checks.
 - `src/lib/budgetCalculations.ts`
 - `src/lib/services/budgetNotificationService.ts`
-- `mobile/lib/features/budgets/**`
+- `apps/api/src/routes/budgets/routes.ts`
+- `apps/api/src/services/budgets.ts`
+- `mobile/lib/data/models/budget_model.dart`
+- `mobile/lib/data/repositories/budget_repository.dart`
+- `mobile/lib/presentation/providers/budget_providers.dart`
+- `mobile/lib/presentation/screens/budgets/**`
 
 Key contract: stored budget limit field is `monthlyLimit`, not `limit`.
 
@@ -140,10 +161,13 @@ Important files:
 - `src/app/notifications/**`
 - `src/app/api/expenses/route.ts` for group expense notification creation.
 - `src/lib/services/notificationService.ts`
-- `src/lib/services/pushNotificationService.ts`
-- `src/lib/fcm.ts`
-- `mobile/lib/features/notifications/**`
-- `mobile/lib/core/services/fcm_service.dart`
+- `src/lib/services/pushService.ts`
+- `mobile/lib/data/models/notification_model.dart`
+- `mobile/lib/data/models/notification_preferences_model.dart`
+- `mobile/lib/data/repositories/notification_repository.dart`
+- `mobile/lib/data/repositories/notification_preferences_repository.dart`
+- `mobile/lib/data/services/push_notification_service.dart`
+- `mobile/lib/presentation/screens/notifications/**`
 
 Key contract: notification creation is generally server-side. Firestore rules restrict client-created notifications.
 
@@ -153,8 +177,8 @@ Types:
 
 - `src/lib/types/income.ts`
 - `src/lib/types/savings.ts`
-- `mobile/lib/features/income/data/models/income.dart`
-- `mobile/lib/features/savings/data/models/savings_goal.dart`
+- `mobile/lib/data/models/income_model.dart`
+- `mobile/lib/data/models/savings_model.dart`
 
 Important files:
 
@@ -162,8 +186,12 @@ Important files:
 - `src/app/savings/**`
 - `src/lib/services/incomeService.ts`
 - `src/lib/services/savingsService.ts`
-- `mobile/lib/features/income/**`
-- `mobile/lib/features/savings/**`
+- `mobile/lib/data/repositories/income_repository.dart`
+- `mobile/lib/data/repositories/savings_repository.dart`
+- `mobile/lib/presentation/providers/income_providers.dart`
+- `mobile/lib/presentation/providers/savings_providers.dart`
+- `mobile/lib/presentation/screens/income/**`
+- `mobile/lib/presentation/screens/savings/**`
 
 These domains are mostly direct Firestore client workflows rather than server API workflows.
 
@@ -193,8 +221,8 @@ Agents must not assume one admin auth model protects every admin endpoint.
 ### AI Expense Capture
 
 1. User enters text or uploads receipt through `src/app/page.tsx` or mobile chat screens.
-2. Client sends data to `src/app/api/analyze-expense/route.ts`.
-3. Route constructs a CRA-focused prompt, optionally includes group context, and calls Gemini.
+2. Client sends data to `src/app/api/analyze-expense/route.ts` for web or `apps/api/src/routes/ai/routes.ts` through mobile `ApiClient`.
+3. Route/service constructs a CRA-focused prompt, optionally includes group context, and calls Gemini.
 4. Route parses JSON into one or more expense candidates.
 5. Web can create expenses through `src/app/api/expenses/route.ts`; mobile may use repository/API paths depending context.
 6. Expense write may create group activity, notifications, push messages, and budget checks.
@@ -204,8 +232,8 @@ Agents must not assume one admin auth model protects every admin endpoint.
 1. Mobile repository calls `ApiClient`.
 2. Auth interceptor gets current Firebase ID token.
 3. Request includes `Authorization: Bearer <token>`.
-4. Server route calls `getAuthenticatedUserId(req)` from `src/lib/auth-middleware.ts`.
-5. Server validates token through Firebase Admin and uses the UID for authorization.
+4. Standalone API route uses `preHandler: app.requireUser`.
+5. Server validates token through Firebase Admin and uses `request.user.uid` for authorization.
 
 ### Firestore Direct Mobile Read
 
@@ -230,6 +258,8 @@ Because several Firestore rules allow broad list access for authenticated users,
 - Runtime behavior: source files are more reliable than planning docs under `docs/superpowers/plans/`.
 - Data contracts: `src/lib/types.ts`, mobile model files, and Firebase rules must be reconciled together.
 - Security: server-side Firebase Admin checks and Firestore rules both matter. One does not replace the other.
+- Mobile/API route behavior: `apps/api/src/routes/**`, `apps/api/src/services/**`, and `scripts/api/route-surface.ts` are the source of truth for active standalone API work.
+- Generated agent references: `docs/agents/generated/**` must be regenerated after mobile/API source changes.
 - Release behavior: `.github/workflows/mobile-release.yml`, `mobile/CICD.md`, and fastlane files are the practical release source of truth.
 
 ## Files Agents Commonly Need Together
@@ -240,9 +270,15 @@ When editing expenses:
 - `src/lib/categories.ts`
 - `src/app/api/analyze-expense/route.ts`
 - `src/app/api/expenses/**`
+- `apps/api/src/routes/ai/routes.ts`
+- `apps/api/src/routes/expenses/routes.ts`
+- `apps/api/src/services/expenses.ts`
 - `src/hooks/useExpenses.ts`
 - `mobile/lib/core/constants/categories.dart`
-- `mobile/lib/features/expenses/**`
+- `mobile/lib/data/models/expense_model.dart`
+- `mobile/lib/data/repositories/expense_repository.dart`
+- `mobile/lib/presentation/providers/expense_providers.dart`
+- `mobile/lib/presentation/screens/expenses/**`
 - `database/firestore.rules`
 - `database/firestore.indexes.json`
 
@@ -250,10 +286,15 @@ When editing groups:
 
 - `src/lib/types.ts`
 - `src/app/api/groups/**`
-- `src/lib/groupService.ts`
+- `apps/api/src/routes/groups/routes.ts`
+- `apps/api/src/services/groups.ts`
 - `src/hooks/useGroups.ts`
 - `src/components/groups/**`
-- `mobile/lib/features/groups/**`
+- `mobile/lib/data/models/group_model.dart`
+- `mobile/lib/data/models/group_member_model.dart`
+- `mobile/lib/data/repositories/group_repository.dart`
+- `mobile/lib/presentation/providers/group_providers.dart`
+- `mobile/lib/presentation/screens/groups/**`
 - `database/firestore.rules`
 
 When editing AI:
@@ -261,8 +302,11 @@ When editing AI:
 - `src/app/api/ai-chat/route.ts`
 - `src/app/api/analyze-expense/route.ts`
 - `src/app/api/conversations/**`
+- `apps/api/src/routes/ai/routes.ts`
+- `apps/api/src/services/ai.ts`
+- `apps/api/src/services/gemini-ai.ts`
 - `src/app/page.tsx`
-- `mobile/lib/features/chat/data/repositories/ai_repository.dart`
+- `mobile/lib/data/repositories/ai_repository.dart`
 - `src/lib/observability/**`
 
 When editing auth:
@@ -271,9 +315,10 @@ When editing auth:
 - `src/lib/firebase-admin.ts`
 - `src/lib/auth-middleware.ts`
 - `src/lib/admin-auth.ts`
-- `src/components/AuthGuard.tsx`
+- `src/components/auth-guard.tsx`
 - `src/app/api/passkeys/**`
-- `mobile/lib/core/providers/auth_provider.dart`
+- `mobile/lib/data/services/auth_service.dart`
+- `mobile/lib/presentation/providers/auth_provider.dart`
 - `mobile/lib/core/router/app_router.dart`
 - `database/firestore.rules`
 

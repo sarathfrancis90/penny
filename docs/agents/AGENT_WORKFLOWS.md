@@ -11,7 +11,7 @@ Default workflow:
 3. Trace the data flow before editing.
 4. Make the smallest coherent change across all affected layers.
 5. Run targeted validation.
-6. Update docs when behavior, architecture, or contracts changed.
+6. Update curated docs and regenerate generated agent docs when behavior, architecture, or contracts changed.
 7. Report changed files, validation, and residual risks.
 
 ## Context Building
@@ -22,9 +22,11 @@ Use this order for deep work:
 2. `CLAUDE.md`
 3. `docs/agents/REPOSITORY_GUIDE.md`
 4. Platform guide for the target area.
-5. `docs/agents/FIREBASE_AND_DATA_CONTRACTS.md` for persisted data.
-6. `docs/agents/FILE_MAP.md` for complete file awareness.
-7. Source files, tests, and docs adjacent to the change.
+5. For active mobile work, `docs/agents/MOBILE_ACTIVE_DEVELOPMENT_GUIDE.md` and generated mobile docs.
+6. For standalone API work, `docs/agents/STANDALONE_API_GUIDE.md`, `docs/agents/MOBILE_API_CONTRACTS.md`, and generated API docs.
+7. `docs/agents/FIREBASE_AND_DATA_CONTRACTS.md` for persisted data.
+8. `docs/agents/FILE_MAP.md` or generated file maps for complete file awareness.
+9. Source files, tests, and docs adjacent to the change.
 
 When the user says not to skip files, use `git ls-files` plus `git ls-files --others --exclude-standard` as the source-aware working-tree inventory, and explicitly account for generated/ignored artifacts separately.
 
@@ -33,7 +35,7 @@ When the user says not to skip files, use `git ls-files` plus `git ls-files --ot
 Before editing, identify:
 
 - User-visible behavior being changed.
-- Runtime platform: web, mobile, Firebase, CI, or docs.
+- Runtime platform: web, mobile, standalone API, Firebase, CI, or docs.
 - Data contracts touched.
 - Auth and authorization path.
 - Existing tests and missing tests.
@@ -56,10 +58,10 @@ Do not over-plan simple edits. For cross-platform contract changes, plan explici
 Files to inspect:
 
 - `src/lib/types.ts` or specialized type file.
-- Matching mobile model under `mobile/lib/features/**/data/models/`.
-- Server route serializers under `src/app/api/**`.
+- Matching mobile model under `mobile/lib/data/models/`.
+- Server route serializers under `apps/api/**` or `src/app/api/**`, depending on the active caller.
 - Web hooks under `src/hooks/`.
-- Mobile repository/provider under `mobile/lib/features/**`.
+- Mobile repository/provider under `mobile/lib/data/repositories/` and `mobile/lib/presentation/providers/`.
 - `database/firestore.rules`.
 - `database/firestore.indexes.json` if query shape changes.
 
@@ -74,16 +76,20 @@ Steps:
 
 ## Common Workflow: Add an API Route
 
+For active mobile backend work, prefer the standalone API under `apps/api/**`. Use `src/app/api/**` only for web/legacy Next.js routes.
+
 Steps:
 
-1. Place the route under `src/app/api/<domain>/route.ts` or an appropriate dynamic segment.
-2. Wrap with `withObservability({ route })` unless intentionally excluded.
-3. Authenticate with `getAuthenticatedUserId(req)` when user context matters.
-4. Validate request body and path params.
+1. Place the standalone route in the appropriate `apps/api/src/routes/<domain>/routes.ts` module.
+2. Add or update service behavior under `apps/api/src/services/`.
+3. Use `preHandler: app.requireUser` when user context matters.
+4. Validate request body, query, and path params.
 5. Enforce group or admin authorization server-side.
 6. Return typed JSON and clear error status codes.
-7. Add mobile endpoint constants if mobile will call it.
-8. Add tests where feasible.
+7. Update `scripts/api/route-surface.ts`.
+8. Add mobile endpoint constants if mobile will call it.
+9. Add route/service tests where feasible.
+10. Run `npm run api:contract` and regenerate agent docs.
 
 ## Common Workflow: Change AI Behavior
 
@@ -91,9 +97,12 @@ Files to inspect:
 
 - `src/app/api/ai-chat/route.ts`
 - `src/app/api/analyze-expense/route.ts`
-- `src/app/api/conversations/[id]/generate-title/route.ts`
+- `src/app/api/conversations/[conversationId]/generate-title/route.ts`
 - `src/app/page.tsx`
-- `mobile/lib/features/chat/data/repositories/ai_repository.dart`
+- `apps/api/src/routes/ai/routes.ts`
+- `apps/api/src/services/ai.ts`
+- `apps/api/src/services/gemini-ai.ts`
+- `mobile/lib/data/repositories/ai_repository.dart`
 - Category and type contracts.
 
 Checklist:
@@ -113,7 +122,8 @@ Steps:
 3. Check route access and navigation.
 4. Check Firestore rules and API route compatibility.
 5. Run `flutter analyze` and targeted tests.
-6. Update shared web contracts if persisted data changes.
+6. Update standalone API and shared web contracts if persisted data changes.
+7. Regenerate agent docs for mobile/API changes.
 
 ## Common Workflow: Change Group Behavior
 
@@ -142,18 +152,21 @@ Steps:
 Steps:
 
 1. Update the smallest relevant guide under `docs/agents/`.
-2. Update `FILE_MAP.md` if tracked or source-relevant untracked files changed.
-3. Update root or docs indexes only when discoverability changes.
-4. Keep docs evidence-based and point to concrete files.
-5. Do not paste generated secret values.
+2. Run `npm run docs:agents:generate` when mobile/API/Firebase/workflow/source inventory or TypeScript/Dart model contracts changed.
+3. Run `npm run docs:agents:check` and `npm run docs:agents:lint`.
+4. Update `FILE_MAP.md` if tracked or source-relevant untracked files changed outside the generated mobile/API docs.
+5. Update root or docs indexes only when discoverability changes.
+6. Keep docs evidence-based and point to concrete files.
+7. Do not paste generated secret values.
 
 ## Validation Matrix
 
 Use this matrix to choose checks:
 
-- Docs-only: inspect markdown, verify links/paths manually or with `rg`/`test -f`.
+- Docs-only: inspect markdown, run `npm run docs:agents:check` and `npm run docs:agents:lint` when agent docs are touched.
 - TypeScript type/API change: `npm run typecheck`, `npm run lint`, targeted `npm run test`.
 - Next route behavior change: targeted tests plus `npm run build` when feasible.
+- Standalone API change: `npm run api:check` and `npm run api:contract`.
 - Firebase rules/index change: Firebase rules validation or emulator tests if available; inspect CI workflow expectations.
 - Mobile Dart change: `cd mobile && flutter analyze`, targeted `flutter test`.
 - Mobile native/release change: inspect Fastlane and workflow, run build lane only when environment supports it.

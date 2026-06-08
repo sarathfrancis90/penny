@@ -13,6 +13,11 @@ npm run test
 npm run test:watch
 npm run test:ui
 npm run typecheck
+npm run api:check
+npm run api:contract
+npm run docs:agents:generate
+npm run docs:agents:check
+npm run docs:agents:lint
 npm run generate-secret
 ```
 
@@ -28,6 +33,20 @@ Recommended by change type:
 - Broad changes: `npm run typecheck`, `npm run lint`, `npm run test`, `npm run build`.
 
 Current test framework is Vitest with jsdom from `vitest.config.ts`.
+
+## Standalone API Validation
+
+Common commands:
+
+```bash
+npm run api:typecheck
+npm run api:test
+npm run api:build
+npm run api:check
+npm run api:contract
+```
+
+Use `npm run api:smoke` after deployment when `API_BASE_URL` is set. Use `npm run api:parity` for old/new API comparison with disposable staging data.
 
 ## Mobile Validation
 
@@ -53,6 +72,7 @@ Mobile tests live under `mobile/test/`.
 GitHub Actions workflows under `.github/workflows/` include:
 
 - `backend-tests.yml` - runs TypeScript typecheck, ESLint, and Next build on Node 20.
+- `agent-docs.yml` - checks generated agent documentation freshness and docs lint.
 - `mobile-tests.yml` - runs Flutter analyze and tests.
 - `firebase-deploy.yml` - deploys Firestore rules, indexes, and storage rules on relevant main-branch changes.
 - `mobile-release.yml` - tag-driven iOS and Android release builds through Fastlane.
@@ -97,9 +117,12 @@ Before release work:
 For docs-only changes, useful checks are:
 
 ```bash
-rg -n "docs/agents" README.md docs/README.md AGENTS.md
-find docs/agents -type f -maxdepth 1 -print | sort
+npm run docs:agents:generate
+npm run docs:agents:check
+npm run docs:agents:lint
 ```
+
+Generated mobile/API agent references live under `docs/agents/generated/` and should be regenerated after changes to `mobile/**`, `apps/api/**`, `packages/shared/**`, `scripts/api/**`, `scripts/agents/**`, `src/app/api/**`, `src/lib/types*`, `src/lib/categories.ts`, `database/**`, workflows, or agent docs.
 
 If regenerating `FILE_MAP.md`, compare the counts in the file with:
 

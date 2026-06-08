@@ -1,0 +1,70 @@
+name: Agent Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'scripts/api/**'
+      - 'scripts/agents/**'
+      - 'src/app/api/**'
+      - 'src/lib/types.ts'
+      - 'src/lib/types/**'
+      - 'src/lib/categories.ts'
+      - 'database/**'
+      - 'docs/agents/**'
+      - 'docs/api/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.api.json'
+      - 'Dockerfile.api'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'scripts/api/**'
+      - 'scripts/agents/**'
+      - 'src/app/api/**'
+      - 'src/lib/types.ts'
+      - 'src/lib/types/**'
+      - 'src/lib/categories.ts'
+      - 'database/**'
+      - 'docs/agents/**'
+      - 'docs/api/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.api.json'
+      - 'Dockerfile.api'
+      - '.github/workflows/**'
+
+jobs:
+  agent-docs:
+    name: Generated Agent Docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check generated agent docs
+        run: npm run docs:agents:check
+
+      - name: Lint agent docs
+        run: npm run docs:agents:lint
+
+      - name: Test agent docs automation
+        run: npm run docs:agents:test

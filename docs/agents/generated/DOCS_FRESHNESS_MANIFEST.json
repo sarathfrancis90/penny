@@ -1,0 +1,68 @@
+{
+  "generatedBy": "scripts/agents/generate-agent-docs.ts",
+  "generatedDocs": [
+    "docs/agents/FILE_MAP.md",
+    "docs/agents/generated/MOBILE_FILE_MAP.md",
+    "docs/agents/generated/API_ROUTE_SURFACE.md",
+    "docs/agents/generated/MOBILE_API_ENDPOINT_MATRIX.md",
+    "docs/agents/generated/VALIDATION_COMMANDS.md",
+    "docs/agents/generated/DOCS_FRESHNESS_MANIFEST.json"
+  ],
+  "watchPaths": [
+    "mobile/**",
+    "apps/api/**",
+    "packages/shared/**",
+    "scripts/api/**",
+    "scripts/agents/**",
+    "src/app/api/**",
+    "src/lib/types.ts",
+    "src/lib/types/**",
+    "src/lib/categories.ts",
+    "database/**",
+    ".github/workflows/**",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.api.json",
+    "Dockerfile.api",
+    "docs/agents/**",
+    "docs/api/**"
+  ],
+  "sourceOfTruth": {
+    "mobile": [
+      "mobile/lib",
+      "mobile/pubspec.yaml",
+      "mobile/.flutter-version",
+      "mobile/lib/core/network/api_endpoints.dart",
+      "mobile/lib/core/constants/env_config.dart"
+    ],
+    "api": [
+      "apps/api/src/app.ts",
+      "apps/api/src/routes",
+      "apps/api/src/services",
+      "scripts/api/route-surface.ts",
+      "docs/api/openapi.json",
+      "Dockerfile.api",
+      ".github/workflows/api-cloud-run-deploy.yml"
+    ],
+    "contracts": [
+      "src/lib/types.ts",
+      "src/lib/types/**",
+      "packages/shared/src/categories.ts",
+      "src/lib/categories.ts",
+      "mobile/lib/data/models/*.dart",
+      "database/firestore.rules",
+      "database/firestore.indexes.json"
+    ]
+  },
+  "packageScripts": {
+    "api:typecheck": "tsc -p tsconfig.api.json --noEmit",
+    "api:build": "tsup apps/api/src/server.ts --format cjs --platform node --target node22 --sourcemap --out-dir dist/api",
+    "api:test": "vitest run apps/api packages/shared",
+    "api:check": "npm run api:typecheck && npm run api:test && npm run api:build",
+    "api:contract": "tsx scripts/api/generate-openapi.ts --check",
+    "docs:agents:generate": "tsx scripts/agents/generate-agent-docs.ts",
+    "docs:agents:check": "tsx scripts/agents/generate-agent-docs.ts --check",
+    "docs:agents:lint": "tsx scripts/agents/lint-agent-docs.ts",
+    "docs:agents:test": "vitest run scripts/agents apps/api/src/routes/__tests__/route-surface.test.ts"
+  }
+}

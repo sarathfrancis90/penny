@@ -4,6 +4,50 @@ This file records issues discovered during the full repository analysis. Treat t
 
 ## High Priority
 
+### Standalone Group Update Authorization Gap
+
+The standalone API group update route passes request body updates through to the Firestore group service, and the service updates the group document without a membership/role check.
+
+Risk:
+
+- A route can appear to satisfy the documented "validate group membership/role" policy while preserving an unsafe mutation path.
+- Future agents may copy this pattern into new group routes.
+
+What to inspect:
+
+- `apps/api/src/routes/groups/routes.ts`
+- `apps/api/src/services/firestore-groups.ts`
+- `mobile/lib/data/repositories/group_repository.dart`
+
+### Standalone Expense Side-Effect Gap
+
+The standalone expense create path writes the expense, group stats, and group activity, but does not yet port all side effects from the Next API path.
+
+Risk:
+
+- Mobile group expense creation through standalone API can miss notifications, push notifications, budget alerts, and approval-required behavior.
+- Agents may assume `POST /api/expenses` is behaviorally equivalent to the Next route.
+
+What to inspect:
+
+- `apps/api/src/routes/expenses/routes.ts`
+- `apps/api/src/services/firestore-expenses.ts`
+- `src/app/api/expenses/route.ts`
+- `mobile/lib/presentation/widgets/expense_confirmation_sheet.dart`
+
+### Standalone Expense List Placeholder
+
+`GET /api/expenses` is registered in the standalone API but currently returns an empty placeholder list.
+
+Risk:
+
+- Agents may move mobile reads from direct Firestore to a nonfunctional list API.
+
+What to inspect:
+
+- `apps/api/src/routes/expenses/routes.ts`
+- `docs/agents/generated/API_ROUTE_SURFACE.md`
+
 ### Group Activity Collection Drift
 
 Some web group API routes write to `groupActivity` singular, while Firestore rules and mobile code reference `groupActivities` plural.
@@ -17,8 +61,10 @@ Risk:
 What to inspect:
 
 - `src/app/api/groups/**/route.ts`
+- `apps/api/src/routes/groups/routes.ts`
+- `apps/api/src/services/firestore-groups.ts`
 - `database/firestore.rules`
-- `mobile/lib/features/groups/data/repositories/group_repository.dart`
+- `mobile/lib/data/repositories/group_repository.dart`
 - Any group activity UI or service code.
 
 ### Budget Limit Field Drift
@@ -36,7 +82,9 @@ What to inspect:
 - `src/lib/types.ts`
 - `src/lib/budgetCalculations.ts`
 - `src/lib/services/budgetNotificationService.ts`
-- `mobile/lib/features/budgets/data/models/budget.dart`
+- `apps/api/src/routes/budgets/routes.ts`
+- `apps/api/src/services/budgets.ts`
+- `mobile/lib/data/models/budget_model.dart`
 
 ### Non-Canonical Category Fallback
 
@@ -90,7 +138,7 @@ Recommendation:
 
 ### Documentation Version Drift
 
-Older docs mention older stack versions and older AI model names.
+Older public/historical docs mention older stack versions, older AI model names, or implementation plans that may no longer match source.
 
 Examples:
 
@@ -103,6 +151,20 @@ Recommendation:
 
 - Prefer source files, package files, and current agent docs for implementation work.
 - Update public-facing docs separately from this agent documentation pass.
+
+### Mobile Production API Base URL Drift
+
+`mobile/lib/core/constants/env_config.dart` points staging at the Cloud Run standalone API, but the default production URL still points at the Vercel app.
+
+Risk:
+
+- Agents may assume production mobile traffic is fully cut over to the standalone API when it may still use the Next/Vercel API surface.
+- API parity or rollout validation can target the wrong backend.
+
+Recommendation:
+
+- Confirm rollout intent before changing production mobile API routing.
+- If production should use Cloud Run, update `EnvConfig`, mobile release docs, generated agent docs, and smoke/parity validation.
 
 ### Firebase Deploy Workflow References Missing Script
 

@@ -1,6 +1,8 @@
-# Penny Container API
+# Penny Standalone API
 
-This directory documents the standalone API service under `apps/api`.
+This directory documents the standalone API service under `apps/api`. For agentic engineering context, read `docs/agents/STANDALONE_API_GUIDE.md` and `docs/agents/MOBILE_API_CONTRACTS.md` before changing this API.
+
+The standalone API is the active dedicated backend for current mobile server work. The Next.js API under `src/app/api` still exists for web, legacy, and compatibility flows; do not assume mobile should use `src/app/api` unless the current mobile environment configuration or endpoint constants explicitly point there.
 
 ## Runtime
 
@@ -9,6 +11,15 @@ This directory documents the standalone API service under `apps/api`.
 - Deployment target: Cloud Run via `Dockerfile.api`, `cloudbuild.api.yaml`, or `.github/workflows/api-cloud-run-deploy.yml`.
 - Firebase Admin uses Application Default Credentials in Cloud Run. Local service-account JSON remains supported through `FIREBASE_ADMIN_CREDENTIALS`.
 - `FIREBASE_AUTH_PROJECT_ID` can point token verification at the mobile Firebase project while Firestore remains in the Cloud Run data project.
+
+## Contract Sources
+
+- Fastify app: `apps/api/src/app.ts`
+- Production server: `apps/api/src/server.ts`
+- Route surface: `scripts/api/route-surface.ts`
+- Generated OpenAPI: `docs/api/openapi.json`
+- Generated agent route table: `docs/agents/generated/API_ROUTE_SURFACE.md`
+- Generated mobile endpoint matrix: `docs/agents/generated/MOBILE_API_ENDPOINT_MATRIX.md`
 
 ## Implemented Service Areas
 
@@ -22,7 +33,11 @@ This directory documents the standalone API service under `apps/api`.
 - User preferences: default group get/set/clear.
 - Account deletion: Firestore cleanup plus Firebase Auth deletion.
 
-Compatibility routes are registered for group-member/invitation lifecycle, group archive/leave, privacy deletion, and cron metrics so staged routing tests do not silently 404. Those compatibility routes still need full business-logic ports before routing all web traffic to the container API.
+Compatibility routes are registered for privacy deletion and cron metrics so staged routing tests do not silently 404. Group-member/invitation lifecycle plus group archive/leave currently live in `apps/api/src/routes/groups/routes.ts`, not in the compatibility module.
+
+Some standalone routes are partial or placeholders. `GET /api/expenses` returns an empty placeholder list, and expense creation does not yet port every Next API side effect such as notifications, push, budget alerts, and approval-required behavior.
+
+When a route moves from compatibility to full implementation, update the route module, service layer, tests, `scripts/api/route-surface.ts`, `docs/api/openapi.json`, generated agent docs, and this README if the implemented service area changes.
 
 ## Required Cloud Run Configuration
 
@@ -44,6 +59,9 @@ The runtime service account needs Firestore access, Firebase Auth admin permissi
 Run before deployment:
 
 ```bash
+npm run docs:agents:generate
+npm run docs:agents:check
+npm run docs:agents:lint
 npm run api:check
 npm run api:contract
 npm run typecheck

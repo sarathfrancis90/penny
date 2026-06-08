@@ -20,6 +20,10 @@
     "api:contract": "tsx scripts/api/generate-openapi.ts --check",
     "api:parity": "tsx scripts/api/compare-old-new.ts",
     "api:smoke": "tsx scripts/api/smoke-api.ts",
+    "docs:agents:generate": "tsx scripts/agents/generate-agent-docs.ts",
+    "docs:agents:check": "tsx scripts/agents/generate-agent-docs.ts --check",
+    "docs:agents:lint": "tsx scripts/agents/lint-agent-docs.ts",
+    "docs:agents:test": "vitest run scripts/agents apps/api/src/routes/__tests__/route-surface.test.ts",
     "generate-secret": "node scripts/generate-jwt-secret.js"
   },
   "dependencies": {

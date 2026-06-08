@@ -6,7 +6,8 @@ Penny is an AI-powered expense tracking and personal finance management app for 
 
 This is a **monorepo** containing:
 - **Web app** (`src/`) — Next.js 16 + React 19, deployed as a PWA
-- **Mobile app** (`mobile/`) — Flutter (Dart), iOS-first with Android planned
+- **Standalone API** (`apps/api/`) — Fastify + Node.js 22, active dedicated API for mobile backend work
+- **Mobile app** (`mobile/`) — Flutter (Dart), iOS and Android
 
 ---
 
@@ -26,7 +27,7 @@ This is a **monorepo** containing:
 - **Navigation**: go_router
 - **Architecture**: Clean Architecture (data → domain → presentation)
 - **Charts**: fl_chart
-- **HTTP**: Dio (for Next.js API calls)
+- **HTTP**: Dio (for standalone API calls)
 - **Offline**: Built-in Firestore persistence + Hive for drafts
 
 ### Shared Backend
@@ -46,7 +47,7 @@ penny/
 ├── CLAUDE.md                    # This file — root project context
 ├── src/                         # Next.js web app
 │   ├── app/
-│   │   ├── api/                 # 36+ API routes
+│   │   ├── api/                 # Next/web and legacy API routes
 │   │   ├── dashboard/           # Analytics dashboard
 │   │   ├── budgets/             # Budget management
 │   │   ├── groups/              # Group management
@@ -63,6 +64,10 @@ penny/
 │       ├── firebase-admin.ts    # Server Firebase Admin
 │       ├── gemini-functions.ts  # AI function definitions
 │       └── services/            # Server-side business logic
+├── apps/
+│   └── api/                     # Standalone Fastify API for active mobile backend work
+├── packages/
+│   └── shared/                  # Shared contracts used by standalone API
 ├── mobile/                      # Flutter mobile app
 │   ├── CLAUDE.md                # Flutter-specific context
 │   ├── lib/
@@ -116,7 +121,7 @@ penny/
 
 ## CRA T2125 Tax Categories (Business-Critical)
 
-These categories are stored as exact string values in Firestore and MUST be identical across web and mobile. Source: `src/lib/categories.ts`
+These categories are stored as exact string values in Firestore and MUST be identical across web, standalone API/shared code, and mobile. Sources: `src/lib/categories.ts`, `packages/shared/src/categories.ts`, and `mobile/lib/core/constants/categories.dart`.
 
 ### General Business Expenses (19)
 - "Advertising (Promotion, gift cards etc.)"
@@ -171,7 +176,7 @@ The mobile app uses a hybrid backend:
 ### Direct Firestore (FlutterFire SDK) — CRUD operations
 Fast, real-time, offline-capable. Used for: expenses (personal read/write), budgets (personal CRUD), income sources, savings goals, conversations, notifications (read/mark-read), user profile.
 
-### Next.js API Routes (HTTP via Dio) — Server-side operations
+### Standalone API Routes (HTTP via Dio) — Server-side operations
 Required when: Gemini API key needed, multi-doc transactions, Admin SDK operations.
 
 | Route | Method | Purpose | Why Server-Side |
@@ -180,13 +185,13 @@ Required when: Gemini API key needed, multi-doc transactions, Admin SDK operatio
 | `/api/analyze-expense` | POST | Receipt OCR / text analysis | Gemini API key |
 | `/api/expenses` | POST | Create group expense | Atomic: expense + stats + activity + notifications + budget check |
 | `/api/groups` | POST | Create group | Atomic: group + owner membership + activity log |
-| `/api/groups/[id]` | PATCH/DELETE | Update/delete group | Complex validation + cascading |
-| `/api/groups/[id]/members` | POST | Invite member | Token generation |
+| `/api/groups/{groupId}` | PATCH/DELETE | Update/delete group | Complex validation + cascading |
+| `/api/groups/{groupId}/members` | POST | Invite member | Token generation |
 | `/api/groups/invitations/accept` | POST | Accept invite | Multi-doc transaction |
 | `/api/budgets/group` | POST | Create group budget | Admin role validation |
 
 ### Auth for Mobile API Calls
-Mobile sends Firebase ID token as `Authorization: Bearer <token>`. Server validates via `adminAuth.verifyIdToken()`. Web app continues using userId in body (backward compatible).
+Mobile sends Firebase ID token as `Authorization: Bearer <token>`. The standalone API validates through Firebase Admin and uses `request.user.uid` as authoritative identity. Legacy/web routes may still support body `userId` for backward compatibility, but active mobile API work should use the standalone Fastify API under `apps/api`.
 
 ---
 
@@ -197,6 +202,7 @@ Mobile sends Firebase ID token as `Authorization: Bearer <token>`. Server valida
 3. **Notifications create is server-only** — Only API routes create notifications (budget alerts, group activity).
 4. **`list` rules use `isAuthenticated()` broadly** — Mobile queries MUST include `where` clauses filtering by userId/groupId for security.
 5. **Group roles**: owner → admin → member → viewer. Permissions defined in `DEFAULT_ROLE_PERMISSIONS` in `src/lib/types.ts`.
+6. **Agent docs must stay generated-current** — after mobile/API/source-contract changes, run `npm run docs:agents:generate`, `npm run docs:agents:check`, and `npm run docs:agents:lint`.
 
 ---
 
@@ -234,6 +240,13 @@ npm run build        # Production build
 npm run lint         # ESLint
 ```
 
+### Standalone API
+```bash
+npm run api:dev       # Start standalone API locally
+npm run api:check     # Typecheck, test, and build API
+npm run api:contract  # Verify OpenAPI route contract
+```
+
 ### Mobile App
 ```bash
 cd mobile
@@ -262,4 +275,4 @@ All Firestore document shapes are defined in TypeScript and must be mirrored exa
 - `src/lib/types/savings.ts` — PersonalSavingsGoal, GroupSavingsGoal, SavingsContribution, enums (SavingsCategory, GoalStatus)
 - `src/lib/types/notifications.ts` — Notification, NotificationPreferences, NotificationType enum
 
-When modifying any type, update BOTH TypeScript and Dart models to stay in sync.
+When modifying any type, update TypeScript/shared contracts, standalone API serializers, Firebase rules/indexes, and Dart models to stay in sync.

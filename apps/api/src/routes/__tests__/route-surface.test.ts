@@ -1,53 +1,79 @@
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
+import { apiRouteSurface } from '../../../../../scripts/api/route-surface';
 import { buildApiApp } from '../../app';
 
-const routeSurface = [
-  ['POST', '/api/ai-chat'],
-  ['POST', '/api/analyze-expense'],
-  ['POST', '/api/expenses'],
-  ['PATCH', '/api/expenses/expense-1'],
-  ['DELETE', '/api/expenses/expense-1'],
-  ['GET', '/api/groups'],
-  ['POST', '/api/groups'],
-  ['PATCH', '/api/groups/group-1'],
-  ['DELETE', '/api/groups/group-1'],
-  ['GET', '/api/groups/group-1/members'],
-  ['POST', '/api/groups/group-1/members'],
-  ['PATCH', '/api/groups/group-1/members/member-1'],
-  ['PUT', '/api/groups/group-1/members/member-1'],
-  ['DELETE', '/api/groups/group-1/members/member-1?action=remove'],
-  ['POST', '/api/groups/invitations/accept'],
-  ['POST', '/api/groups/group-1/archive'],
-  ['POST', '/api/groups/group-1/leave'],
-  ['GET', '/api/budgets/personal'],
-  ['POST', '/api/budgets/personal'],
-  ['PUT', '/api/budgets/personal/budget-1'],
-  ['DELETE', '/api/budgets/personal/budget-1'],
-  ['GET', '/api/budgets/group?groupId=group-1'],
-  ['POST', '/api/budgets/group'],
-  ['GET', '/api/budgets/usage/personal'],
-  ['GET', '/api/budgets/usage/group/group-1'],
-  ['GET', '/api/conversations'],
-  ['POST', '/api/conversations'],
-  ['GET', '/api/conversations/conversation-1'],
-  ['POST', '/api/conversations/conversation-1/messages'],
-  ['POST', '/api/conversations/conversation-1/generate-title'],
-  ['GET', '/api/user/default-group'],
-  ['POST', '/api/user/default-group'],
-  ['DELETE', '/api/user/default-group'],
-  ['DELETE', '/api/account/delete'],
-  ['POST', '/api/privacy/delete-my-data'],
-  ['GET', '/api/cron/store-metrics'],
-] as const;
+type RouteSurfaceEntry = (typeof apiRouteSurface)[number];
+
+const sampleValues: Record<string, string> = {
+  id: 'budget-1',
+  groupId: 'group-1',
+  memberId: 'member-1',
+  conversationId: 'conversation-1',
+};
+
+function materializePath(route: RouteSurfaceEntry) {
+  return route.path.replace(/\{([^}]+)\}/g, (_match, name: string) => {
+    const value = sampleValues[name];
+    if (!value) throw new Error(`No sample value for route param ${name}`);
+    return value;
+  });
+}
+
+function walk(dir: string): string[] {
+  return readdirSync(dir).flatMap((entry) => {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) return walk(path);
+    return path.endsWith('.ts') && !path.includes('__tests__') ? [path] : [];
+  });
+}
+
+function normalizeRegisteredPath(path: string) {
+  return path.replace(/:([A-Za-z0-9_]+)/g, '{$1}');
+}
+
+function registeredRoutesFromSource() {
+  const routeFiles = [
+    join(process.cwd(), 'apps/api/src/app.ts'),
+    ...walk(join(process.cwd(), 'apps/api/src/routes')),
+  ];
+  const routes = new Set<string>();
+  for (const file of routeFiles) {
+    const content = readFileSync(file, 'utf8');
+    for (const match of content.matchAll(
+      /app\.(get|post|patch|put|delete)\(\s*['"`]([^'"`]+)['"`]/g,
+    )) {
+      routes.add(`${match[1].toUpperCase()} ${normalizeRegisteredPath(match[2])}`);
+    }
+  }
+  return routes;
+}
 
 describe('container API route surface', () => {
-  it.each(routeSurface)('%s %s is registered', async (method, url) => {
-    const app = await buildApiApp({ readyCheck: async () => undefined });
-    const response = await app.inject({ method, url });
+  it.each(apiRouteSurface)(
+    '$method $path is registered in the Fastify app',
+    async (route) => {
+      const app = await buildApiApp({ readyCheck: async () => undefined });
+      const response = await app.inject({
+        method: route.method,
+        url: materializePath(route),
+      });
 
-    expect(response.statusCode, `${method} ${url}`).not.toBe(404);
+      expect(response.statusCode, `${route.method} ${route.path}`).not.toBe(404);
 
-    await app.close();
+      await app.close();
+    },
+  );
+
+  it('matches route definitions in source modules', () => {
+    const registeredRoutes = registeredRoutesFromSource();
+    const documentedRoutes = new Set(
+      apiRouteSurface.map((route) => `${route.method} ${route.path}`),
+    );
+
+    expect([...registeredRoutes].sort()).toEqual([...documentedRoutes].sort());
   });
 });

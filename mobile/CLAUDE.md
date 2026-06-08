@@ -1,238 +1,43 @@
-# Penny Mobile — Flutter App
+# Penny Mobile Agent Context
 
-## Overview
+This file is intentionally short. The authoritative mobile agent documentation lives in the root agent docs:
 
-Flutter mobile app for Penny — AI-powered expense tracker for Canadian self-incorporated professionals. iOS-first, Android later. Clean light theme with blue (#0A84FF) accent — inspired by Venmo/PayPal/Apple Wallet.
+1. `../AGENTS.md`
+2. `../CLAUDE.md`
+3. `../docs/agents/MOBILE_ACTIVE_DEVELOPMENT_GUIDE.md`
+4. `../docs/agents/MOBILE_APP_GUIDE.md`
+5. `../docs/agents/MOBILE_API_CONTRACTS.md`
+6. `../docs/agents/FIREBASE_AND_DATA_CONTRACTS.md`
+7. `../docs/agents/generated/MOBILE_FILE_MAP.md`
+8. `../docs/agents/generated/MOBILE_API_ENDPOINT_MATRIX.md`
 
-## Deployment
+## Current Mobile Facts
 
-**Single source of truth: [`CICD.md`](./CICD.md).** Release flow is one git tag (`v*.*.*`) → autonomous publish to App Store production + Play Store production via GitHub Actions. Lanes live in `fastlane/Fastfile` (`ios ship`, `android ship`, plus `repair_and_submit` for App Store recovery). Toolchain pins: `.flutter-version`, `.ruby-version`, `Gemfile.lock`. **Do not modify the deployment pipeline without updating `CICD.md` in the same PR.**
+- Flutter app supports iOS and Android.
+- Active source layout is `lib/core`, `lib/data`, `lib/domain`, and `lib/presentation`.
+- HTTP calls use Dio through `lib/core/network/api_client.dart`.
+- Active mobile backend work targets the standalone Fastify API under `../apps/api`; `src/app/api` is web/legacy unless mobile configuration explicitly points there.
+- Mobile sends Firebase ID tokens as `Authorization: Bearer <token>`; API routes must use the verified UID as authority.
+- Category strings must match `../src/lib/categories.ts`, `../packages/shared/src/categories.ts`, and `lib/core/constants/categories.dart`.
 
-## Production readiness state
+## Mobile Validation
 
-**Current state of the app vis-à-vis "shippable to real users" lives in [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md).** Update it in the same PR as anything that materially changes that state (new monitoring, new gap discovered, security fix, etc.).
-
----
-
-## Architecture: Clean Architecture + Riverpod
-
-```
-lib/
-├── core/           # Shared constants, theme, router, network utilities
-├── data/           # Models (Firestore doc shapes), repositories, services
-├── domain/         # Entities, usecases (business logic)
-└── presentation/   # Riverpod providers, screens, widgets
-```
-
-### Data Flow
-```
-Screen (Widget) → Provider (Riverpod) → Repository → Firestore / API
-                                                      ↓
-                                              Stream<List<T>> for reads
-                                              Future<T> for writes
-```
-
-### State Management — Riverpod
-- **StreamProvider** for Firestore real-time listeners (expenses, budgets, groups, notifications)
-- **StateNotifierProvider** for complex UI state (chat, forms)
-- **FutureProvider** for one-shot API calls (AI analysis)
-- Use `riverpod_annotation` + `riverpod_generator` for codegen when appropriate
-- Run `dart run build_runner build` after adding/changing `@riverpod` annotations
-
-### Navigation — go_router
-- ShellRoute for bottom navigation (5 tabs: Home, Dashboard, Finances, Groups, Profile)
-- Nested routes within each tab preserve tab state
-- Auth redirect: unauthenticated users → `/auth/login`
-
----
-
-## Conventions
-
-### File Naming
-- All Dart files: `snake_case.dart`
-- Models: `expense_model.dart`, `group_model.dart`
-- Repositories: `expense_repository.dart`
-- Providers: `expense_providers.dart`
-- Screens: `expense_list_screen.dart`, `expense_detail_screen.dart`
-- Widgets: `expense_card.dart`, `budget_progress.dart`
-
-### Code Style
-- Prefer `const` constructors everywhere possible
-- Use `final` for all local variables
-- Prefer named parameters for widgets with 3+ parameters
-- Use freezed/json_serializable for models with `fromJson`/`toJson`
-- All Firestore Timestamp fields map to Dart `Timestamp` from `cloud_firestore`
-
-### Imports
-- Use relative imports within the same feature
-- Use package imports (`package:penny_mobile/...`) across features
-- Group: dart → package → relative
-
----
-
-## Backend Integration
-
-### Direct Firestore (FlutterFire) — for CRUD
-```dart
-// Example: Stream personal expenses
-FirebaseFirestore.instance
-  .collection('expenses')
-  .where('userId', isEqualTo: userId)
-  .where('expenseType', isEqualTo: 'personal')
-  .orderBy('date', descending: true)
-  .snapshots()
-  .map((snap) => snap.docs.map(ExpenseModel.fromFirestore).toList());
-```
-
-**IMPORTANT**: Always include `where` clauses filtering by userId or groupId. Firestore `list` rules allow any authenticated user — security depends on query filters.
-
-### Next.js API (via Dio) — for AI & complex operations
-```dart
-// All API calls include Firebase ID token
-final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-dio.options.headers['Authorization'] = 'Bearer $token';
-```
-
-API base URL: Set via environment config (dev vs prod).
-
-Routes called from mobile:
-- `POST /api/ai-chat` — body: `{message, userId, conversationHistory}`
-- `POST /api/analyze-expense` — body: `{text?, imageBase64?, userId}`
-- `POST /api/expenses` — for group expenses only (personal go direct to Firestore)
-- `POST /api/groups` — create group
-- `PATCH/DELETE /api/groups/:id` — update/delete group
-- `POST /api/groups/:id/members` — invite member
-- `POST /api/groups/invitations/accept` — accept invitation
-- `POST /api/budgets/group` — create group budget
-
----
-
-## Design System — Clean Blue (Light Theme)
-
-Inspired by Venmo, PayPal, Apple Wallet. White space is the design. Color is used sparingly.
-
-### Colors
-```dart
-static const primary = Color(0xFF0A84FF);        // Blue — ONE brand color
-static const primaryLight = Color(0xFF5AC8FA);   // Light blue accent
-static const background = Color(0xFFFFFFFF);     // White
-static const surface = Color(0xFFF5F5F7);        // Light gray cards
-static const textPrimary = Color(0xFF1C1C1E);    // Near black
-static const textSecondary = Color(0xFF8E8E93);  // Gray
-static const textTertiary = Color(0xFFC7C7CC);   // Placeholder gray
-static const success = Color(0xFF34C759);         // Green — income, saved
-static const warning = Color(0xFFFF9F0A);         // Amber — budget warning
-static const error = Color(0xFFFF3B30);           // Red — over budget
-static const divider = Color(0xFFE5E5EA);         // Subtle separator
-```
-
-### Typography
-- System font (SF Pro on iOS, Roboto on Android)
-- No custom fonts — native feel
-
-### UI Principles
-- **White space is the design** — color is accent only
-- Bottom sheets > dialogs for mobile actions
-- Haptic feedback on key actions (expense confirmed, budget alert)
-- Pull-to-refresh on all lists
-- Shimmer skeleton loading (not spinners)
-- No gradients, no shadows, no glass effects
-- Cards: light gray (#F5F5F7) on white, no borders
-- Blue used ONLY for: CTAs, active tab, links, toggles
-
----
-
-## Models — Mirror TypeScript Types
-
-Every Dart model MUST match the TypeScript interface in `src/lib/types.ts` exactly. Key models:
-
-| Dart Model | TypeScript Source | Firestore Collection |
-|---|---|---|
-| `ExpenseModel` | `Expense` in types.ts | `expenses` |
-| `GroupModel` | `Group` in types.ts | `groups` |
-| `GroupMemberModel` | `GroupMember` in types.ts | `groupMembers` |
-| `BudgetModel` | `PersonalBudget` / `GroupBudget` in types.ts | `budgets_personal` / `budgets_group` |
-| `ConversationModel` | `Conversation` in types.ts | `conversations` |
-| `MessageModel` | `ConversationMessage` in types.ts | `conversations/{id}/messages` |
-| `IncomeSourceModel` | `PersonalIncomeSource` in types/income.ts | `income_sources_personal` |
-| `SavingsGoalModel` | `PersonalSavingsGoal` in types/savings.ts | `savings_goals_personal` |
-| `NotificationModel` | `Notification` in types/notifications.ts | `notifications` |
-
-### Timestamp Handling
-```dart
-// Reading from Firestore
-final date = (doc['date'] as Timestamp).toDate();
-
-// Writing to Firestore
-'date': Timestamp.fromDate(dateTime),
-```
-
----
-
-## CRA T2125 Categories
-
-Categories are defined in `lib/core/constants/categories.dart` and MUST be identical strings to `src/lib/categories.ts` in the web app. These are stored as string values in Firestore and used by the AI analysis pipeline. Never modify category strings without updating both web and mobile.
-
----
-
-## Key Dependencies
-
-| Package | Purpose |
-|---|---|
-| `firebase_core` | Firebase initialization |
-| `firebase_auth` | Authentication |
-| `cloud_firestore` | Database (real-time streams) |
-| `firebase_storage` | Receipt image uploads |
-| `firebase_messaging` | Push notifications (FCM) |
-| `flutter_riverpod` | State management |
-| `go_router` | Navigation |
-| `dio` | HTTP client (Next.js API calls) |
-| `fl_chart` | Charts & visualizations |
-| `flutter_animate` | Premium animations |
-| `shimmer` | Skeleton loading |
-| `image_picker` | Camera/gallery for receipts |
-| `hive_flutter` | Local storage (drafts, preferences) |
-| `connectivity_plus` | Network state detection |
-| `json_annotation` + `json_serializable` | Model serialization |
-| `reactive_forms` | Form management |
-
----
-
-## Testing
-
-### Unit Tests (`test/unit/`)
-- Model serialization (JSON ↔ Dart objects)
-- Business logic in usecases
-- Provider state transitions
-
-### Widget Tests (`test/widget/`)
-- Screen rendering
-- Form validation
-- User interactions
-
-### Integration Tests (`test/integration/`)
-- Full user flows on iOS Simulator (via iOS Simulator MCP)
-- Visual regression via screenshots
-
-### Commands
-```bash
-flutter test                           # All tests
-flutter test test/unit/                # Unit tests only
-flutter test --coverage                # With coverage report
-flutter drive --target=test/integration/app_test.dart  # Integration tests
-```
-
----
-
-## Common Commands
+Use the smallest relevant command set:
 
 ```bash
-flutter pub get                        # Install dependencies
-flutter run -d ios                     # Run on iOS simulator
-flutter run -d android                 # Run on Android emulator
-flutter build ios --release            # Build iOS release
-dart run build_runner build            # Generate code (Riverpod, JSON)
-dart run build_runner watch            # Watch mode for codegen
-dart format lib/                       # Format all Dart files
-dart analyze                           # Static analysis
+flutter analyze
+flutter test
+flutter test integration_test
 ```
+
+For mobile/API contract changes, also run from the repo root:
+
+```bash
+npm run api:check
+npm run api:contract
+npm run docs:agents:generate
+npm run docs:agents:check
+npm run docs:agents:lint
+```
+
+Do not paste values from generated Firebase config files into docs, logs, or final messages.

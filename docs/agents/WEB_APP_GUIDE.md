@@ -10,8 +10,8 @@ Use `package.json` as the source of truth for versions and scripts.
 
 - `src/app/layout.tsx` - root layout and providers.
 - `src/app/page.tsx` - primary AI chat and expense capture page.
-- `src/components/AuthGuard.tsx` - client auth routing gate.
-- `src/components/AppLayout.tsx` - authenticated shell with navigation, header, sync indicator, and user menu.
+- `src/components/auth-guard.tsx` - client auth routing gate.
+- `src/components/app-layout.tsx` - authenticated shell with navigation, header, sync indicator, and user menu.
 - `src/lib/firebase.ts` - client Firebase initialization.
 - `src/lib/firebase-admin.ts` - server Firebase Admin initialization.
 - `src/lib/types.ts` - central TypeScript domain contracts.
@@ -35,11 +35,13 @@ Major pages under `src/app/` include:
 - `/privacy`, `/support`, `/account/delete` - support/privacy flows.
 - `/admin-console` - legacy admin console.
 
-Auth behavior is client-enforced in `AuthGuard`. Public routes are explicitly listed there. Do not add a new public page without updating and reviewing `AuthGuard`.
+Auth behavior is client-enforced in `auth-guard.tsx`. Public routes are explicitly listed there. Do not add a new public page without updating and reviewing `src/components/auth-guard.tsx`.
 
 ## API Route Inventory
 
 API routes are implemented by `route.ts` files under `src/app/api/`. Current route areas:
+
+These are the Next.js web/API routes. Active mobile backend work generally targets the standalone Fastify API under `apps/api`; read `STANDALONE_API_GUIDE.md` before changing mobile-facing server behavior.
 
 - `account/delete` - authenticated account deletion.
 - `admin/**` - admin analytics, users, config, costs, uptime, error trends, store metrics, system state.
@@ -121,7 +123,7 @@ When adding telemetry:
 
 ## Offline and Local State
 
-The web app includes offline-aware pieces such as Dexie and sync indicators. Important files include `src/lib/offline-db.ts`, `src/hooks/useOfflineSync.ts`, and UI components related to sync status.
+The web app includes offline-aware pieces and sync indicators in hooks/components. Search current `src/hooks/` and `src/components/` before changing offline or sync behavior.
 
 Do not change offline behavior casually. Check how pending expenses, conversations, or sync indicators behave before altering Firestore writes or API calls.
 
@@ -131,7 +133,7 @@ AI behavior currently lives primarily in:
 
 - `src/app/api/ai-chat/route.ts`
 - `src/app/api/analyze-expense/route.ts`
-- `src/app/api/conversations/[id]/generate-title/route.ts`
+- `src/app/api/conversations/[conversationId]/generate-title/route.ts`
 
 Agents modifying AI should:
 
