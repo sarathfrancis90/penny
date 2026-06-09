@@ -4,7 +4,7 @@
 
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
-- Total mobile files: 262
+- Total mobile files: 263
 - Current source layout: `mobile/lib/core`, `mobile/lib/data`, `mobile/lib/domain`, and `mobile/lib/presentation`
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
@@ -271,6 +271,7 @@ _No files found._
 - `mobile/fastlane/Appfile`
 - `mobile/fastlane/Fastfile`
 - `mobile/fastlane/README.md`
+- `mobile/fastlane/metadata/android/en-US/changelogs/10014.txt`
 - `mobile/fastlane/metadata/android/en-US/changelogs/26.txt`
 - `mobile/fastlane/metadata/android/en-US/full_description.txt`
 - `mobile/fastlane/metadata/android/en-US/images/featureGraphic.png`

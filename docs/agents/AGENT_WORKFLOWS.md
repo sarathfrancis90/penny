@@ -152,9 +152,9 @@ Steps:
 Steps:
 
 1. Update the smallest relevant guide under `docs/agents/`.
-2. Run `npm run docs:agents:generate` when mobile/API/Firebase/workflow/source inventory or TypeScript/Dart model contracts changed.
-3. Run `npm run docs:agents:check` and `npm run docs:agents:lint`.
-4. Update `FILE_MAP.md` if tracked or source-relevant untracked files changed outside the generated mobile/API docs.
+2. Stage new source files that should be represented in generated inventories.
+3. Run `npm run docs:auto` when mobile/API/Firebase/workflow/source inventory or TypeScript/Dart model contracts changed.
+4. Let the local hooks and CI auto-refresh generated docs; do not hand-edit files under `docs/agents/generated/`.
 5. Update root or docs indexes only when discoverability changes.
 6. Keep docs evidence-based and point to concrete files.
 7. Do not paste generated secret values.
@@ -163,7 +163,7 @@ Steps:
 
 Use this matrix to choose checks:
 
-- Docs-only: inspect markdown, run `npm run docs:agents:check` and `npm run docs:agents:lint` when agent docs are touched.
+- Docs-only: inspect markdown, run `npm run docs:auto` when generated artifacts or OpenAPI may be affected.
 - TypeScript type/API change: `npm run typecheck`, `npm run lint`, targeted `npm run test`.
 - Next route behavior change: targeted tests plus `npm run build` when feasible.
 - Standalone API change: `npm run api:check` and `npm run api:contract`.

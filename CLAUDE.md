@@ -202,7 +202,7 @@ Mobile sends Firebase ID token as `Authorization: Bearer <token>`. The standalon
 3. **Notifications create is server-only** — Only API routes create notifications (budget alerts, group activity).
 4. **`list` rules use `isAuthenticated()` broadly** — Mobile queries MUST include `where` clauses filtering by userId/groupId for security.
 5. **Group roles**: owner → admin → member → viewer. Permissions defined in `DEFAULT_ROLE_PERMISSIONS` in `src/lib/types.ts`.
-6. **Agent docs must stay generated-current** — after mobile/API/source-contract changes, run `npm run docs:agents:generate`, `npm run docs:agents:check`, and `npm run docs:agents:lint`.
+6. **Agent docs must stay generated-current** — after mobile/API/source-contract changes, run `npm run docs:auto`; the local hooks and CI also regenerate and block stale generated docs.
 
 ---
 

@@ -109,8 +109,7 @@ When adding or changing routes:
 - Update mobile endpoint constants/callers if mobile will call the route.
 - Update `scripts/api/route-surface.ts`.
 - Update route tests under the matching `apps/api/src/routes/**/__tests__/` directory.
-- Run `npm run api:contract`; commit `docs/api/openapi.json` only if the generated artifact changes.
-- Run `npm run docs:agents:generate`, `npm run docs:agents:check`, and `npm run docs:agents:lint` so generated route docs stay current.
+- Run `npm run docs:auto`; it regenerates and stages `docs/api/openapi.json` plus generated route docs, then verifies freshness.
 
 ## Compatibility Routes
 

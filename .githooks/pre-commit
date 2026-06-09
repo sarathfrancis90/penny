@@ -1,0 +1,21 @@
+#!/bin/bash
+# Pre-commit hook: keeps generated agent documentation and OpenAPI current.
+#
+# Bypass (use sparingly): git commit --no-verify
+
+set -euo pipefail
+
+echo "Auto-refreshing generated agent docs..."
+npm run docs:auto
+
+echo "Verifying generated docs are staged..."
+git diff --quiet -- \
+  docs/api/openapi.json \
+  docs/agents/FILE_MAP.md \
+  docs/agents/generated \
+  || {
+    echo "Generated docs still have unstaged changes after auto-refresh."
+    exit 1
+  }
+
+echo "Generated docs are current"

@@ -59,11 +59,37 @@ describe('agent documentation generator', () => {
     );
     expect(manifest.packageScripts).toMatchObject({
       'docs:agents:check': expect.any(String),
+      'docs:auto': expect.any(String),
+      'api:contract:generate': expect.any(String),
     });
 
     const workflow = readFileSync('.github/workflows/agent-docs.yml', 'utf8');
     for (const watchPath of manifest.watchPaths) {
       expect(workflow).toContain(`'${watchPath}'`);
     }
+  });
+
+  it('wires auto-refresh into package scripts, hooks, and CI', () => {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      scripts?: Record<string, string>;
+    };
+    expect(pkg.scripts).toMatchObject({
+      'api:contract:generate': 'tsx scripts/api/generate-openapi.ts',
+      'docs:auto': 'tsx scripts/agents/auto-update-agent-docs.ts',
+    });
+
+    const preCommit = readFileSync('.githooks/pre-commit', 'utf8');
+    expect(preCommit).toContain('npm run docs:auto');
+    expect(preCommit).toContain('git diff --quiet --');
+
+    const prePush = readFileSync('.githooks/pre-push', 'utf8');
+    expect(prePush).toContain('npm run docs:agents:check');
+    expect(prePush).toContain('npm run api:contract');
+
+    const workflow = readFileSync('.github/workflows/agent-docs.yml', 'utf8');
+    expect(workflow).toContain('contents: write');
+    expect(workflow).toContain('pull-requests: write');
+    expect(workflow).toContain('npm run docs:auto');
+    expect(workflow).toContain('git push');
   });
 });

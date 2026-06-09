@@ -169,7 +169,7 @@ Never paste generated Firebase config values into docs, comments, logs, or final
 
 Use the smallest command set that proves the change:
 
-- Docs/mobile context only: `npm run docs:agents:generate`, `npm run docs:agents:check`, `npm run docs:agents:lint`
+- Docs/mobile context only: `npm run docs:auto`
 - Mobile Dart behavior: `cd mobile && flutter analyze`, then targeted `flutter test`
 - Mobile model/repository changes: targeted tests under `mobile/test/unit/models/` or `mobile/test/unit/repositories/`
 - Route/auth/guest/full-flow changes: targeted integration tests under `mobile/integration_test` when feasible

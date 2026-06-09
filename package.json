@@ -17,6 +17,7 @@
     "api:start": "node dist/api/server.js",
     "api:test": "vitest run apps/api packages/shared",
     "api:check": "npm run api:typecheck && npm run api:test && npm run api:build",
+    "api:contract:generate": "tsx scripts/api/generate-openapi.ts",
     "api:contract": "tsx scripts/api/generate-openapi.ts --check",
     "api:parity": "tsx scripts/api/compare-old-new.ts",
     "api:smoke": "tsx scripts/api/smoke-api.ts",
@@ -25,6 +26,7 @@
     "docs:agents:check": "tsx scripts/agents/generate-agent-docs.ts --check",
     "docs:agents:lint": "tsx scripts/agents/lint-agent-docs.ts",
     "docs:agents:test": "vitest run scripts/agents apps/api/src/routes/__tests__/route-surface.test.ts",
+    "docs:auto": "tsx scripts/agents/auto-update-agent-docs.ts",
     "generate-secret": "node scripts/generate-jwt-secret.js"
   },
   "dependencies": {

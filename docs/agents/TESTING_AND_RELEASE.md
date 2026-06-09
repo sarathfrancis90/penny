@@ -15,9 +15,10 @@ npm run test:ui
 npm run typecheck
 npm run api:check
 npm run api:contract
-npm run docs:agents:generate
+npm run docs:auto
 npm run docs:agents:check
 npm run docs:agents:lint
+npm run docs:agents:test
 npm run generate-secret
 ```
 
@@ -117,14 +118,12 @@ Before release work:
 For docs-only changes, useful checks are:
 
 ```bash
-npm run docs:agents:generate
-npm run docs:agents:check
-npm run docs:agents:lint
+npm run docs:auto
 ```
 
-Generated mobile/API agent references live under `docs/agents/generated/` and should be regenerated after changes to `mobile/**`, `apps/api/**`, `packages/shared/**`, `scripts/api/**`, `scripts/agents/**`, `src/app/api/**`, `src/lib/types*`, `src/lib/categories.ts`, `database/**`, workflows, or agent docs.
+Generated mobile/API agent references live under `docs/agents/generated/` and are auto-refreshed by `npm run docs:auto`, the local hooks, and the Agent Docs workflow after changes to `mobile/**`, `apps/api/**`, `packages/shared/**`, `scripts/api/**`, `scripts/agents/**`, `src/app/api/**`, `src/lib/types*`, `src/lib/categories.ts`, `database/**`, workflows, or agent docs.
 
-If regenerating `FILE_MAP.md`, compare the counts in the file with:
+If investigating `FILE_MAP.md`, compare the counts in the file with:
 
 ```bash
 git ls-files | wc -l

@@ -12,6 +12,13 @@
 
 set -euo pipefail
 
+echo "📚 Checking generated agent docs..."
+npm run docs:agents:check
+npm run docs:agents:lint
+npm run docs:agents:test
+npm run api:contract
+echo "✅ Generated docs and OpenAPI are current"
+
 echo "🧪 Running pre-push unit tests..."
 cd mobile
 flutter test test/ --reporter compact

@@ -190,9 +190,7 @@ flutter test integration_test
 Agent-doc freshness commands after mobile/API contract changes:
 
 ```bash
-npm run docs:agents:generate
-npm run docs:agents:check
-npm run docs:agents:lint
+npm run docs:auto
 ```
 
 API-visible mobile changes should also run:

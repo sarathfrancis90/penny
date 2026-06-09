@@ -59,10 +59,12 @@
     "api:build": "tsup apps/api/src/server.ts --format cjs --platform node --target node22 --sourcemap --out-dir dist/api",
     "api:test": "vitest run apps/api packages/shared",
     "api:check": "npm run api:typecheck && npm run api:test && npm run api:build",
+    "api:contract:generate": "tsx scripts/api/generate-openapi.ts",
     "api:contract": "tsx scripts/api/generate-openapi.ts --check",
     "docs:agents:generate": "tsx scripts/agents/generate-agent-docs.ts",
     "docs:agents:check": "tsx scripts/agents/generate-agent-docs.ts --check",
     "docs:agents:lint": "tsx scripts/agents/lint-agent-docs.ts",
-    "docs:agents:test": "vitest run scripts/agents apps/api/src/routes/__tests__/route-surface.test.ts"
+    "docs:agents:test": "vitest run scripts/agents apps/api/src/routes/__tests__/route-surface.test.ts",
+    "docs:auto": "tsx scripts/agents/auto-update-agent-docs.ts"
   }
 }

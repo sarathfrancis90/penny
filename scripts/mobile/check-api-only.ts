@@ -64,7 +64,7 @@ for (const [index, line] of pubspecContent.split('\n').entries()) {
   }
   if (!inDependencies) continue;
 
-  const match = /^  ([a-zA-Z0-9_]+):/.exec(line);
+  const match = /^ {2}([a-zA-Z0-9_]+):/.exec(line);
   if (match && forbiddenProductionDeps.has(match[1])) {
     failures.push(`mobile/pubspec.yaml:${index + 1} production dependency ${match[1]} is forbidden`);
   }

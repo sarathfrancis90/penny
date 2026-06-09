@@ -33,7 +33,7 @@ This repository uses agentic engineering. Start here before changing code.
 - Never commit secrets. Firebase generated config files exist in the repo; do not reproduce their values in docs or logs.
 - Do not revert unrelated working tree changes. Check `git status --short` before and after edits.
 - Validate with the smallest command set that proves the change. For cross-platform changes, run both web and mobile checks when feasible.
-- When changing `mobile/**`, `apps/api/**`, API route contracts, Firebase rules, or agent docs, run `npm run docs:agents:generate`, then `npm run docs:agents:check` and `npm run docs:agents:lint`.
+- When changing `mobile/**`, `apps/api/**`, API route contracts, Firebase rules, or agent docs, run `npm run docs:auto`. This regenerates OpenAPI plus generated agent docs, stages generated artifacts, and verifies freshness/lint/tests.
 - When changing standalone API routes or route contracts, also run `npm run api:contract`; for API behavior, run `npm run api:check`.
 
 ## Fast Orientation

@@ -55,7 +55,7 @@ For releases:
 - `AGENT_WORKFLOWS.md` - practical agent execution playbooks and review checklists.
 - `TESTING_AND_RELEASE.md` - local commands, CI, deploy, mobile release, and known validation drift.
 - `KNOWN_GAPS.md` - documented risks, stale docs, naming drift, and likely defects discovered during analysis.
-- `FILE_MAP.md` - complete generated inventory of tracked and nonignored working-tree files.
+- `FILE_MAP.md` - complete generated inventory of tracked and staged source-visible files.
 - `generated/MOBILE_FILE_MAP.md` - generated mobile inventory from current source.
 - `generated/API_ROUTE_SURFACE.md` - generated standalone API route table from `scripts/api/route-surface.ts`.
 - `generated/MOBILE_API_ENDPOINT_MATRIX.md` - generated mapping from mobile endpoint constants to API implementation and mobile callers.
@@ -65,8 +65,7 @@ For releases:
 ## Maintenance Rules
 
 - Update this documentation in the same pull request as architecture or contract changes.
-- Regenerate generated agent docs with `npm run docs:agents:generate` after changes to mobile, standalone API, route contracts, shared TypeScript/Dart model contracts, Firebase contracts, workflows, or agent docs.
-- Verify generated docs with `npm run docs:agents:check` and `npm run docs:agents:lint`.
-- Regenerate `FILE_MAP.md` after adding, removing, or moving tracked or source-relevant untracked files outside the generated mobile/API references.
+- Run `npm run docs:auto` after changes to mobile, standalone API, route contracts, shared TypeScript/Dart model contracts, Firebase contracts, workflows, or agent docs. It regenerates OpenAPI plus generated agent docs, stages generated artifacts, and verifies freshness/lint/tests.
+- `FILE_MAP.md` is generated from tracked files plus staged new files. Stage new source files before running `npm run docs:auto`.
 - Keep statements evidence-based. If a guide describes behavior, cite or name the concrete file that implements it.
 - Keep sensitive values out of documentation even when they appear in generated Firebase files.

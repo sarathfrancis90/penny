@@ -102,11 +102,11 @@ Do not assume production mobile traffic is fully cut over to Cloud Run until `mo
 
 Required checks by change type:
 
-- Endpoint constant or route surface changed: `npm run api:contract`, `npm run docs:agents:generate`, `npm run docs:agents:check`.
+- Endpoint constant or route surface changed: `npm run docs:auto`, then `npm run api:contract`.
 - Standalone API behavior changed: `npm run api:check`.
 - Mobile caller changed: `cd mobile && flutter analyze` and targeted `flutter test`.
 - Mobile route/auth/full-flow changed: run targeted integration tests under `mobile/integration_test` when feasible.
-- Contract docs changed: `npm run docs:agents:lint`.
+- Contract docs changed: `npm run docs:auto`.
 - Old/new route migration: use `npm run api:parity` with disposable staging data for mutating comparisons.
 
 Agents should finish by checking `git status --short` and confirming generated docs are committed with any source changes that caused them.

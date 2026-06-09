@@ -59,9 +59,7 @@ The runtime service account needs Firestore access, Firebase Auth admin permissi
 Run before deployment:
 
 ```bash
-npm run docs:agents:generate
-npm run docs:agents:check
-npm run docs:agents:lint
+npm run docs:auto
 npm run api:check
 npm run api:contract
 npm run typecheck
