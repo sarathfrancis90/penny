@@ -144,7 +144,17 @@ platform :ios do
     UI.message("App: #{app.name} (id: #{app.id})")
 
     versions = app.get_app_store_versions(filter: { versionString: target_version, platform: "IOS" })
-    UI.user_error!("No v#{target_version} found.") if versions.empty?
+    if versions.empty?
+      edit_version = app.get_edit_app_store_version(platform: Spaceship::ConnectAPI::Platform::IOS)
+      if edit_version && edit_version.version_string != target_version
+        UI.user_error!("No v#{target_version} found, but editable v#{edit_version.version_string} exists. Refusing to overwrite it.")
+      end
+
+      UI.message("No v#{target_version} found; creating App Store version.")
+      app.ensure_version!(target_version, platform: Spaceship::ConnectAPI::Platform::IOS)
+      versions = app.get_app_store_versions(filter: { versionString: target_version, platform: "IOS" })
+    end
+    UI.user_error!("No v#{target_version} found after create attempt.") if versions.empty?
     version = versions.first
     UI.message("v#{version.version_string} state: #{version.app_store_state}")
 
@@ -161,6 +171,12 @@ platform :ios do
     # 2. Refetch and set release notes on en-CA
     locs = version.get_app_store_version_localizations
     en_ca = locs.find { |l| l.locale == "en-CA" }
+    unless en_ca
+      UI.message("en-CA localization not found; creating it.")
+      version.create_app_store_version_localization(attributes: { locale: "en-CA", whatsNew: notes })
+      locs = version.get_app_store_version_localizations
+      en_ca = locs.find { |l| l.locale == "en-CA" }
+    end
     UI.user_error!("en-CA localization not found — cannot proceed.") unless en_ca
     Spaceship::ConnectAPI.patch_app_store_version_localization(
       app_store_version_localization_id: en_ca.id,
@@ -170,16 +186,14 @@ platform :ios do
 
     # 3. Make sure the right build is attached
     builds = app.get_builds(filter: { "preReleaseVersion.version" => target_version, version: build_number })
-    if builds.empty?
-      UI.message("Build #{target_version}+#{build_number} not found via filter; skipping attach (already attached?).")
-    else
-      build = builds.first
-      Spaceship::ConnectAPI.patch_app_store_version_with_build(
-        app_store_version_id: version.id,
-        build_id: build.id
-      )
-      UI.success("Attached build #{build_number}")
-    end
+    UI.user_error!("Build #{target_version}+#{build_number} not found in App Store Connect.") if builds.empty?
+
+    build = builds.first
+    Spaceship::ConnectAPI.patch_app_store_version_with_build(
+      app_store_version_id: version.id,
+      build_id: build.id
+    )
+    UI.success("Attached build #{build_number}")
 
     UI.success("Repair complete. Now submitting for review...")
 
@@ -396,7 +410,7 @@ platform :android do
       json_key: "fastlane/play-store-key.json",
       package_name: ANDROID_PACKAGE_NAME,
       release_status: "completed",
-      rollout: 1.0,
+      rollout: "1.0",
       metadata_path: ANDROID_METADATA_PATH,
       skip_upload_metadata: true,
       skip_upload_changelogs: notes.nil?,

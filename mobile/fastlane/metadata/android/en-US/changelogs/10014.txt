@@ -1,0 +1,1 @@
+Android and iOS validation updates with improved modal dismissal, guest sign-up routing, notification actions, group refresh behavior, and export/share feedback.
