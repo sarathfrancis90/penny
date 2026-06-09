@@ -25,7 +25,7 @@ This is a **monorepo** containing:
 - **Framework**: Flutter (Dart)
 - **State Management**: Riverpod (flutter_riverpod + riverpod_annotation)
 - **Navigation**: go_router
-- **Architecture**: Clean Architecture (data → domain → presentation)
+- **Architecture**: Layer-oriented data/repository/service/presentation structure
 - **Charts**: fl_chart
 - **HTTP**: Dio (for standalone API calls)
 - **Offline**: Built-in Firestore persistence + Hive for drafts
@@ -73,7 +73,6 @@ penny/
 │   ├── lib/
 │   │   ├── core/                # Constants, theme, router, network
 │   │   ├── data/                # Models, repositories, services
-│   │   ├── domain/              # Entities, usecases
 │   │   └── presentation/        # Providers, screens, widgets
 │   └── pubspec.yaml
 ├── database/

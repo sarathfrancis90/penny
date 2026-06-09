@@ -12,11 +12,12 @@ The current mobile app does not use a `mobile/lib/features/**` source tree. The 
 - `mobile/lib/data/models/` - Firestore/API serialization contracts.
 - `mobile/lib/data/repositories/` - boundary between providers/widgets and Firebase or HTTP APIs.
 - `mobile/lib/data/services/` - platform or product services such as auth, storage, export, duplicate detection, push.
-- `mobile/lib/domain/` - currently sparse domain layer; do not invent broad abstractions here unless a feature already needs them.
 - `mobile/lib/presentation/providers/` - Riverpod providers and state orchestration.
 - `mobile/lib/presentation/screens/` - screens grouped by product area.
 - `mobile/lib/presentation/widgets/` - reusable app widgets.
 - `mobile/android/` and `mobile/ios/` - native platform configuration, signing/project files, platform permissions, generated Firebase config.
+
+There is no tracked standalone domain-layer directory in the current mobile tree. Add one only with actual source files and a feature need that justifies it.
 
 Generated source inventory: `docs/agents/generated/MOBILE_FILE_MAP.md`.
 

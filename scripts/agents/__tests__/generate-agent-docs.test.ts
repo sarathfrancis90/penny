@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
@@ -22,6 +23,16 @@ describe('agent documentation generator', () => {
     expect(byPath.get('docs/agents/generated/MOBILE_FILE_MAP.md')).not.toContain(
       'mobile/lib/features/',
     );
+    const trackedDomainFiles = execFileSync(
+      'git',
+      ['ls-files', 'mobile/lib/domain'],
+      { encoding: 'utf8' },
+    ).trim();
+    if (!trackedDomainFiles) {
+      expect(byPath.get('docs/agents/generated/MOBILE_FILE_MAP.md')).not.toContain(
+        'mobile/lib/domain',
+      );
+    }
     expect(byPath.get('docs/agents/FILE_MAP.md')).toContain(
       'scripts/agents/generate-agent-docs.ts',
     );

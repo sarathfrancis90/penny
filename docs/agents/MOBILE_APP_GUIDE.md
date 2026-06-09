@@ -32,12 +32,12 @@ The active mobile tree is layer-oriented:
 - `mobile/lib/data/repositories/` - Firebase/API data access boundary.
 - `mobile/lib/data/services/` - auth, storage, export, duplicate detection, push, biometrics, OAuth.
 - `mobile/lib/data/guest/` - guest expense storage and migration.
-- `mobile/lib/domain/` - sparse domain layer reserved for behavior that needs it.
 - `mobile/lib/presentation/providers/` - Riverpod state.
 - `mobile/lib/presentation/screens/` - product screens.
 - `mobile/lib/presentation/widgets/` - shared widgets.
 
 Do not follow old references to a `mobile/lib/features/**` tree; that is not the current mobile source layout.
+There is no tracked standalone domain-layer directory in the current mobile tree.
 
 ## Routing and Auth
 

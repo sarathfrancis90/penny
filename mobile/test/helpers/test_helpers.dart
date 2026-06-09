@@ -8,6 +8,8 @@ import 'package:penny_mobile/data/services/auth_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
+import 'fake_api_client.dart';
+
 /// Creates a mock Firebase user.
 MockUser createMockUser({
   String uid = 'test-user-123',
@@ -72,17 +74,19 @@ Future<String> seedExpense(
 List<Override> createTestOverrides({
   MockFirebaseAuth? auth,
   FakeFirebaseFirestore? firestore,
+  FakeApiClient? apiClient,
 }) {
   final mockAuth = auth ?? createMockAuth();
-  final fakeFirestore = firestore ?? createFakeFirestore();
+  final fakeApiClient = apiClient ?? FakeApiClient();
 
   return [
     authServiceProvider.overrideWithValue(AuthService(auth: mockAuth)),
+    apiClientProvider.overrideWithValue(fakeApiClient),
     expenseRepositoryProvider.overrideWithValue(
-      ExpenseRepository(firestore: fakeFirestore),
+      ExpenseRepository(apiClient: fakeApiClient),
     ),
     conversationRepositoryProvider.overrideWithValue(
-      ConversationRepository(firestore: fakeFirestore),
+      ConversationRepository(apiClient: fakeApiClient),
     ),
   ];
 }

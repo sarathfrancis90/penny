@@ -5,7 +5,7 @@
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
 - Total mobile files: 263
-- Current source layout: `mobile/lib/core`, `mobile/lib/data`, `mobile/lib/domain`, and `mobile/lib/presentation`
+- Current source layout: `mobile/lib/core`, `mobile/lib/data`, and `mobile/lib/presentation`
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
 ## Entrypoints
@@ -67,9 +67,6 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/data/services/push_notification_service.dart`
 - `mobile/lib/data/services/storage_service.dart`
 
-## Domain Layer
-
-_No files found._
 
 ## Presentation Layer
 

@@ -14,7 +14,7 @@ This file is intentionally short. The authoritative mobile agent documentation l
 ## Current Mobile Facts
 
 - Flutter app supports iOS and Android.
-- Active source layout is `lib/core`, `lib/data`, `lib/domain`, and `lib/presentation`.
+- Active source layout is `lib/core`, `lib/data`, and `lib/presentation`.
 - HTTP calls use Dio through `lib/core/network/api_client.dart`.
 - Active mobile backend work targets the standalone Fastify API under `../apps/api`; `src/app/api` is web/legacy unless mobile configuration explicitly points there.
 - Mobile sends Firebase ID tokens as `Authorization: Bearer <token>`; API routes must use the verified UID as authority.

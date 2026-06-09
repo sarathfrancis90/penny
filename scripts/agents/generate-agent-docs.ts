@@ -373,6 +373,12 @@ function renderMobileFileMap(rootDir: string) {
     const matches = files.filter((file) => exactFiles.includes(file));
     return `## ${title}\n\n${matches.length ? renderFileList(matches) : '_No files found._'}\n`;
   };
+  const hasTrackedDomainFiles = files.some((file) =>
+    file.startsWith('mobile/lib/domain/'),
+  );
+  const sourceLayout = hasTrackedDomainFiles
+    ? '`mobile/lib/core`, `mobile/lib/data`, `mobile/lib/domain`, and `mobile/lib/presentation`'
+    : '`mobile/lib/core`, `mobile/lib/data`, and `mobile/lib/presentation`';
 
   return `# Generated Mobile File Map
 
@@ -381,7 +387,7 @@ function renderMobileFileMap(rootDir: string) {
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
 - Total mobile files: ${files.length}
-- Current source layout: \`mobile/lib/core\`, \`mobile/lib/data\`, \`mobile/lib/domain\`, and \`mobile/lib/presentation\`
+- Current source layout: ${sourceLayout}
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
 ${exactSection('Entrypoints', [
@@ -391,7 +397,7 @@ ${exactSection('Entrypoints', [
 ])}
 ${section('Core', 'mobile/lib/core')}
 ${section('Data Models, Repositories, and Services', 'mobile/lib/data')}
-${section('Domain Layer', 'mobile/lib/domain')}
+${hasTrackedDomainFiles ? section('Domain Layer', 'mobile/lib/domain') : ''}
 ${section('Presentation Layer', 'mobile/lib/presentation')}
 ${section('Unit and Widget Tests', 'mobile/test')}
 ${section('Integration Tests', 'mobile/integration_test')}
