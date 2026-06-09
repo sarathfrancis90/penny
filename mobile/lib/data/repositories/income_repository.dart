@@ -1,19 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/income_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class IncomeRepository {
-  IncomeRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  IncomeRepository({required ApiClient apiClient}) : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
   Stream<List<IncomeSourceModel>> watchIncomeSources(String userId) {
-    return _db
-        .collection('income_sources_personal')
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(IncomeSourceModel.fromFirestore).toList());
+    return Stream.fromFuture(_listIncome(userId));
+  }
+
+  Future<List<IncomeSourceModel>> _listIncome(String userId) async {
+    final response = await _api.get(
+      ApiEndpoints.personalIncome,
+      queryParameters: {'userId': userId},
+    );
+    return listValue(responseMap(response)['incomeSources'])
+        .map((json) => IncomeSourceModel.fromFirestore(apiDocument(json)))
+        .toList();
   }
 
   Future<String> createIncomeSource({
@@ -28,34 +34,33 @@ class IncomeRepository {
     String? description,
     int? recurringDate,
   }) async {
-    final now = Timestamp.now();
-    final doc = await _db.collection('income_sources_personal').add({
-      'userId': userId,
-      'name': name,
-      'category': category,
-      'amount': amount,
-      'frequency': frequency,
-      'isRecurring': isRecurring,
-      'isActive': true,
-      'taxable': taxable,
-      'currency': currency,
-      'startDate': now,
-      'createdAt': now,
-      'updatedAt': now,
-      if (description != null) 'description': description,
-      if (recurringDate != null) 'recurringDate': recurringDate,
-    });
-    return doc.id;
+    final response = await _api.post(
+      ApiEndpoints.personalIncome,
+      data: {
+        'userId': userId,
+        'name': name,
+        'category': category,
+        'amount': amount,
+        'frequency': frequency,
+        'isRecurring': isRecurring,
+        'isActive': true,
+        'taxable': taxable,
+        'currency': currency,
+        if (description != null) 'description': description,
+        if (recurringDate != null) 'recurringDate': recurringDate,
+      },
+    );
+    return (responseMap(response)['id'] ?? '').toString();
   }
 
-  Future<void> updateIncomeSource(String id, Map<String, dynamic> updates) {
-    return _db.collection('income_sources_personal').doc(id).update({
-      ...updates,
-      'updatedAt': Timestamp.now(),
-    });
+  Future<void> updateIncomeSource(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    await _api.patch(ApiEndpoints.personalIncomeById(id), data: updates);
   }
 
-  Future<void> deleteIncomeSource(String id) {
-    return _db.collection('income_sources_personal').doc(id).delete();
+  Future<void> deleteIncomeSource(String id) async {
+    await _api.delete(ApiEndpoints.personalIncomeById(id));
   }
 }

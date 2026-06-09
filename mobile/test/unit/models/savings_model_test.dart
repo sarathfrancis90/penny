@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/savings_model.dart';
@@ -84,15 +85,25 @@ void main() {
     test('defaultEmoji returns correct emoji per category', () async {
       final now = Timestamp.now();
       final base = {
-        'userId': 'u', 'name': 'X', 'targetAmount': 100,
-        'currentAmount': 0, 'monthlyContribution': 10,
-        'status': 'active', 'isActive': true, 'priority': 'medium',
-        'currency': 'CAD', 'startDate': now, 'createdAt': now, 'updatedAt': now,
+        'userId': 'u',
+        'name': 'X',
+        'targetAmount': 100,
+        'currentAmount': 0,
+        'monthlyContribution': 10,
+        'status': 'active',
+        'isActive': true,
+        'priority': 'medium',
+        'currency': 'CAD',
+        'startDate': now,
+        'createdAt': now,
+        'updatedAt': now,
       };
 
       Future<SavingsGoalModel> create(String cat) async {
-        final doc = await firestore.collection('savings_goals_personal')
-            .add({...base, 'category': cat});
+        final doc = await firestore.collection('savings_goals_personal').add({
+          ...base,
+          'category': cat,
+        });
         return SavingsGoalModel.fromFirestore(await doc.get());
       }
 
@@ -111,11 +122,20 @@ void main() {
     test('toFirestore excludes null optional fields', () async {
       final now = Timestamp.now();
       final model = SavingsGoalModel(
-        id: 'test', userId: 'user-1', name: 'Test',
-        category: 'custom', targetAmount: 1000, currentAmount: 0,
-        monthlyContribution: 50, status: 'active', isActive: true,
-        priority: 'low', currency: 'CAD', startDate: now,
-        createdAt: now, updatedAt: now,
+        id: 'test',
+        userId: 'user-1',
+        name: 'Test',
+        category: 'custom',
+        targetAmount: 1000,
+        currentAmount: 0,
+        monthlyContribution: 50,
+        status: 'active',
+        isActive: true,
+        priority: 'low',
+        currency: 'CAD',
+        startDate: api.Timestamp.fromJson(now),
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
       );
 
       final map = model.toFirestore();

@@ -5,7 +5,7 @@ void main() {
   group('StorageService', () {
     test('uploadReceipt generates correct storage path format', () {
       // StorageService uses path: receipts/{userId}/{timestamp}_{uuid}.jpg
-      // We can't test actual upload without Firebase Storage
+      // We can't test an actual API-backed upload in this unit test,
       // but we can verify the service exists and is properly typed
       expect(StorageService, isNotNull);
     });

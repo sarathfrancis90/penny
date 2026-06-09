@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -32,21 +31,15 @@ final conversationsListProvider = StreamProvider<List<ConversationModel>>((
       });
 });
 
-/// One-shot Firestore query that returns ALL active conversations for the
-/// current user, used to search beyond the recent window streamed by
-/// [conversationsListProvider]. The query parameter is the lowercased trimmed
-/// search string (kept in the family key for natural cache invalidation).
 final searchAllConversationsProvider =
     FutureProvider.family<List<ConversationModel>, String>((ref, query) async {
       if (query.isEmpty) return const [];
       final user = ref.watch(currentUserProvider);
       if (user == null) return const [];
-      final snap = await FirebaseFirestore.instance
-          .collection('conversations')
-          .where('userId', isEqualTo: user.uid)
-          .where('status', isEqualTo: 'active')
-          .get();
-      final all = snap.docs.map(ConversationModel.fromFirestore).toList();
+      final all = await ref
+          .watch(conversationRepositoryProvider)
+          .watchConversations(user.uid)
+          .first;
       return all.where((c) {
         return c.title.toLowerCase().contains(query) ||
             c.lastMessagePreview.toLowerCase().contains(query);

@@ -1,5 +1,5 @@
 /// CRA T2125 tax categories — MUST match src/lib/categories.ts exactly.
-/// These strings are stored in Firestore and used by the AI analysis pipeline.
+/// These strings are stored by the backend and used by the AI analysis pipeline.
 const List<String> expenseCategories = [
   // GENERAL BUSINESS EXPENSES
   'Advertising (Promotion, gift cards etc.)',

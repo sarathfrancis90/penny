@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class GroupActivityModel {
   GroupActivityModel({
@@ -21,14 +21,14 @@ class GroupActivityModel {
   final String? details;
   final Map<String, dynamic>? metadata;
 
-  factory GroupActivityModel.fromFirestore(DocumentSnapshot doc) {
+  factory GroupActivityModel.fromFirestore(dynamic doc) {
     final data = doc.data() as Map<String, dynamic>;
     return GroupActivityModel(
       id: doc.id,
       groupId: data['groupId'] as String? ?? '',
       userId: data['userId'] as String? ?? '',
       action: data['action'] as String? ?? '',
-      createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
+      createdAt: Timestamp.tryParse(data['createdAt']) ?? Timestamp.now(),
       userName: data['userName'] as String?,
       details: data['details'] as String?,
       metadata: data['metadata'] != null
@@ -38,20 +38,20 @@ class GroupActivityModel {
   }
 
   String get icon => switch (action) {
-        'group_created' => '🎉',
-        'member_invited' => '📨',
-        'member_joined' => '👋',
-        'member_left' => '👤',
-        'member_removed' => '❌',
-        'member_role_changed' => '🔄',
-        'expense_added' => '💵',
-        'expense_updated' => '✏️',
-        'expense_deleted' => '🗑️',
-        'expense_approved' => '✅',
-        'expense_rejected' => '❌',
-        'settings_updated' => '⚙️',
-        _ => '📝',
-      };
+    'group_created' => '🎉',
+    'member_invited' => '📨',
+    'member_joined' => '👋',
+    'member_left' => '👤',
+    'member_removed' => '❌',
+    'member_role_changed' => '🔄',
+    'expense_added' => '💵',
+    'expense_updated' => '✏️',
+    'expense_deleted' => '🗑️',
+    'expense_approved' => '✅',
+    'expense_rejected' => '❌',
+    'settings_updated' => '⚙️',
+    _ => '📝',
+  };
 
   String get displayText =>
       details ?? '${userName ?? "Someone"} performed $action';

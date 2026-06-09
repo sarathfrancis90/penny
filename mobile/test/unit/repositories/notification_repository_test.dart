@@ -1,93 +1,60 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/repositories/notification_repository.dart';
 
+import '../../helpers/fake_api_client.dart';
+
 void main() {
-  group('NotificationRepository', () {
-    late FakeFirebaseFirestore firestore;
-    late NotificationRepository repo;
-
-    setUp(() {
-      firestore = FakeFirebaseFirestore();
-      repo = NotificationRepository(firestore: firestore);
-    });
-
-    test('watchNotifications streams user notifications', () async {
-      final now = Timestamp.now();
-      await firestore.collection('notifications').add({
-        'userId': 'user-1', 'type': 'budget_warning',
-        'title': 'Warning', 'body': 'Budget alert',
-        'priority': 'high', 'category': 'budget',
-        'read': false, 'delivered': true, 'isGrouped': false,
-        'createdAt': now,
-      });
-      await firestore.collection('notifications').add({
-        'userId': 'user-2', 'type': 'system',
-        'title': 'Other', 'body': 'Not mine',
-        'priority': 'low', 'category': 'system',
-        'read': false, 'delivered': true, 'isGrouped': false,
-        'createdAt': now,
-      });
+  group('NotificationRepository API contract', () {
+    test('watchNotifications reads notification API', () async {
+      final api = FakeApiClient()
+        ..queueResponse({
+          'notifications': [
+            {
+              'id': 'notification-1',
+              'userId': 'user-1',
+              'type': 'system',
+              'title': 'Hello',
+              'body': 'World',
+              'priority': 'low',
+              'category': 'system',
+              'read': false,
+              'delivered': false,
+              'isGrouped': false,
+              'createdAt': '2026-06-01T00:00:00.000Z',
+            },
+          ],
+        });
+      final repo = NotificationRepository(apiClient: api);
 
       final notifications = await repo.watchNotifications('user-1').first;
-      expect(notifications.length, 1);
-      expect(notifications.first.title, 'Warning');
+
+      expect(notifications.single.id, 'notification-1');
+      expect(api.calls.single.path, ApiEndpoints.notifications);
+      expect(api.calls.single.queryParameters, {'userId': 'user-1'});
     });
 
-    test('markAsRead updates read status', () async {
-      final now = Timestamp.now();
-      final doc = await firestore.collection('notifications').add({
-        'userId': 'user-1', 'type': 'test',
-        'title': 'Test', 'body': 'Test body',
-        'priority': 'low', 'category': 'system',
-        'read': false, 'delivered': true, 'isGrouped': false,
-        'createdAt': now,
-      });
+    test('mark and delete operations use notification API', () async {
+      final api = FakeApiClient()
+        ..queueResponse({})
+        ..queueResponse({})
+        ..queueResponse({});
+      final repo = NotificationRepository(apiClient: api);
 
-      await repo.markAsRead(doc.id);
-
-      final updated = await firestore.collection('notifications').doc(doc.id).get();
-      expect(updated.data()!['read'], true);
-      expect(updated.data()!['readAt'], isNotNull);
-    });
-
-    test('markAllAsRead batch updates', () async {
-      final now = Timestamp.now();
-      for (var i = 0; i < 3; i++) {
-        await firestore.collection('notifications').add({
-          'userId': 'user-1', 'type': 'test',
-          'title': 'N$i', 'body': 'Body $i',
-          'priority': 'low', 'category': 'system',
-          'read': false, 'delivered': true, 'isGrouped': false,
-          'createdAt': now,
-        });
-      }
-
+      await repo.markAsRead('notification-1');
       await repo.markAllAsRead('user-1');
+      await repo.deleteNotification('notification-1');
 
-      final snap = await firestore.collection('notifications')
-          .where('userId', isEqualTo: 'user-1')
-          .get();
-      for (final doc in snap.docs) {
-        expect(doc.data()['read'], true);
-      }
-    });
-
-    test('deleteNotification removes doc', () async {
-      final now = Timestamp.now();
-      final doc = await firestore.collection('notifications').add({
-        'userId': 'user-1', 'type': 'test',
-        'title': 'Delete me', 'body': 'Body',
-        'priority': 'low', 'category': 'system',
-        'read': false, 'delivered': true, 'isGrouped': false,
-        'createdAt': now,
-      });
-
-      await repo.deleteNotification(doc.id);
-
-      final result = await firestore.collection('notifications').doc(doc.id).get();
-      expect(result.exists, isFalse);
+      expect(api.calls[0].method, 'PATCH');
+      expect(
+        api.calls[0].path,
+        ApiEndpoints.notificationRead('notification-1'),
+      );
+      expect(api.calls[1].method, 'POST');
+      expect(api.calls[1].path, ApiEndpoints.markAllNotificationsRead);
+      expect(api.calls[1].data, {'userId': 'user-1'});
+      expect(api.calls[2].method, 'DELETE');
+      expect(api.calls[2].path, '${ApiEndpoints.notifications}/notification-1');
     });
   });
 }

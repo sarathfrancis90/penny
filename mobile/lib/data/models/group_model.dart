@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class GroupModel {
   GroupModel({
@@ -27,19 +27,21 @@ class GroupModel {
   final String? color;
   final String? icon;
 
-  factory GroupModel.fromFirestore(DocumentSnapshot doc) {
+  factory GroupModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return GroupModel(
       id: doc.id,
       name: data['name'] as String,
       createdBy: data['createdBy'] as String,
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
       settings: GroupSettings.fromMap(
-          Map<String, dynamic>.from(data['settings'] as Map? ?? {})),
+        Map<String, dynamic>.from(data['settings'] as Map? ?? {}),
+      ),
       status: data['status'] as String? ?? 'active',
       stats: GroupStats.fromMap(
-          Map<String, dynamic>.from(data['stats'] as Map? ?? {})),
+        Map<String, dynamic>.from(data['stats'] as Map? ?? {}),
+      ),
       description: data['description'] as String?,
       color: data['color'] as String?,
       icon: data['icon'] as String?,
@@ -76,13 +78,13 @@ class GroupSettings {
   }
 
   Map<String, dynamic> toMap() => {
-        if (defaultCategory != null) 'defaultCategory': defaultCategory,
-        if (budget != null) 'budget': budget,
-        if (budgetPeriod != null) 'budgetPeriod': budgetPeriod,
-        'requireApproval': requireApproval,
-        'allowMemberInvites': allowMemberInvites,
-        if (currency != null) 'currency': currency,
-      };
+    if (defaultCategory != null) 'defaultCategory': defaultCategory,
+    if (budget != null) 'budget': budget,
+    if (budgetPeriod != null) 'budgetPeriod': budgetPeriod,
+    'requireApproval': requireApproval,
+    'allowMemberInvites': allowMemberInvites,
+    if (currency != null) 'currency': currency,
+  };
 }
 
 class GroupStats {
@@ -103,7 +105,7 @@ class GroupStats {
       memberCount: map['memberCount'] as int? ?? 0,
       expenseCount: map['expenseCount'] as int? ?? 0,
       totalAmount: (map['totalAmount'] as num?)?.toDouble() ?? 0,
-      lastActivityAt: map['lastActivityAt'] as Timestamp?,
+      lastActivityAt: Timestamp.tryParse(map['lastActivityAt']),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/income_model.dart';
@@ -74,15 +75,24 @@ void main() {
     test('frequencyLabel returns correct strings', () async {
       final now = Timestamp.now();
       final base = {
-        'userId': 'u', 'name': 'X', 'category': 'salary',
-        'amount': 100, 'isRecurring': true, 'isActive': true,
-        'taxable': true, 'currency': 'CAD', 'startDate': now,
-        'createdAt': now, 'updatedAt': now,
+        'userId': 'u',
+        'name': 'X',
+        'category': 'salary',
+        'amount': 100,
+        'isRecurring': true,
+        'isActive': true,
+        'taxable': true,
+        'currency': 'CAD',
+        'startDate': now,
+        'createdAt': now,
+        'updatedAt': now,
       };
 
       Future<IncomeSourceModel> create(String freq) async {
-        final doc = await firestore.collection('income_sources_personal')
-            .add({...base, 'frequency': freq});
+        final doc = await firestore.collection('income_sources_personal').add({
+          ...base,
+          'frequency': freq,
+        });
         return IncomeSourceModel.fromFirestore(await doc.get());
       }
 
@@ -96,10 +106,19 @@ void main() {
     test('toFirestore produces correct map', () async {
       final now = Timestamp.now();
       final model = IncomeSourceModel(
-        id: 'test', userId: 'user-1', name: 'Freelance',
-        category: 'freelance', amount: 2000, frequency: 'monthly',
-        isRecurring: true, isActive: true, taxable: true,
-        currency: 'CAD', startDate: now, createdAt: now, updatedAt: now,
+        id: 'test',
+        userId: 'user-1',
+        name: 'Freelance',
+        category: 'freelance',
+        amount: 2000,
+        frequency: 'monthly',
+        isRecurring: true,
+        isActive: true,
+        taxable: true,
+        currency: 'CAD',
+        startDate: api.Timestamp.fromJson(now),
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
       );
 
       final map = model.toFirestore();

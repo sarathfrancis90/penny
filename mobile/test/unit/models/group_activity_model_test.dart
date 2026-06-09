@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/group_activity_model.dart';
@@ -30,7 +31,10 @@ void main() {
       expect(activity.groupId, 'group-1');
       expect(activity.userId, 'user-1');
       expect(activity.action, 'expense_added');
-      expect(activity.createdAt, now);
+      expect(
+        activity.createdAt.millisecondsSinceEpoch,
+        api.Timestamp.fromJson(now).millisecondsSinceEpoch,
+      );
       expect(activity.userName, 'Alice');
       expect(activity.details, 'Alice added an expense of \$25.00');
       expect(activity.metadata, isNotNull);
@@ -76,7 +80,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: action,
-          createdAt: Timestamp.now(),
+          createdAt: api.Timestamp.now(),
         );
       }
 
@@ -140,7 +144,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.now(),
+          createdAt: api.Timestamp.now(),
           userName: 'Alice',
           details: 'Alice added \$50.00 at Costco',
         );
@@ -153,7 +157,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.now(),
+          createdAt: api.Timestamp.now(),
           userName: 'Bob',
         );
         expect(activity.displayText, 'Bob performed expense_added');
@@ -165,7 +169,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'group_created',
-          createdAt: Timestamp.now(),
+          createdAt: api.Timestamp.now(),
         );
         expect(activity.displayText, 'Someone performed group_created');
       });
@@ -178,7 +182,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.fromDate(
+          createdAt: api.Timestamp.fromDate(
             DateTime.now().subtract(const Duration(seconds: 30)),
           ),
         );
@@ -191,7 +195,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.fromDate(
+          createdAt: api.Timestamp.fromDate(
             DateTime.now().subtract(const Duration(minutes: 15)),
           ),
         );
@@ -204,7 +208,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.fromDate(
+          createdAt: api.Timestamp.fromDate(
             DateTime.now().subtract(const Duration(hours: 5)),
           ),
         );
@@ -217,7 +221,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.fromDate(
+          createdAt: api.Timestamp.fromDate(
             DateTime.now().subtract(const Duration(days: 3)),
           ),
         );
@@ -230,7 +234,7 @@ void main() {
           groupId: 'g-1',
           userId: 'u-1',
           action: 'expense_added',
-          createdAt: Timestamp.fromDate(
+          createdAt: api.Timestamp.fromDate(
             DateTime.now().subtract(const Duration(days: 14)),
           ),
         );

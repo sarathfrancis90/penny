@@ -8,7 +8,7 @@ void main() {
 
     test('default environment is prod', () {
       // When no ENV is set, defaults to 'prod'
-      expect(EnvConfig.apiBaseUrl, 'https://penny-amber.vercel.app');
+      expect(EnvConfig.apiBaseUrl, 'https://penny-api-j22omh4ova-nn.a.run.app');
     });
 
     test('isProd returns true by default', () {

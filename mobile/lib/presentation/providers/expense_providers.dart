@@ -78,12 +78,12 @@ enum DashboardPeriod {
   custom,
 }
 
-final dashboardPeriodProvider =
-    StateProvider<DashboardPeriod>((ref) => DashboardPeriod.thisMonth);
+final dashboardPeriodProvider = StateProvider<DashboardPeriod>(
+  (ref) => DashboardPeriod.thisMonth,
+);
 
 /// Custom date range (used when period == custom).
-final customDateRangeProvider =
-    StateProvider<DateTimeRange?>((ref) => null);
+final customDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
 
 /// Expense type filter.
 enum ExpenseTypeFilter { all, personal, group }
@@ -107,16 +107,19 @@ class ExpenseFilter {
   }) {
     return ExpenseFilter(
       typeFilter: typeFilter ?? this.typeFilter,
-      categoryFilter:
-          categoryFilter != null ? categoryFilter() : this.categoryFilter,
-      groupIdFilter:
-          groupIdFilter != null ? groupIdFilter() : this.groupIdFilter,
+      categoryFilter: categoryFilter != null
+          ? categoryFilter()
+          : this.categoryFilter,
+      groupIdFilter: groupIdFilter != null
+          ? groupIdFilter()
+          : this.groupIdFilter,
     );
   }
 }
 
-final expenseFilterProvider =
-    StateProvider<ExpenseFilter>((ref) => const ExpenseFilter());
+final expenseFilterProvider = StateProvider<ExpenseFilter>(
+  (ref) => const ExpenseFilter(),
+);
 
 /// Expenses filtered by period + type + category + group.
 final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
@@ -132,7 +135,9 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
     switch (period) {
       case DashboardPeriod.thisWeek:
         final weekStart = now.subtract(Duration(days: now.weekday - 1));
-        return !d.isBefore(DateTime(weekStart.year, weekStart.month, weekStart.day));
+        return !d.isBefore(
+          DateTime(weekStart.year, weekStart.month, weekStart.day),
+        );
       case DashboardPeriod.thisMonth:
         return d.year == now.year && d.month == now.month;
       case DashboardPeriod.lastMonth:
@@ -164,12 +169,16 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
 
   // Step 3: filter by specific group
   if (filter.groupIdFilter != null) {
-    filtered = filtered.where((e) => e.groupId == filter.groupIdFilter).toList();
+    filtered = filtered
+        .where((e) => e.groupId == filter.groupIdFilter)
+        .toList();
   }
 
   // Step 4: filter by category
   if (filter.categoryFilter != null) {
-    filtered = filtered.where((e) => e.category == filter.categoryFilter).toList();
+    filtered = filtered
+        .where((e) => e.category == filter.categoryFilter)
+        .toList();
   }
 
   // Sort by date descending
@@ -179,7 +188,9 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
 });
 
 /// Category breakdown derived from filtered expenses.
-final filteredCategoryBreakdownProvider = Provider<List<CategoryBreakdown>>((ref) {
+final filteredCategoryBreakdownProvider = Provider<List<CategoryBreakdown>>((
+  ref,
+) {
   return _computeBreakdown(ref.watch(filteredExpensesProvider));
 });
 
@@ -196,11 +207,13 @@ List<CategoryBreakdown> _computeBreakdown(List<ExpenseModel> expenses) {
   final sorted = totals.entries.toList()
     ..sort((a, b) => b.value.compareTo(a.value));
   return sorted
-      .map((e) => CategoryBreakdown(
-            category: e.key,
-            amount: e.value,
-            percentage: total > 0 ? (e.value / total * 100) : 0,
-          ))
+      .map(
+        (e) => CategoryBreakdown(
+          category: e.key,
+          amount: e.value,
+          percentage: total > 0 ? (e.value / total * 100) : 0,
+        ),
+      )
       .toList();
 }
 
@@ -233,8 +246,7 @@ final dailySpendingProvider = Provider<List<DailySpending>>((ref) {
     daily[dateOnly] = (daily[dateOnly] ?? 0) + e.amount;
   }
 
-  final sorted = daily.entries.toList()
-    ..sort((a, b) => a.key.compareTo(b.key));
+  final sorted = daily.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
   return sorted
       .map((e) => DailySpending(date: e.key, amount: e.value))
@@ -256,11 +268,13 @@ final cashFlowProvider = Provider<List<MonthCashFlow>>((ref) {
       return d.year == target.year && d.month == target.month;
     });
     final totalExpenses = monthExpenses.fold(0.0, (sum, e) => sum + e.amount);
-    months.add(MonthCashFlow(
-      monthLabel: label,
-      income: monthlyIncome,
-      expenses: totalExpenses,
-    ));
+    months.add(
+      MonthCashFlow(
+        monthLabel: label,
+        income: monthlyIncome,
+        expenses: totalExpenses,
+      ),
+    );
   }
   return months;
 });

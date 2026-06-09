@@ -2,7 +2,7 @@ import 'package:local_auth/local_auth.dart';
 
 class BiometricService {
   BiometricService({LocalAuthentication? auth})
-      : _auth = auth ?? LocalAuthentication();
+    : _auth = auth ?? LocalAuthentication();
 
   final LocalAuthentication _auth;
 
@@ -28,9 +28,7 @@ class BiometricService {
 
   /// Authenticate with biometrics.
   /// Returns true if authenticated, false if failed or cancelled.
-  Future<bool> authenticate({
-    String reason = 'Verify your identity',
-  }) async {
+  Future<bool> authenticate({String reason = 'Verify your identity'}) async {
     try {
       return await _auth.authenticate(
         localizedReason: reason,

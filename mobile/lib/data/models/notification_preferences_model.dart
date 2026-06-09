@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:penny_mobile/core/constants/notification_types.dart';
 
 /// Preference for a single notification type (e.g. budget_warning).
@@ -24,11 +24,7 @@ class NotificationTypePreference {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'inApp': inApp,
-      'push': push,
-      'frequency': frequency,
-    };
+    return {'inApp': inApp, 'push': push, 'frequency': frequency};
   }
 
   NotificationTypePreference copyWith({
@@ -50,16 +46,16 @@ class NotificationPreferencesModel {
 
   final Map<String, NotificationTypePreference> types;
 
-  factory NotificationPreferencesModel.fromFirestore(
-      DocumentSnapshot doc) {
+  factory NotificationPreferencesModel.fromFirestore(dynamic doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     final typesMap = <String, NotificationTypePreference>{};
 
     for (final entry in data.entries) {
       if (entry.key == 'updatedAt') continue;
       if (entry.value is Map<String, dynamic>) {
-        typesMap[entry.key] =
-            NotificationTypePreference.fromMap(entry.value as Map<String, dynamic>);
+        typesMap[entry.key] = NotificationTypePreference.fromMap(
+          entry.value as Map<String, dynamic>,
+        );
       }
     }
     return NotificationPreferencesModel(types: typesMap);
@@ -98,13 +94,13 @@ class NotificationSettingsModel {
   final String quietHoursEnd;
   final Timestamp? updatedAt;
 
-  factory NotificationSettingsModel.fromFirestore(DocumentSnapshot doc) {
+  factory NotificationSettingsModel.fromFirestore(dynamic doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     return NotificationSettingsModel(
       globalMute: data['globalMute'] as bool? ?? false,
       quietHoursStart: data['quietHoursStart'] as String? ?? '22:00',
       quietHoursEnd: data['quietHoursEnd'] as String? ?? '08:00',
-      updatedAt: data['updatedAt'] as Timestamp?,
+      updatedAt: Timestamp.tryParse(data['updatedAt']),
     );
   }
 
@@ -113,7 +109,7 @@ class NotificationSettingsModel {
       'globalMute': globalMute,
       'quietHoursStart': quietHoursStart,
       'quietHoursEnd': quietHoursEnd,
-      'updatedAt': FieldValue.serverTimestamp(),
+      'updatedAt': Timestamp.now(),
     };
   }
 

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:penny_mobile/data/models/message_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
 import 'package:penny_mobile/data/repositories/conversation_repository.dart';
@@ -11,8 +11,10 @@ import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
 /// Provider for the current conversation's messages.
-final messagesProvider =
-    StreamProvider.family<List<MessageModel>, String>((ref, conversationId) {
+final messagesProvider = StreamProvider.family<List<MessageModel>, String>((
+  ref,
+  conversationId,
+) {
   final repo = ref.watch(conversationRepositoryProvider);
   return repo.watchMessages(conversationId);
 });
@@ -34,7 +36,7 @@ class ChatState {
   final String? error;
   final AnalyzeExpenseResult? pendingExpenses;
 
-  /// Download URL of the uploaded receipt image in Firebase Storage.
+  /// Download URL of the uploaded receipt image returned by the API.
   /// Set after image analysis + upload, cleared when pending expenses are
   /// confirmed or dismissed.
   final String? receiptUrl;
@@ -54,8 +56,9 @@ class ChatState {
       isLoading: isLoading ?? this.isLoading,
       isAnalyzing: isAnalyzing ?? this.isAnalyzing,
       error: clearError ? null : (error ?? this.error),
-      pendingExpenses:
-          clearPending ? null : (pendingExpenses ?? this.pendingExpenses),
+      pendingExpenses: clearPending
+          ? null
+          : (pendingExpenses ?? this.pendingExpenses),
       receiptUrl: clearPending ? null : (receiptUrl ?? this.receiptUrl),
     );
   }
@@ -100,14 +103,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
       // Check if this looks like an expense description
       if (_looksLikeExpense(text)) {
         state = state.copyWith(isAnalyzing: true);
-        final result = await aiRepo.analyzeExpense(
-          text: text,
-          userId: userId,
-        );
-        state = state.copyWith(
-          pendingExpenses: result,
-          isAnalyzing: false,
-        );
+        final result = await aiRepo.analyzeExpense(text: text, userId: userId);
+        state = state.copyWith(pendingExpenses: result, isAnalyzing: false);
 
         // Add AI response message
         final responseText = _buildExpenseResponseText(result);
@@ -137,7 +134,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
-  /// Analyze a receipt image and upload it to Firebase Storage.
+  /// Analyze a receipt image and upload it through the API.
   Future<void> analyzeImage(File imageFile) async {
     state = state.copyWith(isAnalyzing: true, clearError: true);
 
@@ -170,10 +167,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
       final result = results[0] as AnalyzeExpenseResult;
       final receiptUrl = results[1] as String;
 
-      state = state.copyWith(
-        pendingExpenses: result,
-        receiptUrl: receiptUrl,
-      );
+      state = state.copyWith(pendingExpenses: result, receiptUrl: receiptUrl);
 
       final responseText = _buildExpenseResponseText(result);
       await conversationRepo.addMessage(
@@ -192,7 +186,8 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   /// Lazy AI title: once a conversation has 3+ messages and hasn't been
   /// AI-titled yet, ask the server to generate a Gemini title. Fire-and-
-  /// forget; the Firestore stream will reflow the new title into the UI.
+  /// forget; the API-backed conversation state will reflow the new title into
+  /// the UI.
   void _maybeTriggerAiTitle(String conversationId) {
     unawaited(() async {
       try {
@@ -216,9 +211,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
   void loadConversation(String conversationId) {
     state = ChatState(conversationId: conversationId);
     unawaited(
-      conversationRepo.updateConversation(conversationId, {
-        'metadata.lastAccessedAt': Timestamp.now(),
-      }).catchError((_) {}),
+      conversationRepo
+          .updateConversation(conversationId, {
+            'metadata.lastAccessedAt': Timestamp.now(),
+          })
+          .catchError((_) {}),
     );
   }
 
@@ -240,9 +237,13 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
   String _buildExpenseResponseText(AnalyzeExpenseResult result) {
     if (result.isMultiple) {
-      final buffer = StringBuffer('I found **${result.expenses.length} expenses**:\n\n');
+      final buffer = StringBuffer(
+        'I found **${result.expenses.length} expenses**:\n\n',
+      );
       for (final e in result.expenses) {
-        buffer.writeln('• **${e.vendor}** — \$${e.amount.toStringAsFixed(2)} (${e.category})');
+        buffer.writeln(
+          '• **${e.vendor}** — \$${e.amount.toStringAsFixed(2)} (${e.category})',
+        );
       }
       buffer.write('\nConfirm to save them.');
       return buffer.toString();

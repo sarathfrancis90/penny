@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/core/constants/env_config.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 import 'package:penny_mobile/data/repositories/budget_repository.dart';
 import 'package:penny_mobile/data/repositories/conversation_repository.dart';
 import 'package:penny_mobile/data/repositories/expense_repository.dart';
@@ -27,23 +28,23 @@ final aiRepositoryProvider = Provider<AiRepository>((ref) {
 });
 
 final conversationRepositoryProvider = Provider<ConversationRepository>((ref) {
-  return ConversationRepository();
+  return ConversationRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
-  return ExpenseRepository();
+  return ExpenseRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
-  return BudgetRepository();
+  return BudgetRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final incomeRepositoryProvider = Provider<IncomeRepository>((ref) {
-  return IncomeRepository();
+  return IncomeRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
-  return SavingsRepository();
+  return SavingsRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final groupRepositoryProvider = Provider<GroupRepository>((ref) {
@@ -51,28 +52,29 @@ final groupRepositoryProvider = Provider<GroupRepository>((ref) {
 });
 
 final groupIncomeRepositoryProvider = Provider<GroupIncomeRepository>((ref) {
-  return GroupIncomeRepository();
+  return GroupIncomeRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final groupSavingsRepositoryProvider = Provider<GroupSavingsRepository>((ref) {
-  return GroupSavingsRepository();
+  return GroupSavingsRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
-  return NotificationRepository();
+  return NotificationRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 final storageServiceProvider = Provider<StorageService>((ref) {
-  return StorageService();
+  return StorageService(apiClient: ref.watch(apiClientProvider));
 });
 
 final duplicateDetectorProvider = Provider<DuplicateDetector>((ref) {
-  return DuplicateDetector();
+  return DuplicateDetector(apiClient: ref.watch(apiClientProvider));
 });
 
-final pushNotificationServiceProvider =
-    Provider<PushNotificationService>((ref) {
-  return PushNotificationService();
+final pushNotificationServiceProvider = Provider<PushNotificationService>((
+  ref,
+) {
+  return PushNotificationService(apiClient: ref.watch(apiClientProvider));
 });
 
 final exportServiceProvider = Provider<ExportService>((ref) => ExportService());
@@ -100,10 +102,10 @@ final pushNavigationStreamProvider = StreamProvider<String>((ref) {
 final defaultGroupProvider = StreamProvider<String?>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .snapshots()
-      .map((snap) =>
-          snap.data()?['preferences']?['defaultGroupId'] as String?);
+  final api = ref.watch(apiClientProvider);
+  return Stream.fromFuture(
+    api
+        .get(ApiEndpoints.defaultGroup, queryParameters: {'userId': user.uid})
+        .then((response) => responseMap(response)['groupId'] as String?),
+  );
 });

@@ -91,15 +91,6 @@ export async function registerExpenseRoutes(
     },
   });
 
-  app.get('/api/expenses', {
-    preHandler: app.requireUser,
-    handler: async () => ({
-      success: true,
-      expenses: [],
-      message: 'Expense listing is not implemented in the container API v1',
-    }),
-  });
-
   app.patch('/api/expenses/:id', {
     preHandler: app.requireUser,
     handler: async (request) => {

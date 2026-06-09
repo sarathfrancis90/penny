@@ -25,10 +25,7 @@ MockUser createMockUser({
 /// Creates a mock FirebaseAuth that is already signed in.
 MockFirebaseAuth createMockAuth({MockUser? user}) {
   final mockUser = user ?? createMockUser();
-  return MockFirebaseAuth(
-    signedIn: true,
-    mockUser: mockUser,
-  );
+  return MockFirebaseAuth(signedIn: true, mockUser: mockUser);
 }
 
 /// Creates a FakeFirebaseFirestore with optional seed data.
@@ -80,9 +77,7 @@ List<Override> createTestOverrides({
   final fakeFirestore = firestore ?? createFakeFirestore();
 
   return [
-    authServiceProvider.overrideWithValue(
-      AuthService(auth: mockAuth),
-    ),
+    authServiceProvider.overrideWithValue(AuthService(auth: mockAuth)),
     expenseRepositoryProvider.overrideWithValue(
       ExpenseRepository(firestore: fakeFirestore),
     ),

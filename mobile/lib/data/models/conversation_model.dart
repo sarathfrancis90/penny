@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class ConversationModel {
   ConversationModel({
@@ -25,14 +25,14 @@ class ConversationModel {
   final int totalExpensesCreated;
   final ConversationMetadata metadata;
 
-  factory ConversationModel.fromFirestore(DocumentSnapshot doc) {
+  factory ConversationModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return ConversationModel(
       id: doc.id,
       userId: data['userId'] as String,
       title: data['title'] as String? ?? 'New Chat',
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
       lastMessagePreview: data['lastMessagePreview'] as String? ?? '',
       messageCount: data['messageCount'] as int? ?? 0,
       status: data['status'] as String? ?? 'active',
@@ -77,9 +77,9 @@ class ConversationMetadata {
 
   factory ConversationMetadata.fromMap(Map<String, dynamic> map) {
     return ConversationMetadata(
-      firstMessageTimestamp: map['firstMessageTimestamp'] as Timestamp?,
+      firstMessageTimestamp: Timestamp.tryParse(map['firstMessageTimestamp']),
       lastAccessedAt:
-          map['lastAccessedAt'] as Timestamp? ?? Timestamp.now(),
+          Timestamp.tryParse(map['lastAccessedAt']) ?? Timestamp.now(),
       isPinned: map['isPinned'] as bool? ?? false,
       aiTitleGenerated: map['aiTitleGenerated'] as bool? ?? false,
     );

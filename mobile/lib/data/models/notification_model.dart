@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class NotificationAction {
   const NotificationAction({
@@ -71,7 +71,7 @@ class NotificationModel {
   final Map<String, dynamic>? metadata;
   final List<NotificationAction>? actions;
 
-  factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
+  factory NotificationModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return NotificationModel(
       id: doc.id,
@@ -84,9 +84,9 @@ class NotificationModel {
       read: data['read'] as bool? ?? false,
       delivered: data['delivered'] as bool? ?? false,
       isGrouped: data['isGrouped'] as bool? ?? false,
-      createdAt: data['createdAt'] as Timestamp,
+      createdAt: Timestamp.fromJson(data['createdAt']),
       icon: data['icon'] as String?,
-      readAt: data['readAt'] as Timestamp?,
+      readAt: Timestamp.tryParse(data['readAt']),
       actionUrl: data['actionUrl'] as String?,
       relatedId: data['relatedId'] as String?,
       relatedType: data['relatedType'] as String?,
@@ -98,19 +98,21 @@ class NotificationModel {
           ? Map<String, dynamic>.from(data['metadata'] as Map)
           : null,
       actions: (data['actions'] as List<dynamic>?)
-          ?.map((a) => NotificationAction.fromMap(
-              Map<String, dynamic>.from(a as Map)))
+          ?.map(
+            (a) =>
+                NotificationAction.fromMap(Map<String, dynamic>.from(a as Map)),
+          )
           .toList(),
     );
   }
 
   String get defaultIcon => switch (category) {
-        'budget' => '📊',
-        'group' => '👥',
-        'income' => '💰',
-        'savings' => '🎯',
-        _ => '🔔',
-      };
+    'budget' => '📊',
+    'group' => '👥',
+    'income' => '💰',
+    'savings' => '🎯',
+    _ => '🔔',
+  };
 
   String get timeAgo {
     final now = DateTime.now();

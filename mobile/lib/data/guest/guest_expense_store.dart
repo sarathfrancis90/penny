@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -56,7 +56,7 @@ class GuestExpenseNotifier extends StateNotifier<List<ExpenseModel>> {
     if (isFull) return GuestAddResult.limitReached;
 
     final now = DateTime.now();
-    // Use noon convention to avoid timezone edge cases (matches Firestore path)
+    // Use noon convention to avoid timezone edge cases in API date handling.
     final dateAtNoon = DateTime(date.year, date.month, date.day, 12);
     final ts = Timestamp.fromDate(now);
 
@@ -100,7 +100,9 @@ class GuestExpenseNotifier extends StateNotifier<List<ExpenseModel>> {
             amount: amount ?? e.amount,
             category: category ?? e.category,
             date: date != null
-                ? Timestamp.fromDate(DateTime(date.year, date.month, date.day, 12))
+                ? Timestamp.fromDate(
+                    DateTime(date.year, date.month, date.day, 12),
+                  )
                 : e.date,
             expenseType: e.expenseType,
             createdAt: e.createdAt,
@@ -134,7 +136,7 @@ class GuestExpenseNotifier extends StateNotifier<List<ExpenseModel>> {
     _box.put(_receiptScansKey, current + 1);
   }
 
-  /// Consume all expenses for migration to Firestore.
+  /// Consume all expenses for migration to the signed-in account.
   /// Returns the list and atomically clears local storage.
   List<ExpenseModel> consumeForMigration() {
     final expenses = List<ExpenseModel>.from(state);
@@ -172,6 +174,6 @@ class GuestExpenseNotifier extends StateNotifier<List<ExpenseModel>> {
 /// Guest expense provider — NOT autoDispose (survives navigation).
 final guestExpenseProvider =
     StateNotifierProvider<GuestExpenseNotifier, List<ExpenseModel>>((ref) {
-  final box = Hive.box('guest_expenses');
-  return GuestExpenseNotifier(box);
-});
+      final box = Hive.box('guest_expenses');
+      return GuestExpenseNotifier(box);
+    });

@@ -4,7 +4,7 @@
 
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
-- Total mobile files: 257
+- Total mobile files: 262
 - Current source layout: `mobile/lib/core`, `mobile/lib/data`, `mobile/lib/domain`, and `mobile/lib/presentation`
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
@@ -32,6 +32,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/data/guest/guest_expense_store.dart`
 - `mobile/lib/data/guest/guest_migration_service.dart`
 - `mobile/lib/data/guest/guest_sample_data.dart`
+- `mobile/lib/data/models/api_timestamp.dart`
 - `mobile/lib/data/models/budget_model.dart`
 - `mobile/lib/data/models/conversation_model.dart`
 - `mobile/lib/data/models/expense_model.dart`
@@ -46,6 +47,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/data/models/notification_preferences_model.dart`
 - `mobile/lib/data/models/savings_model.dart`
 - `mobile/lib/data/repositories/ai_repository.dart`
+- `mobile/lib/data/repositories/api_response_helpers.dart`
 - `mobile/lib/data/repositories/budget_repository.dart`
 - `mobile/lib/data/repositories/conversation_repository.dart`
 - `mobile/lib/data/repositories/expense_repository.dart`
@@ -120,6 +122,7 @@ _No files found._
 - `mobile/lib/presentation/widgets/error_state.dart`
 - `mobile/lib/presentation/widgets/expense_card.dart`
 - `mobile/lib/presentation/widgets/expense_confirmation_sheet.dart`
+- `mobile/lib/presentation/widgets/group_icon_options.dart`
 - `mobile/lib/presentation/widgets/guest_sign_up_prompt.dart`
 - `mobile/lib/presentation/widgets/over_budget_warning_sheet.dart`
 - `mobile/lib/presentation/widgets/penny_empty_state.dart`
@@ -131,6 +134,7 @@ _No files found._
 
 ## Unit and Widget Tests
 
+- `mobile/test/helpers/fake_api_client.dart`
 - `mobile/test/helpers/test_helpers.dart`
 - `mobile/test/unit/constants/env_config_test.dart`
 - `mobile/test/unit/models/budget_model_test.dart`
@@ -173,6 +177,7 @@ _No files found._
 - `mobile/integration_test/comprehensive_test.dart`
 - `mobile/integration_test/expense_crud_test.dart`
 - `mobile/integration_test/full_journey_test.dart`
+- `mobile/integration_test/helpers/api_backed_test_app.dart`
 
 ## Native Android
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
@@ -128,19 +129,31 @@ void main() {
     test('isOwner and isAdmin flags work correctly', () async {
       final now = Timestamp.now();
       final base = {
-        'groupId': 'g', 'userId': 'u', 'userEmail': 'e',
-        'status': 'active', 'permissions': {},
-        'invitedAt': now, 'invitedBy': 'x',
+        'groupId': 'g',
+        'userId': 'u',
+        'userEmail': 'e',
+        'status': 'active',
+        'permissions': {},
+        'invitedAt': now,
+        'invitedBy': 'x',
       };
 
-      final ownerDoc = await firestore.collection('groupMembers')
-          .add({...base, 'role': 'owner'});
-      final adminDoc = await firestore.collection('groupMembers')
-          .add({...base, 'role': 'admin'});
-      final memberDoc = await firestore.collection('groupMembers')
-          .add({...base, 'role': 'member'});
-      final viewerDoc = await firestore.collection('groupMembers')
-          .add({...base, 'role': 'viewer'});
+      final ownerDoc = await firestore.collection('groupMembers').add({
+        ...base,
+        'role': 'owner',
+      });
+      final adminDoc = await firestore.collection('groupMembers').add({
+        ...base,
+        'role': 'admin',
+      });
+      final memberDoc = await firestore.collection('groupMembers').add({
+        ...base,
+        'role': 'member',
+      });
+      final viewerDoc = await firestore.collection('groupMembers').add({
+        ...base,
+        'role': 'viewer',
+      });
 
       final owner = GroupMemberModel.fromFirestore(await ownerDoc.get());
       final admin = GroupMemberModel.fromFirestore(await adminDoc.get());

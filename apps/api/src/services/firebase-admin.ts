@@ -8,6 +8,7 @@ import {
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
 import { getMessaging, type Messaging } from 'firebase-admin/messaging';
+import { getStorage, type Storage } from 'firebase-admin/storage';
 
 export type FirebaseAdminMode =
   | { mode: 'adc' }
@@ -19,6 +20,7 @@ export interface FirebaseAdminServices {
   auth: Auth;
   db: Firestore;
   messaging: Messaging;
+  storage: Storage;
 }
 
 export interface FirebaseProjectConfig {
@@ -108,5 +110,6 @@ export function initializeFirebaseAdmin(): FirebaseAdminServices {
       ? getFirestore(app, projectConfig.firestoreDatabaseId)
       : getFirestore(app),
     messaging: getMessaging(authApp),
+    storage: getStorage(app),
   };
 }

@@ -16,9 +16,9 @@ abstract final class EnvConfig {
     if (_apiBaseUrlOverride.isNotEmpty) return _apiBaseUrlOverride;
 
     return switch (_env) {
-      'dev' => 'http://localhost:3000',
+      'dev' => 'http://localhost:8080',
       'staging' => 'https://penny-api-staging-j22omh4ova-nn.a.run.app',
-      _ => 'https://penny-amber.vercel.app',
+      _ => 'https://penny-api-j22omh4ova-nn.a.run.app',
     };
   }
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
@@ -13,19 +14,20 @@ void main() {
     });
 
     Map<String, dynamic> _baseData(String status) => {
-          'groupId': 'group-1',
-          'userId': 'user-1',
-          'userEmail': 'test@penny.app',
-          'role': 'member',
-          'status': status,
-          'permissions': {},
-          'invitedAt': now,
-          'invitedBy': 'owner-1',
-        };
+      'groupId': 'group-1',
+      'userId': 'user-1',
+      'userEmail': 'test@penny.app',
+      'role': 'member',
+      'status': status,
+      'permissions': {},
+      'invitedAt': now,
+      'invitedBy': 'owner-1',
+    };
 
     test('parses active status', () async {
-      final doc =
-          await firestore.collection('groupMembers').add(_baseData('active'));
+      final doc = await firestore
+          .collection('groupMembers')
+          .add(_baseData('active'));
       final model = GroupMemberModel.fromFirestore(await doc.get());
 
       expect(model.status, 'active');
@@ -41,8 +43,9 @@ void main() {
     });
 
     test('parses left status', () async {
-      final doc =
-          await firestore.collection('groupMembers').add(_baseData('left'));
+      final doc = await firestore
+          .collection('groupMembers')
+          .add(_baseData('left'));
       final model = GroupMemberModel.fromFirestore(await doc.get());
 
       expect(model.status, 'left');

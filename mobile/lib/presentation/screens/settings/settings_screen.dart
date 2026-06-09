@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,20 +5,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/providers/theme_provider.dart';
 
-/// Provider for user preferences from Firestore.
 final userPreferencesProvider = StreamProvider<Map<String, dynamic>>((ref) {
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .snapshots()
-      .map((snap) => snap.data()?['preferences'] as Map<String, dynamic>? ?? {});
+  final api = ref.watch(apiClientProvider);
+  return Stream.fromFuture(
+    api
+        .get(
+          ApiEndpoints.userPreferences,
+          queryParameters: {'userId': user.uid},
+        )
+        .then((response) => mapValue(responseMap(response)['preferences'])),
+  );
 });
 
 class SettingsScreen extends ConsumerWidget {
@@ -56,7 +60,9 @@ class SettingsScreen extends ConsumerWidget {
             _SettingsTile(
               icon: Icons.calendar_today_outlined,
               title: 'Fiscal Year End',
-              subtitle: prefsAsync.valueOrNull?['fiscalYearEnd'] as String? ?? 'December',
+              subtitle:
+                  prefsAsync.valueOrNull?['fiscalYearEnd'] as String? ??
+                  'December',
               onTap: () => _showFiscalYearEndPicker(context, ref),
             ),
           ],
@@ -112,15 +118,20 @@ class SettingsScreen extends ConsumerWidget {
             // Danger zone
             OutlinedButton.icon(
               onPressed: () => _confirmDeleteAccount(context, ref),
-              icon: const Icon(Icons.delete_forever_outlined,
-                  color: AppColors.error),
-              label: const Text('Delete Account',
-                  style: TextStyle(color: AppColors.error)),
+              icon: const Icon(
+                Icons.delete_forever_outlined,
+                color: AppColors.error,
+              ),
+              label: const Text(
+                'Delete Account',
+                style: TextStyle(color: AppColors.error),
+              ),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.error),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -153,7 +164,9 @@ class SettingsScreen extends ConsumerWidget {
                       ? const Icon(Icons.check, color: AppColors.primary)
                       : null,
                   onTap: () {
-                    ref.read(themeModeProvider.notifier).setThemeMode(option.$1);
+                    ref
+                        .read(themeModeProvider.notifier)
+                        .setThemeMode(option.$1);
                     HapticFeedback.selectionClick();
                     Navigator.pop(ctx);
                   },
@@ -180,12 +193,13 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () async {
                   final user = ref.read(currentUserProvider);
                   if (user != null) {
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(user.uid)
-                        .set({
-                      'preferences': {'currency': c}
-                    }, SetOptions(merge: true));
+                    await ref
+                        .read(apiClientProvider)
+                        .patch(
+                          ApiEndpoints.userPreferences,
+                          data: {'userId': user.uid, 'currency': c},
+                        );
+                    ref.invalidate(userPreferencesProvider);
                     HapticFeedback.selectionClick();
                   }
                   if (ctx.mounted) Navigator.pop(ctx);
@@ -200,10 +214,21 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showFiscalYearEndPicker(BuildContext context, WidgetRef ref) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-    final current = ref.read(userPreferencesProvider).valueOrNull?['fiscalYearEnd']
+    final current =
+        ref.read(userPreferencesProvider).valueOrNull?['fiscalYearEnd']
             as String? ??
         'December';
     showModalBottomSheet(
@@ -222,12 +247,13 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () async {
                   final user = ref.read(currentUserProvider);
                   if (user != null) {
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(user.uid)
-                        .set({
-                      'preferences': {'fiscalYearEnd': month}
-                    }, SetOptions(merge: true));
+                    await ref
+                        .read(apiClientProvider)
+                        .patch(
+                          ApiEndpoints.userPreferences,
+                          data: {'userId': user.uid, 'fiscalYearEnd': month},
+                        );
+                    ref.invalidate(userPreferencesProvider);
                     HapticFeedback.selectionClick();
                   }
                   if (ctx.mounted) Navigator.pop(ctx);
@@ -249,16 +275,24 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded,
-                  size: 48, color: AppColors.error),
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 48,
+                color: AppColors.error,
+              ),
               const SizedBox(height: 16),
-              const Text('Delete Account?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const Text(
+                'Delete Account?',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 8),
               Text(
-                  'This will permanently delete your account and all data.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                'This will permanently delete your account and all data.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -272,7 +306,8 @@ class SettingsScreen extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error),
+                        backgroundColor: AppColors.error,
+                      ),
                       onPressed: () async {
                         Navigator.pop(ctx);
                         await _deleteAccount(context, ref);
@@ -294,7 +329,7 @@ class SettingsScreen extends ConsumerWidget {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Call API to delete all Firestore data first
+      // Call API to delete account data first.
       try {
         final apiClient = ref.read(apiClientProvider);
         await apiClient.delete('/api/account/delete');
@@ -323,8 +358,9 @@ class SettingsScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'Please sign out and sign back in, then try again. '
-                'Account deletion requires recent authentication.'),
+              'Please sign out and sign back in, then try again. '
+              'Account deletion requires recent authentication.',
+            ),
             backgroundColor: AppColors.warning,
             duration: Duration(seconds: 5),
           ),
@@ -355,12 +391,15 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(title,
-        style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            letterSpacing: 1));
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        letterSpacing: 1,
+      ),
+    );
   }
 }
 
@@ -389,19 +428,44 @@ class _SettingsTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(title,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w500)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              Text(subtitle,
-                  style: TextStyle(
-                      fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right, size: 18,
-                  color: Theme.of(context).hintColor),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: Theme.of(context).hintColor,
+              ),
             ],
           ),
         ),

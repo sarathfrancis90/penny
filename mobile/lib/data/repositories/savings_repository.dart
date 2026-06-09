@@ -1,20 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/savings_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class SavingsRepository {
-  SavingsRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  SavingsRepository({required ApiClient apiClient}) : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
   Stream<List<SavingsGoalModel>> watchSavingsGoals(String userId) {
-    return _db
-        .collection('savings_goals_personal')
-        .where('userId', isEqualTo: userId)
-        .where('isActive', isEqualTo: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(SavingsGoalModel.fromFirestore).toList());
+    return Stream.fromFuture(_listSavings(userId));
+  }
+
+  Future<List<SavingsGoalModel>> _listSavings(String userId) async {
+    final response = await _api.get(
+      ApiEndpoints.personalSavings,
+      queryParameters: {'userId': userId, 'status': 'active'},
+    );
+    return listValue(
+      responseMap(response)['savingsGoals'],
+    ).map((json) => SavingsGoalModel.fromFirestore(apiDocument(json))).toList();
   }
 
   Future<String> createSavingsGoal({
@@ -29,58 +34,39 @@ class SavingsRepository {
     String? emoji,
     DateTime? targetDate,
   }) async {
-    final now = Timestamp.now();
-    final doc = await _db.collection('savings_goals_personal').add({
-      'userId': userId,
-      'name': name,
-      'category': category,
-      'targetAmount': targetAmount,
-      'currentAmount': 0,
-      'monthlyContribution': monthlyContribution,
-      'status': 'active',
-      'isActive': true,
-      'priority': priority,
-      'currency': currency,
-      'startDate': now,
-      'createdAt': now,
-      'updatedAt': now,
-      'progressPercentage': 0,
-      'onTrack': true,
-      if (description != null) 'description': description,
-      if (emoji != null) 'emoji': emoji,
-      if (targetDate != null) 'targetDate': Timestamp.fromDate(targetDate),
-    });
-    return doc.id;
+    final response = await _api.post(
+      ApiEndpoints.personalSavings,
+      data: {
+        'userId': userId,
+        'name': name,
+        'category': category,
+        'targetAmount': targetAmount,
+        'monthlyContribution': monthlyContribution,
+        'priority': priority,
+        'currency': currency,
+        if (description != null) 'description': description,
+        if (emoji != null) 'emoji': emoji,
+        if (targetDate != null) 'targetDate': targetDate.toIso8601String(),
+      },
+    );
+    return (responseMap(response)['id'] ?? '').toString();
   }
 
-  Future<void> updateSavingsGoal(String id, Map<String, dynamic> updates) {
-    return _db.collection('savings_goals_personal').doc(id).update({
-      ...updates,
-      'updatedAt': Timestamp.now(),
-    });
+  Future<void> updateSavingsGoal(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    await _api.patch(ApiEndpoints.personalSavingsById(id), data: updates);
   }
 
   Future<void> addContribution(String goalId, double amount) async {
-    final goalRef = _db.collection('savings_goals_personal').doc(goalId);
-    final doc = await goalRef.get();
-    if (!doc.exists) return;
-
-    final data = doc.data()!;
-    final currentAmount = (data['currentAmount'] as num).toDouble() + amount;
-    final targetAmount = (data['targetAmount'] as num).toDouble();
-    final progress =
-        targetAmount > 0 ? (currentAmount / targetAmount * 100) : 0.0;
-
-    await goalRef.update({
-      'currentAmount': currentAmount,
-      'progressPercentage': progress,
-      'status': progress >= 100 ? 'achieved' : 'active',
-      'lastContributionAt': Timestamp.now(),
-      'updatedAt': Timestamp.now(),
-    });
+    await _api.post(
+      ApiEndpoints.personalSavingsContribution(goalId),
+      data: {'amount': amount},
+    );
   }
 
-  Future<void> deleteSavingsGoal(String id) {
-    return _db.collection('savings_goals_personal').doc(id).delete();
+  Future<void> deleteSavingsGoal(String id) async {
+    await _api.delete(ApiEndpoints.personalSavingsById(id));
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/group_savings_model.dart';
@@ -55,46 +56,57 @@ void main() {
       expect(goal.priority, 'high');
       expect(goal.currency, 'CAD');
       expect(goal.contributionType, 'proportional');
-      expect(goal.targetDate, targetDate);
-      expect(goal.startDate, startDate);
+      expect(
+        goal.targetDate?.millisecondsSinceEpoch,
+        api.Timestamp.fromJson(targetDate).millisecondsSinceEpoch,
+      );
+      expect(
+        goal.startDate?.millisecondsSinceEpoch,
+        api.Timestamp.fromJson(startDate).millisecondsSinceEpoch,
+      );
       expect(goal.achievedDate, isNull);
       expect(goal.progressPercentage, 35.0);
       expect(goal.description, 'Building our emergency fund');
       expect(goal.emoji, '🛡️');
-      expect(goal.lastContributionAt, now);
+      expect(
+        goal.lastContributionAt?.millisecondsSinceEpoch,
+        api.Timestamp.fromJson(now).millisecondsSinceEpoch,
+      );
     });
 
-    test('fromFirestore handles missing optional fields with defaults',
-        () async {
-      final now = Timestamp.now();
-      final doc = await firestore.collection('savings_goals_group').add({
-        'groupId': 'group-1',
-        'createdBy': 'user-1',
-        'name': 'Vacation',
-        'category': 'travel',
-        'targetAmount': 5000,
-        'currentAmount': 0,
-        'monthlyContribution': 250,
-        'createdAt': now,
-        'updatedAt': now,
-      });
+    test(
+      'fromFirestore handles missing optional fields with defaults',
+      () async {
+        final now = Timestamp.now();
+        final doc = await firestore.collection('savings_goals_group').add({
+          'groupId': 'group-1',
+          'createdBy': 'user-1',
+          'name': 'Vacation',
+          'category': 'travel',
+          'targetAmount': 5000,
+          'currentAmount': 0,
+          'monthlyContribution': 250,
+          'createdAt': now,
+          'updatedAt': now,
+        });
 
-      final snapshot = await doc.get();
-      final goal = GroupSavingsGoalModel.fromFirestore(snapshot);
+        final snapshot = await doc.get();
+        final goal = GroupSavingsGoalModel.fromFirestore(snapshot);
 
-      expect(goal.status, 'active');
-      expect(goal.isActive, true);
-      expect(goal.priority, 'medium');
-      expect(goal.currency, 'CAD');
-      expect(goal.contributionType, 'equal');
-      expect(goal.targetDate, isNull);
-      expect(goal.startDate, isNull);
-      expect(goal.achievedDate, isNull);
-      expect(goal.progressPercentage, 0);
-      expect(goal.description, isNull);
-      expect(goal.emoji, isNull);
-      expect(goal.lastContributionAt, isNull);
-    });
+        expect(goal.status, 'active');
+        expect(goal.isActive, true);
+        expect(goal.priority, 'medium');
+        expect(goal.currency, 'CAD');
+        expect(goal.contributionType, 'equal');
+        expect(goal.targetDate, isNull);
+        expect(goal.startDate, isNull);
+        expect(goal.achievedDate, isNull);
+        expect(goal.progressPercentage, 0);
+        expect(goal.description, isNull);
+        expect(goal.emoji, isNull);
+        expect(goal.lastContributionAt, isNull);
+      },
+    );
 
     test('handles int values for numeric fields', () async {
       final now = Timestamp.now();
@@ -136,8 +148,8 @@ void main() {
         isActive: true,
         priority: 'medium',
         currency: 'CAD',
-        createdAt: now,
-        updatedAt: now,
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
       );
 
       final map = goal.toFirestore();
@@ -173,22 +185,31 @@ void main() {
         isActive: true,
         priority: 'high',
         currency: 'CAD',
-        createdAt: now,
-        updatedAt: now,
-        targetDate: targetDate,
-        startDate: now,
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
+        targetDate: api.Timestamp.fromJson(targetDate),
+        startDate: api.Timestamp.fromJson(now),
         description: 'Wedding savings',
         emoji: '💍',
-        lastContributionAt: now,
+        lastContributionAt: api.Timestamp.fromJson(now),
       );
 
       final map = goal.toFirestore();
 
-      expect(map['targetDate'], targetDate);
-      expect(map['startDate'], now);
+      expect(
+        (map['targetDate'] as api.Timestamp).millisecondsSinceEpoch,
+        api.Timestamp.fromJson(targetDate).millisecondsSinceEpoch,
+      );
+      expect(
+        (map['startDate'] as api.Timestamp).millisecondsSinceEpoch,
+        api.Timestamp.fromJson(now).millisecondsSinceEpoch,
+      );
       expect(map['description'], 'Wedding savings');
       expect(map['emoji'], '💍');
-      expect(map['lastContributionAt'], now);
+      expect(
+        (map['lastContributionAt'] as api.Timestamp).millisecondsSinceEpoch,
+        api.Timestamp.fromJson(now).millisecondsSinceEpoch,
+      );
     });
 
     group('computedProgress getter', () {
@@ -207,8 +228,8 @@ void main() {
           isActive: true,
           priority: 'medium',
           currency: 'CAD',
-          createdAt: now,
-          updatedAt: now,
+          createdAt: api.Timestamp.fromJson(now),
+          updatedAt: api.Timestamp.fromJson(now),
         );
       }
 
@@ -233,8 +254,7 @@ void main() {
       });
 
       test('handles fractional amounts', () {
-        expect(
-            _makeGoal(3000, 1234.56).computedProgress, closeTo(41.15, 0.01));
+        expect(_makeGoal(3000, 1234.56).computedProgress, closeTo(41.15, 0.01));
       });
     });
 
@@ -254,8 +274,8 @@ void main() {
           isActive: true,
           priority: 'medium',
           currency: 'CAD',
-          createdAt: now,
-          updatedAt: now,
+          createdAt: api.Timestamp.fromJson(now),
+          updatedAt: api.Timestamp.fromJson(now),
         );
       }
 

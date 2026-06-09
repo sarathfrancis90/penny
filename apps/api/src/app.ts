@@ -16,6 +16,7 @@ import { registerCompatibilityRoutes } from './routes/compat/routes';
 import { registerConversationRoutes } from './routes/conversations/routes';
 import { registerExpenseRoutes } from './routes/expenses/routes';
 import { registerGroupRoutes } from './routes/groups/routes';
+import { registerMobileDataRoutes } from './routes/mobile-data/routes';
 import { registerUserRoutes } from './routes/user/routes';
 import { createDefaultServices, type ApiServices } from './services';
 
@@ -179,6 +180,7 @@ export async function buildApiApp(
   await registerConversationRoutes(app, services.conversations);
   await registerExpenseRoutes(app, services.expenses);
   await registerGroupRoutes(app, services.groups);
+  await registerMobileDataRoutes(app, services.mobileData);
   await registerUserRoutes(app, services.userPreferences, services.accounts);
   await registerCompatibilityRoutes(app);
 

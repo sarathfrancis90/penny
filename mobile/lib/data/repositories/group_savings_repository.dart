@@ -1,20 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/group_savings_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class GroupSavingsRepository {
-  GroupSavingsRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  GroupSavingsRepository({required ApiClient apiClient}) : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
   Stream<List<GroupSavingsGoalModel>> watchGroupSavingsGoals(String groupId) {
-    return _db
-        .collection('savings_goals_group')
-        .where('groupId', isEqualTo: groupId)
-        .where('isActive', isEqualTo: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(GroupSavingsGoalModel.fromFirestore).toList());
+    return Stream.fromFuture(_listGroupSavings(groupId));
+  }
+
+  Future<List<GroupSavingsGoalModel>> _listGroupSavings(String groupId) async {
+    final response = await _api.get(
+      ApiEndpoints.groupSavings,
+      queryParameters: {'groupId': groupId, 'status': 'active'},
+    );
+    return listValue(responseMap(response)['savingsGoals'])
+        .map((json) => GroupSavingsGoalModel.fromFirestore(apiDocument(json)))
+        .toList();
   }
 
   Future<String> createGroupSavingsGoal({
@@ -31,61 +36,46 @@ class GroupSavingsRepository {
     String? emoji,
     DateTime? targetDate,
   }) async {
-    final now = Timestamp.now();
-    final doc = await _db.collection('savings_goals_group').add({
-      'groupId': groupId,
-      'createdBy': createdBy,
-      'name': name,
-      'category': category,
-      'targetAmount': targetAmount,
-      'currentAmount': 0,
-      'monthlyContribution': monthlyContribution,
-      'status': 'active',
-      'isActive': true,
-      'priority': priority,
-      'currency': currency,
-      'contributionType': contributionType,
-      'startDate': now,
-      'createdAt': now,
-      'updatedAt': now,
-      'progressPercentage': 0,
-      if (description != null) 'description': description,
-      if (emoji != null) 'emoji': emoji,
-      if (targetDate != null) 'targetDate': Timestamp.fromDate(targetDate),
-    });
-    return doc.id;
+    final response = await _api.post(
+      ApiEndpoints.groupSavings,
+      data: {
+        'groupId': groupId,
+        'userId': createdBy,
+        'createdBy': createdBy,
+        'name': name,
+        'category': category,
+        'targetAmount': targetAmount,
+        'monthlyContribution': monthlyContribution,
+        'priority': priority,
+        'currency': currency,
+        'contributionType': contributionType,
+        if (description != null) 'description': description,
+        if (emoji != null) 'emoji': emoji,
+        if (targetDate != null) 'targetDate': targetDate.toIso8601String(),
+      },
+    );
+    return (responseMap(response)['id'] ?? '').toString();
   }
 
   Future<void> updateGroupSavingsGoal(
-      String id, Map<String, dynamic> updates) {
-    return _db.collection('savings_goals_group').doc(id).update({
-      ...updates,
-      'updatedAt': Timestamp.now(),
-    });
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    await _api.patch(ApiEndpoints.groupSavingsById(id), data: updates);
   }
 
   Future<void> addGroupContribution(
-      String goalId, double amount, String userId) async {
-    final goalRef = _db.collection('savings_goals_group').doc(goalId);
-    final doc = await goalRef.get();
-    if (!doc.exists) return;
-
-    final data = doc.data()!;
-    final currentAmount = (data['currentAmount'] as num).toDouble() + amount;
-    final targetAmount = (data['targetAmount'] as num).toDouble();
-    final progress =
-        targetAmount > 0 ? (currentAmount / targetAmount * 100) : 0.0;
-
-    await goalRef.update({
-      'currentAmount': currentAmount,
-      'progressPercentage': progress,
-      'status': progress >= 100 ? 'achieved' : 'active',
-      'lastContributionAt': Timestamp.now(),
-      'updatedAt': Timestamp.now(),
-    });
+    String goalId,
+    double amount,
+    String userId,
+  ) async {
+    await _api.post(
+      ApiEndpoints.groupSavingsContribution(goalId),
+      data: {'userId': userId, 'amount': amount},
+    );
   }
 
-  Future<void> deleteGroupSavingsGoal(String id) {
-    return _db.collection('savings_goals_group').doc(id).delete();
+  Future<void> deleteGroupSavingsGoal(String id) async {
+    await _api.delete(ApiEndpoints.groupSavingsById(id));
   }
 }

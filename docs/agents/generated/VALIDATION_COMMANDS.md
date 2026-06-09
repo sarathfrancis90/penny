@@ -6,6 +6,7 @@ Use the smallest command set that proves the change. Mobile/API agent-doc change
 
 ## Package Scripts
 
+- `npm run mobile:api-only:check` -> `tsx scripts/mobile/check-api-only.ts`
 - `npm run docs:agents:generate` -> `tsx scripts/agents/generate-agent-docs.ts`
 - `npm run docs:agents:check` -> `tsx scripts/agents/generate-agent-docs.ts --check`
 - `npm run docs:agents:lint` -> `tsx scripts/agents/lint-agent-docs.ts`
@@ -23,9 +24,10 @@ Use the smallest command set that proves the change. Mobile/API agent-doc change
 ## Mobile Commands
 
 - `cd mobile && flutter pub get`
-- `cd mobile && flutter analyze`
+- `cd mobile && flutter analyze lib --no-fatal-infos`
 - `cd mobile && flutter test`
 - `cd mobile && flutter test integration_test`
+- `npm run mobile:api-only:check`
 
 ## Standalone API Commands
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/core/constants/notification_types.dart';
@@ -28,9 +29,7 @@ void main() {
     });
 
     test('fromMap handles partial fields', () {
-      final pref = NotificationTypePreference.fromMap({
-        'inApp': false,
-      });
+      final pref = NotificationTypePreference.fromMap({'inApp': false});
 
       expect(pref.inApp, false);
       expect(pref.push, true);
@@ -94,8 +93,7 @@ void main() {
         frequency: 'hourly',
       );
 
-      final roundtripped =
-          NotificationTypePreference.fromMap(original.toMap());
+      final roundtripped = NotificationTypePreference.fromMap(original.toMap());
 
       expect(roundtripped.inApp, original.inApp);
       expect(roundtripped.push, original.push);
@@ -118,18 +116,18 @@ void main() {
           .collection('preferences')
           .doc('notifications')
           .set({
-        'budget_warning': {
-          'inApp': true,
-          'push': false,
-          'frequency': 'daily',
-        },
-        'group_expense_added': {
-          'inApp': true,
-          'push': true,
-          'frequency': 'realtime',
-        },
-        'updatedAt': Timestamp.now(), // Should be skipped
-      });
+            'budget_warning': {
+              'inApp': true,
+              'push': false,
+              'frequency': 'daily',
+            },
+            'group_expense_added': {
+              'inApp': true,
+              'push': true,
+              'frequency': 'realtime',
+            },
+            'updatedAt': Timestamp.now(), // Should be skipped
+          });
 
       final snapshot = await firestore
           .collection('users')
@@ -174,15 +172,17 @@ void main() {
       expect(model.types.length, 1);
     });
 
-    test('defaults() creates preferences for all NotificationType values',
-        () {
+    test('defaults() creates preferences for all NotificationType values', () {
       final model = NotificationPreferencesModel.defaults();
 
       expect(model.types.length, NotificationType.values.length);
 
       for (final type in NotificationType.values) {
-        expect(model.types.containsKey(type.value), true,
-            reason: 'Missing key: ${type.value}');
+        expect(
+          model.types.containsKey(type.value),
+          true,
+          reason: 'Missing key: ${type.value}',
+        );
         expect(model.types[type.value]!.inApp, true);
         expect(model.types[type.value]!.push, true);
         expect(model.types[type.value]!.frequency, 'realtime');
@@ -190,13 +190,15 @@ void main() {
     });
 
     test('forType returns stored preference', () {
-      final model = NotificationPreferencesModel(types: {
-        'budget_warning': const NotificationTypePreference(
-          inApp: true,
-          push: false,
-          frequency: 'daily',
-        ),
-      });
+      final model = NotificationPreferencesModel(
+        types: {
+          'budget_warning': const NotificationTypePreference(
+            inApp: true,
+            push: false,
+            frequency: 'daily',
+          ),
+        },
+      );
 
       final pref = model.forType(NotificationType.budgetWarning);
 
@@ -216,13 +218,15 @@ void main() {
     });
 
     test('toMap produces correct nested map', () {
-      final model = NotificationPreferencesModel(types: {
-        'budget_warning': const NotificationTypePreference(
-          inApp: false,
-          push: true,
-          frequency: 'hourly',
-        ),
-      });
+      final model = NotificationPreferencesModel(
+        types: {
+          'budget_warning': const NotificationTypePreference(
+            inApp: false,
+            push: true,
+            frequency: 'hourly',
+          ),
+        },
+      );
 
       final map = model.toMap();
 
@@ -249,21 +253,25 @@ void main() {
         'updatedAt': now,
       });
 
-      final snapshot =
-          await firestore.collection('settings').doc('test').get();
+      final snapshot = await firestore.collection('settings').doc('test').get();
       final settings = NotificationSettingsModel.fromFirestore(snapshot);
 
       expect(settings.globalMute, true);
       expect(settings.quietHoursStart, '23:00');
       expect(settings.quietHoursEnd, '07:00');
-      expect(settings.updatedAt, now);
+      expect(
+        settings.updatedAt?.millisecondsSinceEpoch,
+        api.Timestamp.fromJson(now).millisecondsSinceEpoch,
+      );
     });
 
     test('fromFirestore uses defaults for missing fields', () async {
       await firestore.collection('settings').doc('empty').set({});
 
-      final snapshot =
-          await firestore.collection('settings').doc('empty').get();
+      final snapshot = await firestore
+          .collection('settings')
+          .doc('empty')
+          .get();
       final settings = NotificationSettingsModel.fromFirestore(snapshot);
 
       expect(settings.globalMute, false);
@@ -328,36 +336,45 @@ void main() {
   group('NotificationType enum', () {
     test('all values have non-empty value strings', () {
       for (final type in NotificationType.values) {
-        expect(type.value, isNotEmpty,
-            reason: '${type.name} has empty value');
+        expect(type.value, isNotEmpty, reason: '${type.name} has empty value');
       }
     });
 
     test('all values have non-empty labels', () {
       for (final type in NotificationType.values) {
-        expect(type.label, isNotEmpty,
-            reason: '${type.name} has empty label');
+        expect(type.label, isNotEmpty, reason: '${type.name} has empty label');
       }
     });
 
     test('all values have valid category', () {
       final validCategories = {'group', 'budget', 'system'};
       for (final type in NotificationType.values) {
-        expect(validCategories.contains(type.category), true,
-            reason:
-                '${type.name} has invalid category: ${type.category}');
+        expect(
+          validCategories.contains(type.category),
+          true,
+          reason: '${type.name} has invalid category: ${type.category}',
+        );
       }
     });
 
     test('value strings match expected Firestore values', () {
       expect(NotificationType.groupExpenseAdded.value, 'group_expense_added');
-      expect(NotificationType.groupExpenseUpdated.value, 'group_expense_updated');
-      expect(NotificationType.groupExpenseDeleted.value, 'group_expense_deleted');
+      expect(
+        NotificationType.groupExpenseUpdated.value,
+        'group_expense_updated',
+      );
+      expect(
+        NotificationType.groupExpenseDeleted.value,
+        'group_expense_deleted',
+      );
       expect(NotificationType.groupInvitation.value, 'group_invitation');
       expect(NotificationType.groupMemberJoined.value, 'group_member_joined');
       expect(NotificationType.groupMemberLeft.value, 'group_member_left');
       expect(NotificationType.groupRoleChanged.value, 'group_role_changed');
-      expect(NotificationType.groupSettingsChanged.value, 'group_settings_changed');
+      expect(
+        NotificationType.groupSettingsChanged.value,
+        'group_settings_changed',
+      );
       expect(NotificationType.budgetWarning.value, 'budget_warning');
       expect(NotificationType.budgetCritical.value, 'budget_critical');
       expect(NotificationType.budgetExceeded.value, 'budget_exceeded');
@@ -378,22 +395,25 @@ void main() {
     });
 
     test('group category has 8 types', () {
-      final groupCat =
-          notificationCategories.firstWhere((c) => c.key == 'group');
+      final groupCat = notificationCategories.firstWhere(
+        (c) => c.key == 'group',
+      );
       expect(groupCat.types.length, 8);
       expect(groupCat.title, 'Group Activity');
     });
 
     test('budget category has 4 types', () {
-      final budgetCat =
-          notificationCategories.firstWhere((c) => c.key == 'budget');
+      final budgetCat = notificationCategories.firstWhere(
+        (c) => c.key == 'budget',
+      );
       expect(budgetCat.types.length, 4);
       expect(budgetCat.title, 'Budget Alerts');
     });
 
     test('system category has 3 types', () {
-      final systemCat =
-          notificationCategories.firstWhere((c) => c.key == 'system');
+      final systemCat = notificationCategories.firstWhere(
+        (c) => c.key == 'system',
+      );
       expect(systemCat.types.length, 3);
       expect(systemCat.title, 'System');
     });
@@ -404,8 +424,11 @@ void main() {
           .toSet();
       expect(allTypesInCategories.length, NotificationType.values.length);
       for (final type in NotificationType.values) {
-        expect(allTypesInCategories.contains(type), true,
-            reason: '${type.name} not covered by any category');
+        expect(
+          allTypesInCategories.contains(type),
+          true,
+          reason: '${type.name} not covered by any category',
+        );
       }
     });
   });

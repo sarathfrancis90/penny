@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class MessageModel {
   MessageModel({
@@ -23,21 +23,22 @@ class MessageModel {
   final MessageExpenseData? expenseData;
   final Map<String, dynamic>? metadata;
 
-  factory MessageModel.fromFirestore(DocumentSnapshot doc) {
+  factory MessageModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return MessageModel(
       id: doc.id,
       conversationId: data['conversationId'] as String? ?? '',
       role: data['role'] as String,
       content: data['content'] as String,
-      timestamp: data['timestamp'] as Timestamp,
+      timestamp: Timestamp.fromJson(data['timestamp']),
       status: data['status'] as String? ?? 'sent',
       attachments: (data['attachments'] as List<dynamic>?)
           ?.map((e) => MessageAttachment.fromMap(e as Map<String, dynamic>))
           .toList(),
       expenseData: data['expenseData'] != null
           ? MessageExpenseData.fromMap(
-              data['expenseData'] as Map<String, dynamic>)
+              data['expenseData'] as Map<String, dynamic>,
+            )
           : null,
       metadata: data['metadata'] as Map<String, dynamic>?,
     );

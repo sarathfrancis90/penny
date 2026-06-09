@@ -1,87 +1,72 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:penny_mobile/core/constants/notification_types.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/notification_preferences_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class NotificationPreferencesRepository {
-  NotificationPreferencesRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  NotificationPreferencesRepository({required ApiClient apiClient})
+    : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
-  /// Stream the global notification settings for a user.
   Stream<NotificationSettingsModel> watchSettings(String userId) {
-    return _db
-        .collection('userNotificationSettings')
-        .doc(userId)
-        .snapshots()
-        .map((snap) {
-      if (!snap.exists) return const NotificationSettingsModel();
-      return NotificationSettingsModel.fromFirestore(snap);
-    });
+    return Stream.fromFuture(_getSettings(userId));
   }
 
-  /// Stream the per-type notification preferences for a user.
+  Future<NotificationSettingsModel> _getSettings(String userId) async {
+    final response = await _api.get(
+      ApiEndpoints.notificationSettings,
+      queryParameters: {'userId': userId},
+    );
+    return NotificationSettingsModel.fromFirestore(
+      apiDocument(mapValue(responseMap(response)['settings'])),
+    );
+  }
+
   Stream<NotificationPreferencesModel> watchPreferences(String userId) {
-    return _db
-        .collection('users')
-        .doc(userId)
-        .collection('notificationPreferences')
-        .doc('default')
-        .snapshots()
-        .map((snap) {
-      if (!snap.exists) return NotificationPreferencesModel.defaults();
-      return NotificationPreferencesModel.fromFirestore(snap);
-    });
+    return Stream.fromFuture(_getPreferences(userId));
   }
 
-  /// Update global notification settings (globalMute, quiet hours).
+  Future<NotificationPreferencesModel> _getPreferences(String userId) async {
+    final response = await _api.get(
+      ApiEndpoints.notificationPreferences,
+      queryParameters: {'userId': userId},
+    );
+    final preferences = mapValue(responseMap(response)['preferences']);
+    if (preferences.isEmpty) return NotificationPreferencesModel.defaults();
+    return NotificationPreferencesModel.fromFirestore(apiDocument(preferences));
+  }
+
   Future<void> updateSettings(
-      String userId, Map<String, dynamic> updates) async {
-    updates['updatedAt'] = FieldValue.serverTimestamp();
-    await _db
-        .collection('userNotificationSettings')
-        .doc(userId)
-        .set(updates, SetOptions(merge: true));
+    String userId,
+    Map<String, dynamic> updates,
+  ) async {
+    await _api.put(
+      ApiEndpoints.notificationSettings,
+      data: {'userId': userId, ...updates},
+    );
   }
 
-  /// Update a single notification type preference.
   Future<void> updateTypePreference(
     String userId,
     NotificationType type,
     NotificationTypePreference pref,
   ) async {
-    await _db
-        .collection('users')
-        .doc(userId)
-        .collection('notificationPreferences')
-        .doc('default')
-        .set({
-      type.value: pref.toMap(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    await _api.put(
+      ApiEndpoints.notificationPreferences,
+      data: {'userId': userId, type.value: pref.toMap()},
+    );
   }
 
-  /// Initialize default values for a new user if documents don't exist yet.
   Future<void> initializeDefaults(String userId) async {
-    final settingsRef =
-        _db.collection('userNotificationSettings').doc(userId);
-    final settingsSnap = await settingsRef.get();
-    if (!settingsSnap.exists) {
-      await settingsRef.set(const NotificationSettingsModel().toMap());
-    }
-
-    final prefsRef = _db
-        .collection('users')
-        .doc(userId)
-        .collection('notificationPreferences')
-        .doc('default');
-    final prefsSnap = await prefsRef.get();
-    if (!prefsSnap.exists) {
-      final defaults = NotificationPreferencesModel.defaults();
-      await prefsRef.set({
-        ...defaults.toMap(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    }
+    await updateSettings(userId, const NotificationSettingsModel().toMap());
+    await _api.put(
+      ApiEndpoints.notificationPreferences,
+      data: {
+        'userId': userId,
+        ...NotificationPreferencesModel.defaults().toMap(),
+      },
+    );
   }
 }

@@ -1,48 +1,47 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class ExpenseRepository {
-  ExpenseRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  ExpenseRepository({required ApiClient apiClient}) : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
-  /// Stream personal expenses for a user.
   Stream<List<ExpenseModel>> watchPersonalExpenses(String userId) {
-    return _db
-        .collection('expenses')
-        .where('userId', isEqualTo: userId)
-        .where('expenseType', isEqualTo: 'personal')
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(ExpenseModel.fromFirestore).toList());
+    return Stream.fromFuture(_listExpenses(scope: 'personal', userId: userId));
   }
 
-  /// Stream expenses for a specific group.
   Stream<List<ExpenseModel>> watchGroupExpenses(String groupId) {
-    return _db
-        .collection('expenses')
-        .where('groupId', isEqualTo: groupId)
-        .where('expenseType', isEqualTo: 'group')
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(ExpenseModel.fromFirestore).toList());
+    return Stream.fromFuture(_listExpenses(scope: 'group', groupId: groupId));
   }
 
-  /// Stream all expenses (personal + group) for a user.
   Stream<List<ExpenseModel>> watchAllExpenses(String userId) {
-    return _db
-        .collection('expenses')
-        .where('userId', isEqualTo: userId)
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(ExpenseModel.fromFirestore).toList());
+    return Stream.fromFuture(_listExpenses(scope: 'all', userId: userId));
   }
 
-  /// Save a personal expense directly to Firestore.
+  Future<List<ExpenseModel>> _listExpenses({
+    required String scope,
+    String? userId,
+    String? groupId,
+    String? approvalStatus,
+  }) async {
+    final response = await _api.get(
+      ApiEndpoints.expenses,
+      queryParameters: {
+        'scope': scope,
+        if (userId != null) 'userId': userId,
+        if (groupId != null) 'groupId': groupId,
+        if (approvalStatus != null) 'approvalStatus': approvalStatus,
+      },
+    );
+    final data = responseMap(response);
+    return listValue(
+      data['expenses'],
+    ).map((json) => ExpenseModel.fromFirestore(apiDocument(json))).toList();
+  }
+
   Future<String> savePersonalExpense({
     required String userId,
     required String vendor,
@@ -51,109 +50,82 @@ class ExpenseRepository {
     required String date,
     String? description,
     String? receiptUrl,
+    String? groupId,
   }) async {
-    final now = Timestamp.now();
-
-    // Parse date string to Timestamp (noon to avoid timezone issues)
-    final parts = date.split('-').map(int.parse).toList();
-    final expenseDate =
-        Timestamp.fromDate(DateTime(parts[0], parts[1], parts[2], 12));
-
-    final docRef = await _db.collection('expenses').add({
-      'userId': userId,
-      'vendor': vendor,
-      'amount': amount,
-      'category': category,
-      'date': expenseDate,
-      'description': description ?? '',
-      'receiptUrl': receiptUrl,
-      'groupId': null,
-      'expenseType': 'personal',
-      'createdAt': now,
-      'updatedAt': now,
-      'syncStatus': 'synced',
-      'history': [
-        {
-          'action': 'created',
-          'by': userId,
-          'at': now,
-        },
-      ],
-    });
-
-    return docRef.id;
+    final response = await _api.post(
+      ApiEndpoints.expenses,
+      data: {
+        'userId': userId,
+        'vendor': vendor,
+        'amount': amount,
+        'category': category,
+        'date': date,
+        if (description != null) 'description': description,
+        if (receiptUrl != null) 'receiptUrl': receiptUrl,
+        if (groupId != null) 'groupId': groupId,
+      },
+    );
+    return (responseMap(response)['id'] ?? '').toString();
   }
 
-  /// Update an expense.
   Future<void> updateExpense({
     required String expenseId,
     required String userId,
     required Map<String, dynamic> updates,
   }) async {
-    final now = Timestamp.now();
-    await _db.collection('expenses').doc(expenseId).update({
-      ...updates,
-      'updatedAt': now,
-      'history': FieldValue.arrayUnion([
-        {
-          'action': 'updated',
-          'by': userId,
-          'at': now,
-        },
-      ]),
-    });
+    await _api.patch(
+      ApiEndpoints.expenseById(expenseId),
+      data: {'userId': userId, ..._apiUpdates(updates)},
+    );
   }
 
-  /// Delete an expense.
   Future<void> deleteExpense(String expenseId) async {
-    await _db.collection('expenses').doc(expenseId).delete();
+    await _api.delete(ApiEndpoints.expenseById(expenseId));
   }
 
-  /// Approve a group expense.
-  Future<void> approveExpense(
-      {required String expenseId, required String userId}) async {
-    final now = Timestamp.now();
-    await _db.collection('expenses').doc(expenseId).update({
-      'groupMetadata.approvalStatus': 'approved',
-      'groupMetadata.approvedBy': userId,
-      'groupMetadata.approvedAt': now,
-      'updatedAt': now,
-      'history': FieldValue.arrayUnion([
-        {'action': 'approved', 'by': userId, 'at': now},
-      ]),
-    });
+  Future<void> approveExpense({
+    required String expenseId,
+    required String userId,
+  }) async {
+    await _api.post(
+      ApiEndpoints.approveExpense(expenseId),
+      data: {'userId': userId},
+    );
   }
 
-  /// Reject a group expense with an optional reason.
-  Future<void> rejectExpense(
-      {required String expenseId,
-      required String userId,
-      String? reason}) async {
-    final now = Timestamp.now();
-    await _db.collection('expenses').doc(expenseId).update({
-      'groupMetadata.approvalStatus': 'rejected',
-      'groupMetadata.rejectedReason': reason,
-      'groupMetadata.rejectedAt': now,
-      'updatedAt': now,
-      'history': FieldValue.arrayUnion([
-        {
-          'action': 'rejected',
-          'by': userId,
-          'at': now,
-          'changes': {'reason': reason},
-        },
-      ]),
-    });
+  Future<void> rejectExpense({
+    required String expenseId,
+    required String userId,
+    String? reason,
+  }) async {
+    await _api.post(
+      ApiEndpoints.rejectExpense(expenseId),
+      data: {'userId': userId, if (reason != null) 'reason': reason},
+    );
   }
 
-  /// Stream pending group expenses awaiting approval.
   Stream<List<ExpenseModel>> watchPendingGroupExpenses(String groupId) {
-    return _db
-        .collection('expenses')
-        .where('groupId', isEqualTo: groupId)
-        .where('groupMetadata.approvalStatus', isEqualTo: 'pending')
-        .orderBy('date', descending: true)
-        .snapshots()
-        .map((snap) => snap.docs.map(ExpenseModel.fromFirestore).toList());
+    return Stream.fromFuture(
+      _listExpenses(
+        scope: 'group',
+        groupId: groupId,
+        approvalStatus: 'pending',
+      ),
+    );
+  }
+
+  Map<String, dynamic> _apiUpdates(Map<String, dynamic> updates) {
+    return updates.map((key, value) {
+      if (value is Timestamp) return MapEntry(key, _dateString(value.toDate()));
+      if (value is DateTime) return MapEntry(key, _dateString(value));
+      return MapEntry(key, value);
+    });
+  }
+
+  String _dateString(DateTime date) {
+    final local = date.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    return '${local.year}-$month-$day';
   }
 }

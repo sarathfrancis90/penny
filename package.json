@@ -20,6 +20,7 @@
     "api:contract": "tsx scripts/api/generate-openapi.ts --check",
     "api:parity": "tsx scripts/api/compare-old-new.ts",
     "api:smoke": "tsx scripts/api/smoke-api.ts",
+    "mobile:api-only:check": "tsx scripts/mobile/check-api-only.ts",
     "docs:agents:generate": "tsx scripts/agents/generate-agent-docs.ts",
     "docs:agents:check": "tsx scripts/agents/generate-agent-docs.ts --check",
     "docs:agents:lint": "tsx scripts/agents/lint-agent-docs.ts",

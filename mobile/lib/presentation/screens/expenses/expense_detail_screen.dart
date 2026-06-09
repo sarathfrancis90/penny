@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,8 +33,10 @@ class ExpenseDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateStr = DateFormat('EEEE, MMMM d, y').format(expense.date.toDate());
-    final amountStr = NumberFormat.currency(symbol: '\$', decimalDigits: 2)
-        .format(expense.amount);
+    final amountStr = NumberFormat.currency(
+      symbol: '\$',
+      decimalDigits: 2,
+    ).format(expense.amount);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,7 +56,9 @@ class ExpenseDetailScreen extends ConsumerWidget {
                   _showEditSheet(context, ref);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sample data cannot be modified')),
+                    const SnackBar(
+                      content: Text('Sample data cannot be modified'),
+                    ),
                   );
                 }
                 return;
@@ -73,7 +76,9 @@ class ExpenseDetailScreen extends ConsumerWidget {
                   Navigator.pop(context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sample data cannot be modified')),
+                    const SnackBar(
+                      content: Text('Sample data cannot be modified'),
+                    ),
                   );
                 }
                 return;
@@ -152,12 +157,19 @@ class ExpenseDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
-                  Icon(Icons.receipt_long_outlined,
-                      size: 16, color: Theme.of(context).hintColor),
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 16,
+                    color: Theme.of(context).hintColor,
+                  ),
                   const SizedBox(width: 8),
-                  Text('No receipt attached',
-                      style: TextStyle(
-                          fontSize: 13, color: Theme.of(context).hintColor)),
+                  Text(
+                    'No receipt attached',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).hintColor,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -168,13 +180,16 @@ class ExpenseDetailScreen extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => _confirmDelete(context, ref),
             icon: const Icon(Icons.delete_outline, color: AppColors.error),
-            label: const Text('Delete Expense',
-                style: TextStyle(color: AppColors.error)),
+            label: const Text(
+              'Delete Expense',
+              style: TextStyle(color: AppColors.error),
+            ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: AppColors.error),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ],
@@ -184,7 +199,8 @@ class ExpenseDetailScreen extends ConsumerWidget {
 
   void _shareExpense(BuildContext context) {
     final dateStr = DateFormat('MMM d, y').format(expense.date.toDate());
-    final text = '${expense.vendor} — \$${expense.amount.toStringAsFixed(2)}\n'
+    final text =
+        '${expense.vendor} — \$${expense.amount.toStringAsFixed(2)}\n'
         'Category: ${expense.category}\n'
         'Date: $dateStr\n'
         '${expense.description ?? ''}\n\n'
@@ -201,8 +217,11 @@ class ExpenseDetailScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded,
-                  size: 48, color: AppColors.error),
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 48,
+                color: AppColors.error,
+              ),
               const SizedBox(height: 16),
               const Text(
                 'Delete this expense?',
@@ -212,7 +231,9 @@ class ExpenseDetailScreen extends ConsumerWidget {
               Text(
                 '${expense.vendor} — \$${expense.amount.toStringAsFixed(2)}',
                 style: TextStyle(
-                    fontSize: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  fontSize: 15,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
@@ -227,7 +248,8 @@ class ExpenseDetailScreen extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.error),
+                        backgroundColor: AppColors.error,
+                      ),
                       onPressed: () async {
                         Navigator.pop(ctx); // close confirmation sheet
 
@@ -236,17 +258,20 @@ class ExpenseDetailScreen extends ConsumerWidget {
                         final messenger = ScaffoldMessenger.of(context);
 
                         // Delete
-                        if (expense.groupId != null && expense.expenseType == 'group') {
-                          await ref.read(apiClientProvider).delete(
-                            '/api/expenses/${expense.id}',
-                          );
+                        if (expense.groupId != null &&
+                            expense.expenseType == 'group') {
+                          await ref
+                              .read(apiClientProvider)
+                              .delete('/api/expenses/${expense.id}');
                         } else {
-                          await ref.read(expenseRepositoryProvider)
+                          await ref
+                              .read(expenseRepositoryProvider)
                               .deleteExpense(expense.id);
                         }
 
                         HapticFeedback.mediumImpact();
-                        if (context.mounted) Navigator.pop(context); // go back to list
+                        if (context.mounted)
+                          Navigator.pop(context); // go back to list
 
                         // Show undo SnackBar on parent scaffold
                         messenger.showSnackBar(
@@ -263,16 +288,18 @@ class ExpenseDetailScreen extends ConsumerWidget {
                               onPressed: () async {
                                 // Re-create the expense from cached data
                                 try {
-                                  await ref.read(expenseRepositoryProvider)
+                                  await ref
+                                      .read(expenseRepositoryProvider)
                                       .savePersonalExpense(
-                                    userId: cachedExpense.userId,
-                                    vendor: cachedExpense.vendor,
-                                    amount: cachedExpense.amount,
-                                    category: cachedExpense.category,
-                                    date: '${cachedExpense.date.toDate().year}-${cachedExpense.date.toDate().month.toString().padLeft(2, '0')}-${cachedExpense.date.toDate().day.toString().padLeft(2, '0')}',
-                                    description: cachedExpense.description,
-                                    receiptUrl: cachedExpense.receiptUrl,
-                                  );
+                                        userId: cachedExpense.userId,
+                                        vendor: cachedExpense.vendor,
+                                        amount: cachedExpense.amount,
+                                        category: cachedExpense.category,
+                                        date:
+                                            '${cachedExpense.date.toDate().year}-${cachedExpense.date.toDate().month.toString().padLeft(2, '0')}-${cachedExpense.date.toDate().day.toString().padLeft(2, '0')}',
+                                        description: cachedExpense.description,
+                                        receiptUrl: cachedExpense.receiptUrl,
+                                      );
                                   HapticFeedback.mediumImpact();
                                 } catch (_) {}
                               },
@@ -431,10 +458,12 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
   void initState() {
     super.initState();
     _vendorController = TextEditingController(text: widget.expense.vendor);
-    _amountController =
-        TextEditingController(text: widget.expense.amount.toStringAsFixed(2));
-    _descriptionController =
-        TextEditingController(text: widget.expense.description ?? '');
+    _amountController = TextEditingController(
+      text: widget.expense.amount.toStringAsFixed(2),
+    );
+    _descriptionController = TextEditingController(
+      text: widget.expense.description ?? '',
+    );
     _selectedCategory = widget.expense.category;
     _selectedDate = widget.expense.date.toDate();
   }
@@ -461,35 +490,26 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
         'amount': amount,
         'category': _selectedCategory,
         'description': _descriptionController.text.trim(),
-        'date': '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
+        'date':
+            '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
       };
 
-      // Group expenses go through API (triggers notifications to members)
-      if (widget.expense.groupId != null && widget.expense.expenseType == 'group') {
-        await widget.ref.read(apiClientProvider).patch(
-          '/api/expenses/${widget.expense.id}',
-          data: updates,
-        );
-      } else {
-        await widget.ref.read(expenseRepositoryProvider).updateExpense(
-          expenseId: widget.expense.id,
-          userId: user!.uid,
-          updates: {
-            ...updates,
-            'date': Timestamp.fromDate(
-                DateTime(_selectedDate.year, _selectedDate.month,
-                    _selectedDate.day, 12)),
-          },
-        );
-      }
+      await widget.ref
+          .read(expenseRepositoryProvider)
+          .updateExpense(
+            expenseId: widget.expense.id,
+            userId: user!.uid,
+            updates: updates,
+          );
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to update: $e'),
-              backgroundColor: AppColors.error),
+            content: Text('Failed to update: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -527,7 +547,10 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
           TextField(
             controller: _amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount', prefixText: '\$ '),
+            decoration: const InputDecoration(
+              hintText: 'Amount',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: 12),
 
@@ -540,7 +563,10 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
             isExpanded: true,
             items: expenseCategories.map((c) {
               final short = c.length > 40 ? '${c.substring(0, 40)}...' : c;
-              return DropdownMenuItem(value: c, child: Text(short, style: const TextStyle(fontSize: 14)));
+              return DropdownMenuItem(
+                value: c,
+                child: Text(short, style: const TextStyle(fontSize: 14)),
+              );
             }).toList(),
             onChanged: (v) {
               if (v != null) setState(() => _selectedCategory = v);
@@ -551,7 +577,8 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
           // Date picker
           Semantics(
             button: true,
-            label: 'Select date, currently ${DateFormat('MMM d, y').format(_selectedDate)}',
+            label:
+                'Select date, currently ${DateFormat('MMM d, y').format(_selectedDate)}',
             child: InkWell(
               onTap: () async {
                 final picked = await showDatePicker(
@@ -573,7 +600,9 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
           // Description
           TextField(
             controller: _descriptionController,
-            decoration: const InputDecoration(hintText: 'Description (optional)'),
+            decoration: const InputDecoration(
+              hintText: 'Description (optional)',
+            ),
             maxLines: 2,
           ),
           const SizedBox(height: 20),
@@ -585,7 +614,10 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Text('Save Changes'),
           ),
         ],

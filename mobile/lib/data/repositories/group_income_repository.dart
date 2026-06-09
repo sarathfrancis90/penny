@@ -1,21 +1,25 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/group_income_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class GroupIncomeRepository {
-  GroupIncomeRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  GroupIncomeRepository({required ApiClient apiClient}) : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
   Stream<List<GroupIncomeSourceModel>> watchGroupIncomeSources(String groupId) {
-    return _db
-        .collection('income_sources_group')
-        .where('groupId', isEqualTo: groupId)
-        .where('isActive', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(GroupIncomeSourceModel.fromFirestore).toList());
+    return Stream.fromFuture(_listGroupIncome(groupId));
+  }
+
+  Future<List<GroupIncomeSourceModel>> _listGroupIncome(String groupId) async {
+    final response = await _api.get(
+      ApiEndpoints.groupIncome,
+      queryParameters: {'groupId': groupId},
+    );
+    return listValue(responseMap(response)['incomeSources'])
+        .map((json) => GroupIncomeSourceModel.fromFirestore(apiDocument(json)))
+        .toList();
   }
 
   Future<String> createGroupIncomeSource({
@@ -33,38 +37,37 @@ class GroupIncomeRepository {
     String splitType = 'equal',
     int? recurringDate,
   }) async {
-    final now = Timestamp.now();
-    final doc = await _db.collection('income_sources_group').add({
-      'groupId': groupId,
-      'addedBy': addedBy,
-      'name': name,
-      'category': category,
-      'amount': amount,
-      'frequency': frequency,
-      'isRecurring': isRecurring,
-      'isActive': true,
-      'taxable': taxable,
-      'currency': currency,
-      'startDate': now,
-      'createdAt': now,
-      'updatedAt': now,
-      'splitType': splitType,
-      if (description != null) 'description': description,
-      if (contributedBy != null) 'contributedBy': contributedBy,
-      if (recurringDate != null) 'recurringDate': recurringDate,
-    });
-    return doc.id;
+    final response = await _api.post(
+      ApiEndpoints.groupIncome,
+      data: {
+        'groupId': groupId,
+        'userId': addedBy,
+        'addedBy': addedBy,
+        'name': name,
+        'category': category,
+        'amount': amount,
+        'frequency': frequency,
+        'isRecurring': isRecurring,
+        'isActive': true,
+        'taxable': taxable,
+        'currency': currency,
+        'splitType': splitType,
+        if (description != null) 'description': description,
+        if (contributedBy != null) 'contributedBy': contributedBy,
+        if (recurringDate != null) 'recurringDate': recurringDate,
+      },
+    );
+    return (responseMap(response)['id'] ?? '').toString();
   }
 
   Future<void> updateGroupIncomeSource(
-      String id, Map<String, dynamic> updates) {
-    return _db.collection('income_sources_group').doc(id).update({
-      ...updates,
-      'updatedAt': Timestamp.now(),
-    });
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    await _api.patch(ApiEndpoints.groupIncomeById(id), data: updates);
   }
 
-  Future<void> deleteGroupIncomeSource(String id) {
-    return _db.collection('income_sources_group').doc(id).delete();
+  Future<void> deleteGroupIncomeSource(String id) async {
+    await _api.delete(ApiEndpoints.groupIncomeById(id));
   }
 }

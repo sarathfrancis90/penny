@@ -1,50 +1,39 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/notification_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class NotificationRepository {
-  NotificationRepository({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  NotificationRepository({required ApiClient apiClient}) : _api = apiClient;
 
-  final FirebaseFirestore _db;
+  final ApiClient _api;
 
-  /// Stream notifications for a user, ordered by newest first.
   Stream<List<NotificationModel>> watchNotifications(String userId) {
-    return _db
-        .collection('notifications')
-        .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .limit(50)
-        .snapshots()
-        .map((snap) =>
-            snap.docs.map(NotificationModel.fromFirestore).toList());
+    return Stream.fromFuture(_listNotifications(userId));
   }
 
-  /// Mark a single notification as read.
-  Future<void> markAsRead(String notificationId) {
-    return _db.collection('notifications').doc(notificationId).update({
-      'read': true,
-      'readAt': Timestamp.now(),
-    });
+  Future<List<NotificationModel>> _listNotifications(String userId) async {
+    final response = await _api.get(
+      ApiEndpoints.notifications,
+      queryParameters: {'userId': userId},
+    );
+    return listValue(responseMap(response)['notifications'])
+        .map((json) => NotificationModel.fromFirestore(apiDocument(json)))
+        .toList();
   }
 
-  /// Mark all notifications as read for a user.
+  Future<void> markAsRead(String notificationId) async {
+    await _api.patch(ApiEndpoints.notificationRead(notificationId));
+  }
+
   Future<void> markAllAsRead(String userId) async {
-    final snap = await _db
-        .collection('notifications')
-        .where('userId', isEqualTo: userId)
-        .where('read', isEqualTo: false)
-        .get();
-
-    final batch = _db.batch();
-    final now = Timestamp.now();
-    for (final doc in snap.docs) {
-      batch.update(doc.reference, {'read': true, 'readAt': now});
-    }
-    await batch.commit();
+    await _api.post(
+      ApiEndpoints.markAllNotificationsRead,
+      data: {'userId': userId},
+    );
   }
 
-  /// Delete a notification.
-  Future<void> deleteNotification(String notificationId) {
-    return _db.collection('notifications').doc(notificationId).delete();
+  Future<void> deleteNotification(String notificationId) async {
+    await _api.delete(ApiEndpoints.notifications + '/$notificationId');
   }
 }

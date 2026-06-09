@@ -72,7 +72,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
       return;
     }
 
-    // Guest mode: save locally, skip all Firestore logic
+    // Guest mode: save locally and skip authenticated API calls.
     if (ref.read(guestModeProvider)) {
       final notifier = ref.read(guestExpenseProvider.notifier);
       final result = notifier.add(
@@ -176,7 +176,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
               },
             );
       } else {
-        // Personal expense — direct Firestore
+        // Personal expense through the API-backed repository.
         await ref
             .read(expenseRepositoryProvider)
             .savePersonalExpense(

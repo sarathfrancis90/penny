@@ -23,12 +23,13 @@ final activeIncomeSourcesProvider = Provider<List<IncomeSourceModel>>((ref) {
 final totalMonthlyIncomeProvider = Provider<double>((ref) {
   final sources = ref.watch(activeIncomeSourcesProvider);
   return sources.fold(0.0, (sum, s) {
-    return sum + switch (s.frequency) {
-      'monthly' => s.amount,
-      'biweekly' => s.amount * 26 / 12,
-      'weekly' => s.amount * 52 / 12,
-      'yearly' => s.amount / 12,
-      _ => s.amount,
-    };
+    return sum +
+        switch (s.frequency) {
+          'monthly' => s.amount,
+          'biweekly' => s.amount * 26 / 12,
+          'weekly' => s.amount * 52 / 12,
+          'yearly' => s.amount / 12,
+          _ => s.amount,
+        };
   });
 });

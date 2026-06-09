@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/group_income_model.dart';
@@ -53,38 +54,44 @@ void main() {
       expect(income.splitType, 'proportional');
       expect(income.description, 'Monthly consulting income');
       expect(income.netAmount, 4200.00);
-      expect(income.startDate, startDate);
+      expect(
+        income.startDate?.millisecondsSinceEpoch,
+        api.Timestamp.fromJson(startDate).millisecondsSinceEpoch,
+      );
       expect(income.recurringDate, 15);
     });
 
-    test('fromFirestore handles missing optional fields with defaults', () async {
-      final now = Timestamp.now();
-      final doc = await firestore.collection('income_sources_group').add({
-        'groupId': 'group-1',
-        'addedBy': 'user-1',
-        'name': 'Side project',
-        'amount': 1000,
-        'createdAt': now,
-        'updatedAt': now,
-      });
+    test(
+      'fromFirestore handles missing optional fields with defaults',
+      () async {
+        final now = Timestamp.now();
+        final doc = await firestore.collection('income_sources_group').add({
+          'groupId': 'group-1',
+          'addedBy': 'user-1',
+          'name': 'Side project',
+          'amount': 1000,
+          'createdAt': now,
+          'updatedAt': now,
+        });
 
-      final snapshot = await doc.get();
-      final income = GroupIncomeSourceModel.fromFirestore(snapshot);
+        final snapshot = await doc.get();
+        final income = GroupIncomeSourceModel.fromFirestore(snapshot);
 
-      expect(income.name, 'Side project');
-      expect(income.category, 'other');
-      expect(income.frequency, 'monthly');
-      expect(income.isRecurring, true);
-      expect(income.isActive, true);
-      expect(income.taxable, true);
-      expect(income.currency, 'CAD');
-      expect(income.splitType, 'equal');
-      expect(income.contributedBy, isNull);
-      expect(income.description, isNull);
-      expect(income.netAmount, isNull);
-      expect(income.startDate, isNull);
-      expect(income.recurringDate, isNull);
-    });
+        expect(income.name, 'Side project');
+        expect(income.category, 'other');
+        expect(income.frequency, 'monthly');
+        expect(income.isRecurring, true);
+        expect(income.isActive, true);
+        expect(income.taxable, true);
+        expect(income.currency, 'CAD');
+        expect(income.splitType, 'equal');
+        expect(income.contributedBy, isNull);
+        expect(income.description, isNull);
+        expect(income.netAmount, isNull);
+        expect(income.startDate, isNull);
+        expect(income.recurringDate, isNull);
+      },
+    );
 
     test('amount handles int values from Firestore', () async {
       final now = Timestamp.now();
@@ -118,8 +125,8 @@ void main() {
         isActive: true,
         taxable: true,
         currency: 'CAD',
-        createdAt: now,
-        updatedAt: now,
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
       );
 
       final map = income.toFirestore();
@@ -150,12 +157,12 @@ void main() {
         isActive: true,
         taxable: true,
         currency: 'CAD',
-        createdAt: now,
-        updatedAt: now,
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
         contributedBy: 'user-2',
         description: 'Main salary',
         netAmount: 6500.00,
-        startDate: now,
+        startDate: api.Timestamp.fromJson(now),
         recurringDate: 1,
       );
 
@@ -164,7 +171,10 @@ void main() {
       expect(map['contributedBy'], 'user-2');
       expect(map['description'], 'Main salary');
       expect(map['netAmount'], 6500.00);
-      expect(map['startDate'], now);
+      expect(
+        (map['startDate'] as api.Timestamp).millisecondsSinceEpoch,
+        api.Timestamp.fromJson(now).millisecondsSinceEpoch,
+      );
       expect(map['recurringDate'], 1);
     });
 
@@ -183,8 +193,8 @@ void main() {
           isActive: true,
           taxable: true,
           currency: 'CAD',
-          createdAt: now,
-          updatedAt: now,
+          createdAt: api.Timestamp.fromJson(now),
+          updatedAt: api.Timestamp.fromJson(now),
         );
       }
 
@@ -228,8 +238,8 @@ void main() {
           isActive: true,
           taxable: true,
           currency: 'CAD',
-          createdAt: now,
-          updatedAt: now,
+          createdAt: api.Timestamp.fromJson(now),
+          updatedAt: api.Timestamp.fromJson(now),
         );
       }
 

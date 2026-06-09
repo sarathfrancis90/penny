@@ -13,6 +13,7 @@ const sampleValues: Record<string, string> = {
   groupId: 'group-1',
   memberId: 'member-1',
   conversationId: 'conversation-1',
+  deviceId: 'device-1',
 };
 
 function materializePath(route: RouteSurfaceEntry) {
@@ -35,6 +36,46 @@ function normalizeRegisteredPath(path: string) {
   return path.replace(/:([A-Za-z0-9_]+)/g, '{$1}');
 }
 
+function addIncomeRoutes(routes: Set<string>, prefix: string) {
+  routes.add(`GET ${prefix}`);
+  routes.add(`POST ${prefix}`);
+  routes.add(`GET ${prefix}/{id}`);
+  routes.add(`PATCH ${prefix}/{id}`);
+  routes.add(`PUT ${prefix}/{id}`);
+  routes.add(`DELETE ${prefix}/{id}`);
+}
+
+function addSavingsRoutes(routes: Set<string>, prefix: string) {
+  routes.add(`GET ${prefix}`);
+  routes.add(`POST ${prefix}`);
+  routes.add(`GET ${prefix}/{id}`);
+  routes.add(`PATCH ${prefix}/{id}`);
+  routes.add(`PUT ${prefix}/{id}`);
+  routes.add(`POST ${prefix}/{id}/contributions`);
+  routes.add(`DELETE ${prefix}/{id}`);
+}
+
+function addRouteHelperExpansions(content: string, routes: Set<string>) {
+  for (const match of content.matchAll(
+    /registerIncomeRoutes\(\s*app,\s*[^,]+,\s*['"`](?:personal|group)['"`],\s*['"`]([^'"`]+)['"`]/g,
+  )) {
+    addIncomeRoutes(routes, match[1]);
+  }
+
+  for (const match of content.matchAll(
+    /registerSavingsRoutes\(\s*app,\s*[^,]+,\s*['"`](?:personal|group)['"`],\s*['"`]([^'"`]+)['"`]/g,
+  )) {
+    addSavingsRoutes(routes, match[1]);
+  }
+
+  for (const match of content.matchAll(
+    /registerMediaRoutes\(\s*app,\s*[^,]+,\s*['"`](receipt|avatar)['"`]/g,
+  )) {
+    routes.add(`POST /api/media/${match[1]}`);
+    routes.add(`DELETE /api/media/${match[1]}`);
+  }
+}
+
 function registeredRoutesFromSource() {
   const routeFiles = [
     join(process.cwd(), 'apps/api/src/app.ts'),
@@ -46,8 +87,12 @@ function registeredRoutesFromSource() {
     for (const match of content.matchAll(
       /app\.(get|post|patch|put|delete)\(\s*['"`]([^'"`]+)['"`]/g,
     )) {
-      routes.add(`${match[1].toUpperCase()} ${normalizeRegisteredPath(match[2])}`);
+      const normalizedPath = normalizeRegisteredPath(match[2]);
+      if (!normalizedPath.includes('${')) {
+        routes.add(`${match[1].toUpperCase()} ${normalizedPath}`);
+      }
     }
+    addRouteHelperExpansions(content, routes);
   }
   return routes;
 }

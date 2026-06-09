@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/data/services/export_service.dart';
@@ -41,7 +41,10 @@ void main() {
         final csv = exportService.generateCsv([]);
 
         // BOM + header
-        expect(csv, contains('Date,Vendor,Category,Amount,Type,Group,Description'));
+        expect(
+          csv,
+          contains('Date,Vendor,Category,Amount,Type,Group,Description'),
+        );
       });
 
       test('starts with BOM for Excel compatibility', () {
@@ -64,8 +67,10 @@ void main() {
         final lines = csv.split('\n');
 
         // line[0] = BOM + header, line[1] = data row
-        expect(lines[1],
-            '2025-03-15,Tim Hortons,Meals and entertainment,14.50,personal,,Coffee and donut');
+        expect(
+          lines[1],
+          '2025-03-15,Tim Hortons,Meals and entertainment,14.50,personal,,Coffee and donut',
+        );
       });
 
       test('produces correct CSV for multiple expenses', () {
@@ -200,8 +205,9 @@ void main() {
       });
 
       test('escapes descriptions containing commas', () {
-        final expense =
-            _makeExpense(description: 'Coffee, donut, and sandwich');
+        final expense = _makeExpense(
+          description: 'Coffee, donut, and sandwich',
+        );
 
         final csv = exportService.generateCsv([expense]);
 

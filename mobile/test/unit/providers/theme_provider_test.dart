@@ -9,7 +9,9 @@ void main() {
 
     setUpAll(() async {
       // Initialize Hive for testing with an in-memory backend.
-      Hive.init('/tmp/hive_test_theme_${DateTime.now().millisecondsSinceEpoch}');
+      Hive.init(
+        '/tmp/hive_test_theme_${DateTime.now().millisecondsSinceEpoch}',
+      );
       box = await Hive.openBox('app_preferences');
     });
 

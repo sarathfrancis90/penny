@@ -120,10 +120,33 @@ function routeSource(path: string) {
     return 'apps/api/src/routes/ai/routes.ts';
   }
   if (path.startsWith('/api/expenses')) {
-    return 'apps/api/src/routes/expenses/routes.ts';
+    return path.includes('/approve') ||
+      path.includes('/reject') ||
+      path.includes('/duplicate-check')
+      ? 'apps/api/src/routes/mobile-data/routes.ts'
+      : 'apps/api/src/routes/expenses/routes.ts';
+  }
+  if (
+    path.includes('/activities') ||
+    path.includes('/membership/me') ||
+    path.includes('/invitations/{id}/decline')
+  ) {
+    return 'apps/api/src/routes/mobile-data/routes.ts';
   }
   if (path.startsWith('/api/groups')) {
     return 'apps/api/src/routes/groups/routes.ts';
+  }
+  if (
+    path.startsWith('/api/income') ||
+    path.startsWith('/api/savings') ||
+    path.startsWith('/api/notifications') ||
+    path.startsWith('/api/notification-') ||
+    path.startsWith('/api/push-tokens') ||
+    path.startsWith('/api/media') ||
+    path === '/api/user/profile' ||
+    path === '/api/user/preferences'
+  ) {
+    return 'apps/api/src/routes/mobile-data/routes.ts';
   }
   if (path.startsWith('/api/budgets')) {
     return 'apps/api/src/routes/budgets/routes.ts';
@@ -141,9 +164,6 @@ function routeSource(path: string) {
 }
 
 function routeStatus(method: string, path: string) {
-  if (method === 'GET' && path === '/api/expenses') {
-    return 'placeholder: returns an empty list in standalone API v1';
-  }
   if (path === '/api/privacy/delete-my-data' || path === '/api/cron/store-metrics') {
     return 'compatibility placeholder';
   }
@@ -155,10 +175,37 @@ function routeStatus(method: string, path: string) {
 
 function normalizeApiEndpoint(symbol: string, dartPath: string) {
   if (symbol === 'groupById') return '/api/groups/{groupId}';
+  if (symbol === 'groupActivities') return '/api/groups/{groupId}/activities';
+  if (symbol === 'myGroupMembership') return '/api/groups/{groupId}/membership/me';
   if (symbol === 'groupMembers') return '/api/groups/{groupId}/members';
+  if (symbol === 'groupLeave') return '/api/groups/{groupId}/leave';
+  if (symbol === 'declineInvitation') {
+    return '/api/groups/invitations/{id}/decline';
+  }
+  if (symbol === 'expenseById') return '/api/expenses/{id}';
+  if (symbol === 'approveExpense') return '/api/expenses/{id}/approve';
+  if (symbol === 'rejectExpense') return '/api/expenses/{id}/reject';
+  if (symbol === 'personalBudgetById') return '/api/budgets/personal/{id}';
+  if (symbol === 'groupBudgetById') return '/api/budgets/group/{id}';
+  if (symbol === 'personalIncomeById') return '/api/income/personal/{id}';
+  if (symbol === 'groupIncomeById') return '/api/income/group/{id}';
+  if (symbol === 'personalSavingsById') return '/api/savings/personal/{id}';
+  if (symbol === 'personalSavingsContribution') {
+    return '/api/savings/personal/{id}/contributions';
+  }
+  if (symbol === 'groupSavingsById') return '/api/savings/group/{id}';
+  if (symbol === 'groupSavingsContribution') {
+    return '/api/savings/group/{id}/contributions';
+  }
+  if (symbol === 'conversationById') return '/api/conversations/{conversationId}';
+  if (symbol === 'conversationMessages') {
+    return '/api/conversations/{conversationId}/messages';
+  }
   if (symbol === 'generateConversationTitle') {
     return '/api/conversations/{conversationId}/generate-title';
   }
+  if (symbol === 'notificationRead') return '/api/notifications/{id}/read';
+  if (symbol === 'pushToken') return '/api/push-tokens/{deviceId}';
   return dartPath.replaceAll('$id', '{id}');
 }
 
@@ -426,6 +473,7 @@ ${rows}
 function renderValidationCommands(rootDir: string) {
   const scripts = packageScripts(rootDir);
   const selectedScripts = [
+    'mobile:api-only:check',
     'docs:agents:generate',
     'docs:agents:check',
     'docs:agents:lint',
@@ -454,9 +502,10 @@ ${selectedScripts.map((script) => `- \`npm run ${script}\` -> \`${scripts[script
 ## Mobile Commands
 
 - \`cd mobile && flutter pub get\`
-- \`cd mobile && flutter analyze\`
+- \`cd mobile && flutter analyze lib --no-fatal-infos\`
 - \`cd mobile && flutter test\`
 - \`cd mobile && flutter test integration_test\`
+- \`npm run mobile:api-only:check\`
 
 ## Standalone API Commands
 

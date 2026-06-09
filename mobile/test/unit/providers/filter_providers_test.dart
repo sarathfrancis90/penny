@@ -28,8 +28,9 @@ void main() {
           groupIdFilter: 'group-1',
         );
 
-        final updated =
-            original.copyWith(typeFilter: ExpenseTypeFilter.personal);
+        final updated = original.copyWith(
+          typeFilter: ExpenseTypeFilter.personal,
+        );
 
         expect(updated.typeFilter, ExpenseTypeFilter.personal);
         expect(updated.categoryFilter, 'Meals and entertainment');
@@ -43,8 +44,9 @@ void main() {
           groupIdFilter: 'group-1',
         );
 
-        final updated =
-            original.copyWith(categoryFilter: () => 'Office expenses');
+        final updated = original.copyWith(
+          categoryFilter: () => 'Office expenses',
+        );
 
         expect(updated.typeFilter, ExpenseTypeFilter.personal);
         expect(updated.categoryFilter, 'Office expenses');
@@ -120,8 +122,7 @@ void main() {
       expect(DashboardPeriod.values, contains(DashboardPeriod.thisWeek));
       expect(DashboardPeriod.values, contains(DashboardPeriod.thisMonth));
       expect(DashboardPeriod.values, contains(DashboardPeriod.lastMonth));
-      expect(
-          DashboardPeriod.values, contains(DashboardPeriod.threeMonths));
+      expect(DashboardPeriod.values, contains(DashboardPeriod.threeMonths));
       expect(DashboardPeriod.values, contains(DashboardPeriod.thisYear));
       expect(DashboardPeriod.values, contains(DashboardPeriod.custom));
     });
@@ -134,8 +135,7 @@ void main() {
 
     test('contains all, personal, group', () {
       expect(ExpenseTypeFilter.values, contains(ExpenseTypeFilter.all));
-      expect(
-          ExpenseTypeFilter.values, contains(ExpenseTypeFilter.personal));
+      expect(ExpenseTypeFilter.values, contains(ExpenseTypeFilter.personal));
       expect(ExpenseTypeFilter.values, contains(ExpenseTypeFilter.group));
     });
   });

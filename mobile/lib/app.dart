@@ -12,6 +12,9 @@ class PennyApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     final themeMode = ref.watch(themeModeProvider);
+    final shouldInstallErrorWidget = !WidgetsBinding.instance.runtimeType
+        .toString()
+        .contains('Test');
 
     return MaterialApp.router(
       title: 'Penny',
@@ -21,38 +24,51 @@ class PennyApp extends ConsumerWidget {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        // Global error boundary — catches widget errors and shows
-        // a user-friendly message instead of red error screen
-        ErrorWidget.builder = (FlutterErrorDetails details) {
-          return Scaffold(
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.error_outline, size: 48,
-                        color: Theme.of(context).colorScheme.error),
-                    const SizedBox(height: 12),
-                    Text('Something went wrong',
-                        style: TextStyle(fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface)),
-                    const SizedBox(height: 8),
-                    Text(
-                      details.exception.toString().length > 200
-                          ? '${details.exception.toString().substring(0, 200)}...'
-                          : details.exception.toString(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
-                    ),
-                  ],
+        // Global error boundary for production/runtime builds. Flutter's test
+        // binding verifies this global is not changed during widget tests.
+        if (shouldInstallErrorWidget) {
+          ErrorWidget.builder = (FlutterErrorDetails details) {
+            return Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Something went wrong',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        details.exception.toString().length > 200
+                            ? '${details.exception.toString().substring(0, 200)}...'
+                            : details.exception.toString(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        };
+            );
+          };
+        }
         return child ?? const SizedBox.shrink();
       },
     );

@@ -4,6 +4,7 @@ import { createFirestoreBudgetService } from './firestore-budgets';
 import { createFirestoreConversationService } from './firestore-conversations';
 import { createFirestoreExpenseService } from './firestore-expenses';
 import { createFirestoreGroupService } from './firestore-groups';
+import { createFirestoreMobileDataService } from './firestore-mobile-data';
 import { createFirestoreUserPreferenceService } from './firestore-user-preferences';
 import { createFirestoreNotificationService } from './notifications';
 import { initializeFirebaseAdmin } from './firebase-admin';
@@ -29,6 +30,11 @@ export function createProductionServices(): ApiServices {
     conversations: createFirestoreConversationService(firebase.db),
     expenses: createFirestoreExpenseService(firebase.db, notifications),
     groups: createFirestoreGroupService(firebase.db, notifications),
+    mobileData: createFirestoreMobileDataService(
+      firebase.db,
+      firebase.auth,
+      firebase.storage,
+    ),
     notifications,
     userPreferences: createFirestoreUserPreferenceService(firebase.db),
   };

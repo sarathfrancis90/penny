@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
@@ -74,10 +75,10 @@ void main() {
         vendor: 'Shell',
         amount: 52.00,
         category: 'Vehicle - Fuel (gasoline, propane, oil)',
-        date: now,
+        date: api.Timestamp.fromJson(now),
         expenseType: 'personal',
-        createdAt: now,
-        updatedAt: now,
+        createdAt: api.Timestamp.fromJson(now),
+        updatedAt: api.Timestamp.fromJson(now),
         description: 'Gas',
       );
 
@@ -122,10 +123,7 @@ void main() {
         'date': now,
         'expenseType': 'group',
         'groupId': 'group-1',
-        'groupMetadata': {
-          'approvalStatus': 'pending',
-          'addedBy': 'user-1',
-        },
+        'groupMetadata': {'approvalStatus': 'pending', 'addedBy': 'user-1'},
         'createdAt': now,
         'updatedAt': now,
       });

@@ -1,9 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,8 +9,11 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
+import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
@@ -93,15 +94,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     FirebaseAuth.instance.currentUser;
                                 if (currentUser == null) return;
 
-                                await currentUser.updateDisplayName(name);
+                                await ref
+                                    .read(apiClientProvider)
+                                    .patch(
+                                      ApiEndpoints.userProfile,
+                                      data: {
+                                        'userId': currentUser.uid,
+                                        'displayName': name,
+                                      },
+                                    );
                                 await currentUser.reload();
-                                await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(currentUser.uid)
-                                    .set({
-                                      'displayName': name,
-                                      'updatedAt': FieldValue.serverTimestamp(),
-                                    }, SetOptions(merge: true));
 
                                 HapticFeedback.mediumImpact();
 
@@ -224,24 +226,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (user == null) return;
 
       final file = File(picked.path);
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('avatars')
-          .child(user.uid)
-          .child('profile.jpg');
-
-      await storageRef.putFile(
-        file,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
-      final downloadUrl = await storageRef.getDownloadURL();
-
-      await user.updatePhotoURL(downloadUrl);
+      await ref.read(storageServiceProvider).uploadAvatar(file, user.uid);
       await user.reload();
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'photoURL': downloadUrl,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
 
       ref.invalidate(authStateProvider);
       HapticFeedback.mediumImpact();
@@ -263,24 +249,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Delete from storage
-      try {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('avatars')
-            .child(user.uid)
-            .child('profile.jpg');
-        await storageRef.delete();
-      } catch (_) {
-        // File may not exist in storage — continue
+      final api = ref.read(apiClientProvider);
+      final profileResponse = await api.get(ApiEndpoints.userProfile);
+      final profile = mapValue(responseMap(profileResponse)['profile']);
+      final photoPath = profile['photoPath'] as String?;
+      if (photoPath != null && photoPath.isNotEmpty) {
+        await api.delete(ApiEndpoints.avatarMedia, data: {'path': photoPath});
       }
-
-      await user.updatePhotoURL(null);
+      await api.patch(
+        ApiEndpoints.userProfile,
+        data: {'userId': user.uid, 'photoURL': null, 'photoPath': null},
+      );
       await user.reload();
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'photoURL': FieldValue.delete(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
 
       ref.invalidate(authStateProvider);
       HapticFeedback.mediumImpact();

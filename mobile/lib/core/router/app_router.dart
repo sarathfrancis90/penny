@@ -39,7 +39,7 @@ class _AuthNotifier extends ChangeNotifier {
         // This covers: guest mode sign-up, app-killed-then-sign-in, and OAuth.
         final guestNotifier = ref.read(guestExpenseProvider.notifier);
         if (guestNotifier.count > 0) {
-          GuestMigrationService.migrateToFirestore(ref: ref, userId: user.uid);
+          GuestMigrationService.migrateToAccount(ref: ref, userId: user.uid);
         }
         // Clear guest mode if active (also clears Hive persistence)
         if (ref.read(guestModeProvider)) {
@@ -65,7 +65,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
       final isOnboarding = state.matchedLocation == '/onboarding';
       final onboardingComplete =
-          Hive.box('app_preferences').get('onboarding_complete', defaultValue: false) as bool;
+          Hive.box(
+                'app_preferences',
+              ).get('onboarding_complete', defaultValue: false)
+              as bool;
 
       // First-time user: show onboarding
       if (!isLoggedIn && !isGuest && !onboardingComplete && !isOnboarding) {
@@ -174,33 +177,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: HomeScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: HomeScreen()),
           ),
           GoRoute(
             path: '/dashboard',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: DashboardScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: DashboardScreen()),
           ),
           GoRoute(
             path: '/finances',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: FinancesScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: FinancesScreen()),
           ),
           GoRoute(
             path: '/groups',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: GroupsScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: GroupsScreen()),
           ),
           GoRoute(
             path: '/profile',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ProfileScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ProfileScreen()),
           ),
         ],
       ),

@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class IncomeSourceModel {
   IncomeSourceModel({
@@ -25,7 +25,8 @@ class IncomeSourceModel {
   final String id;
   final String userId;
   final String name;
-  final String category; // salary, freelance, bonus, investment, rental, side_hustle, gift, other
+  final String
+  category; // salary, freelance, bonus, investment, rental, side_hustle, gift, other
   final double amount;
   final String frequency; // monthly, biweekly, weekly, once, yearly
   final bool isRecurring;
@@ -41,7 +42,7 @@ class IncomeSourceModel {
   final double? netAmount;
   final Timestamp? lastReceivedAt;
 
-  factory IncomeSourceModel.fromFirestore(DocumentSnapshot doc) {
+  factory IncomeSourceModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return IncomeSourceModel(
       id: doc.id,
@@ -54,14 +55,14 @@ class IncomeSourceModel {
       isActive: data['isActive'] as bool? ?? true,
       taxable: data['taxable'] as bool? ?? true,
       currency: data['currency'] as String? ?? 'CAD',
-      startDate: data['startDate'] as Timestamp,
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
+      startDate: Timestamp.fromJson(data['startDate']),
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
       recurringDate: data['recurringDate'] as int?,
-      endDate: data['endDate'] as Timestamp?,
+      endDate: Timestamp.tryParse(data['endDate']),
       description: data['description'] as String?,
       netAmount: (data['netAmount'] as num?)?.toDouble(),
-      lastReceivedAt: data['lastReceivedAt'] as Timestamp?,
+      lastReceivedAt: Timestamp.tryParse(data['lastReceivedAt']),
     );
   }
 

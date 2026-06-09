@@ -1,55 +1,49 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:uuid/uuid.dart';
 
 class PushNotificationService {
   PushNotificationService({
+    required ApiClient apiClient,
     FirebaseMessaging? messaging,
-    FirebaseFirestore? firestore,
-  })  : _messaging = messaging ?? FirebaseMessaging.instance,
-        _db = firestore ?? FirebaseFirestore.instance;
+  }) : _api = apiClient,
+       _messaging = messaging ?? FirebaseMessaging.instance;
 
+  final ApiClient _api;
   final FirebaseMessaging _messaging;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
-  final FirebaseFirestore _db;
 
+  StreamSubscription<String>? _tokenRefreshSubscription;
   String? _pendingNavigationUrl;
   final StreamController<String> _navigationController =
       StreamController<String>.broadcast();
 
-  /// Stream of navigation URLs from push notification taps.
   Stream<String> get navigationStream => _navigationController.stream;
 
   Future<void> initialize() async {
-    // Initialize local notifications for foreground display
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    // Listen for foreground messages
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-    // Listen for notification taps (app in background)
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
 
-    // Check for initial message (app launched from notification)
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       _handleMessageOpenedApp(initialMessage);
@@ -70,37 +64,14 @@ class PushNotificationService {
     final token = await _messaging.getToken();
     if (token == null) return;
 
-    // Get or create device ID
-    final box = Hive.box('app_preferences');
-    String? deviceId = box.get('device_id') as String?;
-    if (deviceId == null) {
-      deviceId = const Uuid().v4();
-      await box.put('device_id', deviceId);
-    }
+    final deviceId = await _deviceId();
+    await _registerToken(userId: userId, deviceId: deviceId, token: token);
 
-    final platform = Platform.isIOS ? 'ios' : 'android';
-
-    await _db.collection('users').doc(userId).set({
-      'fcmTokens': {
-        deviceId: {
-          'token': token,
-          'platform': platform,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastRefreshed': FieldValue.serverTimestamp(),
-        }
-      }
-    }, SetOptions(merge: true));
-
-    // Listen for token refresh
-    _messaging.onTokenRefresh.listen((newToken) async {
-      await _db.collection('users').doc(userId).set({
-        'fcmTokens': {
-          deviceId: {
-            'token': newToken,
-            'lastRefreshed': FieldValue.serverTimestamp(),
-          }
-        }
-      }, SetOptions(merge: true));
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = _messaging.onTokenRefresh.listen((newToken) {
+      unawaited(
+        _registerToken(userId: userId, deviceId: deviceId, token: newToken),
+      );
     });
   }
 
@@ -108,9 +79,37 @@ class PushNotificationService {
     final box = Hive.box('app_preferences');
     final deviceId = box.get('device_id') as String?;
     if (deviceId == null) return;
-    await _db.collection('users').doc(userId).update({
-      'fcmTokens.$deviceId': FieldValue.delete(),
-    });
+    await _api.delete(
+      ApiEndpoints.pushToken(deviceId),
+      data: {'userId': userId},
+    );
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = null;
+  }
+
+  Future<String> _deviceId() async {
+    final box = Hive.box('app_preferences');
+    String? deviceId = box.get('device_id') as String?;
+    if (deviceId == null) {
+      deviceId = const Uuid().v4();
+      await box.put('device_id', deviceId);
+    }
+    return deviceId;
+  }
+
+  Future<void> _registerToken({
+    required String userId,
+    required String deviceId,
+    required String token,
+  }) async {
+    await _api.put(
+      ApiEndpoints.pushToken(deviceId),
+      data: {
+        'userId': userId,
+        'token': token,
+        'platform': Platform.isIOS ? 'ios' : 'android',
+      },
+    );
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -148,7 +147,6 @@ class PushNotificationService {
     }
   }
 
-  /// Returns and clears any pending navigation URL from a notification tap.
   String? consumePendingNavigation() {
     final url = _pendingNavigationUrl;
     _pendingNavigationUrl = null;
@@ -156,6 +154,7 @@ class PushNotificationService {
   }
 
   void dispose() {
+    unawaited(_tokenRefreshSubscription?.cancel());
     _navigationController.close();
   }
 }

@@ -29,7 +29,8 @@ void main() {
 
     test('total with mixed frequencies calculates correctly', () {
       // salary: 6000/mo + freelance: 2000 biweekly + bonus: 12000/yr
-      final total = _monthlyEquivalent(6000, 'monthly') +
+      final total =
+          _monthlyEquivalent(6000, 'monthly') +
           _monthlyEquivalent(2000, 'biweekly') +
           _monthlyEquivalent(12000, 'yearly');
       // 6000 + 4333.33 + 1000 = 11333.33

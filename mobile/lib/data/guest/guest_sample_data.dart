@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
@@ -119,7 +119,8 @@ List<ExpenseModel> guestSampleExpenses() {
       userId: 'guest',
       vendor: 'Uber',
       amount: 28.50,
-      category: 'Travel (including transportation fees, accommodations, and meals)',
+      category:
+          'Travel (including transportation fees, accommodations, and meals)',
       date: _ts(thisMonth.add(const Duration(days: 9))),
       expenseType: 'personal',
       createdAt: ts,
@@ -234,7 +235,10 @@ List<IncomeSourceModel> guestSampleIncomeSources() {
 
 List<BudgetModel> guestSampleBudgets() {
   final ts = _ts(DateTime.now());
-  final period = BudgetPeriod(month: DateTime.now().month, year: DateTime.now().year);
+  final period = BudgetPeriod(
+    month: DateTime.now().month,
+    year: DateTime.now().year,
+  );
 
   return [
     BudgetModel(

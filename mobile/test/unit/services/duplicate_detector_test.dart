@@ -1,164 +1,82 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/data/services/duplicate_detector.dart';
 
+import '../../helpers/fake_api_client.dart';
+
 void main() {
-  group('DuplicateDetector', () {
-    late FakeFirebaseFirestore firestore;
-    late DuplicateDetector detector;
+  group('DuplicateDetector API contract', () {
+    test('returns null when API reports no duplicate', () async {
+      final api = FakeApiClient()..queueResponse({'duplicate': null});
+      final detector = DuplicateDetector(apiClient: api);
 
-    setUp(() {
-      firestore = FakeFirebaseFirestore();
-      detector = DuplicateDetector(firestore: firestore);
-    });
-
-    test('returns null when no duplicates exist', () async {
       final result = await detector.checkForDuplicate(
         vendor: 'New Restaurant',
-        amount: 25.00,
-        date: DateTime.now(),
+        amount: 25,
+        date: DateTime(2026, 6, 1),
         userId: 'user-1',
       );
 
       expect(result, isNull);
-    });
-
-    test('detects exact duplicate (same vendor, amount, date)', () async {
-      final now = DateTime.now();
-
-      // Seed existing expense
-      await firestore.collection('expenses').add({
+      expect(api.calls.single.method, 'POST');
+      expect(api.calls.single.path, ApiEndpoints.duplicateExpense);
+      expect(api.calls.single.data, {
         'userId': 'user-1',
-        'vendor': 'Tim Hortons',
-        'amount': 14.50,
-        'category': 'Meals and entertainment',
-        'date': Timestamp.fromDate(DateTime(now.year, now.month, now.day, 12)),
-        'expenseType': 'personal',
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
+        'vendor': 'New Restaurant',
+        'amount': 25.0,
+        'date': '2026-06-01',
       });
-
-      final result = await detector.checkForDuplicate(
-        vendor: 'Tim Hortons',
-        amount: 14.50,
-        date: now,
-        userId: 'user-1',
-      );
-
-      expect(result, isNotNull);
-      expect(result!.matchType, DuplicateMatchType.exact);
-      expect(result.existingExpense.vendor, 'Tim Hortons');
     });
 
-    test('detects similar amount (within 5%)', () async {
-      final now = DateTime.now();
+    test('parses duplicate returned by standalone API', () async {
+      final api = FakeApiClient()
+        ..queueResponse({
+          'duplicate': {
+            'id': 'expense-1',
+            'userId': 'user-2',
+            'vendor': 'Costco',
+            'amount': 150,
+            'category': 'Groceries',
+            'date': '2026-06-01T12:00:00.000Z',
+            'expenseType': 'group',
+            'groupId': 'group-1',
+            'createdAt': '2026-06-01T12:00:00.000Z',
+            'updatedAt': '2026-06-01T12:00:00.000Z',
+          },
+        });
+      final detector = DuplicateDetector(apiClient: api);
 
-      await firestore.collection('expenses').add({
-        'userId': 'user-1',
-        'vendor': 'Starbucks',
-        'amount': 10.00,
-        'category': 'Meals and entertainment',
-        'date': Timestamp.fromDate(DateTime(now.year, now.month, now.day, 12)),
-        'expenseType': 'personal',
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
-      });
-
-      // 10.45 is within 5% of 10.00
-      final result = await detector.checkForDuplicate(
-        vendor: 'Starbucks',
-        amount: 10.45,
-        date: now,
-        userId: 'user-1',
-      );
-
-      expect(result, isNotNull);
-      expect(result!.matchType, DuplicateMatchType.similar);
-    });
-
-    test('does NOT match different vendor', () async {
-      final now = DateTime.now();
-
-      await firestore.collection('expenses').add({
-        'userId': 'user-1',
-        'vendor': 'McDonalds',
-        'amount': 14.50,
-        'category': 'Meals and entertainment',
-        'date': Timestamp.fromDate(DateTime(now.year, now.month, now.day, 12)),
-        'expenseType': 'personal',
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
-      });
-
-      final result = await detector.checkForDuplicate(
-        vendor: 'Tim Hortons',
-        amount: 14.50,
-        date: now,
-        userId: 'user-1',
-      );
-
-      expect(result, isNull);
-    });
-
-    test('detects group duplicate from different user', () async {
-      final now = DateTime.now();
-
-      // User-2 already added this expense to the group
-      await firestore.collection('expenses').add({
-        'userId': 'user-2',
-        'vendor': 'Costco',
-        'amount': 150.00,
-        'category': 'Groceries',
-        'date': Timestamp.fromDate(DateTime(now.year, now.month, now.day, 12)),
-        'expenseType': 'group',
-        'groupId': 'family-group',
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
-      });
-
-      // User-1 tries to add the same expense to the same group
       final result = await detector.checkForDuplicate(
         vendor: 'Costco',
-        amount: 150.00,
-        date: now,
+        amount: 150,
+        date: DateTime(2026, 6, 1),
         userId: 'user-1',
-        groupId: 'family-group',
+        groupId: 'group-1',
       );
 
       expect(result, isNotNull);
       expect(result!.matchType, DuplicateMatchType.exact);
+      expect(result.existingExpense.vendor, 'Costco');
       expect(result.warningMessage, contains('group member'));
+      expect(api.calls.single.data, containsPair('groupId', 'group-1'));
     });
 
-    test('case-insensitive vendor matching', () async {
-      final now = DateTime.now();
-
-      await firestore.collection('expenses').add({
-        'userId': 'user-1',
-        'vendor': 'TIM HORTONS',
-        'amount': 14.50,
-        'category': 'Meals and entertainment',
-        'date': Timestamp.fromDate(DateTime(now.year, now.month, now.day, 12)),
-        'expenseType': 'personal',
-        'createdAt': Timestamp.now(),
-        'updatedAt': Timestamp.now(),
-      });
-
-      final result = await detector.checkForDuplicate(
-        vendor: 'tim hortons',
-        amount: 14.50,
-        date: now,
-        userId: 'user-1',
-      );
-
-      expect(result, isNotNull);
-    });
-
-    test('warningMessage for personal duplicate', () {
+    test('warningMessage for personal duplicate stays descriptive', () {
+      final now = Timestamp.now();
       final result = DuplicateResult(
-        existingExpense: _createMockExpense('Tim Hortons', 14.50, 'user-1'),
+        existingExpense: ExpenseModel(
+          id: 'mock-id',
+          userId: 'user-1',
+          vendor: 'Tim Hortons',
+          amount: 14.50,
+          category: 'Meals and entertainment',
+          date: now,
+          expenseType: 'personal',
+          createdAt: now,
+          updatedAt: now,
+        ),
         matchType: DuplicateMatchType.exact,
         addedBy: 'user-1',
       );
@@ -167,31 +85,5 @@ void main() {
       expect(result.warningMessage, contains('14.50'));
       expect(result.warningMessage, contains('Tim Hortons'));
     });
-
-    test('warningMessage for group duplicate by another member', () {
-      final result = DuplicateResult(
-        existingExpense: _createMockExpense('Costco', 150.00, 'user-2'),
-        matchType: DuplicateMatchType.exact,
-        addedBy: 'user-2',
-        requestingUserId: 'user-1',
-      );
-
-      expect(result.warningMessage, contains('group member'));
-    });
   });
-}
-
-ExpenseModel _createMockExpense(String vendor, double amount, String userId) {
-  final now = Timestamp.now();
-  return ExpenseModel(
-    id: 'mock-id',
-    userId: userId,
-    vendor: vendor,
-    amount: amount,
-    category: 'Meals and entertainment',
-    date: now,
-    expenseType: 'personal',
-    createdAt: now,
-    updatedAt: now,
-  );
 }

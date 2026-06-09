@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every nonignored untracked file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 809
+- Total source-visible files: 818
 
 | Path | Area |
 |---|---|
@@ -60,6 +60,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `apps/api/src/routes/expenses/routes.ts` | standalone-api |
 | `apps/api/src/routes/groups/__tests__/groups.routes.test.ts` | standalone-api |
 | `apps/api/src/routes/groups/routes.ts` | standalone-api |
+| `apps/api/src/routes/mobile-data/routes.ts` | standalone-api |
 | `apps/api/src/routes/user/__tests__/user.routes.test.ts` | standalone-api |
 | `apps/api/src/routes/user/routes.ts` | standalone-api |
 | `apps/api/src/server.ts` | standalone-api |
@@ -79,10 +80,12 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `apps/api/src/services/firestore-conversations.ts` | standalone-api |
 | `apps/api/src/services/firestore-expenses.ts` | standalone-api |
 | `apps/api/src/services/firestore-groups.ts` | standalone-api |
+| `apps/api/src/services/firestore-mobile-data.ts` | standalone-api |
 | `apps/api/src/services/firestore-user-preferences.ts` | standalone-api |
 | `apps/api/src/services/gemini-ai.ts` | standalone-api |
 | `apps/api/src/services/groups.ts` | standalone-api |
 | `apps/api/src/services/index.ts` | standalone-api |
+| `apps/api/src/services/mobile-data.ts` | standalone-api |
 | `apps/api/src/services/notifications.ts` | standalone-api |
 | `apps/api/src/services/production.ts` | standalone-api |
 | `apps/api/src/services/user-preferences.ts` | standalone-api |
@@ -241,6 +244,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `mobile/integration_test/comprehensive_test.dart` | mobile |
 | `mobile/integration_test/expense_crud_test.dart` | mobile |
 | `mobile/integration_test/full_journey_test.dart` | mobile |
+| `mobile/integration_test/helpers/api_backed_test_app.dart` | mobile |
 | `mobile/ios/.gitignore` | mobile |
 | `mobile/ios/Flutter/AppFrameworkInfo.plist` | mobile |
 | `mobile/ios/Flutter/Debug.xcconfig` | mobile |
@@ -308,6 +312,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `mobile/lib/data/guest/guest_expense_store.dart` | mobile |
 | `mobile/lib/data/guest/guest_migration_service.dart` | mobile |
 | `mobile/lib/data/guest/guest_sample_data.dart` | mobile |
+| `mobile/lib/data/models/api_timestamp.dart` | mobile |
 | `mobile/lib/data/models/budget_model.dart` | mobile |
 | `mobile/lib/data/models/conversation_model.dart` | mobile |
 | `mobile/lib/data/models/expense_model.dart` | mobile |
@@ -322,6 +327,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `mobile/lib/data/models/notification_preferences_model.dart` | mobile |
 | `mobile/lib/data/models/savings_model.dart` | mobile |
 | `mobile/lib/data/repositories/ai_repository.dart` | mobile |
+| `mobile/lib/data/repositories/api_response_helpers.dart` | mobile |
 | `mobile/lib/data/repositories/budget_repository.dart` | mobile |
 | `mobile/lib/data/repositories/conversation_repository.dart` | mobile |
 | `mobile/lib/data/repositories/expense_repository.dart` | mobile |
@@ -391,6 +397,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `mobile/lib/presentation/widgets/error_state.dart` | mobile |
 | `mobile/lib/presentation/widgets/expense_card.dart` | mobile |
 | `mobile/lib/presentation/widgets/expense_confirmation_sheet.dart` | mobile |
+| `mobile/lib/presentation/widgets/group_icon_options.dart` | mobile |
 | `mobile/lib/presentation/widgets/guest_sign_up_prompt.dart` | mobile |
 | `mobile/lib/presentation/widgets/over_budget_warning_sheet.dart` | mobile |
 | `mobile/lib/presentation/widgets/penny_empty_state.dart` | mobile |
@@ -446,6 +453,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `mobile/screenshots/ipad-13/07_savings.png` | mobile |
 | `mobile/screenshots/ipad-13/12_notifications.png` | mobile |
 | `mobile/scripts/run_tests.sh` | mobile |
+| `mobile/test/helpers/fake_api_client.dart` | mobile |
 | `mobile/test/helpers/test_helpers.dart` | mobile |
 | `mobile/test/unit/constants/env_config_test.dart` | mobile |
 | `mobile/test/unit/models/budget_model_test.dart` | mobile |
@@ -555,6 +563,7 @@ This inventory includes every tracked file plus every nonignored untracked file 
 | `scripts/check-indexes.js` | script |
 | `scripts/generate-jwt-secret.js` | script |
 | `scripts/grant-admin.ts` | script |
+| `scripts/mobile/check-api-only.ts` | script |
 | `sentry.client.config.ts` | repo |
 | `sentry.edge.config.ts` | repo |
 | `sentry.server.config.ts` | repo |

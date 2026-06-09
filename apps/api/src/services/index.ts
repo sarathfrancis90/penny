@@ -17,6 +17,10 @@ import {
 } from './expenses';
 import { createUnavailableGroupService, type GroupService } from './groups';
 import {
+  createUnavailableMobileDataService,
+  type MobileDataService,
+} from './mobile-data';
+import {
   createNoopNotificationService,
   type NotificationService,
 } from './notifications';
@@ -32,6 +36,7 @@ export interface ApiServices {
   conversations: ConversationService;
   expenses: ExpenseService;
   groups: GroupService;
+  mobileData: MobileDataService;
   notifications: NotificationService;
   userPreferences: UserPreferenceService;
 }
@@ -44,6 +49,7 @@ export function createDefaultServices(): ApiServices {
     conversations: createUnavailableConversationService(),
     expenses: createUnavailableExpenseService(),
     groups: createUnavailableGroupService(),
+    mobileData: createUnavailableMobileDataService(),
     notifications: createNoopNotificationService(),
     userPreferences: createUnavailableUserPreferenceService(),
   };

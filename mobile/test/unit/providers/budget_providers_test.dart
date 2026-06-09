@@ -19,8 +19,10 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      container.read(budgetPeriodProvider.notifier).state =
-          const BudgetPeriod(month: 3, year: 2026);
+      container.read(budgetPeriodProvider.notifier).state = const BudgetPeriod(
+        month: 3,
+        year: 2026,
+      );
 
       final period = container.read(budgetPeriodProvider);
       expect(period.month, 3);

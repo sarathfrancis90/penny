@@ -81,8 +81,9 @@ class AiRepository {
           .toList();
       return AnalyzeExpenseResult(expenses: list);
     } else {
-      final expense =
-          ParsedExpense.fromJson(data['data'] as Map<String, dynamic>);
+      final expense = ParsedExpense.fromJson(
+        data['data'] as Map<String, dynamic>,
+      );
       return AnalyzeExpenseResult(expenses: [expense]);
     }
   }

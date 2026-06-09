@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +20,7 @@ import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_savings_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/expense_list_tile.dart';
+import 'package:penny_mobile/presentation/widgets/group_icon_options.dart';
 import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 
 void _refreshGroupCaches(WidgetRef ref, String groupId) {
@@ -676,16 +676,7 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
   late String _color;
   bool _saving = false;
 
-  static const _icons = [
-    '👥',
-    '👨‍👩‍👧‍👦',
-    '🏢',
-    '🏠',
-    '✈️',
-    '🎯',
-    '💼',
-    '🎉',
-  ];
+  static const _icons = groupIconOptions;
   static const _colors = [
     '#0A84FF', // Blue
     '#34C759', // Green
@@ -706,7 +697,7 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
     );
     _requireApproval = widget.group.settings.requireApproval;
     _allowMemberInvites = widget.group.settings.allowMemberInvites;
-    _icon = widget.group.icon ?? '👥';
+    _icon = safeGroupIcon(widget.group.icon);
     _color = widget.group.color ?? _colors.first;
   }
 
@@ -1132,7 +1123,7 @@ class _GroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = group.icon ?? '👥';
+    final icon = safeGroupIcon(group.icon);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1656,9 +1647,12 @@ class _OverflowMenu extends ConsumerWidget {
     if (user == null) return;
 
     try {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'preferences': {'defaultGroupId': groupId},
-      }, SetOptions(merge: true));
+      await ref
+          .read(apiClientProvider)
+          .post(
+            ApiEndpoints.defaultGroup,
+            data: {'userId': user.uid, 'groupId': groupId},
+          );
       ref.invalidate(defaultGroupProvider);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
@@ -1688,9 +1682,12 @@ class _OverflowMenu extends ConsumerWidget {
     if (user == null) return;
 
     try {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'preferences': {'defaultGroupId': null},
-      }, SetOptions(merge: true));
+      await ref
+          .read(apiClientProvider)
+          .delete(
+            ApiEndpoints.defaultGroup,
+            queryParameters: {'userId': user.uid},
+          );
       ref.invalidate(defaultGroupProvider);
       HapticFeedback.mediumImpact();
       if (context.mounted) {

@@ -11,6 +11,7 @@ import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
+import 'package:penny_mobile/presentation/widgets/group_icon_options.dart';
 import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
@@ -159,7 +160,7 @@ class _GroupCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
-    final icon = group.icon ?? '👥';
+    final icon = safeGroupIcon(group.icon);
 
     return Semantics(
       button: true,
@@ -303,16 +304,7 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
   bool _requireApproval = false;
   bool _saving = false;
 
-  static const _icons = [
-    '👥',
-    '👨‍👩‍👧‍👦',
-    '🏢',
-    '🏠',
-    '✈️',
-    '🎯',
-    '💼',
-    '🎉',
-  ];
+  static const _icons = groupIconOptions;
 
   @override
   void dispose() {

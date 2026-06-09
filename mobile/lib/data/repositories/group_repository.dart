@@ -1,108 +1,84 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
 import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/group_activity_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
+import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 
 class GroupRepository {
-  GroupRepository({required ApiClient apiClient, FirebaseFirestore? firestore})
-    : _api = apiClient,
-      _db = firestore ?? FirebaseFirestore.instance;
+  GroupRepository({required ApiClient apiClient}) : _api = apiClient;
 
   final ApiClient _api;
-  final FirebaseFirestore _db;
 
-  // ====== Firestore Reads (real-time) ======
-
-  /// Stream a single active group document.
   Stream<GroupModel?> watchGroup(String groupId) {
-    return _db.collection('groups').doc(groupId).snapshots().map((doc) {
-      if (!doc.exists) return null;
-      final data = doc.data();
-      if (data == null || data['status'] == 'deleted') return null;
-      return GroupModel.fromFirestore(doc);
-    });
+    return Stream.fromFuture(getGroup(groupId));
   }
 
-  /// Stream groups where user is an active member.
+  Future<GroupModel?> getGroup(String groupId) async {
+    final response = await _api.get(ApiEndpoints.groupById(groupId));
+    final group = responseMap(response)['group'];
+    if (group == null) return null;
+    return GroupModel.fromFirestore(apiDocument(mapValue(group)));
+  }
+
   Stream<List<GroupModel>> watchUserGroups(String userId) {
-    // First get the user's group memberships
-    return _db
-        .collection('groupMembers')
-        .where('userId', isEqualTo: userId)
-        .where('status', isEqualTo: 'active')
-        .snapshots()
-        .asyncMap((memberSnap) async {
-          if (memberSnap.docs.isEmpty) return <GroupModel>[];
-
-          final groupIds = memberSnap.docs
-              .map((d) => d.data()['groupId'] as String)
-              .toList();
-
-          // Firestore 'in' query limited to 10
-          final batches = <List<String>>[];
-          for (var i = 0; i < groupIds.length; i += 10) {
-            batches.add(
-              groupIds.sublist(
-                i,
-                i + 10 > groupIds.length ? groupIds.length : i + 10,
-              ),
-            );
-          }
-
-          final groups = <GroupModel>[];
-          for (final batch in batches) {
-            final snap = await _db
-                .collection('groups')
-                .where(FieldPath.documentId, whereIn: batch)
-                .where('status', isEqualTo: 'active')
-                .get();
-            groups.addAll(snap.docs.map(GroupModel.fromFirestore));
-          }
-
-          return groups;
-        });
+    return Stream.fromFuture(_listGroups(userId));
   }
 
-  /// Stream members of a specific group.
+  Future<List<GroupModel>> _listGroups(String userId) async {
+    final response = await _api.get(
+      ApiEndpoints.groups,
+      queryParameters: {'userId': userId},
+    );
+    final data = responseMap(response);
+    return listValue(
+      data['groups'],
+    ).map((json) => GroupModel.fromFirestore(apiDocument(json))).toList();
+  }
+
   Stream<List<GroupMemberModel>> watchGroupMembers(String groupId) {
-    return _db
-        .collection('groupMembers')
-        .where('groupId', isEqualTo: groupId)
-        .where('status', isEqualTo: 'active')
-        .snapshots()
-        .map((snap) => snap.docs.map(GroupMemberModel.fromFirestore).toList());
+    return Stream.fromFuture(_listMembers(groupId));
   }
 
-  /// Get the current user's role in a group.
+  Future<List<GroupMemberModel>> _listMembers(String groupId) async {
+    final response = await _api.get(ApiEndpoints.groupMembers(groupId));
+    final data = responseMap(response);
+    return listValue(
+      data['members'],
+    ).map((json) => GroupMemberModel.fromFirestore(apiDocument(json))).toList();
+  }
+
   Future<GroupMemberModel?> getUserMembership(
     String groupId,
     String userId,
   ) async {
-    final docId = '${groupId}_$userId';
-    final doc = await _db.collection('groupMembers').doc(docId).get();
-    if (!doc.exists) return null;
-    return GroupMemberModel.fromFirestore(doc);
+    final response = await _api.get(ApiEndpoints.myGroupMembership(groupId));
+    final membership = responseMap(response)['membership'];
+    if (membership == null) return null;
+    return GroupMemberModel.fromFirestore(apiDocument(mapValue(membership)));
   }
 
-  /// Stream activity feed for a group.
   Stream<List<GroupActivityModel>> watchGroupActivities(
     String groupId, {
     int limit = 50,
   }) {
-    return _db
-        .collection('groupActivities')
-        .where('groupId', isEqualTo: groupId)
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map(
-          (snap) => snap.docs.map(GroupActivityModel.fromFirestore).toList(),
-        );
+    return Stream.fromFuture(_listActivities(groupId, limit: limit));
   }
 
-  /// Accept a group invitation via API.
+  Future<List<GroupActivityModel>> _listActivities(
+    String groupId, {
+    int limit = 50,
+  }) async {
+    final response = await _api.get(
+      ApiEndpoints.groupActivities(groupId),
+      queryParameters: {'limit': limit},
+    );
+    final data = responseMap(response);
+    return listValue(data['activities'])
+        .map((json) => GroupActivityModel.fromFirestore(apiDocument(json)))
+        .toList();
+  }
+
   Future<Map<String, dynamic>> acceptInvitation({
     required String token,
     required String userId,
@@ -118,20 +94,13 @@ class GroupRepository {
         if (userName != null) 'userName': userName,
       },
     );
-    return response.data as Map<String, dynamic>;
+    return responseMap(response);
   }
 
-  /// Decline a group invitation by updating the invitation status.
   Future<void> declineInvitation({required String invitationId}) async {
-    await _db.collection('groupInvitations').doc(invitationId).update({
-      'status': 'rejected',
-      'respondedAt': FieldValue.serverTimestamp(),
-    });
+    await _api.post(ApiEndpoints.declineInvitation(invitationId));
   }
 
-  // ====== API Writes (server-side for atomicity) ======
-
-  /// Create a group via API (atomically creates group + owner membership + activity log).
   Future<String> createGroup({
     required String userId,
     required String name,
@@ -159,33 +128,25 @@ class GroupRepository {
         if (userName != null) 'userName': userName,
       },
     );
-
-    final data = response.data as Map<String, dynamic>;
+    final data = responseMap(response);
     if (data['success'] != true) {
       throw Exception(data['error'] ?? 'Failed to create group');
     }
     return data['groupId'] as String;
   }
 
-  /// Invite a member via API (generates secure token).
   Future<void> inviteMember({
     required String groupId,
     required String email,
     required String role,
     required String userId,
   }) async {
-    final response = await _api.post(
+    await _api.post(
       ApiEndpoints.groupMembers(groupId),
       data: {'email': email, 'role': role, 'userId': userId},
     );
-
-    final data = response.data as Map<String, dynamic>;
-    if (data['success'] != true) {
-      throw Exception(data['error'] ?? 'Failed to invite member');
-    }
   }
 
-  /// Update group settings via API.
   Future<void> updateGroup({
     required String groupId,
     required String userId,
@@ -197,16 +158,14 @@ class GroupRepository {
     );
   }
 
-  /// Delete (soft-delete) group via API.
   Future<void> deleteGroup(String groupId, String userId) async {
-    await _api.delete('${ApiEndpoints.groupById(groupId)}?userId=$userId');
+    await _api.delete(
+      ApiEndpoints.groupById(groupId),
+      queryParameters: {'userId': userId},
+    );
   }
 
-  /// Leave a group by setting the user's membership status to 'left'.
   Future<void> leaveGroup(String groupId, String userId) async {
-    await _api.post(
-      ApiEndpoints.groupLeave(groupId),
-      data: {'userId': userId},
-    );
+    await _api.post(ApiEndpoints.groupLeave(groupId), data: {'userId': userId});
   }
 }

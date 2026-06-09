@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class SavingsGoalModel {
   SavingsGoalModel({
@@ -29,7 +29,8 @@ class SavingsGoalModel {
   final String id;
   final String userId;
   final String name;
-  final String category; // emergency_fund, travel, education, health, house_down_payment, car, wedding, retirement, investment, custom
+  final String
+  category; // emergency_fund, travel, education, health, house_down_payment, car, wedding, retirement, investment, custom
   final double targetAmount;
   final double currentAmount;
   final double monthlyContribution;
@@ -49,7 +50,7 @@ class SavingsGoalModel {
   final String? emoji;
   final Timestamp? lastContributionAt;
 
-  factory SavingsGoalModel.fromFirestore(DocumentSnapshot doc) {
+  factory SavingsGoalModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return SavingsGoalModel(
       id: doc.id,
@@ -63,18 +64,17 @@ class SavingsGoalModel {
       isActive: data['isActive'] as bool? ?? true,
       priority: data['priority'] as String? ?? 'medium',
       currency: data['currency'] as String? ?? 'CAD',
-      startDate: data['startDate'] as Timestamp,
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
-      targetDate: data['targetDate'] as Timestamp?,
-      achievedDate: data['achievedDate'] as Timestamp?,
-      progressPercentage:
-          (data['progressPercentage'] as num?)?.toDouble() ?? 0,
+      startDate: Timestamp.fromJson(data['startDate']),
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
+      targetDate: Timestamp.tryParse(data['targetDate']),
+      achievedDate: Timestamp.tryParse(data['achievedDate']),
+      progressPercentage: (data['progressPercentage'] as num?)?.toDouble() ?? 0,
       monthsToGoal: data['monthsToGoal'] as int?,
       onTrack: data['onTrack'] as bool? ?? false,
       description: data['description'] as String?,
       emoji: data['emoji'] as String?,
-      lastContributionAt: data['lastContributionAt'] as Timestamp?,
+      lastContributionAt: Timestamp.tryParse(data['lastContributionAt']),
     );
   }
 

@@ -37,9 +37,11 @@ class ExpenseCard extends ConsumerStatefulWidget {
   final VoidCallback? onSaved;
   final VoidCallback? onDismiss;
   final bool confirmed;
+
   /// When set, the card registers its save method with this notifier
   /// so an external widget (e.g. a pinned button) can trigger save.
   final ValueNotifier<VoidCallback?>? saveTrigger;
+
   /// When set, the card pushes its saving state to this notifier
   /// so an external widget can show a spinner.
   final ValueNotifier<bool>? savingNotifier;
@@ -134,17 +136,17 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
       return;
     }
 
-    // Duplicate check — wrapped in try/catch so a Firestore error
-    // (e.g. missing composite index) doesn't silently block the save.
+    // Duplicate check is best-effort; an API error should not block saving.
     try {
-      final duplicateResult =
-          await ref.read(duplicateDetectorProvider).checkForDuplicate(
-                vendor: vendor,
-                amount: amount,
-                date: _date,
-                userId: user.uid,
-                groupId: _selectedGroupId,
-              );
+      final duplicateResult = await ref
+          .read(duplicateDetectorProvider)
+          .checkForDuplicate(
+            vendor: vendor,
+            amount: amount,
+            date: _date,
+            userId: user.uid,
+            groupId: _selectedGroupId,
+          );
       if (duplicateResult != null) {
         if (!mounted) return;
         final addAnyway = await showDialog<bool>(
@@ -194,22 +196,26 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
       final description = _descriptionController.text.trim();
 
       if (_selectedGroupId != null) {
-        await ref.read(apiClientProvider).post(
-          ApiEndpoints.expenses,
-          data: {
-            'userId': user.uid,
-            'vendor': vendor,
-            'amount': amount,
-            'category': _category,
-            'date': dateStr,
-            'description': description,
-            'groupId': _selectedGroupId,
-            'expenseType': 'group',
-            if (widget.receiptUrl != null) 'receiptUrl': widget.receiptUrl,
-          },
-        );
+        await ref
+            .read(apiClientProvider)
+            .post(
+              ApiEndpoints.expenses,
+              data: {
+                'userId': user.uid,
+                'vendor': vendor,
+                'amount': amount,
+                'category': _category,
+                'date': dateStr,
+                'description': description,
+                'groupId': _selectedGroupId,
+                'expenseType': 'group',
+                if (widget.receiptUrl != null) 'receiptUrl': widget.receiptUrl,
+              },
+            );
       } else {
-        await ref.read(expenseRepositoryProvider).savePersonalExpense(
+        await ref
+            .read(expenseRepositoryProvider)
+            .savePersonalExpense(
               userId: user.uid,
               vendor: vendor,
               amount: amount,
@@ -225,18 +231,19 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
       if (mounted) {
         final groupName = _selectedGroupId != null
             ? ref
-                  .read(userGroupsProvider)
-                  .valueOrNull
-                  ?.where((g) => g.id == _selectedGroupId)
-                  .firstOrNull
-                  ?.name ??
-              'group'
+                      .read(userGroupsProvider)
+                      .valueOrNull
+                      ?.where((g) => g.id == _selectedGroupId)
+                      .firstOrNull
+                      ?.name ??
+                  'group'
             : null;
 
         SuccessOverlay.show(
           context,
           title: vendor,
-          subtitle: '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
+          subtitle:
+              '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
         );
 
         widget.onSaved?.call();
@@ -311,7 +318,8 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
     );
 
     return Semantics(
-      label: 'Expense confirmation form: '
+      label:
+          'Expense confirmation form: '
           '${_vendorController.text}, \$${_amountController.text}, '
           '$_category',
       container: true,
@@ -331,15 +339,10 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
             controller: _vendorController,
             textCapitalization: TextCapitalization.words,
             textInputAction: TextInputAction.next,
-            style: TextStyle(
-              fontSize: 14,
-              color: theme.colorScheme.onSurface,
-            ),
+            style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: 'Vendor name',
-              hintStyle: TextStyle(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              hintStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 10,
@@ -358,8 +361,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
           const SizedBox(height: 4),
           TextField(
             controller: _amountController,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
             style: TextStyle(
               fontSize: 14,
@@ -394,10 +396,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
             initialValue: _category,
             isExpanded: true,
             isDense: true,
-            style: TextStyle(
-              fontSize: 13,
-              color: theme.colorScheme.onSurface,
-            ),
+            style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
@@ -427,10 +426,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
             borderRadius: BorderRadius.circular(8),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               decoration: BoxDecoration(
                 border: Border.all(color: theme.dividerColor),
                 borderRadius: BorderRadius.circular(8),
@@ -455,10 +451,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
             textCapitalization: TextCapitalization.sentences,
             textInputAction: TextInputAction.done,
             maxLines: 1,
-            style: TextStyle(
-              fontSize: 13,
-              color: theme.colorScheme.onSurface,
-            ),
+            style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
             decoration: InputDecoration(
               hintText: 'Optional',
               hintStyle: TextStyle(
@@ -482,8 +475,12 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
           _buildFieldLabel(theme, Icons.group_outlined, 'Group'),
           const SizedBox(height: 4),
           groupsAsync.when(
-            data: (groups) =>
-                _buildGroupSelector(groups, theme, inputBorder, focusedInputBorder),
+            data: (groups) => _buildGroupSelector(
+              groups,
+              theme,
+              inputBorder,
+              focusedInputBorder,
+            ),
             loading: () => Container(
               height: 38,
               decoration: BoxDecoration(
@@ -515,7 +512,8 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
   Widget _buildConfirmedCard(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
-      label: '${widget.expense.vendor}, ${widget.expense.category}, '
+      label:
+          '${widget.expense.vendor}, ${widget.expense.category}, '
           '\$${widget.expense.amount.toStringAsFixed(2)}, saved',
       container: true,
       child: Container(
@@ -524,9 +522,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: AppColors.success.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -590,11 +586,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
   Widget _buildHeader(ThemeData theme) {
     return Row(
       children: [
-        Icon(
-          Icons.receipt_long_outlined,
-          size: 18,
-          color: AppColors.primary,
-        ),
+        Icon(Icons.receipt_long_outlined, size: 18, color: AppColors.primary),
         const SizedBox(width: 8),
         Flexible(
           child: Text(
@@ -626,8 +618,9 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.surfaceContainerHighest
-              .withValues(alpha: 0.5),
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.5,
+          ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -726,28 +719,32 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
   List<DropdownMenuItem<String>> _buildCategoryItems(ThemeData theme) {
     final items = <DropdownMenuItem<String>>[];
     for (final entry in categoryGroups.entries) {
-      items.add(DropdownMenuItem<String>(
-        enabled: false,
-        value: '__header_${entry.key}',
-        child: Text(
-          entry.key.toUpperCase(),
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: theme.colorScheme.onSurfaceVariant,
-            letterSpacing: 0.5,
+      items.add(
+        DropdownMenuItem<String>(
+          enabled: false,
+          value: '__header_${entry.key}',
+          child: Text(
+            entry.key.toUpperCase(),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurfaceVariant,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
-      ));
+      );
       for (final cat in entry.value) {
-        items.add(DropdownMenuItem<String>(
-          value: cat,
-          child: Text(
-            cat,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13),
+        items.add(
+          DropdownMenuItem<String>(
+            value: cat,
+            child: Text(
+              cat,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13),
+            ),
           ),
-        ));
+        );
       }
     }
     return items;
@@ -763,10 +760,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
       key: ValueKey('group_${_selectedGroupId ?? '__personal__'}'),
       initialValue: _selectedGroupId ?? '__personal__',
       isDense: true,
-      style: TextStyle(
-        fontSize: 13,
-        color: theme.colorScheme.onSurface,
-      ),
+      style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
@@ -803,8 +797,9 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
           ? null
           : (v) {
               setState(() {
-                _selectedGroupId =
-                    (v == '__personal__' || v == null) ? null : v;
+                _selectedGroupId = (v == '__personal__' || v == null)
+                    ? null
+                    : v;
               });
             },
     );
@@ -822,8 +817,8 @@ class _ConfidenceBadge extends StatelessWidget {
     final color = confidence >= 0.8
         ? AppColors.success
         : confidence >= 0.6
-            ? AppColors.warning
-            : AppColors.error;
+        ? AppColors.warning
+        : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

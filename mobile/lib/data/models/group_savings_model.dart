@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class GroupSavingsGoalModel {
   GroupSavingsGoalModel({
@@ -30,7 +30,8 @@ class GroupSavingsGoalModel {
   final String groupId;
   final String createdBy;
   final String name;
-  final String category; // emergency_fund, travel, education, health, house_down_payment, car, wedding, retirement, investment, custom
+  final String
+  category; // emergency_fund, travel, education, health, house_down_payment, car, wedding, retirement, investment, custom
   final double targetAmount;
   final double currentAmount;
   final double monthlyContribution;
@@ -49,7 +50,7 @@ class GroupSavingsGoalModel {
   final String? emoji;
   final Timestamp? lastContributionAt;
 
-  factory GroupSavingsGoalModel.fromFirestore(DocumentSnapshot doc) {
+  factory GroupSavingsGoalModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return GroupSavingsGoalModel(
       id: doc.id,
@@ -64,17 +65,16 @@ class GroupSavingsGoalModel {
       isActive: data['isActive'] as bool? ?? true,
       priority: data['priority'] as String? ?? 'medium',
       currency: data['currency'] as String? ?? 'CAD',
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
       contributionType: data['contributionType'] as String? ?? 'equal',
-      targetDate: data['targetDate'] as Timestamp?,
-      startDate: data['startDate'] as Timestamp?,
-      achievedDate: data['achievedDate'] as Timestamp?,
-      progressPercentage:
-          (data['progressPercentage'] as num?)?.toDouble() ?? 0,
+      targetDate: Timestamp.tryParse(data['targetDate']),
+      startDate: Timestamp.tryParse(data['startDate']),
+      achievedDate: Timestamp.tryParse(data['achievedDate']),
+      progressPercentage: (data['progressPercentage'] as num?)?.toDouble() ?? 0,
       description: data['description'] as String?,
       emoji: data['emoji'] as String?,
-      lastContributionAt: data['lastContributionAt'] as Timestamp?,
+      lastContributionAt: Timestamp.tryParse(data['lastContributionAt']),
     );
   }
 
@@ -108,15 +108,15 @@ class GroupSavingsGoalModel {
       targetAmount > 0 ? (currentAmount / targetAmount * 100).clamp(0, 100) : 0;
 
   String get defaultEmoji => switch (category) {
-        'emergency_fund' => '\u{1F6E1}\u{FE0F}',
-        'travel' => '\u{2708}\u{FE0F}',
-        'education' => '\u{1F4DA}',
-        'health' => '\u{1F3E5}',
-        'house_down_payment' => '\u{1F3E0}',
-        'car' => '\u{1F697}',
-        'wedding' => '\u{1F48D}',
-        'retirement' => '\u{1F3D6}\u{FE0F}',
-        'investment' => '\u{1F4C8}',
-        _ => '\u{1F3AF}',
-      };
+    'emergency_fund' => '\u{1F6E1}\u{FE0F}',
+    'travel' => '\u{2708}\u{FE0F}',
+    'education' => '\u{1F4DA}',
+    'health' => '\u{1F3E5}',
+    'house_down_payment' => '\u{1F3E0}',
+    'car' => '\u{1F697}',
+    'wedding' => '\u{1F48D}',
+    'retirement' => '\u{1F3D6}\u{FE0F}',
+    'investment' => '\u{1F4C8}',
+    _ => '\u{1F3AF}',
+  };
 }

@@ -1225,9 +1225,6 @@ PODS:
   - Firebase/Messaging (12.9.0):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 12.9.0)
-  - Firebase/Storage (12.9.0):
-    - Firebase/CoreOnly
-    - FirebaseStorage (~> 12.9.0)
   - firebase_auth (6.3.0):
     - Firebase/Auth (= 12.9.0)
     - firebase_core
@@ -1241,10 +1238,6 @@ PODS:
     - Flutter
   - firebase_messaging (16.1.3):
     - Firebase/Messaging (= 12.9.0)
-    - firebase_core
-    - Flutter
-  - firebase_storage (13.2.0):
-    - Firebase/Storage (= 12.9.0)
     - firebase_core
     - Flutter
   - FirebaseAppCheckInterop (12.9.0)
@@ -1320,13 +1313,6 @@ PODS:
     - nanopb (~> 3.30910.0)
     - PromisesSwift (~> 2.1)
   - FirebaseSharedSwift (12.9.0)
-  - FirebaseStorage (12.9.0):
-    - FirebaseAppCheckInterop (~> 12.9.0)
-    - FirebaseAuthInterop (~> 12.9.0)
-    - FirebaseCore (~> 12.9.0)
-    - FirebaseCoreExtension (~> 12.9.0)
-    - GoogleUtilities/Environment (~> 8.1)
-    - GTMSessionFetcher/Core (< 6.0, >= 3.4)
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
@@ -1503,7 +1489,6 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
-  - firebase_storage (from `.symlinks/plugins/firebase_storage/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - google_sign_in_ios (from `.symlinks/plugins/google_sign_in_ios/darwin`)
@@ -1537,7 +1522,6 @@ SPEC REPOS:
     - FirebaseRemoteConfigInterop
     - FirebaseSessions
     - FirebaseSharedSwift
-    - FirebaseStorage
     - GoogleDataTransport
     - GoogleSignIn
     - GoogleUtilities
@@ -1564,8 +1548,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_crashlytics/ios"
   firebase_messaging:
     :path: ".symlinks/plugins/firebase_messaging/ios"
-  firebase_storage:
-    :path: ".symlinks/plugins/firebase_storage/ios"
   Flutter:
     :path: Flutter
   flutter_local_notifications:
@@ -1600,7 +1582,6 @@ SPEC CHECKSUMS:
   firebase_core: 8e6f58412ca227827c366b92e7cee047a2148c60
   firebase_crashlytics: c399f9682c474beb06a89c11dfab04db537f3cd2
   firebase_messaging: c3aa897e0d40109cfb7927c40dc0dea799863f3b
-  firebase_storage: 8d16922c017c49812f7bbe64a86f756f99a44c74
   FirebaseAppCheckInterop: 4bade10286cc977e516f75d2d8312cbdfa534789
   FirebaseAuth: 3a39f6436c21ebfd7919b698228b4f89ff94c23b
   FirebaseAuthInterop: f8f6ff72dc24621906497fbe5cf3c42ee815e59c
@@ -1615,7 +1596,6 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfigInterop: 765ee19cd2bfa8e54937c8dae901eb634ad6787d
   FirebaseSessions: a2d06fd980431fda934c7a543901aca05fc4edcc
   FirebaseSharedSwift: 9d2fa84a46676302b89dbd5e6e62bce2fe376909
-  FirebaseStorage: 3ba2348d876c295236cdd9f408a62d3f9ff8e6b5
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: a5a732f069baa862e728d839dd2ebb904737effb
   google_sign_in_ios: 000870aa06da9b28d1d0bf7ef70ff0213059dd28

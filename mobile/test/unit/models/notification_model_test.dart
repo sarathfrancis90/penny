@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart' as api;
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/notification_model.dart';
@@ -68,14 +69,22 @@ void main() {
     test('defaultIcon returns correct emoji per category', () async {
       final now = Timestamp.now();
       final base = {
-        'userId': 'u', 'type': 't', 'title': 'T', 'body': 'B',
-        'priority': 'low', 'read': false, 'delivered': false,
-        'isGrouped': false, 'createdAt': now,
+        'userId': 'u',
+        'type': 't',
+        'title': 'T',
+        'body': 'B',
+        'priority': 'low',
+        'read': false,
+        'delivered': false,
+        'isGrouped': false,
+        'createdAt': now,
       };
 
       Future<NotificationModel> create(String cat) async {
-        final doc = await firestore.collection('notifications')
-            .add({...base, 'category': cat});
+        final doc = await firestore.collection('notifications').add({
+          ...base,
+          'category': cat,
+        });
         return NotificationModel.fromFirestore(await doc.get());
       }
 
@@ -90,34 +99,70 @@ void main() {
       final now = DateTime.now();
 
       final justNow = NotificationModel(
-        id: '1', userId: 'u', type: 't', title: 'T', body: 'B',
-        priority: 'low', category: 'system', read: false,
-        delivered: false, isGrouped: false,
-        createdAt: Timestamp.fromDate(now.subtract(const Duration(seconds: 30))),
+        id: '1',
+        userId: 'u',
+        type: 't',
+        title: 'T',
+        body: 'B',
+        priority: 'low',
+        category: 'system',
+        read: false,
+        delivered: false,
+        isGrouped: false,
+        createdAt: api.Timestamp.fromDate(
+          now.subtract(const Duration(seconds: 30)),
+        ),
       );
       expect(justNow.timeAgo, 'just now');
 
       final fiveMin = NotificationModel(
-        id: '2', userId: 'u', type: 't', title: 'T', body: 'B',
-        priority: 'low', category: 'system', read: false,
-        delivered: false, isGrouped: false,
-        createdAt: Timestamp.fromDate(now.subtract(const Duration(minutes: 5))),
+        id: '2',
+        userId: 'u',
+        type: 't',
+        title: 'T',
+        body: 'B',
+        priority: 'low',
+        category: 'system',
+        read: false,
+        delivered: false,
+        isGrouped: false,
+        createdAt: api.Timestamp.fromDate(
+          now.subtract(const Duration(minutes: 5)),
+        ),
       );
       expect(fiveMin.timeAgo, '5m ago');
 
       final threeHours = NotificationModel(
-        id: '3', userId: 'u', type: 't', title: 'T', body: 'B',
-        priority: 'low', category: 'system', read: false,
-        delivered: false, isGrouped: false,
-        createdAt: Timestamp.fromDate(now.subtract(const Duration(hours: 3))),
+        id: '3',
+        userId: 'u',
+        type: 't',
+        title: 'T',
+        body: 'B',
+        priority: 'low',
+        category: 'system',
+        read: false,
+        delivered: false,
+        isGrouped: false,
+        createdAt: api.Timestamp.fromDate(
+          now.subtract(const Duration(hours: 3)),
+        ),
       );
       expect(threeHours.timeAgo, '3h ago');
 
       final twoDays = NotificationModel(
-        id: '4', userId: 'u', type: 't', title: 'T', body: 'B',
-        priority: 'low', category: 'system', read: false,
-        delivered: false, isGrouped: false,
-        createdAt: Timestamp.fromDate(now.subtract(const Duration(days: 2))),
+        id: '4',
+        userId: 'u',
+        type: 't',
+        title: 'T',
+        body: 'B',
+        priority: 'low',
+        category: 'system',
+        read: false,
+        delivered: false,
+        isGrouped: false,
+        createdAt: api.Timestamp.fromDate(
+          now.subtract(const Duration(days: 2)),
+        ),
       );
       expect(twoDays.timeAgo, '2d ago');
     });

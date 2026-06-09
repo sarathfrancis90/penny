@@ -11,13 +11,17 @@ final groupBudgetRepositoryProvider = Provider<GroupBudgetRepository>((ref) {
 /// Stream group budgets for a group (current period).
 final groupBudgetsProvider =
     StreamProvider.family<List<GroupBudgetModel>, String>((ref, groupId) {
-  final period = ref.watch(budgetPeriodProvider);
-  return ref.watch(groupBudgetRepositoryProvider).watchGroupBudgets(groupId, period);
-});
+      final period = ref.watch(budgetPeriodProvider);
+      return ref
+          .watch(groupBudgetRepositoryProvider)
+          .watchGroupBudgets(groupId, period);
+    });
 
 /// Total group budget limit for the month.
-final totalGroupBudgetLimitProvider =
-    Provider.family<double, String>((ref, groupId) {
+final totalGroupBudgetLimitProvider = Provider.family<double, String>((
+  ref,
+  groupId,
+) {
   final budgets = ref.watch(groupBudgetsProvider(groupId)).valueOrNull ?? [];
   return budgets.fold(0.0, (sum, b) => sum + b.monthlyLimit);
 });

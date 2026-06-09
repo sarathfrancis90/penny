@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class ExpenseModel {
   ExpenseModel({
@@ -47,7 +47,7 @@ class ExpenseModel {
   bool get isRejected => approvalStatus == 'rejected';
   String? get rejectedReason => groupMetadata?['rejectedReason'] as String?;
 
-  factory ExpenseModel.fromFirestore(DocumentSnapshot doc) {
+  factory ExpenseModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return ExpenseModel(
       id: doc.id,
@@ -55,10 +55,10 @@ class ExpenseModel {
       vendor: data['vendor'] as String,
       amount: (data['amount'] as num).toDouble(),
       category: data['category'] as String,
-      date: data['date'] as Timestamp,
+      date: Timestamp.fromJson(data['date']),
       expenseType: data['expenseType'] as String? ?? 'personal',
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
       description: data['description'] as String?,
       receiptUrl: data['receiptUrl'] as String?,
       notes: data['notes'] as String?,

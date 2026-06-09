@@ -15,7 +15,7 @@ class NotificationPreferencesScreen extends ConsumerWidget {
     final settingsAsync = ref.watch(notificationSettingsProvider);
     final prefsAsync = ref.watch(notificationTypePrefsProvider);
 
-    // Initialize defaults in Firestore on first access
+    // Initialize defaults through the API on first access.
     if (settingsAsync.valueOrNull == null && !settingsAsync.isLoading) {
       final user = ref.read(currentUserProvider);
       if (user != null) {

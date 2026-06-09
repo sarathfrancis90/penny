@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:penny_mobile/data/models/conversation_model.dart';
 
@@ -6,7 +6,9 @@ void main() {
   group('ConversationMetadata.fromMap', () {
     test('reads aiTitleGenerated when present', () {
       final meta = ConversationMetadata.fromMap({
-        'lastAccessedAt': Timestamp.fromMillisecondsSinceEpoch(1_700_000_000_000),
+        'lastAccessedAt': Timestamp.fromMillisecondsSinceEpoch(
+          1_700_000_000_000,
+        ),
         'isPinned': true,
         'aiTitleGenerated': true,
       });
@@ -17,7 +19,9 @@ void main() {
 
     test('defaults aiTitleGenerated to false when absent', () {
       final meta = ConversationMetadata.fromMap({
-        'lastAccessedAt': Timestamp.fromMillisecondsSinceEpoch(1_700_000_000_000),
+        'lastAccessedAt': Timestamp.fromMillisecondsSinceEpoch(
+          1_700_000_000_000,
+        ),
         'isPinned': false,
       });
 
@@ -29,8 +33,9 @@ void main() {
         lastAccessedAt: Timestamp.fromMillisecondsSinceEpoch(1_700_000_000_000),
         isPinned: true,
         aiTitleGenerated: true,
-        firstMessageTimestamp:
-            Timestamp.fromMillisecondsSinceEpoch(1_690_000_000_000),
+        firstMessageTimestamp: Timestamp.fromMillisecondsSinceEpoch(
+          1_690_000_000_000,
+        ),
       );
       final restored = ConversationMetadata.fromMap(original.toMap());
 

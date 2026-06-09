@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class BudgetModel {
   BudgetModel({
@@ -21,7 +21,7 @@ class BudgetModel {
   final Timestamp createdAt;
   final Timestamp updatedAt;
 
-  factory BudgetModel.fromFirestore(DocumentSnapshot doc) {
+  factory BudgetModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return BudgetModel(
       id: doc.id,
@@ -29,10 +29,11 @@ class BudgetModel {
       category: data['category'] as String,
       monthlyLimit: (data['monthlyLimit'] as num).toDouble(),
       period: BudgetPeriod.fromMap(data['period'] as Map<String, dynamic>),
-      settings:
-          BudgetSettings.fromMap(data['settings'] as Map<String, dynamic>? ?? {}),
-      createdAt: data['createdAt'] as Timestamp,
-      updatedAt: data['updatedAt'] as Timestamp,
+      settings: BudgetSettings.fromMap(
+        data['settings'] as Map<String, dynamic>? ?? {},
+      ),
+      createdAt: Timestamp.fromJson(data['createdAt']),
+      updatedAt: Timestamp.fromJson(data['updatedAt']),
     );
   }
 
@@ -56,10 +57,7 @@ class BudgetPeriod {
   final int year;
 
   factory BudgetPeriod.fromMap(Map<String, dynamic> map) {
-    return BudgetPeriod(
-      month: map['month'] as int,
-      year: map['year'] as int,
-    );
+    return BudgetPeriod(month: map['month'] as int, year: map['year'] as int);
   }
 
   factory BudgetPeriod.current() {
@@ -97,13 +95,13 @@ class BudgetSettings {
   }
 
   Map<String, dynamic> toMap() => {
-        'rollover': rollover,
-        'alertThreshold': alertThreshold,
-        'notificationsEnabled': notificationsEnabled,
-      };
+    'rollover': rollover,
+    'alertThreshold': alertThreshold,
+    'notificationsEnabled': notificationsEnabled,
+  };
 }
 
-/// Computed budget usage (not stored in Firestore).
+/// Computed budget usage (not persisted as a standalone record).
 class BudgetUsage {
   const BudgetUsage({
     required this.category,

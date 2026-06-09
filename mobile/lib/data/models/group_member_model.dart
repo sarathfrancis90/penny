@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class GroupMemberModel {
   GroupMemberModel({
@@ -29,7 +29,7 @@ class GroupMemberModel {
   final Timestamp? joinedAt;
   final Timestamp? lastActivityAt;
 
-  factory GroupMemberModel.fromFirestore(DocumentSnapshot doc) {
+  factory GroupMemberModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return GroupMemberModel(
       id: doc.id,
@@ -39,12 +39,13 @@ class GroupMemberModel {
       role: data['role'] as String,
       status: data['status'] as String? ?? 'active',
       permissions: GroupPermissions.fromMap(
-          Map<String, dynamic>.from(data['permissions'] as Map? ?? {})),
-      invitedAt: data['invitedAt'] as Timestamp,
+        Map<String, dynamic>.from(data['permissions'] as Map? ?? {}),
+      ),
+      invitedAt: Timestamp.fromJson(data['invitedAt']),
       invitedBy: data['invitedBy'] as String,
       userName: data['userName'] as String?,
-      joinedAt: data['joinedAt'] as Timestamp?,
-      lastActivityAt: data['lastActivityAt'] as Timestamp?,
+      joinedAt: Timestamp.tryParse(data['joinedAt']),
+      lastActivityAt: Timestamp.tryParse(data['lastActivityAt']),
     );
   }
 
@@ -96,20 +97,33 @@ class GroupPermissions {
   static GroupPermissions forRole(String role) {
     return switch (role) {
       'owner' => const GroupPermissions(
-          canAddExpenses: true, canEditOwnExpenses: true,
-          canEditAllExpenses: true, canDeleteExpenses: true,
-          canApproveExpenses: true, canInviteMembers: true,
-          canRemoveMembers: true, canViewReports: true,
-          canExportData: true, canManageSettings: true),
+        canAddExpenses: true,
+        canEditOwnExpenses: true,
+        canEditAllExpenses: true,
+        canDeleteExpenses: true,
+        canApproveExpenses: true,
+        canInviteMembers: true,
+        canRemoveMembers: true,
+        canViewReports: true,
+        canExportData: true,
+        canManageSettings: true,
+      ),
       'admin' => const GroupPermissions(
-          canAddExpenses: true, canEditOwnExpenses: true,
-          canEditAllExpenses: true, canDeleteExpenses: true,
-          canApproveExpenses: true, canInviteMembers: true,
-          canRemoveMembers: true, canViewReports: true,
-          canExportData: true),
+        canAddExpenses: true,
+        canEditOwnExpenses: true,
+        canEditAllExpenses: true,
+        canDeleteExpenses: true,
+        canApproveExpenses: true,
+        canInviteMembers: true,
+        canRemoveMembers: true,
+        canViewReports: true,
+        canExportData: true,
+      ),
       'member' => const GroupPermissions(
-          canAddExpenses: true, canEditOwnExpenses: true,
-          canViewReports: true),
+        canAddExpenses: true,
+        canEditOwnExpenses: true,
+        canViewReports: true,
+      ),
       'viewer' => const GroupPermissions(canViewReports: true),
       _ => const GroupPermissions(),
     };

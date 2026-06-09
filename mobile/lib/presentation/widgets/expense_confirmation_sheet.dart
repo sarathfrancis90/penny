@@ -19,9 +19,8 @@ import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 /// A modal bottom sheet for confirming and editing an AI-parsed expense before
 /// saving. Supports personal and group expense flows.
 ///
-/// When a group is selected the expense is saved via the Next.js API
-/// (`POST /api/expenses`) which handles group stats, activity log and member
-/// notifications. Personal expenses are written directly to Firestore.
+/// Expenses are saved through the standalone API. Group saves also update group
+/// stats, activity logs, and member notifications server-side.
 class ExpenseConfirmationSheet extends ConsumerStatefulWidget {
   const ExpenseConfirmationSheet({
     super.key,
@@ -32,7 +31,7 @@ class ExpenseConfirmationSheet extends ConsumerStatefulWidget {
 
   final ParsedExpense expense;
 
-  /// Download URL of the receipt image in Firebase Storage (may be null).
+  /// Download URL of the receipt image returned by the API (may be null).
   final String? receiptUrl;
 
   /// Called after the expense has been successfully saved.
@@ -222,7 +221,7 @@ class _ExpenseConfirmationSheetState
               },
             );
       } else {
-        // Personal expense — direct Firestore write
+        // Personal expense through the API-backed repository.
         await ref
             .read(expenseRepositoryProvider)
             .savePersonalExpense(

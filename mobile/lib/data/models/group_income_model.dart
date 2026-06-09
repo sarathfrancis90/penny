@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:penny_mobile/data/models/api_timestamp.dart';
 
 class GroupIncomeSourceModel {
   GroupIncomeSourceModel({
@@ -27,7 +27,8 @@ class GroupIncomeSourceModel {
   final String groupId;
   final String addedBy;
   final String name;
-  final String category; // salary, freelance, bonus, investment, rental, side_hustle, gift, other
+  final String
+  category; // salary, freelance, bonus, investment, rental, side_hustle, gift, other
   final double amount;
   final String frequency; // monthly, biweekly, weekly, yearly, once
   final bool isRecurring;
@@ -43,7 +44,7 @@ class GroupIncomeSourceModel {
   final Timestamp? startDate;
   final int? recurringDate;
 
-  factory GroupIncomeSourceModel.fromFirestore(DocumentSnapshot doc) {
+  factory GroupIncomeSourceModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return GroupIncomeSourceModel(
       id: doc.id,
@@ -57,13 +58,13 @@ class GroupIncomeSourceModel {
       isActive: data['isActive'] as bool? ?? true,
       taxable: data['taxable'] as bool? ?? true,
       currency: data['currency'] as String? ?? 'CAD',
-      createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
-      updatedAt: data['updatedAt'] as Timestamp? ?? Timestamp.now(),
+      createdAt: Timestamp.tryParse(data['createdAt']) ?? Timestamp.now(),
+      updatedAt: Timestamp.tryParse(data['updatedAt']) ?? Timestamp.now(),
       contributedBy: data['contributedBy'] as String?,
       splitType: data['splitType'] as String? ?? 'equal',
       description: data['description'] as String?,
       netAmount: (data['netAmount'] as num?)?.toDouble(),
-      startDate: data['startDate'] as Timestamp?,
+      startDate: Timestamp.tryParse(data['startDate']),
       recurringDate: data['recurringDate'] as int?,
     );
   }
@@ -92,19 +93,19 @@ class GroupIncomeSourceModel {
   }
 
   String get frequencyLabel => switch (frequency) {
-        'monthly' => '/mo',
-        'biweekly' => '/2wk',
-        'weekly' => '/wk',
-        'yearly' => '/yr',
-        'once' => 'one-time',
-        _ => '',
-      };
+    'monthly' => '/mo',
+    'biweekly' => '/2wk',
+    'weekly' => '/wk',
+    'yearly' => '/yr',
+    'once' => 'one-time',
+    _ => '',
+  };
 
   double get monthlyAmount => switch (frequency) {
-        'monthly' => amount,
-        'biweekly' => amount * 26 / 12,
-        'weekly' => amount * 52 / 12,
-        'yearly' => amount / 12,
-        _ => amount,
-      };
+    'monthly' => amount,
+    'biweekly' => amount * 26 / 12,
+    'weekly' => amount * 52 / 12,
+    'yearly' => amount / 12,
+    _ => amount,
+  };
 }

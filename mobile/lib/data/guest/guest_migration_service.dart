@@ -1,14 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/constants/env_config.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
 import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/data/repositories/expense_repository.dart';
 
-/// Migrates guest local expenses to Firestore when the user signs up or signs in.
+/// Migrates guest local expenses through the standalone API when the user signs up or signs in.
 class GuestMigrationService {
-  /// Migrate all guest expenses to Firestore. Idempotent — safe to call multiple times.
+  /// Migrate all guest expenses through the API. Idempotent — safe to call multiple times.
   /// Returns the number of successfully migrated expenses.
-  static Future<int> migrateToFirestore({
+  static Future<int> migrateToAccount({
     required Ref ref,
     required String userId,
   }) async {
@@ -33,14 +35,21 @@ class GuestMigrationService {
         );
         migrated++;
       } catch (e) {
-        debugPrint('[GuestMigration] Failed to migrate expense ${expense.vendor}: $e');
+        debugPrint(
+          '[GuestMigration] Failed to migrate expense ${expense.vendor}: $e',
+        );
       }
     }
 
-    debugPrint('[GuestMigration] Migrated $migrated of ${expenses.length} expenses for user $userId');
+    debugPrint(
+      '[GuestMigration] Migrated $migrated of ${expenses.length} expenses for user $userId',
+    );
     return migrated;
   }
 }
 
 /// Internal provider reference for ExpenseRepository.
-final _expenseRepoProvider = Provider<ExpenseRepository>((ref) => ExpenseRepository());
+final _expenseRepoProvider = Provider<ExpenseRepository>(
+  (ref) =>
+      ExpenseRepository(apiClient: ApiClient(baseUrl: EnvConfig.apiBaseUrl)),
+);
