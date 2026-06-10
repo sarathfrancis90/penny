@@ -43,6 +43,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@${sha}
 ${body}
@@ -153,6 +154,27 @@ describe('runPolicyGuard', () => {
     );
 
     expect(() => runPolicyGuard({ rootDir })).toThrow(/no-fatal-infos is forbidden/);
+  });
+
+  it('rejects workflow jobs without bounded timeouts', () => {
+    const rootDir = writeFixture(
+      requiredWorkflowFixtures({
+        '.github/workflows/mobile-android-ci.yml': `name: Mobile Android CI
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  mobile-android-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@${sha}
+      - run: flutter build appbundle
+`,
+      }),
+    );
+
+    expect(() => runPolicyGuard({ rootDir })).toThrow(/must declare timeout-minutes/);
   });
 
   it('rejects stale or open-ended OSV vulnerability exceptions', () => {

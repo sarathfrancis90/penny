@@ -27,6 +27,7 @@ jobs:
   staging:
     name: API staging no-traffic deploy, smoke, promote
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     environment: staging
     env:
       API_ENV: staging

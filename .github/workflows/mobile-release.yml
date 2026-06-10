@@ -40,6 +40,7 @@ jobs:
   derive:
     name: Derive version + validate release notes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       version: ${{ steps.derive.outputs.version }}
       build_number: ${{ steps.derive.outputs.build_number }}
@@ -331,14 +332,17 @@ jobs:
     needs: [derive, preflight, ios, android]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Print outcome
         run: |
-          echo "## Mobile internal release v${{ needs.derive.outputs.version }} (build ${{ needs.derive.outputs.build_number }})" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Platform | Target | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| iOS | TestFlight internal | ${{ needs.ios.result }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Android | Play internal testing | ${{ needs.android.result }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Production promotion is manual via Mobile Production Promotion after internal validation passes." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Mobile internal release v${{ needs.derive.outputs.version }} (build ${{ needs.derive.outputs.build_number }})"
+            echo ""
+            echo "| Platform | Target | Status |"
+            echo "|---|---|---|"
+            echo "| iOS | TestFlight internal | ${{ needs.ios.result }} |"
+            echo "| Android | Play internal testing | ${{ needs.android.result }} |"
+            echo ""
+            echo "Production promotion is manual via Mobile Production Promotion after internal validation passes."
+          } >> "$GITHUB_STEP_SUMMARY"

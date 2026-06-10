@@ -16,6 +16,7 @@ jobs:
   dependency-security:
     name: dependency-security
     runs-on: ubuntu-latest
+    timeout-minutes: 35
 
     steps:
       - name: Checkout code
@@ -47,6 +48,7 @@ jobs:
   osv-scan:
     name: osv-scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -66,6 +68,7 @@ jobs:
       - osv-scan
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Verify security checks

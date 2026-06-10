@@ -14,6 +14,7 @@ jobs:
   docs-contract-ci:
     name: docs-contract-ci
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     steps:
       - name: Checkout code

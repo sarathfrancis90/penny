@@ -125,6 +125,7 @@ const forbiddenWorkflowPatterns: Array<{ pattern: RegExp; message: string }> = [
 
 const fullShaPattern = /^[0-9a-f]{40}$/i;
 const maxOsvExceptionDays = 45;
+const maxWorkflowJobTimeoutMinutes = 120;
 
 function readJson(relativePath: string, rootDir: string) {
   return JSON.parse(readFileSync(join(rootDir, relativePath), 'utf8'));
@@ -230,6 +231,79 @@ function checkWorkflowPermissions(relativePath: string, content: string, failure
   }
 }
 
+function checkWorkflowJobTimeouts(relativePath: string, content: string, failures: string[]) {
+  const lines = content.split('\n');
+  let inJobs = false;
+  let currentJob:
+    | {
+        name: string;
+        line: number;
+        hasRunsOn: boolean;
+        hasTimeout: boolean;
+      }
+    | undefined;
+
+  const finishJob = () => {
+    if (!currentJob?.hasRunsOn) {
+      currentJob = undefined;
+      return;
+    }
+
+    if (!currentJob.hasTimeout) {
+      failures.push(
+        `${relativePath}:${currentJob.line} job ${currentJob.name} must declare timeout-minutes`,
+      );
+    }
+    currentJob = undefined;
+  };
+
+  lines.forEach((line, index) => {
+    if (/^jobs:\s*$/.test(line)) {
+      inJobs = true;
+      return;
+    }
+
+    if (!inJobs) return;
+
+    if (/^\S/.test(line)) {
+      finishJob();
+      inJobs = false;
+      return;
+    }
+
+    const jobMatch = line.match(/^  ([A-Za-z0-9_-]+):\s*$/);
+    if (jobMatch) {
+      finishJob();
+      currentJob = {
+        name: jobMatch[1],
+        line: index + 1,
+        hasRunsOn: false,
+        hasTimeout: false,
+      };
+      return;
+    }
+
+    if (!currentJob) return;
+
+    if (/^    runs-on:\s*/.test(line)) {
+      currentJob.hasRunsOn = true;
+    }
+
+    const timeoutMatch = line.match(/^    timeout-minutes:\s*([0-9]+)\s*$/);
+    if (timeoutMatch) {
+      currentJob.hasTimeout = true;
+      const timeoutMinutes = Number(timeoutMatch[1]);
+      if (timeoutMinutes < 1 || timeoutMinutes > maxWorkflowJobTimeoutMinutes) {
+        failures.push(
+          `${relativePath}:${index + 1} job ${currentJob.name} timeout-minutes must be between 1 and ${maxWorkflowJobTimeoutMinutes}`,
+        );
+      }
+    }
+  });
+
+  finishJob();
+}
+
 function checkRequiredWorkflows(rootDir: string, failures: string[]) {
   for (const workflow of requiredWorkflows) {
     const relativePath = `.github/workflows/${workflow.file}`;
@@ -295,6 +369,7 @@ export function runPolicyGuard(options: PolicyGuardOptions = {}) {
 
     checkActionPins(relativePath, content, failures);
     checkWorkflowPermissions(relativePath, content, failures);
+    checkWorkflowJobTimeouts(relativePath, content, failures);
   }
 
   if (failures.length > 0) {

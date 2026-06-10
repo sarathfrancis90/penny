@@ -14,6 +14,7 @@ jobs:
   mobile-ios-ci:
     name: mobile-ios-ci
     runs-on: macos-26
+    timeout-minutes: 90
 
     steps:
       - name: Checkout code
@@ -46,9 +47,11 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
 
       - name: Run integration tests
+        timeout-minutes: 45
         working-directory: mobile
         run: flutter test --reporter expanded -d "${{ steps.simulator.outputs.device_id }}" integration_test
 
       - name: Build iOS release without codesigning
+        timeout-minutes: 45
         working-directory: mobile
         run: flutter build ios --release --no-codesign --build-number "$GITHUB_RUN_NUMBER"

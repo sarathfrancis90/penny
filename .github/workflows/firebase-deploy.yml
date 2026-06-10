@@ -30,6 +30,7 @@ jobs:
   deploy-database:
     name: Deploy Database Configuration
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     environment: ${{ inputs.environment || 'production' }}
     env:
       FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID || secrets.FIREBASE_PROJECT_ID }}

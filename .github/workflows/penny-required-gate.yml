@@ -29,6 +29,7 @@ jobs:
   penny-required-gate:
     name: Penny Required Gate
     runs-on: ubuntu-latest
+    timeout-minutes: 70
 
     steps:
       - name: Checkout code
