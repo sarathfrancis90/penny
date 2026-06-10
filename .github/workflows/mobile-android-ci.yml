@@ -48,7 +48,7 @@ jobs:
           keytool -genkeypair \
             -keystore app/penny_release_key.jks \
             -storepass android-ci-store-pass \
-            -keypass android-ci-key-pass \
+            -keypass android-ci-store-pass \
             -alias android-ci \
             -keyalg RSA \
             -keysize 2048 \
@@ -58,7 +58,7 @@ jobs:
             echo "storeFile=penny_release_key.jks"
             echo "storePassword=android-ci-store-pass"
             echo "keyAlias=android-ci"
-            echo "keyPassword=android-ci-key-pass"
+            echo "keyPassword=android-ci-store-pass"
           } > key.properties
 
       - name: Build Android release app bundle
