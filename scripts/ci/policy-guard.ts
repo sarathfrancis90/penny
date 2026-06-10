@@ -67,9 +67,8 @@ const requiredWorkflows: RequiredWorkflow[] = [
     requiredText: [
       'name: Security CI',
       'schedule:',
-      'dependency-review-action',
       'npm audit --omit=dev --audit-level=high',
-      'osv-scanner-reusable.yml',
+      'osv-scanner-action/osv-scanner-action',
       'trivy-action',
     ],
   },

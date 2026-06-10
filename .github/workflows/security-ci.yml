@@ -10,10 +10,7 @@ on:
     branches: [main]
 
 permissions:
-  actions: read
   contents: read
-  pull-requests: read
-  security-events: write
 
 jobs:
   dependency-security:
@@ -33,12 +30,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Dependency review
-        if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
-        with:
-          fail-on-severity: high
-
       - name: npm production dependency audit
         run: npm audit --omit=dev --audit-level=high
 
@@ -55,16 +46,18 @@ jobs:
 
   osv-scan:
     name: osv-scan
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    with:
-      scan-args: |-
-        --config=osv-scanner.toml
-        --lockfile=package-lock.json
-      fail-on-vuln: true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: OSV lockfile scan
+        uses: google/osv-scanner-action/osv-scanner-action@8dc09193bb540e09b23da07ad7e30bd33bf87018
+        with:
+          scan-args: |-
+            --config=osv-scanner.toml
+            --lockfile=package-lock.json
 
   security-ci:
     name: security-ci

@@ -85,7 +85,7 @@ function requiredWorkflowFixtures(overrides: Record<string, string> = {}) {
     ),
     '.github/workflows/security-ci.yml': workflow(
       'Security CI',
-      `      - run: echo "schedule:"\n      - uses: actions/dependency-review-action@${sha}\n      - run: npm audit --omit=dev --audit-level=high\n      - uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@${sha}\n      - uses: aquasecurity/trivy-action@${sha}\n`,
+      `      - run: echo "schedule:"\n      - run: npm audit --omit=dev --audit-level=high\n      - uses: google/osv-scanner-action/osv-scanner-action@${sha}\n      - uses: aquasecurity/trivy-action@${sha}\n`,
     ),
     '.github/workflows/mobile-shared-ci.yml': workflow(
       'Mobile Shared CI',
