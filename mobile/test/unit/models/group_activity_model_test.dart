@@ -74,7 +74,7 @@ void main() {
     });
 
     group('icon getter', () {
-      GroupActivityModel _makeActivity(String action) {
+      GroupActivityModel makeActivity(String action) {
         return GroupActivityModel(
           id: 'test',
           groupId: 'g-1',
@@ -85,55 +85,55 @@ void main() {
       }
 
       test('returns correct emoji for group_created', () {
-        expect(_makeActivity('group_created').icon, '🎉');
+        expect(makeActivity('group_created').icon, '🎉');
       });
 
       test('returns correct emoji for member_invited', () {
-        expect(_makeActivity('member_invited').icon, '📨');
+        expect(makeActivity('member_invited').icon, '📨');
       });
 
       test('returns correct emoji for member_joined', () {
-        expect(_makeActivity('member_joined').icon, '👋');
+        expect(makeActivity('member_joined').icon, '👋');
       });
 
       test('returns correct emoji for member_left', () {
-        expect(_makeActivity('member_left').icon, '👤');
+        expect(makeActivity('member_left').icon, '👤');
       });
 
       test('returns correct emoji for member_removed', () {
-        expect(_makeActivity('member_removed').icon, '❌');
+        expect(makeActivity('member_removed').icon, '❌');
       });
 
       test('returns correct emoji for member_role_changed', () {
-        expect(_makeActivity('member_role_changed').icon, '🔄');
+        expect(makeActivity('member_role_changed').icon, '🔄');
       });
 
       test('returns correct emoji for expense_added', () {
-        expect(_makeActivity('expense_added').icon, '💵');
+        expect(makeActivity('expense_added').icon, '💵');
       });
 
       test('returns correct emoji for expense_updated', () {
-        expect(_makeActivity('expense_updated').icon, '✏️');
+        expect(makeActivity('expense_updated').icon, '✏️');
       });
 
       test('returns correct emoji for expense_deleted', () {
-        expect(_makeActivity('expense_deleted').icon, '🗑️');
+        expect(makeActivity('expense_deleted').icon, '🗑️');
       });
 
       test('returns correct emoji for expense_approved', () {
-        expect(_makeActivity('expense_approved').icon, '✅');
+        expect(makeActivity('expense_approved').icon, '✅');
       });
 
       test('returns correct emoji for expense_rejected', () {
-        expect(_makeActivity('expense_rejected').icon, '❌');
+        expect(makeActivity('expense_rejected').icon, '❌');
       });
 
       test('returns correct emoji for settings_updated', () {
-        expect(_makeActivity('settings_updated').icon, '⚙️');
+        expect(makeActivity('settings_updated').icon, '⚙️');
       });
 
       test('returns default emoji for unknown action', () {
-        expect(_makeActivity('unknown_action').icon, '📝');
+        expect(makeActivity('unknown_action').icon, '📝');
       });
     });
 

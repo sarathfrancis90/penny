@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -131,15 +131,6 @@ export function ExpenseConfirmationCard({
     ? groupUsage.find((u) => u.category === category)
     : personalUsage.find((u) => u.category === category);
   const selectedGroup = groups?.find((g) => g.id === groupId);
-
-  useEffect(() => {
-    setVendor(initialVendor);
-    setAmount(initialAmount.toString());
-    setDate(parseLocalDate(initialDate));
-    setCategory(initialCategory);
-    setDescription(initialDescription || "");
-    setGroupId(initialGroupId || null);
-  }, [initialVendor, initialAmount, initialDate, initialCategory, initialDescription, initialGroupId]);
 
   const validate = (): boolean => {
     const newErrors: { [key: string]: string } = {};

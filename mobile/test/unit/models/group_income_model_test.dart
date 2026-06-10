@@ -179,7 +179,7 @@ void main() {
     });
 
     group('frequencyLabel getter', () {
-      GroupIncomeSourceModel _makeIncome(String frequency) {
+      GroupIncomeSourceModel makeIncome(String frequency) {
         final now = Timestamp.now();
         return GroupIncomeSourceModel(
           id: 'test',
@@ -199,32 +199,32 @@ void main() {
       }
 
       test('returns /mo for monthly', () {
-        expect(_makeIncome('monthly').frequencyLabel, '/mo');
+        expect(makeIncome('monthly').frequencyLabel, '/mo');
       });
 
       test('returns /2wk for biweekly', () {
-        expect(_makeIncome('biweekly').frequencyLabel, '/2wk');
+        expect(makeIncome('biweekly').frequencyLabel, '/2wk');
       });
 
       test('returns /wk for weekly', () {
-        expect(_makeIncome('weekly').frequencyLabel, '/wk');
+        expect(makeIncome('weekly').frequencyLabel, '/wk');
       });
 
       test('returns /yr for yearly', () {
-        expect(_makeIncome('yearly').frequencyLabel, '/yr');
+        expect(makeIncome('yearly').frequencyLabel, '/yr');
       });
 
       test('returns one-time for once', () {
-        expect(_makeIncome('once').frequencyLabel, 'one-time');
+        expect(makeIncome('once').frequencyLabel, 'one-time');
       });
 
       test('returns empty string for unknown frequency', () {
-        expect(_makeIncome('unknown').frequencyLabel, '');
+        expect(makeIncome('unknown').frequencyLabel, '');
       });
     });
 
     group('monthlyAmount getter', () {
-      GroupIncomeSourceModel _makeIncome(String frequency, double amount) {
+      GroupIncomeSourceModel makeIncome(String frequency, double amount) {
         final now = Timestamp.now();
         return GroupIncomeSourceModel(
           id: 'test',
@@ -244,30 +244,30 @@ void main() {
       }
 
       test('monthly returns the same amount', () {
-        expect(_makeIncome('monthly', 5000).monthlyAmount, 5000.0);
+        expect(makeIncome('monthly', 5000).monthlyAmount, 5000.0);
       });
 
       test('biweekly converts correctly (amount * 26 / 12)', () {
-        final result = _makeIncome('biweekly', 2000).monthlyAmount;
+        final result = makeIncome('biweekly', 2000).monthlyAmount;
         expect(result, closeTo(2000 * 26 / 12, 0.01));
       });
 
       test('weekly converts correctly (amount * 52 / 12)', () {
-        final result = _makeIncome('weekly', 1000).monthlyAmount;
+        final result = makeIncome('weekly', 1000).monthlyAmount;
         expect(result, closeTo(1000 * 52 / 12, 0.01));
       });
 
       test('yearly converts correctly (amount / 12)', () {
-        final result = _makeIncome('yearly', 60000).monthlyAmount;
+        final result = makeIncome('yearly', 60000).monthlyAmount;
         expect(result, closeTo(5000.0, 0.01));
       });
 
       test('once returns the raw amount (fallback)', () {
-        expect(_makeIncome('once', 500).monthlyAmount, 500.0);
+        expect(makeIncome('once', 500).monthlyAmount, 500.0);
       });
 
       test('unknown frequency returns the raw amount (fallback)', () {
-        expect(_makeIncome('unknown', 750).monthlyAmount, 750.0);
+        expect(makeIncome('unknown', 750).monthlyAmount, 750.0);
       });
     });
   });

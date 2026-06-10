@@ -52,5 +52,5 @@ HTTP calls go through `mobile/lib/core/network/api_client.dart`, which injects t
 | constant | `ApiEndpoints.userPreferences` | varies | `/api/user/preferences` | `/api/user/preferences` | `apps/api/src/routes/mobile-data/routes.ts` | `mobile/lib/presentation/screens/settings/settings_screen.dart` |
 | constant | `ApiEndpoints.userProfile` | varies | `/api/user/profile` | `/api/user/profile` | `apps/api/src/routes/mobile-data/routes.ts` | `mobile/lib/data/services/storage_service.dart`<br>`mobile/lib/presentation/screens/profile/profile_screen.dart` |
 | raw-literal | `raw:/api/account/delete` | DELETE | `/api/account/delete` | `/api/account/delete` | `apps/api/src/routes/user/routes.ts` | `mobile/lib/presentation/screens/settings/settings_screen.dart:335` |
-| raw-literal | `raw:/api/expenses` | POST | `/api/expenses` | `/api/expenses` | `apps/api/src/routes/expenses/routes.ts` | `mobile/lib/presentation/widgets/quick_add_expense.dart:167` |
+| raw-literal | `raw:/api/expenses` | POST | `/api/expenses` | `/api/expenses` | `apps/api/src/routes/expenses/routes.ts` | `mobile/lib/presentation/widgets/quick_add_expense.dart:169` |
 | raw-literal | `raw:/api/expenses/${expense.id}` | DELETE | `/api/expenses/${expense.id}` | `/api/expenses/{id}` | `apps/api/src/routes/expenses/routes.ts` | `mobile/lib/presentation/screens/expenses/expense_detail_screen.dart:265` |

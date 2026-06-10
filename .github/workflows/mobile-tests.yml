@@ -1,19 +1,14 @@
 name: Mobile Tests
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'mobile/lib/**'
-      - 'mobile/test/**'
-      - 'mobile/pubspec.yaml'
-      - 'mobile/.flutter-version'
-      - '.github/workflows/mobile-tests.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/mobile-tests.yml'
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -22,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Read pinned Flutter version
         id: flutter
@@ -30,7 +25,7 @@ jobs:
         run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
           flutter-version: ${{ steps.flutter.outputs.version }}
           channel: stable
@@ -42,18 +37,15 @@ jobs:
 
       - name: Analyze code
         working-directory: mobile
-        # --no-fatal-infos: don't block on style/preference lints (still shown as info).
-        # Errors and warnings still fail the build.
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze
 
       - name: Run unit tests
         working-directory: mobile
-        run: flutter test --coverage --reporter expanded
+        run: flutter test --coverage --reporter expanded test
 
       - name: Upload coverage
-        if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: flutter-coverage
+          name: flutter-coverage-legacy
           path: mobile/coverage/lcov.info
-          retention-days: 7
+          retention-days: 14

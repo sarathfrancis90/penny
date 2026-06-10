@@ -12,7 +12,7 @@ void main() {
       firestore = FakeFirebaseFirestore();
     });
 
-    Map<String, dynamic> _baseData(String status) => {
+    Map<String, dynamic> baseData(String status) => {
       'groupId': 'group-1',
       'userId': 'user-1',
       'userEmail': 'test@penny.app',
@@ -26,7 +26,7 @@ void main() {
     test('parses active status', () async {
       final doc = await firestore
           .collection('groupMembers')
-          .add(_baseData('active'));
+          .add(baseData('active'));
       final model = GroupMemberModel.fromFirestore(await doc.get());
 
       expect(model.status, 'active');
@@ -35,7 +35,7 @@ void main() {
     test('parses invited status', () async {
       final doc = await firestore
           .collection('groupMembers')
-          .add(_baseData('invited'));
+          .add(baseData('invited'));
       final model = GroupMemberModel.fromFirestore(await doc.get());
 
       expect(model.status, 'invited');
@@ -44,7 +44,7 @@ void main() {
     test('parses left status', () async {
       final doc = await firestore
           .collection('groupMembers')
-          .add(_baseData('left'));
+          .add(baseData('left'));
       final model = GroupMemberModel.fromFirestore(await doc.get());
 
       expect(model.status, 'left');
@@ -53,14 +53,14 @@ void main() {
     test('parses removed status', () async {
       final doc = await firestore
           .collection('groupMembers')
-          .add(_baseData('removed'));
+          .add(baseData('removed'));
       final model = GroupMemberModel.fromFirestore(await doc.get());
 
       expect(model.status, 'removed');
     });
 
     test('defaults to active when status field is null', () async {
-      final data = _baseData('active');
+      final data = baseData('active');
       data.remove('status'); // Remove status field
       final doc = await firestore.collection('groupMembers').add(data);
       final model = GroupMemberModel.fromFirestore(await doc.get());

@@ -4,19 +4,15 @@ import { db } from "@/lib/firebase";
 import { Expense } from "@/lib/types";
 
 export function useGroupExpenses(groupId: string | null) {
+  const hasGroup = Boolean(groupId);
+  const queryKey = groupId ?? "";
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState("");
 
   useEffect(() => {
-    if (!groupId) {
-      setExpenses([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
+    if (!groupId) return;
 
     // Query expenses for this group (no orderBy to avoid composite index requirement)
     const expensesQuery = query(
@@ -39,6 +35,8 @@ export function useGroupExpenses(groupId: string | null) {
         });
 
         setExpenses(expensesData);
+        setError(null);
+        setLoadedKey(queryKey);
         setLoading(false);
       },
       (err) => {
@@ -48,17 +46,17 @@ export function useGroupExpenses(groupId: string | null) {
         }
         // Clear state silently when group is deleted
         setExpenses([]);
+        setLoadedKey(queryKey);
         setLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [groupId]);
+  }, [groupId, queryKey]);
 
   return {
-    expenses,
-    loading,
-    error,
+    expenses: hasGroup && loadedKey === queryKey ? expenses : [],
+    loading: hasGroup ? loadedKey !== queryKey || loading : false,
+    error: hasGroup ? error : null,
   };
 }
-

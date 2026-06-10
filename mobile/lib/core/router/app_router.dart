@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -48,7 +47,7 @@ class _AuthNotifier extends ChangeNotifier {
       }
       notifyListeners();
     });
-    ref.listen(guestModeProvider, (_, __) => notifyListeners());
+    ref.listen(guestModeProvider, (_, _) => notifyListeners());
   }
 }
 

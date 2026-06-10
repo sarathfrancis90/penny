@@ -1,0 +1,89 @@
+name: Security CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 8 * * *'
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+  security-events: write
+
+jobs:
+  dependency-security:
+    name: dependency-security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dependency review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294
+        with:
+          fail-on-severity: high
+
+      - name: npm production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          version: v0.70.0
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+  osv-scan:
+    name: osv-scan
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@9a498708959aeaef5ef730655706c5a1df1edbc2
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    with:
+      scan-args: |-
+        --config=osv-scanner.toml
+        --lockfile=package-lock.json
+      fail-on-vuln: true
+
+  security-ci:
+    name: security-ci
+    needs:
+      - dependency-security
+      - osv-scan
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify security checks
+        run: |
+          set -euo pipefail
+          if [ "${{ needs.dependency-security.result }}" != "success" ]; then
+            echo "::error::dependency-security failed with result ${{ needs.dependency-security.result }}"
+            exit 1
+          fi
+          if [ "${{ needs.osv-scan.result }}" != "success" ]; then
+            echo "::error::osv-scan failed with result ${{ needs.osv-scan.result }}"
+            exit 1
+          fi
+          echo "Security scanners passed."

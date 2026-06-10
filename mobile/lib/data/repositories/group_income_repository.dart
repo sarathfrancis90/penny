@@ -52,9 +52,9 @@ class GroupIncomeRepository {
         'taxable': taxable,
         'currency': currency,
         'splitType': splitType,
-        if (description != null) 'description': description,
-        if (contributedBy != null) 'contributedBy': contributedBy,
-        if (recurringDate != null) 'recurringDate': recurringDate,
+        'description': ?description,
+        'contributedBy': ?contributedBy,
+        'recurringDate': ?recurringDate,
       },
     );
     return (responseMap(response)['id'] ?? '').toString();

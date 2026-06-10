@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
-import * as XLSX from "xlsx";
+import * as XLSX from "@e965/xlsx";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";

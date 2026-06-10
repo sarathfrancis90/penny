@@ -12,7 +12,10 @@ npm run lint
 npm run test
 npm run test:watch
 npm run test:ui
+npm run test:db
 npm run typecheck
+npm run ci:policy
+npm run lint:ci
 npm run api:check
 npm run api:contract
 npm run docs:auto
@@ -72,11 +75,19 @@ Mobile tests live under `mobile/test/`.
 
 GitHub Actions workflows under `.github/workflows/` include:
 
-- `backend-tests.yml` - runs TypeScript typecheck, ESLint, and Next build on Node 20.
-- `agent-docs.yml` - checks generated agent documentation freshness and docs lint.
-- `mobile-tests.yml` - runs Flutter analyze and tests.
-- `firebase-deploy.yml` - deploys Firestore rules, indexes, and storage rules on relevant main-branch changes.
-- `mobile-release.yml` - tag-driven iOS and Android release builds through Fastlane.
+- `ci-policy-guard.yml` - enforces fail-closed workflow policy.
+- `docs-contract-ci.yml` and `agent-docs.yml` - check OpenAPI/generated docs freshness and docs lint without write-back.
+- `api-ci.yml` - runs API checks, contract checks, mobile API-only boundary checks, and API container build.
+- `api-staging-deploy.yml` - autonomous Cloud Run staging deploy from `main`: image scan, SBOM, provenance attestation, signature, no-traffic candidate, smoke, promote, rollback.
+- `backend-tests.yml` - runs TypeScript typecheck, web ESLint compatibility, unit tests, and Next build.
+- `api-ci.yml` also runs zero-warning ESLint for active API/packages/scripts code.
+- `firebase-rules-ci.yml` - runs Firestore and Storage emulator rule tests.
+- `firebase-deploy.yml` - deploys Firestore rules, indexes, and storage rules only after emulator tests pass.
+- `security-ci.yml` and `codeql.yml` - dependency, supply-chain, filesystem, and static-analysis checks.
+- `mobile-shared-ci.yml`, `mobile-android-ci.yml`, and `mobile-ios-ci.yml` - separate required mobile gates.
+- `mobile-tests.yml` - legacy required-check alias for existing branch protection while settings are migrated.
+- `mobile-release.yml` - tag/manual internal iOS and Android releases through Fastlane with evidence artifacts.
+- `mobile-production-promotion.yml` - manual production promotion after evidence verification.
 - `store-metrics-fallback.yml` - scheduled or manual fallback for store metrics collection.
 
 Agents should inspect workflow files before relying on prose docs.
@@ -91,7 +102,7 @@ Firebase config files:
 - `database/firestore.indexes.json`
 - `database/storage.rules`
 
-`firebase-deploy.yml` deploys database rules/indexes/storage. It currently references a database test script name that is not present in `package.json`, but the workflow treats that step as non-blocking. See `KNOWN_GAPS.md`.
+`firebase-deploy.yml` deploys database rules/indexes/storage through Google OIDC/ADC, not a long-lived Firebase token. It runs `npm run test:db` before deployment and fails closed if emulator tests fail.
 
 ## Mobile Release
 
@@ -104,13 +115,14 @@ Release references:
 - `mobile/fastlane/Appfile`
 - `mobile/release_notes/`
 
-Release is tag-driven with tags like `v*.*.*`. Build number is derived in the workflow. Fastlane handles iOS TestFlight/App Store and Android Play/App Bundle style lanes depending lane and secrets.
+Release is tag-driven with tags like `v*.*.*`. Build number is derived in the workflow. Fastlane handles iOS TestFlight/App Store and Android Play/App Bundle style lanes depending lane and secrets. Internal release uploads write `mobile-release-evidence-ios` and `mobile-release-evidence-android` artifacts; production promotion requires the internal release run ID and validates those artifacts before touching either store.
 
 Before release work:
 
 - Check required secrets in `mobile/CICD.md` against workflow usage.
 - Confirm `pubspec.yaml` version and release notes.
 - Confirm signing and Firebase config are present in the CI environment.
+- Confirm Android release signing remains fail-closed and iOS/Android evidence artifacts are retained.
 - Do not run local release lanes unless credentials are configured and the task requires it.
 
 ## Documentation Validation
@@ -121,7 +133,7 @@ For docs-only changes, useful checks are:
 npm run docs:auto
 ```
 
-Generated mobile/API agent references live under `docs/agents/generated/` and are auto-refreshed by `npm run docs:auto`, the local hooks, and the Agent Docs workflow after changes to `mobile/**`, `apps/api/**`, `packages/shared/**`, `scripts/api/**`, `scripts/agents/**`, `src/app/api/**`, `src/lib/types*`, `src/lib/categories.ts`, `database/**`, workflows, or agent docs.
+Generated mobile/API agent references live under `docs/agents/generated/` and are auto-refreshed locally by `npm run docs:auto` after changes to `mobile/**`, `apps/api/**`, `packages/shared/**`, `scripts/api/**`, `scripts/agents/**`, `src/app/api/**`, `src/lib/types*`, `src/lib/categories.ts`, `database/**`, workflows, or agent docs. Required CI is check-only and fails on stale generated artifacts; it does not push generated docs back to PR branches.
 
 If investigating `FILE_MAP.md`, compare the counts in the file with:
 
@@ -132,8 +144,7 @@ git ls-files --others --exclude-standard | wc -l
 
 ## Known Validation Drift
 
-- `.cursor/rules/build-and-lint.mdc` says lint must run with zero warnings, but `npm run lint` is plain `eslint` and the ESLint config demotes several rules to warnings.
-- `firebase-deploy.yml` references `npm run test:db`, but root `package.json` does not define `test:db`.
+- Moderate upstream npm advisories remain in Next/Firebase transitive dependencies. High/critical production dependency advisories are blocked by CI.
 - Older docs reference older Next/React/Gemini versions. Prefer package files and source code.
 - `mobile/README.md` is still Flutter boilerplate and is not a useful architecture source.
 

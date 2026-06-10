@@ -73,8 +73,8 @@ class ConversationRepository {
       data: {
         'role': role,
         'content': content,
-        if (attachments != null) 'attachments': attachments,
-        if (expenseData != null) 'expenseData': expenseData,
+        'attachments': ?attachments,
+        'expenseData': ?expenseData,
       },
     );
   }

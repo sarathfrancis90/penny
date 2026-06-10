@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useIncome } from '@/hooks/useIncome';
@@ -23,10 +23,21 @@ export default function FinancesPage() {
   const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   
-  // Context state (personal or group)
-  const [context, setContext] = useState<FinancialContext>({
-    type: 'personal'
-  });
+  const context = useMemo<FinancialContext>(() => {
+    const contextType = searchParams.get('context');
+    const groupId = searchParams.get('groupId');
+    const groupName = searchParams.get('groupName');
+
+    if (contextType === 'group' && groupId) {
+      return {
+        type: 'group',
+        groupId,
+        groupName: groupName || undefined,
+      };
+    }
+
+    return { type: 'personal' };
+  }, [searchParams]);
 
   // Personal data hooks
   const { 
@@ -54,27 +65,8 @@ export default function FinancesPage() {
     budgets: groupBudgets
   } = useGroupBudgets(context.groupId);
 
-  // Deep linking support - read context from URL
-  useEffect(() => {
-    const contextType = searchParams.get('context');
-    const groupId = searchParams.get('groupId');
-    const groupName = searchParams.get('groupName');
-
-    if (contextType === 'group' && groupId) {
-      setContext({
-        type: 'group',
-        groupId,
-        groupName: groupName || undefined
-      });
-    } else if (contextType === 'personal') {
-      setContext({ type: 'personal' });
-    }
-  }, [searchParams]);
-
   // Update URL when context changes (for deep linking)
   const handleContextChange = (newContext: FinancialContext) => {
-    setContext(newContext);
-    
     // Update URL without page reload
     const params = new URLSearchParams();
     params.set('context', newContext.type);
@@ -382,4 +374,3 @@ export default function FinancesPage() {
     </AppLayout>
   );
 }
-

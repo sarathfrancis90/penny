@@ -73,14 +73,18 @@ describe('agent documentation generator', () => {
       'docs:auto': expect.any(String),
       'api:contract:generate': expect.any(String),
     });
-
-    const workflow = readFileSync('.github/workflows/agent-docs.yml', 'utf8');
-    for (const watchPath of manifest.watchPaths) {
-      expect(workflow).toContain(`'${watchPath}'`);
-    }
+    const docsWorkflow = readFileSync('.github/workflows/agent-docs.yml', 'utf8');
+    const contractWorkflow = readFileSync(
+      '.github/workflows/docs-contract-ci.yml',
+      'utf8',
+    );
+    expect(docsWorkflow).toContain('npm run docs:agents:check');
+    expect(docsWorkflow).toContain('npm run docs:agents:lint');
+    expect(contractWorkflow).toContain('npm run api:contract');
+    expect(contractWorkflow).toContain('npm run docs:agents:check');
   });
 
-  it('wires auto-refresh into package scripts, hooks, and CI', () => {
+  it('wires local auto-refresh and check-only CI', () => {
     const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
       scripts?: Record<string, string>;
     };
@@ -98,9 +102,13 @@ describe('agent documentation generator', () => {
     expect(prePush).toContain('npm run api:contract');
 
     const workflow = readFileSync('.github/workflows/agent-docs.yml', 'utf8');
-    expect(workflow).toContain('contents: write');
-    expect(workflow).toContain('pull-requests: write');
-    expect(workflow).toContain('npm run docs:auto');
-    expect(workflow).toContain('git push');
+    expect(workflow).toContain('contents: read');
+    expect(workflow).toContain('npm run docs:agents:check');
+    expect(workflow).toContain('npm run docs:agents:lint');
+    expect(workflow).toContain('npm run docs:agents:test');
+    expect(workflow).not.toContain('contents: write');
+    expect(workflow).not.toContain('pull-requests: write');
+    expect(workflow).not.toContain('npm run docs:auto');
+    expect(workflow).not.toContain('git push');
   });
 });

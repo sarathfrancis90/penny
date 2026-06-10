@@ -83,8 +83,11 @@ class _SplashScreenState extends State<SplashScreen>
                   transform: Matrix4.identity()
                     ..setEntry(3, 2, 0.001) // perspective
                     ..rotateY(_flipAnimation.value)
-                    ..scale(
+                    ..scaleByDouble(
                       _scaleAnimation.value * _bounceAnimation.value,
+                      _scaleAnimation.value * _bounceAnimation.value,
+                      _scaleAnimation.value * _bounceAnimation.value,
+                      1,
                     ),
                   child: child,
                 );

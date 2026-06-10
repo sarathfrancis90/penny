@@ -270,8 +270,9 @@ class ExpenseDetailScreen extends ConsumerWidget {
                         }
 
                         HapticFeedback.mediumImpact();
-                        if (context.mounted)
+                        if (context.mounted) {
                           Navigator.pop(context); // go back to list
+                        }
 
                         // Show undo SnackBar on parent scaffold
                         messenger.showSnackBar(
@@ -556,7 +557,7 @@ class _EditExpenseSheetState extends State<_EditExpenseSheet> {
 
           // Category dropdown
           DropdownButtonFormField<String>(
-            value: expenseCategories.contains(_selectedCategory)
+            initialValue: expenseCategories.contains(_selectedCategory)
                 ? _selectedCategory
                 : null,
             decoration: const InputDecoration(hintText: 'Category'),

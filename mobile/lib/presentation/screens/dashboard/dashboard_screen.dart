@@ -1198,7 +1198,7 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
         const Spacer(),
-        if (trailing != null) trailing!,
+        ?trailing,
       ],
     );
   }

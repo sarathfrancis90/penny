@@ -129,8 +129,7 @@ async function getHandler(request: NextRequest) {
     });
 
     // Convert userStats to array for response
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const userStatsArray = Array.from(userStats.values()).map(({ successful: _successful, ...rest}) => rest);
+    const userStatsArray = Array.from(userStats.values()).map(({ successful: _successful, ...rest }) => rest);
 
     return NextResponse.json({
       success: true,

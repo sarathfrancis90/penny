@@ -12,7 +12,7 @@ void main() {
       firestore = FakeFirebaseFirestore();
     });
 
-    ExpenseModel _makeExpense({Map<String, dynamic>? groupMetadata}) {
+    ExpenseModel makeExpense({Map<String, dynamic>? groupMetadata}) {
       final now = Timestamp.now();
       return ExpenseModel(
         id: 'test-id',
@@ -31,17 +31,17 @@ void main() {
 
     group('approvalStatus', () {
       test('returns null when groupMetadata is null', () {
-        final expense = _makeExpense(groupMetadata: null);
+        final expense = makeExpense(groupMetadata: null);
         expect(expense.approvalStatus, isNull);
       });
 
       test('returns null when approvalStatus key is absent', () {
-        final expense = _makeExpense(groupMetadata: {'addedBy': 'user-1'});
+        final expense = makeExpense(groupMetadata: {'addedBy': 'user-1'});
         expect(expense.approvalStatus, isNull);
       });
 
       test('returns the status string when present', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'pending'},
         );
         expect(expense.approvalStatus, 'pending');
@@ -50,12 +50,12 @@ void main() {
 
     group('approvedBy', () {
       test('returns null when groupMetadata is null', () {
-        final expense = _makeExpense(groupMetadata: null);
+        final expense = makeExpense(groupMetadata: null);
         expect(expense.approvedBy, isNull);
       });
 
       test('returns the approvedBy string when present', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {
             'approvalStatus': 'approved',
             'approvedBy': 'admin-user',
@@ -67,26 +67,26 @@ void main() {
 
     group('isPending', () {
       test('returns true when approvalStatus is pending', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'pending'},
         );
         expect(expense.isPending, true);
       });
 
       test('returns false when approvalStatus is approved', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'approved'},
         );
         expect(expense.isPending, false);
       });
 
       test('returns false when approvalStatus is null', () {
-        final expense = _makeExpense(groupMetadata: null);
+        final expense = makeExpense(groupMetadata: null);
         expect(expense.isPending, false);
       });
 
       test('returns false when approvalStatus is rejected', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'rejected'},
         );
         expect(expense.isPending, false);
@@ -95,34 +95,34 @@ void main() {
 
     group('isApproved', () {
       test('returns true when approvalStatus is approved', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'approved'},
         );
         expect(expense.isApproved, true);
       });
 
       test('returns true when approvalStatus is null (default behavior)', () {
-        final expense = _makeExpense(groupMetadata: null);
+        final expense = makeExpense(groupMetadata: null);
         expect(expense.isApproved, true);
       });
 
       test(
         'returns true when groupMetadata exists but approvalStatus is absent',
         () {
-          final expense = _makeExpense(groupMetadata: {'addedBy': 'user-1'});
+          final expense = makeExpense(groupMetadata: {'addedBy': 'user-1'});
           expect(expense.isApproved, true);
         },
       );
 
       test('returns false when approvalStatus is pending', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'pending'},
         );
         expect(expense.isApproved, false);
       });
 
       test('returns false when approvalStatus is rejected', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'rejected'},
         );
         expect(expense.isApproved, false);
@@ -131,47 +131,47 @@ void main() {
 
     group('isRejected', () {
       test('returns true when approvalStatus is rejected', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'rejected'},
         );
         expect(expense.isRejected, true);
       });
 
       test('returns false when approvalStatus is approved', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'approved'},
         );
         expect(expense.isRejected, false);
       });
 
       test('returns false when approvalStatus is pending', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'pending'},
         );
         expect(expense.isRejected, false);
       });
 
       test('returns false when approvalStatus is null', () {
-        final expense = _makeExpense(groupMetadata: null);
+        final expense = makeExpense(groupMetadata: null);
         expect(expense.isRejected, false);
       });
     });
 
     group('rejectedReason', () {
       test('returns null when groupMetadata is null', () {
-        final expense = _makeExpense(groupMetadata: null);
+        final expense = makeExpense(groupMetadata: null);
         expect(expense.rejectedReason, isNull);
       });
 
       test('returns null when rejectedReason key is absent', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {'approvalStatus': 'rejected'},
         );
         expect(expense.rejectedReason, isNull);
       });
 
       test('returns the reason string when present', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           groupMetadata: {
             'approvalStatus': 'rejected',
             'rejectedReason': 'Duplicate receipt',

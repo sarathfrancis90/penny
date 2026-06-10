@@ -44,8 +44,8 @@ class SavingsRepository {
         'monthlyContribution': monthlyContribution,
         'priority': priority,
         'currency': currency,
-        if (description != null) 'description': description,
-        if (emoji != null) 'emoji': emoji,
+        'description': ?description,
+        'emoji': ?emoji,
         if (targetDate != null) 'targetDate': targetDate.toIso8601String(),
       },
     );

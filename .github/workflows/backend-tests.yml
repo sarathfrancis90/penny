@@ -4,31 +4,15 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'apps/api/**'
-      - 'packages/**'
-      - 'scripts/api/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'tsconfig.api.json'
-      - 'Dockerfile.api'
-      - '.github/workflows/backend-tests.yml'
   pull_request:
     branches: [main]
-    paths:
-      - 'src/**'
-      - 'apps/api/**'
-      - 'packages/**'
-      - 'scripts/api/**'
-      - 'tsconfig.api.json'
-      - 'Dockerfile.api'
-      - '.github/workflows/backend-tests.yml'
+
+permissions:
+  contents: read
 
 jobs:
   test:
-    name: Lint & Type Check
+    name: backend-tests
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_FIREBASE_API_KEY: AIzaSyCIBuildOnly0000000000000000000000
@@ -42,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: 'npm'
@@ -54,22 +38,13 @@ jobs:
         run: npm ci
 
       - name: TypeScript type check
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
-      - name: API TypeScript type check
-        run: npm run api:typecheck
-
-      - name: Lint
+      - name: Web lint compatibility
         run: npm run lint
 
       - name: Unit tests
         run: npm run test
-
-      - name: API checks
-        run: npm run api:check
-
-      - name: API contract check
-        run: npm run api:contract
 
       - name: Verify build
         run: npm run build

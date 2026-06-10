@@ -1,0 +1,47 @@
+name: Penny Required Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+
+env:
+  REQUIRED_CHECKS: |-
+    backend-tests
+    ci-policy-guard
+    codeql
+    docs-contract-ci
+    api-ci
+    firebase-rules-ci
+    security-ci
+    mobile-shared-ci
+    mobile-android-ci
+    mobile-ios-ci
+
+jobs:
+  penny-required-gate:
+    name: Penny Required Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Verify required checks passed for this SHA
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REQUIRED_CHECK_TIMEOUT_SECONDS: '3600'
+          REQUIRED_CHECK_POLL_SECONDS: '15'
+        run: node scripts/ci/verify-required-checks.cjs

@@ -234,7 +234,6 @@ function ResetPasswordForm() {
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 required
                 disabled={isLoading}
-                autoFocus
               />
               {validationErrors.length > 0 && newPassword && (
                 <div className="text-sm space-y-1">
@@ -330,4 +329,3 @@ export default function ResetPasswordPage() {
     </Suspense>
   );
 }
-

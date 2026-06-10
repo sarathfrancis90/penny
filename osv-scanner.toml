@@ -1,0 +1,9 @@
+[[IgnoredVulns]]
+id = "GHSA-qx2v-qp2m-jg93"
+ignoreUntil = 2026-07-15
+reason = "PostCSS is pulled through Next.js internals; current npm audit data does not offer a safe forward upgrade path."
+
+[[IgnoredVulns]]
+id = "GHSA-w5hq-g745-h8pq"
+ignoreUntil = 2026-07-15
+reason = "uuid is pulled through Firebase Admin Google client transitive dependencies; npm audit suggests an unsafe major downgrade."

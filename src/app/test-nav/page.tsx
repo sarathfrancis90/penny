@@ -27,7 +27,7 @@ export default function TestNavigationPage() {
 
   const handleWindowLocation = (url: string) => {
     console.log("🧪 [Test Nav] Using window.location for:", url);
-    window.location.href = url;
+    window.location.assign(url);
   };
 
   return (
@@ -96,4 +96,3 @@ export default function TestNavigationPage() {
     </div>
   );
 }
-

@@ -22,7 +22,7 @@ class DuplicateDetector {
         'vendor': vendor,
         'amount': amount,
         'date': _dateString(date),
-        if (groupId != null) 'groupId': groupId,
+        'groupId': ?groupId,
       },
     );
     final duplicate = responseMap(response)['duplicate'];

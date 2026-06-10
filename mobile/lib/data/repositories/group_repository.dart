@@ -91,7 +91,7 @@ class GroupRepository {
         'token': token,
         'userId': userId,
         'userEmail': userEmail,
-        if (userName != null) 'userName': userName,
+        'userName': ?userName,
       },
     );
     return responseMap(response);
@@ -116,16 +116,16 @@ class GroupRepository {
       data: {
         'name': name,
         'userId': userId,
-        if (description != null) 'description': description,
-        if (color != null) 'color': color,
-        if (icon != null) 'icon': icon,
+        'description': ?description,
+        'color': ?color,
+        'icon': ?icon,
         'settings': {
           'requireApproval': requireApproval,
           'allowMemberInvites': true,
           'currency': 'CAD',
         },
-        if (userEmail != null) 'userEmail': userEmail,
-        if (userName != null) 'userName': userName,
+        'userEmail': ?userEmail,
+        'userName': ?userName,
       },
     );
     final data = responseMap(response);

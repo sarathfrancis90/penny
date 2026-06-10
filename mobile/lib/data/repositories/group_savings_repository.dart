@@ -49,8 +49,8 @@ class GroupSavingsRepository {
         'priority': priority,
         'currency': currency,
         'contributionType': contributionType,
-        if (description != null) 'description': description,
-        if (emoji != null) 'emoji': emoji,
+        'description': ?description,
+        'emoji': ?emoji,
         if (targetDate != null) 'targetDate': targetDate.toIso8601String(),
       },
     );

@@ -178,12 +178,14 @@ class _ExpenseConfirmationSheetState
         ),
       );
       if (addAnyway != true) return;
+      if (!mounted) return;
     }
 
     // Budget check for personal expenses
     if (_selectedGroupId == null) {
       final usage = ref.read(budgetUsageForCategoryProvider(_category));
       if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
+        if (!mounted) return;
         final proceed = await OverBudgetWarningSheet.show(
           context,
           category: _category,
@@ -350,7 +352,7 @@ class _ExpenseConfirmationSheetState
                   height: 100,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -391,7 +393,7 @@ class _ExpenseConfirmationSheetState
             _FieldLabel(icon: Icons.category_outlined, label: 'Category'),
             const SizedBox(height: 6),
             DropdownButtonFormField<String>(
-              value: _category,
+              initialValue: _category,
               isExpanded: true,
               decoration: const InputDecoration(
                 contentPadding: EdgeInsets.symmetric(
@@ -464,7 +466,7 @@ class _ExpenseConfirmationSheetState
             groupsAsync.when(
               data: (groups) => _buildGroupSelector(groups),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => _buildGroupSelector([]),
+              error: (_, _) => _buildGroupSelector([]),
             ),
             const SizedBox(height: 6),
             Text(
@@ -563,7 +565,7 @@ class _ExpenseConfirmationSheetState
 
   Widget _buildGroupSelector(List<GroupModel> groups) {
     return DropdownButtonFormField<String>(
-      value: _selectedGroupId ?? '__personal__',
+      initialValue: _selectedGroupId ?? '__personal__',
       isExpanded: true,
       decoration: const InputDecoration(
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),

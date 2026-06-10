@@ -31,9 +31,9 @@ class ExpenseRepository {
       ApiEndpoints.expenses,
       queryParameters: {
         'scope': scope,
-        if (userId != null) 'userId': userId,
-        if (groupId != null) 'groupId': groupId,
-        if (approvalStatus != null) 'approvalStatus': approvalStatus,
+        'userId': ?userId,
+        'groupId': ?groupId,
+        'approvalStatus': ?approvalStatus,
       },
     );
     final data = responseMap(response);
@@ -60,9 +60,9 @@ class ExpenseRepository {
         'amount': amount,
         'category': category,
         'date': date,
-        if (description != null) 'description': description,
-        if (receiptUrl != null) 'receiptUrl': receiptUrl,
-        if (groupId != null) 'groupId': groupId,
+        'description': ?description,
+        'receiptUrl': ?receiptUrl,
+        'groupId': ?groupId,
       },
     );
     return (responseMap(response)['id'] ?? '').toString();
@@ -100,7 +100,7 @@ class ExpenseRepository {
   }) async {
     await _api.post(
       ApiEndpoints.rejectExpense(expenseId),
-      data: {'userId': userId, if (reason != null) 'reason': reason},
+      data: {'userId': userId, 'reason': ?reason},
     );
   }
 

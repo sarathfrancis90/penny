@@ -504,7 +504,7 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _category,
+            initialValue: _category,
             decoration: const InputDecoration(hintText: 'Category'),
             items: _categories
                 .map(
@@ -520,7 +520,7 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _priority,
+            initialValue: _priority,
             decoration: const InputDecoration(hintText: 'Priority'),
             items: _priorities
                 .map((p) => DropdownMenuItem(value: p, child: Text(p)))
@@ -742,7 +742,7 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _priority,
+            initialValue: _priority,
             decoration: const InputDecoration(hintText: 'Priority'),
             items: _priorities
                 .map((p) => DropdownMenuItem(value: p, child: Text(p)))

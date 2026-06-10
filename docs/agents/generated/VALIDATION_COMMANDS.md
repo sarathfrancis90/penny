@@ -17,14 +17,14 @@ Use the smallest command set that proves the change. Mobile/API agent-doc change
 - `npm run api:test` -> `vitest run apps/api packages/shared`
 - `npm run api:build` -> `tsup apps/api/src/server.ts --format cjs --platform node --target node22 --sourcemap --out-dir dist/api`
 - `npm run typecheck` -> `tsc --noEmit`
-- `npm run lint` -> `eslint`
+- `npm run lint` -> `eslint --max-warnings=0`
 - `npm run test` -> `vitest run`
 - `npm run build` -> `next build`
 
 ## Mobile Commands
 
 - `cd mobile && flutter pub get`
-- `cd mobile && flutter analyze lib --no-fatal-infos`
+- `cd mobile && flutter analyze`
 - `cd mobile && flutter test`
 - `cd mobile && flutter test integration_test`
 - `npm run mobile:api-only:check`

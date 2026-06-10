@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 821
+- Total source-visible files: 841
 
 | Path | Area |
 |---|---|
@@ -21,14 +21,26 @@ This inventory includes every tracked file plus every staged new file visible to
 | `.github/CODEOWNERS` | repo |
 | `.github/ISSUE_TEMPLATE/bug_report.md` | repo |
 | `.github/ISSUE_TEMPLATE/observability_alert.md` | repo |
+| `.github/dependabot.yml` | repo |
 | `.github/pull_request_template.md` | repo |
 | `.github/workflows/agent-docs.yml` | workflow |
+| `.github/workflows/api-ci.yml` | workflow |
 | `.github/workflows/api-cloud-run-deploy.yml` | workflow |
+| `.github/workflows/api-staging-deploy.yml` | workflow |
 | `.github/workflows/backend-tests.yml` | workflow |
+| `.github/workflows/ci-policy-guard.yml` | workflow |
+| `.github/workflows/codeql.yml` | workflow |
+| `.github/workflows/docs-contract-ci.yml` | workflow |
 | `.github/workflows/firebase-deploy.yml` | workflow |
+| `.github/workflows/firebase-rules-ci.yml` | workflow |
+| `.github/workflows/mobile-android-ci.yml` | workflow |
+| `.github/workflows/mobile-ios-ci.yml` | workflow |
 | `.github/workflows/mobile-production-promotion.yml` | workflow |
 | `.github/workflows/mobile-release.yml` | workflow |
+| `.github/workflows/mobile-shared-ci.yml` | workflow |
 | `.github/workflows/mobile-tests.yml` | workflow |
+| `.github/workflows/penny-required-gate.yml` | workflow |
+| `.github/workflows/security-ci.yml` | workflow |
 | `.github/workflows/store-metrics-fallback.yml` | workflow |
 | `.gitignore` | repo |
 | `.xcodebuildmcp/config.yaml` | repo |
@@ -93,6 +105,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/api/src/types/fastify.d.ts` | standalone-api |
 | `cloudbuild.api.yaml` | repo |
 | `components.json` | repo |
+| `database/__tests__/firebase.rules.test.ts` | firebase |
 | `database/firestore.indexes.json` | firebase |
 | `database/firestore.rules` | firebase |
 | `database/storage.rules` | firebase |
@@ -493,6 +506,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `mobile/test/unit/utils/validators_test.dart` | mobile |
 | `mobile/test/widget_test.dart` | mobile |
 | `next.config.ts` | repo |
+| `osv-scanner.toml` | repo |
 | `package-lock.json` | repo |
 | `package.json` | repo |
 | `packages/shared/src/__tests__/categories.test.ts` | shared-package |
@@ -564,6 +578,10 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/bootstrap-accounts.ts` | script |
 | `scripts/bootstrap-uptime.ts` | script |
 | `scripts/check-indexes.js` | script |
+| `scripts/ci/__tests__/policy-guard.test.ts` | script |
+| `scripts/ci/__tests__/verify-required-checks.test.ts` | script |
+| `scripts/ci/policy-guard.ts` | script |
+| `scripts/ci/verify-required-checks.cjs` | script |
 | `scripts/generate-jwt-secret.js` | script |
 | `scripts/grant-admin.ts` | script |
 | `scripts/mobile/check-api-only.ts` | script |
@@ -651,6 +669,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `src/app/settings/notifications/page.tsx` | web-next |
 | `src/app/signup/page.tsx` | web-next |
 | `src/app/support/page.tsx` | web-next |
+| `src/app/sw.ts` | web-next |
 | `src/app/test-nav/page.tsx` | web-next |
 | `src/components/allocation/AllocationPreview.tsx` | web-next |
 | `src/components/allocation/AllocationStatusBadge.tsx` | web-next |
@@ -829,3 +848,4 @@ This inventory includes every tracked file plus every staged new file visible to
 | `tsconfig.json` | repo |
 | `vercel.json` | repo |
 | `vitest.config.ts` | repo |
+| `vitest.database.config.ts` | repo |

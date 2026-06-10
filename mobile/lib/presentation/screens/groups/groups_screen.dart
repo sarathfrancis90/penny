@@ -422,7 +422,7 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
             ),
             value: _requireApproval,
             onChanged: (v) => setState(() => _requireApproval = v),
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             contentPadding: EdgeInsets.zero,
           ),
           const SizedBox(height: 12),

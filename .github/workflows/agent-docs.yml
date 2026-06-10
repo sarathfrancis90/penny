@@ -3,47 +3,12 @@ name: Agent Docs
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'mobile/**'
-      - 'apps/api/**'
-      - 'packages/shared/**'
-      - 'scripts/api/**'
-      - 'scripts/agents/**'
-      - 'src/app/api/**'
-      - 'src/lib/types.ts'
-      - 'src/lib/types/**'
-      - 'src/lib/categories.ts'
-      - 'database/**'
-      - 'docs/agents/**'
-      - 'docs/api/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.api.json'
-      - 'Dockerfile.api'
-      - '.github/workflows/**'
+    branches: [main]
   pull_request:
-    paths:
-      - 'mobile/**'
-      - 'apps/api/**'
-      - 'packages/shared/**'
-      - 'scripts/api/**'
-      - 'scripts/agents/**'
-      - 'src/app/api/**'
-      - 'src/lib/types.ts'
-      - 'src/lib/types/**'
-      - 'src/lib/categories.ts'
-      - 'database/**'
-      - 'docs/agents/**'
-      - 'docs/api/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.api.json'
-      - 'Dockerfile.api'
-      - '.github/workflows/**'
+    branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   agent-docs:
@@ -51,44 +16,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
           cache: npm
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Auto-refresh generated docs
-        run: npm run docs:auto
-
-      - name: Write generated docs back to branch
-        run: |
-          if git diff --cached --quiet; then
-            echo "No generated documentation changes to write back."
-            exit 0
-          fi
-
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
-            echo "Generated documentation is stale, but this pull request comes from a fork."
-            echo "Run npm run docs:auto locally and push the generated artifacts."
-            exit 1
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "docs: auto-refresh generated agent docs"
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          else
-            git push
-          fi
 
       - name: Check generated agent docs
         run: npm run docs:agents:check

@@ -33,6 +33,9 @@ concurrency:
   group: mobile-internal-release-${{ github.ref }}-${{ github.event.inputs.version || github.ref_name }}-${{ github.event.inputs.platform || 'all' }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   derive:
     name: Derive version + validate release notes
@@ -42,7 +45,9 @@ jobs:
       build_number: ${{ steps.derive.outputs.build_number }}
       release_notes: ${{ steps.derive.outputs.release_notes }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
 
       - name: Derive version, build, and release notes
         id: derive
@@ -56,6 +61,12 @@ jobs:
             VERSION="$DISPATCH_VERSION"
           else
             VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Internal releases must be built from a commit contained in origin/main."
+            exit 1
           fi
 
           if [ -n "${DISPATCH_BUILD:-}" ]; then
@@ -94,15 +105,51 @@ jobs:
 
           echo "version=$VERSION build=$BUILD_NUMBER notes_file=$NOTES_FILE"
 
+  preflight:
+    name: Same-SHA mobile preflight
+    needs: derive
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Read pinned Flutter version
+        id: flutter
+        working-directory: mobile
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Analyze code
+        working-directory: mobile
+        run: flutter analyze
+
+      - name: Run mobile tests
+        working-directory: mobile
+        run: flutter test --coverage --reporter expanded test
+
+      - name: Check standalone API-only mobile boundary
+        run: npm ci && npm run mobile:api-only:check
+
   ios:
     name: iOS -> TestFlight internal
-    needs: derive
+    needs: [derive, preflight]
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'ios' }}
     runs-on: macos-26
     timeout-minutes: 90
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Read pinned tool versions
         id: tools
@@ -112,14 +159,14 @@ jobs:
           echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
           flutter-version: ${{ steps.tools.outputs.flutter }}
           channel: stable
           cache: true
 
       - name: Setup Ruby + Bundler
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455
         with:
           ruby-version: ${{ steps.tools.outputs.ruby }}
           bundler-cache: true
@@ -130,8 +177,11 @@ jobs:
         env:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
         run: |
+          set -euo pipefail
+          test -n "${ASC_API_KEY_P8}"
           umask 077
           printf '%s' "$ASC_API_KEY_P8" > AuthKey_P97VLS6M6Z.p8
+          test -s AuthKey_P97VLS6M6Z.p8
 
       - name: Restore distribution certificate to a temporary keychain
         env:
@@ -140,10 +190,14 @@ jobs:
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
           set -euo pipefail
+          test -n "${IOS_DIST_CERT_P12_BASE64}"
+          test -n "${IOS_DIST_CERT_PASSWORD}"
+          test -n "${KEYCHAIN_PASSWORD}"
           KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
           CERT_PATH="$RUNNER_TEMP/dist_cert.p12"
 
           echo "$IOS_DIST_CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+          test -s "$CERT_PATH"
 
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
@@ -151,16 +205,7 @@ jobs:
           security import "$CERT_PATH" -P "$IOS_DIST_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-
-      - name: Restore provisioning profile
-        env:
-          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-        run: |
-          set -euo pipefail
-          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILES_DIR"
-          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode \
-            > "$PROFILES_DIR/AppStore_com.penny.pennyMobile.mobileprovision"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Apple Distribution"
 
       - name: Upload TestFlight internal build
         working-directory: mobile
@@ -174,23 +219,30 @@ jobs:
             build:"$BUILD_NUMBER" \
             notes:"$NOTES"
 
+      - name: Upload iOS release evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mobile-release-evidence-ios
+          path: mobile/build/release-evidence/mobile-release-evidence-ios.json
+          retention-days: 90
+
       - name: Always cleanup keychain + secrets
         if: always()
         run: |
-          set +e
-          security delete-keychain "$RUNNER_TEMP/build.keychain-db" 2>/dev/null
+          if security show-keychain-info "$RUNNER_TEMP/build.keychain-db" >/dev/null 2>&1; then
+            security delete-keychain "$RUNNER_TEMP/build.keychain-db"
+          fi
           rm -f "$RUNNER_TEMP/dist_cert.p12" mobile/fastlane/AuthKey_P97VLS6M6Z.p8
-          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/AppStore_com.penny.pennyMobile.mobileprovision"
 
   android:
     name: Android -> Play internal
-    needs: derive
+    needs: [derive, preflight]
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'android' }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Read pinned tool versions
         id: tools
@@ -200,20 +252,20 @@ jobs:
           echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
         with:
           flutter-version: ${{ steps.tools.outputs.flutter }}
           channel: stable
           cache: true
 
       - name: Setup Ruby + Bundler
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455
         with:
           ruby-version: ${{ steps.tools.outputs.ruby }}
           bundler-cache: true
@@ -225,18 +277,28 @@ jobs:
           ANDROID_KEY_PROPERTIES: ${{ secrets.ANDROID_KEY_PROPERTIES }}
         run: |
           set -euo pipefail
+          test -n "${ANDROID_KEYSTORE_BASE64}"
+          test -n "${ANDROID_KEY_PROPERTIES}"
           umask 077
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode \
             > mobile/android/app/penny_release_key.jks
+          test -s mobile/android/app/penny_release_key.jks
           printf '%s' "$ANDROID_KEY_PROPERTIES" > mobile/android/key.properties
+          test -s mobile/android/key.properties
+          grep -Eq '^storeFile=' mobile/android/key.properties
+          grep -Eq '^storePassword=' mobile/android/key.properties
+          grep -Eq '^keyAlias=' mobile/android/key.properties
+          grep -Eq '^keyPassword=' mobile/android/key.properties
 
       - name: Restore Play Store service-account key
         env:
           PLAY_STORE_KEY_JSON: ${{ secrets.PLAY_STORE_KEY_JSON }}
         run: |
           set -euo pipefail
+          test -n "${PLAY_STORE_KEY_JSON}"
           umask 077
           printf '%s' "$PLAY_STORE_KEY_JSON" > mobile/fastlane/play-store-key.json
+          test -s mobile/fastlane/play-store-key.json
 
       - name: Upload Play internal build
         working-directory: mobile
@@ -250,6 +312,13 @@ jobs:
             build:"$BUILD_NUMBER" \
             notes:"$NOTES"
 
+      - name: Upload Android release evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mobile-release-evidence-android
+          path: mobile/build/release-evidence/mobile-release-evidence-android.json
+          retention-days: 90
+
       - name: Always cleanup secrets
         if: always()
         run: |
@@ -259,7 +328,7 @@ jobs:
 
   summary:
     name: Internal release summary
-    needs: [derive, ios, android]
+    needs: [derive, preflight, ios, android]
     if: always()
     runs-on: ubuntu-latest
     steps:
