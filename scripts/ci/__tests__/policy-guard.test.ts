@@ -59,9 +59,9 @@ function requiredWorkflowFixtures(overrides: Record<string, string> = {}) {
       'Backend Tests',
       '      - run: npm run typecheck\n      - run: npm run build\n      - run: echo "name: backend-tests"\n',
     ),
-    '.github/workflows/codeql.yml': workflow(
-      'CodeQL',
-      `      - run: echo "schedule:"\n      - run: echo "name: codeql"\n      - uses: github/codeql-action/analyze@${sha}\n`,
+    '.github/workflows/sast-ci.yml': workflow(
+      'SAST CI',
+      '      - run: echo "schedule:"\n      - run: echo "name: sast-ci"\n      - run: semgrep scan --config=p/typescript --error\n',
     ),
     '.github/workflows/docs-contract-ci.yml': workflow(
       'Docs and Contracts CI',
@@ -101,7 +101,7 @@ function requiredWorkflowFixtures(overrides: Record<string, string> = {}) {
     ),
     '.github/workflows/penny-required-gate.yml': workflow(
       'Penny Required Gate',
-      '      - run: echo "$REQUIRED_CHECKS backend-tests codeql"\n      - run: node scripts/ci/verify-required-checks.cjs\n',
+      '      - run: echo "$REQUIRED_CHECKS backend-tests sast-ci"\n      - run: node scripts/ci/verify-required-checks.cjs\n',
     ),
   };
 

@@ -1,0 +1,42 @@
+name: SAST CI
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '31 9 * * 1'
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  sast-ci:
+    name: sast-ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Install Semgrep
+        run: python3 -m pip install --user semgrep==1.165.0
+
+      - name: Run Semgrep SAST
+        env:
+          SEMGREP_SEND_METRICS: 'off'
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.local/bin:$PATH"
+          semgrep scan \
+            --config=p/owasp-top-ten \
+            --config=p/typescript \
+            --error \
+            --metrics=off \
+            --exclude=node_modules \
+            --exclude=.next \
+            --exclude=dist \
+            --exclude=mobile/build \
+            --exclude=build

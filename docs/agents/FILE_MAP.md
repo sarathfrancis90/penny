@@ -29,7 +29,6 @@ This inventory includes every tracked file plus every staged new file visible to
 | `.github/workflows/api-staging-deploy.yml` | workflow |
 | `.github/workflows/backend-tests.yml` | workflow |
 | `.github/workflows/ci-policy-guard.yml` | workflow |
-| `.github/workflows/codeql.yml` | workflow |
 | `.github/workflows/docs-contract-ci.yml` | workflow |
 | `.github/workflows/firebase-deploy.yml` | workflow |
 | `.github/workflows/firebase-rules-ci.yml` | workflow |
@@ -40,6 +39,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `.github/workflows/mobile-shared-ci.yml` | workflow |
 | `.github/workflows/mobile-tests.yml` | workflow |
 | `.github/workflows/penny-required-gate.yml` | workflow |
+| `.github/workflows/sast-ci.yml` | workflow |
 | `.github/workflows/security-ci.yml` | workflow |
 | `.github/workflows/store-metrics-fallback.yml` | workflow |
 | `.gitignore` | repo |

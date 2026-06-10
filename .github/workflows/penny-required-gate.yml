@@ -16,7 +16,7 @@ env:
   REQUIRED_CHECKS: |-
     backend-tests
     ci-policy-guard
-    codeql
+    sast-ci
     docs-contract-ci
     api-ci
     firebase-rules-ci

@@ -83,7 +83,7 @@ GitHub Actions workflows under `.github/workflows/` include:
 - `api-ci.yml` also runs zero-warning ESLint for active API/packages/scripts code.
 - `firebase-rules-ci.yml` - runs Firestore and Storage emulator rule tests.
 - `firebase-deploy.yml` - deploys Firestore rules, indexes, and storage rules only after emulator tests pass.
-- `security-ci.yml` and `codeql.yml` - dependency, supply-chain, filesystem, and static-analysis checks.
+- `security-ci.yml` and `sast-ci.yml` - dependency, supply-chain, filesystem, and static-analysis checks.
 - `mobile-shared-ci.yml`, `mobile-android-ci.yml`, and `mobile-ios-ci.yml` - separate required mobile gates.
 - `mobile-tests.yml` - legacy required-check alias for existing branch protection while settings are migrated.
 - `mobile-release.yml` - tag/manual internal iOS and Android releases through Fastlane with evidence artifacts.

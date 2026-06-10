@@ -23,8 +23,8 @@ const requiredWorkflows: RequiredWorkflow[] = [
     requiredText: ['name: Backend Tests', 'name: backend-tests', 'npm run typecheck', 'npm run build'],
   },
   {
-    file: 'codeql.yml',
-    requiredText: ['name: CodeQL', 'name: codeql', 'schedule:', 'codeql-action/analyze'],
+    file: 'sast-ci.yml',
+    requiredText: ['name: SAST CI', 'name: sast-ci', 'schedule:', 'semgrep scan'],
   },
   {
     file: 'docs-contract-ci.yml',
@@ -91,7 +91,7 @@ const requiredWorkflows: RequiredWorkflow[] = [
       'REQUIRED_CHECKS',
       'node scripts/ci/verify-required-checks.cjs',
       'backend-tests',
-      'codeql',
+      'sast-ci',
     ],
   },
 ];
