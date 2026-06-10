@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { GradientButton } from '@/components/ui/gradient-button';
-import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -109,4 +108,3 @@ export function FinancialSectionCard({
     </Card>
   );
 }
-

@@ -131,6 +131,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
           ),
         );
         if (addAnyway != true) return;
+        if (!mounted) return;
       }
     }
 
@@ -140,6 +141,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
         budgetUsageForCategoryProvider(_selectedCategory!),
       );
       if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
+        if (!mounted) return;
         final proceed = await OverBudgetWarningSheet.show(
           context,
           category: _selectedCategory!,
@@ -250,7 +252,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
     ];
 
     return DropdownButtonFormField<String>(
-      value: _selectedGroupId ?? '',
+      initialValue: _selectedGroupId ?? '',
       decoration: const InputDecoration(hintText: 'Assign to'),
       isExpanded: true,
       items: items,
@@ -382,7 +384,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
                         const SizedBox(height: 12),
 
                         DropdownButtonFormField<String>(
-                          value: _selectedCategory,
+                          initialValue: _selectedCategory,
                           decoration: const InputDecoration(
                             hintText: 'Category',
                           ),
@@ -478,7 +480,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
                                 ? const SizedBox.shrink()
                                 : _buildGroupSelector(groups),
                             loading: () => const SizedBox.shrink(),
-                            error: (_, __) => const SizedBox.shrink(),
+                            error: (_, _) => const SizedBox.shrink(),
                           ),
                           if (_selectedGroupId != null) ...[
                             const SizedBox(height: 4),

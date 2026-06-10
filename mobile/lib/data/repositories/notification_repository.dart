@@ -34,6 +34,6 @@ class NotificationRepository {
   }
 
   Future<void> deleteNotification(String notificationId) async {
-    await _api.delete(ApiEndpoints.notifications + '/$notificationId');
+    await _api.delete('${ApiEndpoints.notifications}/$notificationId');
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
   getConsentState,
@@ -13,11 +13,7 @@ import { onConsentChange } from '@/lib/observability/posthog';
  * Only renders when consent state is "unset".
  */
 export function ConsentBanner() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    setVisible(getConsentState() === 'unset');
-  }, []);
+  const [visible, setVisible] = useState(() => getConsentState() === 'unset');
 
   if (!visible) return null;
 

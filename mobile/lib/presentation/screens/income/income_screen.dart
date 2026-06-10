@@ -455,7 +455,7 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _category,
+            initialValue: _category,
             decoration: const InputDecoration(hintText: 'Category'),
             items: _categories
                 .map(
@@ -471,7 +471,7 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _frequency,
+            initialValue: _frequency,
             decoration: const InputDecoration(hintText: 'Frequency'),
             items: _frequencies
                 .map((f) => DropdownMenuItem(value: f, child: Text(f)))
@@ -485,7 +485,7 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
             title: const Text('Taxable', style: TextStyle(fontSize: 15)),
             value: _taxable,
             onChanged: (v) => setState(() => _taxable = v),
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             contentPadding: EdgeInsets.zero,
           ),
           const SizedBox(height: 12),
@@ -637,7 +637,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _category,
+            initialValue: _category,
             decoration: const InputDecoration(hintText: 'Category'),
             items: _categories
                 .map(
@@ -653,7 +653,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
-            value: _frequency,
+            initialValue: _frequency,
             decoration: const InputDecoration(hintText: 'Frequency'),
             items: _frequencies
                 .map((f) => DropdownMenuItem(value: f, child: Text(f)))
@@ -667,7 +667,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
             title: const Text('Taxable', style: TextStyle(fontSize: 15)),
             value: _taxable,
             onChanged: (v) => setState(() => _taxable = v),
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
             contentPadding: EdgeInsets.zero,
           ),
           const SizedBox(height: 12),

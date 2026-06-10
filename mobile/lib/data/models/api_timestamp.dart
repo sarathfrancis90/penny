@@ -24,8 +24,9 @@ class Timestamp implements Comparable<Timestamp> {
     if (value is Timestamp) return value;
     if (value is DateTime) return Timestamp.fromDate(value);
     if (value is int) return Timestamp.fromMillisecondsSinceEpoch(value);
-    if (value is num)
+    if (value is num) {
       return Timestamp.fromMillisecondsSinceEpoch(value.toInt());
+    }
     if (value is String && value.isNotEmpty) {
       return Timestamp.fromDate(DateTime.parse(value));
     }

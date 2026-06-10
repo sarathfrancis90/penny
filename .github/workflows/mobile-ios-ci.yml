@@ -1,0 +1,67 @@
+name: Mobile iOS CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-ios-ci:
+    name: mobile-ios-ci
+    runs-on: macos-26
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Read pinned Flutter version
+        id: flutter
+        working-directory: mobile
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Boot iOS simulator
+        id: simulator
+        run: |
+          set -euo pipefail
+          DEVICE_ID="$(xcrun simctl list devices available | awk -F'[()]' '/iPhone/ && /Shutdown/ { print $2; exit }')"
+          test -n "$DEVICE_ID"
+          echo "device_id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+
+      - name: Run integration tests
+        timeout-minutes: 75
+        working-directory: mobile
+        run: |
+          set -euo pipefail
+          for test_file in $(find integration_test -maxdepth 1 -name '*_test.dart' | sort); do
+            echo "::group::flutter test ${test_file}"
+            flutter test \
+              --ignore-timeouts \
+              --reporter expanded \
+              -d "${{ steps.simulator.outputs.device_id }}" \
+              "${test_file}"
+            echo "::endgroup::"
+          done
+
+      - name: Build iOS release without codesigning
+        timeout-minutes: 45
+        working-directory: mobile
+        run: flutter build ios --release --no-codesign --build-number "$GITHUB_RUN_NUMBER"

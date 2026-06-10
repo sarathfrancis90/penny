@@ -63,8 +63,8 @@ class AiRepository {
     final response = await _api.post(
       ApiEndpoints.analyzeExpense,
       data: {
-        if (text != null) 'text': text,
-        if (imageBase64 != null) 'imageBase64': imageBase64,
+        'text': ?text,
+        'imageBase64': ?imageBase64,
         'userId': userId,
       },
     );

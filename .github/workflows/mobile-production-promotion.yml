@@ -13,34 +13,75 @@ on:
         description: 'Validated build number to promote.'
         required: true
         type: string
+      internal_release_run_id:
+        description: 'GitHub Actions run ID from Mobile Internal Release that produced verified evidence artifacts.'
+        required: true
+        type: string
+      platform:
+        description: 'Platform to promote. Use ios/android for store-specific retries.'
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - ios
+          - android
 
 concurrency:
-  group: mobile-production-promotion-${{ github.event.inputs.version }}-${{ github.event.inputs.build_number }}
+  group: mobile-production-promotion-${{ github.event.inputs.version }}-${{ github.event.inputs.build_number }}-${{ github.event.inputs.platform || 'all' }}
   cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   derive:
     name: Validate promotion inputs
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       version: ${{ steps.derive.outputs.version }}
       build_number: ${{ steps.derive.outputs.build_number }}
       release_notes: ${{ steps.derive.outputs.release_notes }}
+      internal_release_run_id: ${{ steps.derive.outputs.internal_release_run_id }}
+      platform: ${{ steps.derive.outputs.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
 
       - name: Validate version, build, and release notes
         id: derive
         env:
           VERSION: ${{ github.event.inputs.version }}
           BUILD_NUMBER: ${{ github.event.inputs.build_number }}
+          INTERNAL_RELEASE_RUN_ID: ${{ github.event.inputs.internal_release_run_id }}
+          PLATFORM: ${{ github.event.inputs.platform || 'all' }}
         run: |
           set -euo pipefail
+
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Production promotion must run from a commit contained in origin/main."
+            exit 1
+          fi
 
           if ! printf '%s' "$BUILD_NUMBER" | grep -Eq '^[0-9]+$'; then
             echo "::error::Build number must be numeric."
             exit 1
           fi
+          if ! printf '%s' "$INTERNAL_RELEASE_RUN_ID" | grep -Eq '^[0-9]+$'; then
+            echo "::error::internal_release_run_id must be numeric."
+            exit 1
+          fi
+          case "$PLATFORM" in
+            all|ios|android) ;;
+            *)
+              echo "::error::platform must be all, ios, or android."
+              exit 1
+              ;;
+          esac
 
           NOTES_FILE="mobile/release_notes/v${VERSION}.txt"
           if [ ! -f "$NOTES_FILE" ]; then
@@ -53,19 +94,111 @@ jobs:
           {
             echo "version=$VERSION"
             echo "build_number=$BUILD_NUMBER"
+            echo "internal_release_run_id=$INTERNAL_RELEASE_RUN_ID"
+            echo "platform=$PLATFORM"
             echo "release_notes<<EOF"
             echo "$NOTES"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+  verify-internal-evidence:
+    name: Verify internal release evidence
+    needs: derive
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Download internal release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INTERNAL_RELEASE_RUN_ID: ${{ needs.derive.outputs.internal_release_run_id }}
+          PLATFORM: ${{ needs.derive.outputs.platform }}
+        run: |
+          set -euo pipefail
+          mkdir -p mobile/build/release-evidence/ios mobile/build/release-evidence/android
+          gh run view "$INTERNAL_RELEASE_RUN_ID" \
+            --json conclusion,headSha,status,workflowName > mobile/build/release-evidence-run.json
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "ios" ]; then
+            gh run download "$INTERNAL_RELEASE_RUN_ID" \
+              --name mobile-release-evidence-ios \
+              --dir mobile/build/release-evidence/ios
+          fi
+          if [ "$PLATFORM" = "all" ] || [ "$PLATFORM" = "android" ]; then
+            gh run download "$INTERNAL_RELEASE_RUN_ID" \
+              --name mobile-release-evidence-android \
+              --dir mobile/build/release-evidence/android
+          fi
+
+      - name: Validate internal release evidence
+        env:
+          VERSION: ${{ needs.derive.outputs.version }}
+          BUILD_NUMBER: ${{ needs.derive.outputs.build_number }}
+          INTERNAL_RELEASE_RUN_ID: ${{ needs.derive.outputs.internal_release_run_id }}
+          PLATFORM: ${{ needs.derive.outputs.platform }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const run = JSON.parse(fs.readFileSync('mobile/build/release-evidence-run.json', 'utf8'));
+          const runFailures = [];
+          if (run.status !== 'completed') runFailures.push(`status=${run.status}`);
+          if (run.conclusion !== 'success') runFailures.push(`conclusion=${run.conclusion}`);
+          if (run.headSha !== process.env.CURRENT_SHA) runFailures.push(`headSha=${run.headSha}`);
+          if (run.workflowName !== 'Mobile Internal Release') runFailures.push(`workflowName=${run.workflowName}`);
+          if (runFailures.length > 0) {
+            throw new Error(`Internal release run mismatch: ${runFailures.join(', ')}`);
+          }
+
+          function validate(file, platform, target) {
+            const evidence = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const expectedVersion = process.env.VERSION;
+            const expectedBuild = process.env.BUILD_NUMBER;
+            const expectedRunId = process.env.INTERNAL_RELEASE_RUN_ID;
+            const expectedSha = process.env.CURRENT_SHA;
+            const failures = [];
+            if (evidence.platform !== platform) failures.push(`platform=${evidence.platform}`);
+            if (evidence.target !== target) failures.push(`target=${evidence.target}`);
+            if (evidence.version !== expectedVersion) failures.push(`version=${evidence.version}`);
+            if (evidence.build !== expectedBuild) failures.push(`build=${evidence.build}`);
+            if (evidence.git_sha !== expectedSha) failures.push(`git_sha=${evidence.git_sha}`);
+            if (evidence.github_run_id !== expectedRunId) failures.push(`github_run_id=${evidence.github_run_id}`);
+            if (!evidence.store_identifier) failures.push('missing store_identifier');
+            if (!evidence.verified_at) failures.push('missing verified_at');
+            if (failures.length > 0) {
+              throw new Error(`${file} evidence mismatch: ${failures.join(', ')}`);
+            }
+            console.log(`${platform} internal evidence verified for ${expectedVersion}+${expectedBuild}`);
+          }
+
+          if (process.env.PLATFORM === 'all' || process.env.PLATFORM === 'ios') {
+            validate(
+              'mobile/build/release-evidence/ios/mobile-release-evidence-ios.json',
+              'ios',
+              'testflight_internal',
+            );
+          }
+          if (process.env.PLATFORM === 'all' || process.env.PLATFORM === 'android') {
+            validate(
+              'mobile/build/release-evidence/android/mobile-release-evidence-android.json',
+              'android',
+              'play_internal',
+            );
+          }
+          NODE
+
   ios:
     name: iOS -> App Store review
-    needs: derive
+    needs: [derive, verify-internal-evidence]
+    if: ${{ needs.derive.outputs.platform == 'all' || needs.derive.outputs.platform == 'ios' }}
     runs-on: macos-26
     environment: production
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Read pinned Ruby
         id: tools
@@ -73,7 +206,7 @@ jobs:
         run: echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Ruby + Bundler
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455
         with:
           ruby-version: ${{ steps.tools.outputs.ruby }}
           bundler-cache: true
@@ -84,8 +217,11 @@ jobs:
         env:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
         run: |
+          set -euo pipefail
+          test -n "${ASC_API_KEY_P8}"
           umask 077
           printf '%s' "$ASC_API_KEY_P8" > AuthKey_P97VLS6M6Z.p8
+          test -s AuthKey_P97VLS6M6Z.p8
 
       - name: Submit validated TestFlight build for App Store review
         working-directory: mobile
@@ -99,18 +235,26 @@ jobs:
             build:"$BUILD_NUMBER" \
             notes:"$NOTES"
 
+      - name: Upload iOS promotion evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mobile-production-evidence-ios
+          path: mobile/build/release-evidence/mobile-release-evidence-ios.json
+          retention-days: 180
+
       - name: Cleanup App Store Connect API key
         if: always()
         run: rm -f mobile/fastlane/AuthKey_P97VLS6M6Z.p8
 
   android:
     name: Android -> Play production
-    needs: derive
+    needs: [derive, verify-internal-evidence]
+    if: ${{ needs.derive.outputs.platform == 'all' || needs.derive.outputs.platform == 'android' }}
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Read pinned Ruby
         id: tools
@@ -118,7 +262,7 @@ jobs:
         run: echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Ruby + Bundler
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455
         with:
           ruby-version: ${{ steps.tools.outputs.ruby }}
           bundler-cache: true
@@ -129,18 +273,29 @@ jobs:
           PLAY_STORE_KEY_JSON: ${{ secrets.PLAY_STORE_KEY_JSON }}
         run: |
           set -euo pipefail
+          test -n "${PLAY_STORE_KEY_JSON}"
           umask 077
           printf '%s' "$PLAY_STORE_KEY_JSON" > mobile/fastlane/play-store-key.json
+          test -s mobile/fastlane/play-store-key.json
 
       - name: Promote Play internal release to production
         working-directory: mobile
         env:
+          VERSION: ${{ needs.derive.outputs.version }}
           BUILD_NUMBER: ${{ needs.derive.outputs.build_number }}
           NOTES: ${{ needs.derive.outputs.release_notes }}
         run: |
           bundle exec fastlane android promote \
+            version:"$VERSION" \
             build:"$BUILD_NUMBER" \
             notes:"$NOTES"
+
+      - name: Upload Android promotion evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mobile-production-evidence-android
+          path: mobile/build/release-evidence/mobile-release-evidence-android.json
+          retention-days: 180
 
       - name: Cleanup Play Store key
         if: always()
@@ -148,15 +303,18 @@ jobs:
 
   summary:
     name: Promotion summary
-    needs: [derive, ios, android]
+    needs: [derive, verify-internal-evidence, ios, android]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Print outcome
         run: |
-          echo "## Mobile production promotion v${{ needs.derive.outputs.version }} (build ${{ needs.derive.outputs.build_number }})" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Platform | Target | Status |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| iOS | App Store review / auto-release | ${{ needs.ios.result }} |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Android | Play production | ${{ needs.android.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Mobile production promotion v${{ needs.derive.outputs.version }} (build ${{ needs.derive.outputs.build_number }})"
+            echo ""
+            echo "| Platform | Target | Status |"
+            echo "|---|---|---|"
+            echo "| iOS | App Store review / auto-release | ${{ needs.ios.result }} |"
+            echo "| Android | Play production | ${{ needs.android.result }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

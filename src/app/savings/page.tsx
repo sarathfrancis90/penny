@@ -5,7 +5,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavingsGoals } from '@/hooks/useSavingsGoals';
 import { useIncomeAllocation } from '@/hooks/useIncomeAllocation';
 import { AppLayout } from '@/components/app-layout';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PageContainer } from '@/components/ui/page-container';
@@ -346,4 +345,3 @@ export default function SavingsPage() {
     </AppLayout>
   );
 }
-

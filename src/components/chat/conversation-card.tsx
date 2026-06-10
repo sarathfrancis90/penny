@@ -79,9 +79,12 @@ export function ConversationCard({
       <div className="flex items-start gap-3">
         {/* Checkbox for multi-select */}
         {showCheckbox && (
-          <div className="pt-1" onClick={handleSelect}>
-            <Checkbox checked={isSelected} />
-          </div>
+          <Checkbox
+            checked={isSelected}
+            onClick={handleSelect}
+            aria-label={`Select conversation ${conversation.title}`}
+            className="mt-1"
+          />
         )}
 
         {/* Icon */}
@@ -144,4 +147,3 @@ export function ConversationCard({
     </Card>
   );
 }
-

@@ -213,7 +213,7 @@ void main() {
     });
 
     group('computedProgress getter', () {
-      GroupSavingsGoalModel _makeGoal(double target, double current) {
+      GroupSavingsGoalModel makeGoal(double target, double current) {
         final now = Timestamp.now();
         return GroupSavingsGoalModel(
           id: 'test',
@@ -234,32 +234,32 @@ void main() {
       }
 
       test('calculates correct percentage', () {
-        expect(_makeGoal(10000, 3500).computedProgress, closeTo(35.0, 0.01));
+        expect(makeGoal(10000, 3500).computedProgress, closeTo(35.0, 0.01));
       });
 
       test('returns 0 when target is 0', () {
-        expect(_makeGoal(0, 500).computedProgress, 0);
+        expect(makeGoal(0, 500).computedProgress, 0);
       });
 
       test('clamps at 100 when current exceeds target', () {
-        expect(_makeGoal(1000, 1500).computedProgress, 100);
+        expect(makeGoal(1000, 1500).computedProgress, 100);
       });
 
       test('returns 0 when current is 0', () {
-        expect(_makeGoal(5000, 0).computedProgress, 0);
+        expect(makeGoal(5000, 0).computedProgress, 0);
       });
 
       test('returns 100 when exactly at target', () {
-        expect(_makeGoal(5000, 5000).computedProgress, 100);
+        expect(makeGoal(5000, 5000).computedProgress, 100);
       });
 
       test('handles fractional amounts', () {
-        expect(_makeGoal(3000, 1234.56).computedProgress, closeTo(41.15, 0.01));
+        expect(makeGoal(3000, 1234.56).computedProgress, closeTo(41.15, 0.01));
       });
     });
 
     group('defaultEmoji getter', () {
-      GroupSavingsGoalModel _makeGoal(String category) {
+      GroupSavingsGoalModel makeGoal(String category) {
         final now = Timestamp.now();
         return GroupSavingsGoalModel(
           id: 'test',
@@ -280,47 +280,47 @@ void main() {
       }
 
       test('emergency_fund returns shield emoji', () {
-        expect(_makeGoal('emergency_fund').defaultEmoji, '\u{1F6E1}\u{FE0F}');
+        expect(makeGoal('emergency_fund').defaultEmoji, '\u{1F6E1}\u{FE0F}');
       });
 
       test('travel returns airplane emoji', () {
-        expect(_makeGoal('travel').defaultEmoji, '\u{2708}\u{FE0F}');
+        expect(makeGoal('travel').defaultEmoji, '\u{2708}\u{FE0F}');
       });
 
       test('education returns books emoji', () {
-        expect(_makeGoal('education').defaultEmoji, '\u{1F4DA}');
+        expect(makeGoal('education').defaultEmoji, '\u{1F4DA}');
       });
 
       test('health returns hospital emoji', () {
-        expect(_makeGoal('health').defaultEmoji, '\u{1F3E5}');
+        expect(makeGoal('health').defaultEmoji, '\u{1F3E5}');
       });
 
       test('house_down_payment returns house emoji', () {
-        expect(_makeGoal('house_down_payment').defaultEmoji, '\u{1F3E0}');
+        expect(makeGoal('house_down_payment').defaultEmoji, '\u{1F3E0}');
       });
 
       test('car returns car emoji', () {
-        expect(_makeGoal('car').defaultEmoji, '\u{1F697}');
+        expect(makeGoal('car').defaultEmoji, '\u{1F697}');
       });
 
       test('wedding returns ring emoji', () {
-        expect(_makeGoal('wedding').defaultEmoji, '\u{1F48D}');
+        expect(makeGoal('wedding').defaultEmoji, '\u{1F48D}');
       });
 
       test('retirement returns beach emoji', () {
-        expect(_makeGoal('retirement').defaultEmoji, '\u{1F3D6}\u{FE0F}');
+        expect(makeGoal('retirement').defaultEmoji, '\u{1F3D6}\u{FE0F}');
       });
 
       test('investment returns chart emoji', () {
-        expect(_makeGoal('investment').defaultEmoji, '\u{1F4C8}');
+        expect(makeGoal('investment').defaultEmoji, '\u{1F4C8}');
       });
 
       test('unknown category returns target emoji', () {
-        expect(_makeGoal('custom').defaultEmoji, '\u{1F3AF}');
+        expect(makeGoal('custom').defaultEmoji, '\u{1F3AF}');
       });
 
       test('empty category returns target emoji', () {
-        expect(_makeGoal('').defaultEmoji, '\u{1F3AF}');
+        expect(makeGoal('').defaultEmoji, '\u{1F3AF}');
       });
     });
   });

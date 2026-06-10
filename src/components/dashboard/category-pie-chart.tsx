@@ -46,6 +46,22 @@ interface TooltipProps {
   }>;
 }
 
+function CustomTooltip({ active, payload }: TooltipProps) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background border rounded-md shadow-md p-3">
+        <p className="font-medium">{payload[0].name}</p>
+        <p className="text-sm">${payload[0].value.toFixed(2)}</p>
+        <p className="text-xs text-muted-foreground">
+          {payload[0].payload.percentage.toFixed(1)}% of total
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export function CategoryPieChart({ categorySummaries }: CategoryPieChartProps) {
   // Prepare data for pie chart (top 8 categories + "Others")
   const pieData = React.useMemo(() => {
@@ -109,22 +125,6 @@ export function CategoryPieChart({ categorySummaries }: CategoryPieChartProps) {
         {`${(percentValue * 100).toFixed(0)}%`}
       </text>
     );
-  };
-
-  const CustomTooltip = ({ active, payload }: TooltipProps) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border rounded-md shadow-md p-3">
-          <p className="font-medium">{payload[0].name}</p>
-          <p className="text-sm">${payload[0].value.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground">
-            {payload[0].payload.percentage.toFixed(1)}% of total
-          </p>
-        </div>
-      );
-    }
-
-    return null;
   };
 
   if (categorySummaries.length === 0) {

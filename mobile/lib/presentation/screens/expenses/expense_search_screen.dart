@@ -128,7 +128,7 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(allExpensesProvider, (_, __) => _refreshActiveSearch());
+    ref.listen(allExpensesProvider, (_, _) => _refreshActiveSearch());
 
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 

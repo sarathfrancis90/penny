@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, Download, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
@@ -20,25 +20,21 @@ export function ReceiptImageViewer({
   showFullscreenOption = true,
 }: ReceiptImageViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
 
-  // Reset loading state when URL changes
-  useEffect(() => {
-    if (imageUrl) {
-      setIsLoading(true);
-      setHasError(false);
-    }
-  }, [imageUrl]);
+  const isLoading = Boolean(imageUrl && loadedUrl !== imageUrl && failedUrl !== imageUrl);
+  const hasError = Boolean(imageUrl && failedUrl === imageUrl);
 
   const handleImageLoad = () => {
-    setIsLoading(false);
+    setLoadedUrl(imageUrl ?? null);
+    setFailedUrl(null);
   };
 
   const handleImageError = () => {
-    setIsLoading(false);
-    setHasError(true);
+    setLoadedUrl(null);
+    setFailedUrl(imageUrl ?? null);
   };
 
   const handleDownload = async () => {
@@ -100,8 +96,8 @@ export function ReceiptImageViewer({
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setHasError(false);
-                  setIsLoading(true);
+                  setFailedUrl(null);
+                  setLoadedUrl(null);
                 }}
                 className="mt-2"
               >
@@ -113,21 +109,30 @@ export function ReceiptImageViewer({
 
         {/* Image with lazy loading */}
         {!hasError && (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={imageUrl}
-            alt={alt}
-            loading="lazy"
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+          <button
+            type="button"
+            disabled={!showFullscreenOption}
+            onClick={() => setIsFullscreen(true)}
             className={cn(
-              "w-full rounded-lg object-cover cursor-pointer transition-all duration-300",
-              isLoading && "opacity-0",
-              !isLoading && "opacity-100 hover:shadow-lg hover:scale-[1.02]"
+              "block w-full rounded-lg transition-all duration-300 disabled:cursor-default",
+              showFullscreenOption && !isLoading && "hover:shadow-lg hover:scale-[1.02]"
             )}
-            style={{ aspectRatio: "3/4" }}
-            onClick={() => showFullscreenOption && setIsFullscreen(true)}
-          />
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt={alt}
+              loading="lazy"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              className={cn(
+                "w-full rounded-lg object-cover transition-opacity duration-300",
+                isLoading && "opacity-0",
+                !isLoading && "opacity-100"
+              )}
+              style={{ aspectRatio: "3/4" }}
+            />
+          </button>
         )}
 
         {/* Overlay on hover (desktop only) */}
@@ -235,4 +240,3 @@ export function ReceiptImageViewer({
     </>
   );
 }
-

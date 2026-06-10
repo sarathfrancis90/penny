@@ -503,7 +503,7 @@ ${selectedScripts.map((script) => `- \`npm run ${script}\` -> \`${scripts[script
 ## Mobile Commands
 
 - \`cd mobile && flutter pub get\`
-- \`cd mobile && flutter analyze lib --no-fatal-infos\`
+- \`cd mobile && flutter analyze\`
 - \`cd mobile && flutter test\`
 - \`cd mobile && flutter test integration_test\`
 - \`npm run mobile:api-only:check\`

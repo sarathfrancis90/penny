@@ -32,12 +32,13 @@ tag v*.*.* or manual dispatch       manual promotion after validation
         ▼                                          ▼
 .github/workflows/mobile-release.yml    .github/workflows/mobile-production-promotion.yml
         │                                          │
-        ├── derive version/build/notes             ├── iOS: submit existing TestFlight build
-        ├── iOS: build IPA -> TestFlight           └── Android: promote internal -> production
-        └── Android: build AAB -> Play internal
+        ├── derive version/build/notes             ├── verify internal evidence artifacts
+        ├── same-SHA analyze/tests/API-boundary    ├── iOS: submit exact TestFlight build
+        ├── iOS: build IPA -> TestFlight evidence  └── Android: promote exact internal versionCode
+        └── Android: build AAB -> Play evidence
 ```
 
-Internal jobs are independent. Apple-facing jobs run on GitHub's `macos-26` image so uploads are built with the iOS 26 SDK required by App Store Connect. Production promotion is manual-only and guarded by the GitHub `production` environment.
+Internal uploads require the same commit to be contained in `origin/main`, run mobile preflight checks, validate signing secrets before writing them to disk, and upload `mobile-release-evidence-ios` / `mobile-release-evidence-android` artifacts. Apple-facing jobs run on GitHub's `macos-26` image so uploads are built with the iOS 26 SDK required by App Store Connect. Production promotion is manual-only, guarded by the GitHub `production` environment, and requires the internal release run ID so it can verify evidence before either store promotion starts.
 
 ---
 
@@ -67,13 +68,12 @@ Go to **GitHub repo → Settings → Secrets and variables → Actions → New r
 | `ASC_API_KEY_P8` | `cat mobile/fastlane/AuthKey_P97VLS6M6Z.p8` (paste full contents incl. BEGIN/END lines) |
 | `IOS_DIST_CERT_P12_BASE64` | Export Apple Distribution cert from Keychain Access as `.p12` with a password, then `base64 -i Apple_Distribution.p12 \| pbcopy` |
 | `IOS_DIST_CERT_PASSWORD` | The password you used when exporting the .p12 above |
-| `IOS_PROVISIONING_PROFILE_BASE64` | `base64 -i mobile/AppStore_com.penny.pennyMobile.mobileprovision \| pbcopy` |
 | `KEYCHAIN_PASSWORD` | Generate any random string (e.g. `openssl rand -hex 16`) — used to create a fresh CI keychain on each run |
 | `ANDROID_KEYSTORE_BASE64` | `base64 -i mobile/android/app/penny_release_key.jks \| pbcopy` |
 | `ANDROID_KEY_PROPERTIES` | `cat mobile/android/key.properties` (paste full contents) |
 | `PLAY_STORE_KEY_JSON` | `cat mobile/fastlane/play-store-key.json` (paste full JSON) |
 
-After adding all 8 secrets, the pipeline is armed. `ASC_API_KEY_ID` and `ASC_API_ISSUER_ID` are currently hardcoded in `mobile/fastlane/Fastfile`, so they are not consumed by GitHub Actions.
+After adding all 7 secrets, the pipeline is armed. Fastlane owns App Store provisioning profile lookup/creation through App Store Connect; the workflow no longer restores a checked-in or secret provisioning profile. `ASC_API_KEY_ID` and `ASC_API_ISSUER_ID` are currently hardcoded in `mobile/fastlane/Fastfile`, so they are not consumed by GitHub Actions.
 
 ---
 
@@ -109,7 +109,7 @@ fastlane android internal version:2.3.5 build:NN notes:"Your changelog"
 
 # After internal validation:
 fastlane ios promote version:2.3.5 build:NN notes:"Your changelog"
-fastlane android promote build:NN notes:"Your changelog"
+fastlane android promote version:2.3.5 build:NN notes:"Your changelog"
 ```
 
 You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-store-key.json` present locally (gitignored).
@@ -125,11 +125,13 @@ You'll need `mobile/fastlane/AuthKey_P97VLS6M6Z.p8` and `mobile/fastlane/play-st
 | **iOS upload rejected: "Invalid Pre-Release Train. The train version 'X.Y.Z' is closed"** | Marketing version was already shipped to App Store | Bump the marketing version (e.g. `2.2.0` → `2.2.1`). Build number alone is not enough once a train is closed. |
 | **iOS upload rejected: "Bundle version must be higher than X"** | Build number conflict | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump `+N` in `pubspec.yaml`. |
 | **iOS upload rejected: "SDK version issue"** | App Store Connect requires iOS 26 SDK or later | Ensure Apple-facing workflow jobs use `runs-on: macos-26`, then rerun the internal release with a fresh build number. |
-| **iOS internal upload appears stuck in GitHub Actions** | `Upload TestFlight internal build` runs for a long time after signing succeeds | Cancel the stuck run if needed, then manually dispatch `Mobile Internal Release` with `platform=ios`. Internal TestFlight upload skips changelog metadata to avoid waiting for Apple build processing. |
+| **iOS internal upload appears stuck in GitHub Actions** | `Upload TestFlight internal build` runs for a long time after signing succeeds | The lane waits for TestFlight processing so it can verify the exact build and write evidence. Cancel only after confirming App Store Connect is stalled, then manually dispatch `Mobile Internal Release` with `platform=ios` and a fresh build number. |
 | **Android upload: "Could not find aab file"** | Path mismatch | The Fastfile path is relative to `mobile/`, not `mobile/fastlane/`. Should be `build/app/outputs/bundle/release/app-release.aab`. (Already fixed in commit `162372f`.) |
 | **Android upload: "Version code X has already been used"** | Re-running with same build number | The pipeline uses `github.run_number + 10000` unless manually overridden. Locally, bump build number in `pubspec.yaml`. |
 | **Pre-push hook hangs/fails** | Local push blocked | The hook is `.githooks/pre-push`, runs `flutter test`. If a test legitimately fails, fix it. To debug: `cd mobile && flutter test`. |
 | **CI iOS build fails: "No signing certificate"** | The base64 cert secret is wrong or the keychain step failed | Re-export the .p12 from Keychain Access (make sure to include the private key) and re-add `IOS_DIST_CERT_P12_BASE64`. |
+| **Promotion fails before store jobs start** | `Verify internal release evidence` cannot download or validate evidence | Use the run ID from the successful `Mobile Internal Release` run that uploaded both evidence artifacts for the same version/build. |
+| **Android release build signs with debug key** | This should no longer happen | `mobile/android/app/build.gradle.kts` fails release tasks when `key.properties`, `storeFile`, `storePassword`, `keyAlias`, or `keyPassword` is missing. |
 | **App Store version stuck after a failed submit** | Can't re-submit, locale rows half-filled | `fastlane repair_and_submit version:X build:Y notes:"..."` — handles all of it. Don't try to delete the version via API; Apple doesn't expose that endpoint. |
 
 ---
@@ -174,6 +176,5 @@ If you're modifying the deployment pipeline, ALSO update:
 1. This file (`mobile/CICD.md`) — the runbook
 2. `mobile/fastlane/Fastfile` — the actual lanes
 3. `.github/workflows/mobile-release.yml` and `.github/workflows/mobile-production-promotion.yml` — the CI orchestration
-4. `~/.claude/projects/-Users-sarathfrancis-work-git-Personal-penny/memory/reference_cicd_pipeline.md` — the AI memory snapshot
 
 If you discover a new failure mode, add it to the **Recovery procedures** table above. That table is the one part of this doc that gets read during 2am incidents.

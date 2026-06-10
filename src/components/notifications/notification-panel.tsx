@@ -198,11 +198,19 @@ interface NotificationItemProps {
 function NotificationItem({ notification, onClick, onDelete, formatTime }: NotificationItemProps) {
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={cn(
         "p-4 hover:bg-accent transition-colors cursor-pointer group relative",
         !notification.read && "bg-violet-50 dark:bg-violet-950/20"
       )}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div className="flex gap-3">
         {/* Icon/Avatar */}
@@ -298,7 +306,18 @@ function GroupedNotificationItem({ notification, onClick, onDelete, formatTime }
         !notification.read && "bg-violet-50 dark:bg-violet-950/20"
       )}
     >
-      <div className="flex gap-3" onClick={onClick}>
+      <div
+        role="button"
+        tabIndex={0}
+        className="flex gap-3"
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+      >
         {/* Stacked Avatars */}
         <div className="flex-shrink-0">
           {displayActors.length > 0 ? (
@@ -386,4 +405,3 @@ function GroupedNotificationItem({ notification, onClick, onDelete, formatTime }
     </div>
   );
 }
-

@@ -1,0 +1,74 @@
+name: Mobile Android CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-android-ci:
+    name: mobile-android-ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Read pinned Flutter version
+        id: flutter
+        working-directory: mobile
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@fd55f4c5af5b953cc57a2be44cb082c8f6635e8e
+        with:
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Create ephemeral release signing key
+        working-directory: mobile/android
+        run: |
+          set -euo pipefail
+          keytool -genkeypair \
+            -keystore app/penny_release_key.jks \
+            -storepass android-ci-store-pass \
+            -keypass android-ci-store-pass \
+            -alias android-ci \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 1 \
+            -dname "CN=Penny Android CI, OU=CI, O=Penny, L=Toronto, ST=ON, C=CA"
+          {
+            echo "storeFile=penny_release_key.jks"
+            echo "storePassword=android-ci-store-pass"
+            echo "keyAlias=android-ci"
+            echo "keyPassword=android-ci-store-pass"
+          } > key.properties
+
+      - name: Build Android release app bundle
+        working-directory: mobile
+        run: flutter build appbundle --release --build-number "$GITHUB_RUN_NUMBER"
+
+      - name: Upload Android build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-release-aab-ci
+          path: mobile/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14

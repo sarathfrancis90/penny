@@ -542,7 +542,7 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
           const SizedBox(height: 20),
 
           DropdownButtonFormField<String>(
-            value: _selectedCategory,
+            initialValue: _selectedCategory,
             decoration: const InputDecoration(hintText: 'Category'),
             isExpanded: true,
             items: expenseCategories.map((c) {
@@ -605,7 +605,7 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
               ),
               Switch.adaptive(
                 value: _rollover,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() => _rollover = v),
               ),
             ],
@@ -668,7 +668,7 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
               ),
               Switch.adaptive(
                 value: _notificationsEnabled,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() => _notificationsEnabled = v),
               ),
             ],
@@ -895,7 +895,7 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
               ),
               Switch.adaptive(
                 value: _rollover,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() => _rollover = v),
               ),
             ],
@@ -958,7 +958,7 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
               ),
               Switch.adaptive(
                 value: _notificationsEnabled,
-                activeColor: AppColors.primary,
+                activeThumbColor: AppColors.primary,
                 onChanged: (v) => setState(() => _notificationsEnabled = v),
               ),
             ],

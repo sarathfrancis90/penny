@@ -24,71 +24,69 @@ export function useGroupBudgets(
   month?: number,
   year?: number
 ) {
+  const hasGroup = Boolean(groupId);
+  const queryKey = `${groupId ?? ""}|${category ?? ""}|${month ?? ""}|${year ?? ""}`;
   const [budgets, setBudgets] = useState<GroupBudget[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState("");
 
   useEffect(() => {
-    if (!groupId) {
-      setBudgets([]);
-      setLoading(false);
-      return;
+    if (!groupId) return;
+
+    // Build query
+    const constraints: QueryConstraint[] = [
+      where("groupId", "==", groupId),
+    ];
+
+    if (category) {
+      constraints.push(where("category", "==", category));
     }
 
-    setLoading(true);
-    setError(null);
+    if (month !== undefined && year !== undefined) {
+      constraints.push(where("period.month", "==", month));
+      constraints.push(where("period.year", "==", year));
+    }
 
-    try {
-      // Build query
-      const constraints: QueryConstraint[] = [
-        where("groupId", "==", groupId),
-      ];
+    const q = query(collection(db, "budgets_group"), ...constraints);
 
-      if (category) {
-        constraints.push(where("category", "==", category));
-      }
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const budgetsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as GroupBudget[];
 
-      if (month !== undefined && year !== undefined) {
-        constraints.push(where("period.month", "==", month));
-        constraints.push(where("period.year", "==", year));
-      }
-
-      const q = query(collection(db, "budgets_group"), ...constraints);
-
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const budgetsData = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as GroupBudget[];
-
-          setBudgets(budgetsData);
+        setBudgets(budgetsData);
+        setError(null);
+        setLoadedKey(queryKey);
+        setLoading(false);
+      },
+      (err) => {
+        // Silently handle permission-denied errors (user not authorized for this group's budgets)
+        if (err.code === "permission-denied") {
+          setBudgets([]);
+          setError(null);
+          setLoadedKey(queryKey);
           setLoading(false);
-        },
-        (err) => {
-          // Silently handle permission-denied errors (user not authorized for this group's budgets)
-          if (err.code === "permission-denied") {
-            setBudgets([]);
-            setLoading(false);
-            return;
-          }
-
-          // Only log non-permission errors
-          console.error("Error fetching group budgets:", err);
-          setError(err.message);
-          setLoading(false);
+          return;
         }
-      );
 
-      return () => unsubscribe();
-    } catch (err) {
-      console.error("Error setting up group budgets listener:", err);
-      setError(err instanceof Error ? err.message : "Unknown error");
-      setLoading(false);
-    }
-  }, [groupId, category, month, year]);
+        // Only log non-permission errors
+        console.error("Error fetching group budgets:", err);
+        setError(err.message);
+        setLoadedKey(queryKey);
+        setLoading(false);
+      }
+    );
 
-  return { budgets, loading, error };
+    return () => unsubscribe();
+  }, [groupId, category, month, year, queryKey]);
+
+  return {
+    budgets: hasGroup && loadedKey === queryKey ? budgets : [],
+    loading: hasGroup ? loadedKey !== queryKey || loading : false,
+    error: hasGroup ? error : null,
+  };
 }
-

@@ -42,6 +42,7 @@ export function useConversations(
   const { limit: pageLimit = 20, includeArchived = false } = options;
   const { user } = useAuth();
   const userId = user?.uid;
+  const hasUser = Boolean(userId);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,84 +50,75 @@ export function useConversations(
   const [hasMore, setHasMore] = useState(false);
   const [lastVisible, setLastVisible] = useState<DocumentSnapshot | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [loadedKey, setLoadedKey] = useState("");
+  const queryKey = `${userId ?? ""}|${pageLimit}|${includeArchived}|${refreshTrigger}`;
 
   useEffect(() => {
-    if (!userId) {
-      setConversations([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
+    if (!userId) return;
 
-    setLoading(true);
-    setError(null);
+    // Build base query
+    let q: Query = query(
+      collection(db, "conversations"),
+      where("userId", "==", userId),
+      orderBy("updatedAt", "desc"),
+      limitQuery(pageLimit + 1) // Request one extra to check if there are more
+    );
 
-    try {
-      // Build base query
-      let q: Query = query(
+    // Filter by status if not including archived
+    if (!includeArchived) {
+      q = query(
         collection(db, "conversations"),
         where("userId", "==", userId),
+        where("status", "==", "active"),
         orderBy("updatedAt", "desc"),
-        limitQuery(pageLimit + 1) // Request one extra to check if there are more
+        limitQuery(pageLimit + 1)
       );
-
-      // Filter by status if not including archived
-      if (!includeArchived) {
-        q = query(
-          collection(db, "conversations"),
-          where("userId", "==", userId),
-          where("status", "==", "active"),
-          orderBy("updatedAt", "desc"),
-          limitQuery(pageLimit + 1)
-        );
-      }
-
-      // Subscribe to real-time updates
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const fetchedConversations: Conversation[] = [];
-          
-          snapshot.docs.slice(0, pageLimit).forEach((doc) => {
-            const data = doc.data();
-            fetchedConversations.push({
-              id: doc.id,
-              userId: data.userId,
-              title: data.title,
-              summary: data.summary,
-              createdAt: data.createdAt,
-              updatedAt: data.updatedAt,
-              lastMessagePreview: data.lastMessagePreview,
-              messageCount: data.messageCount,
-              status: data.status,
-              totalExpensesCreated: data.totalExpensesCreated || 0,
-              metadata: {
-                firstMessageTimestamp: data.metadata?.firstMessageTimestamp,
-                lastAccessedAt: data.metadata?.lastAccessedAt,
-                isPinned: data.metadata?.isPinned || false,
-              },
-            });
-          });
-
-          setConversations(fetchedConversations);
-          setHasMore(snapshot.docs.length > pageLimit);
-          setLastVisible(snapshot.docs[pageLimit - 1] || null);
-          setLoading(false);
-        },
-        (err) => {
-          console.error("Error fetching conversations:", err);
-          setError("Failed to load conversations");
-          setLoading(false);
-        }
-      );
-
-      return () => unsubscribe();
-    } catch (err) {
-      console.error("Error setting up conversations listener:", err);
-      setError("Failed to set up conversations");
-      setLoading(false);
     }
-  }, [userId, pageLimit, includeArchived, refreshTrigger]);
+
+    // Subscribe to real-time updates
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const fetchedConversations: Conversation[] = [];
+
+        snapshot.docs.slice(0, pageLimit).forEach((doc) => {
+          const data = doc.data();
+          fetchedConversations.push({
+            id: doc.id,
+            userId: data.userId,
+            title: data.title,
+            summary: data.summary,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+            lastMessagePreview: data.lastMessagePreview,
+            messageCount: data.messageCount,
+            status: data.status,
+            totalExpensesCreated: data.totalExpensesCreated || 0,
+            metadata: {
+              firstMessageTimestamp: data.metadata?.firstMessageTimestamp,
+              lastAccessedAt: data.metadata?.lastAccessedAt,
+              isPinned: data.metadata?.isPinned || false,
+            },
+          });
+        });
+
+        setConversations(fetchedConversations);
+        setHasMore(snapshot.docs.length > pageLimit);
+        setLastVisible(snapshot.docs[pageLimit - 1] || null);
+        setError(null);
+        setLoadedKey(queryKey);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching conversations:", err);
+        setError("Failed to load conversations");
+        setLoadedKey(queryKey);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [userId, pageLimit, includeArchived, refreshTrigger, queryKey]);
 
   const loadMore = () => {
     if (!userId || !lastVisible || !hasMore) return;
@@ -142,12 +134,11 @@ export function useConversations(
   };
 
   return {
-    conversations,
-    loading,
-    error,
-    hasMore,
+    conversations: hasUser && loadedKey === queryKey ? conversations : [],
+    loading: hasUser ? loadedKey !== queryKey || loading : false,
+    error: hasUser ? error : null,
+    hasMore: hasUser && loadedKey === queryKey ? hasMore : false,
     loadMore,
     refetch,
   };
 }
-

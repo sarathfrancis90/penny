@@ -147,7 +147,6 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                autoFocus
               />
             </div>
           </CardContent>
@@ -180,4 +179,3 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
-

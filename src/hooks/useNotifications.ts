@@ -196,17 +196,14 @@ export function useNotifications(options: UseNotificationsOptions = {}): UseNoti
  * @returns Unread count and loading state
  */
 export function useUnreadNotificationCount(userId?: string) {
+  const hasUser = Boolean(userId);
+  const queryKey = userId ?? "";
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadedKey, setLoadedKey] = useState("");
 
   useEffect(() => {
-    if (!userId) {
-      setUnreadCount(0);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
+    if (!userId) return;
 
     const notificationsRef = collection(db, 'notifications');
     const q = query(
@@ -219,10 +216,12 @@ export function useUnreadNotificationCount(userId?: string) {
       q,
       (snapshot) => {
         setUnreadCount(snapshot.size);
+        setLoadedKey(queryKey);
         setLoading(false);
       },
       (error) => {
         console.error('Error fetching unread count:', error);
+        setLoadedKey(queryKey);
         setLoading(false);
       }
     );
@@ -230,8 +229,10 @@ export function useUnreadNotificationCount(userId?: string) {
     return () => {
       unsubscribe();
     };
-  }, [userId]);
+  }, [userId, queryKey]);
 
-  return { unreadCount, loading };
+  return {
+    unreadCount: hasUser && loadedKey === queryKey ? unreadCount : 0,
+    loading: hasUser ? loadedKey !== queryKey || loading : false,
+  };
 }
-

@@ -1,6 +1,6 @@
 # Penny Mobile — Production Readiness
 
-Honest accounting of what's in place vs what's still owed. Updated 2026-04-16.
+Honest accounting of what's in place vs what's still owed. Updated 2026-06-10.
 
 For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [`CLAUDE.md`](./CLAUDE.md).
 
@@ -10,9 +10,9 @@ For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [
 
 ## TL;DR
 
-✅ **Ready**: Build/release pipeline, code signing, crash reporting, Firestore security rules, branch protection, secrets management, internal-first TestFlight + Play internal release path, and explicit production promotion workflow.
+✅ **Ready**: Build/release pipeline, separate Android/iOS CI gates, code signing fail-closed behavior, crash reporting, Firestore security rule tests, secrets management, internal-first TestFlight + Play internal release path with evidence artifacts, and explicit production promotion workflow.
 
-⚠️ **Has known gaps but not blocking**: Integration test assertions are stale, 14 transitive npm vulns (mostly `xlsx`), web has no Sentry, no formal alerting beyond Crashlytics, no GDPR data export endpoint.
+⚠️ **Has known gaps but not blocking**: Moderate transitive npm advisories remain in upstream Next/Firebase dependencies, web has no Sentry, no formal alerting beyond Crashlytics, no GDPR data export endpoint.
 
 ❌ **Owner-only decisions**: API key rotation, on-call rotation, customer support channel, marketing/ASO.
 
@@ -25,14 +25,17 @@ For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [
 - Pipeline trigger: push a `v*.*.*` git tag or manually dispatch `Mobile Internal Release` → uploads TestFlight and Play internal builds only.
 - Production promotion is manual via `Mobile Production Promotion` after internal validation is clean.
 - Toolchain pinned: `mobile/.flutter-version`, `mobile/.ruby-version`, `mobile/Gemfile.lock`. CI matches local exactly.
-- All 10 GitHub repository secrets configured (verified via `gh secret list`).
+- Required mobile release secrets are listed in `mobile/CICD.md`; workflows validate each secret before writing files.
 - Recovery lane `fastlane repair_and_submit` handles the "stuck App Store version" failure mode that bit us once (en-CA locale gotcha — see memory `feedback_ios_locale_gotcha`).
 - Pre-push hook runs unit tests strictly (`set -euo pipefail`); previously was silently swallowing failures via `| tail -1`.
+- Required CI contexts for autonomous-agent PRs are declared in `.github/workflows/penny-required-gate.yml`: `ci-policy-guard`, `docs-contract-ci`, `api-ci`, `firebase-rules-ci`, `security-ci`, `mobile-shared-ci`, `mobile-android-ci`, and `mobile-ios-ci`.
 
 ### Code signing & secrets
 - iOS distribution cert + private key in GitHub Secrets, hermetically restored to a temp keychain per CI run, deleted on cleanup.
 - ASC API key in GitHub Secret + on disk (gitignored).
+- Fastlane owns App Store provisioning profile lookup/creation; the workflow does not restore a provisioning profile secret.
 - Android keystore + key.properties in GitHub Secrets, hermetically restored.
+- Android release signing is fail-closed in `mobile/android/app/build.gradle.kts`; release tasks throw if signing material is missing or incomplete.
 - Play Store service-account JSON in GitHub Secret.
 - `.gitignore` blocks `.p8`, `.p12`, `.cer`, `.mobileprovision`, `.jks`, `key.properties`, `play-store-key.json`, `.env*` anywhere in the tree.
 - Verified via `git ls-files`: zero credential files committed.
@@ -46,37 +49,32 @@ For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [
 
 ### Firestore security
 - Rules at `database/firestore.rules` (~750 lines), comprehensive ownership checks.
+- Emulator tests in `database/__tests__/firebase.rules.test.ts` cover personal expense ownership, server-only group membership/notifications, receipt storage ownership/content type, and denied unknown storage paths.
 - Pattern: `allow read: if isOwner(userId)`, `allow create: if isOwner(...)`, etc.
 - `groupMembers` create denied to clients (`allow create: if false`) — server-only via API.
 - Notifications create denied to clients — server-only.
 - `list` rules use `isAuthenticated()` because Firestore rules can't enforce query filters; security depends on mobile clients always passing `where('userId', isEqualTo: ...)`. **Mobile repos audited and verified to do this.**
 
-### Code health
-- `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings (CI gates on this).
-- 64 info-level lints remain (style preferences) — non-blocking, can be addressed incrementally.
-- `flutter test`: 363 unit tests passing.
+### Code health and CI
+- `mobile-shared-ci` runs `flutter analyze` plus unit/widget tests with coverage. Analyzer infos, warnings, and errors all fail the gate.
+- `mobile-android-ci` builds a release AAB with an ephemeral CI release keystore so the signing path is exercised without production keys.
+- `mobile-ios-ci` runs the API-backed integration tests on a booted iOS simulator, then builds iOS release with `--no-codesign`.
+- `api-ci` runs zero-warning lint for API/packages/scripts, API checks, contract checks, mobile API-only boundary checks, and an API container build.
+- `security-ci` runs dependency review, high-severity npm audit, OSV, and Trivy filesystem scanning.
 
-### Branch protection (main)
-- Required status check: `Flutter Analyze + Unit Tests` must pass.
-- Strict: branch must be up-to-date with main before merge.
-- No force pushes, no deletions.
-- Required conversation resolution on PRs.
-- `enforce_admins: false` — repo owner can bypass for emergency recovery (you'll thank yourself one day).
+### Branch protection target state (main)
+- Require all contexts listed in `.github/workflows/penny-required-gate.yml`.
+- Keep strict branch freshness, no force pushes, no branch deletion, and required conversation resolution.
+- Do not allow agents to merge on a single green workflow; all required contexts must be green for the same commit.
 
 ---
 
 ## Known gaps ⚠️ (not blocking, but address before scale)
 
-### Integration tests have stale assertions
-- 34 integration tests in `mobile/integration_test/` now run end-to-end (infrastructure was fixed: `oauthServiceProvider` added, `guest_expenses` Hive box opened in setUpAll).
-- Individual assertions are stale against the current UI (e.g. expects "Track an expense" widget that's been renamed/restructured).
-- Pre-push hook deliberately skips these — they belong in CI, not in the local push path.
-- **Fix**: revisit when UI stabilizes. Each test needs ~5 min of selector/text updates against the live app.
-
-### Web npm vulnerabilities (14 remaining)
-- After `npm audit fix`: 27 → 14 vulnerabilities (0 critical → 0 critical).
-- Most remaining: transitive deps of `xlsx` (Prototype Pollution, ReDoS) — no upstream fix available.
-- **Fix**: replace `xlsx` with `exceljs` or `papaparse` (CSV-only) for export. Affects only `src/components/dashboard/export-data.tsx`.
+### Moderate upstream npm advisories
+- `npm audit --omit=dev --audit-level=high` passes after replacing `xlsx`, replacing `next-pwa`, and upgrading Firebase Admin.
+- Moderate advisories remain in transitive dependencies of Next/Firebase where npm does not currently provide a non-breaking fix path.
+- **Fix**: keep Dependabot enabled and review upstream releases; do not downgrade major frameworks to satisfy npm's forced fix suggestion.
 
 ### No web crash reporting
 - Mobile has Crashlytics. Web (Next.js) has nothing — errors go to browser console only.
@@ -126,9 +124,8 @@ In rough priority order:
 1. **Rotate the leaked GOOGLE_API_KEY** in `.claude/settings.json` and remove from repo (use a personal env var instead).
 2. **Add Sentry to the web app** (~30 min) — without it, you're flying blind on web errors.
 3. **Set Crashlytics velocity alerts** in Firebase Console (~5 min).
-4. **First end-to-end pipeline validation**: tag the next release and watch `Mobile Internal Release`, then manually run `Mobile Production Promotion` only after TestFlight/Play internal validation passes.
-5. **Migrate off `xlsx`** to fix the remaining web vulns (~1 hour).
-6. **Restore the `Backend Tests` workflow** — fix or delete.
+4. **First end-to-end pipeline validation**: tag the next release and watch `Mobile Internal Release`, then manually run `Mobile Production Promotion` with the internal release run ID only after TestFlight/Play internal validation passes.
+5. **Enable/verify branch protection contexts** against the new required gate list.
 
 ---
 

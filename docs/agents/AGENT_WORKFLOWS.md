@@ -159,6 +159,18 @@ Steps:
 6. Keep docs evidence-based and point to concrete files.
 7. Do not paste generated secret values.
 
+## Common Workflow: Change CI/CD
+
+Steps:
+
+1. Treat `.github/workflows/**`, `Dockerfile.api`, `mobile/fastlane/Fastfile`, and mobile native signing config as production code.
+2. Keep required checks fail-closed: no `continue-on-error`, no `|| true`, no `|| echo`, no `set +e`, no mutable action refs, and no long-lived `FIREBASE_TOKEN`.
+3. Run `npm run ci:policy` after workflow edits.
+4. Keep PR checks check-only; required CI must not commit generated docs back to the branch.
+5. For mobile release changes, preserve separate shared, Android, and iOS gates plus internal-release evidence artifacts.
+6. For API staging changes, preserve no-traffic candidate deploy, mandatory smoke, promotion after smoke, and rollback behavior.
+7. Update `docs/agents/TESTING_AND_RELEASE.md`, `mobile/CICD.md`, and generated docs with `npm run docs:auto`.
+
 ## Validation Matrix
 
 Use this matrix to choose checks:
@@ -167,9 +179,10 @@ Use this matrix to choose checks:
 - TypeScript type/API change: `npm run typecheck`, `npm run lint`, targeted `npm run test`.
 - Next route behavior change: targeted tests plus `npm run build` when feasible.
 - Standalone API change: `npm run api:check` and `npm run api:contract`.
-- Firebase rules/index change: Firebase rules validation or emulator tests if available; inspect CI workflow expectations.
+- Firebase rules/index change: `npm run test:db` plus inspect CI/deploy workflow expectations.
 - Mobile Dart change: `cd mobile && flutter analyze`, targeted `flutter test`.
 - Mobile native/release change: inspect Fastlane and workflow, run build lane only when environment supports it.
+- Workflow/release change: `npm run ci:policy`, YAML parse/action lint when available, and targeted release/API script tests.
 - Cross-platform schema change: both web and mobile checks.
 
 ## Review Checklist

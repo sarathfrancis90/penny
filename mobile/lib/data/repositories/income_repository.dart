@@ -46,8 +46,8 @@ class IncomeRepository {
         'isActive': true,
         'taxable': taxable,
         'currency': currency,
-        if (description != null) 'description': description,
-        if (recurringDate != null) 'recurringDate': recurringDate,
+        'description': ?description,
+        'recurringDate': ?recurringDate,
       },
     );
     return (responseMap(response)['id'] ?? '').toString();

@@ -26,6 +26,64 @@ def write_android_changelog(build_number, notes)
   File.write(File.join(notes_dir, "#{build_number}.txt"), notes)
 end
 
+def release_evidence_path(platform)
+  File.expand_path("build/release-evidence/mobile-release-evidence-#{platform}.json", File.dirname(__dir__))
+end
+
+def write_release_evidence(platform:, target:, version:, build:, store_identifier:)
+  require "json"
+  require "time"
+
+  path = release_evidence_path(platform)
+  FileUtils.mkdir_p(File.dirname(path))
+  File.write(
+    path,
+    JSON.pretty_generate(
+      {
+        platform: platform,
+        target: target,
+        version: version.to_s,
+        build: build.to_s,
+        store_identifier: store_identifier.to_s,
+        git_sha: ENV["GITHUB_SHA"].to_s,
+        github_run_id: ENV["GITHUB_RUN_ID"].to_s,
+        verified_at: Time.now.utc.iso8601
+      }
+    )
+  )
+  UI.success("Wrote release evidence to #{path}")
+end
+
+def find_testflight_build(api_key, app_version, build_number)
+  require "spaceship"
+
+  Spaceship::ConnectAPI.token = Spaceship::ConnectAPI::Token.create(
+    key_id: "P97VLS6M6Z",
+    issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+    filepath: KEY_FILEPATH
+  )
+
+  app = Spaceship::ConnectAPI::App.find(IOS_BUNDLE_ID)
+  UI.user_error!("App Store Connect app #{IOS_BUNDLE_ID} not found.") unless app
+
+  builds = app.get_builds(filter: { "preReleaseVersion.version" => app_version, version: build_number })
+  UI.user_error!("TestFlight build #{app_version}+#{build_number} not found after upload.") if builds.empty?
+  builds.first
+end
+
+def verify_play_internal_version_code(build_number)
+  version_code = build_number.to_i
+  version_codes = google_play_track_version_codes(
+    package_name: ANDROID_PACKAGE_NAME,
+    track: "internal",
+    json_key: "fastlane/play-store-key.json"
+  )
+  unless version_codes.map(&:to_i).include?(version_code)
+    UI.user_error!("Play internal track does not contain version code #{version_code}. Found: #{version_codes.join(', ')}")
+  end
+  version_code
+end
+
 platform :ios do
 
   desc "Register the app on App Store Connect"
@@ -118,7 +176,18 @@ platform :ios do
     # wait for Apple build processing before returning.
     upload_to_testflight(
       api_key: api_key,
-      skip_waiting_for_build_processing: true
+      skip_waiting_for_build_processing: false,
+      distribute_external: false,
+      notify_external_testers: false
+    )
+
+    build = find_testflight_build(api_key, app_version, build_number)
+    write_release_evidence(
+      platform: "ios",
+      target: "testflight_internal",
+      version: app_version,
+      build: build_number,
+      store_identifier: build.id
     )
   end
 
@@ -319,6 +388,20 @@ platform :ios do
     notes        = options[:notes]   || UI.user_error!("notes: required (release notes text)")
 
     repair_and_submit(version: app_version, build: build_number, notes: notes)
+    api_key = app_store_connect_api_key(
+      key_id: "P97VLS6M6Z",
+      issuer_id: "09ca85e3-ffa2-4b6c-ada5-7c031ec5eb14",
+      key_filepath: KEY_FILEPATH,
+      in_house: false
+    )
+    build = find_testflight_build(api_key, app_version, build_number)
+    write_release_evidence(
+      platform: "ios",
+      target: "app_store_review",
+      version: app_version,
+      build: build_number,
+      store_identifier: build.id
+    )
   end
 
 end
@@ -355,6 +438,15 @@ platform :android do
       skip_upload_changelogs: build_number.nil? || notes.nil?,
       skip_upload_images: true,
       skip_upload_screenshots: true
+    )
+
+    version_code = verify_play_internal_version_code(build_number)
+    write_release_evidence(
+      platform: "android",
+      target: "play_internal",
+      version: app_version,
+      build: build_number,
+      store_identifier: version_code
     )
   end
 
@@ -399,14 +491,17 @@ platform :android do
 
   desc "Promote the validated Play internal release to production"
   lane :promote do |options|
+    app_version  = options[:version] || UI.user_error!("version: required")
     build_number = options[:build] || UI.user_error!("build: required")
     notes        = options[:notes]
 
     write_android_changelog(build_number, notes)
+    version_code = verify_play_internal_version_code(build_number)
 
     supply(
       track: "internal",
       track_promote_to: "production",
+      version_codes: [version_code],
       json_key: "fastlane/play-store-key.json",
       package_name: ANDROID_PACKAGE_NAME,
       release_status: "completed",
@@ -416,6 +511,14 @@ platform :android do
       skip_upload_changelogs: notes.nil?,
       skip_upload_images: true,
       skip_upload_screenshots: true
+    )
+
+    write_release_evidence(
+      platform: "android",
+      target: "play_production",
+      version: app_version,
+      build: build_number,
+      store_identifier: version_code
     )
   end
 

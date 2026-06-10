@@ -90,6 +90,18 @@ What to inspect:
 
 ## Medium Priority
 
+### CI Strict Lint Gates
+
+The autonomous CI hardening pass cleared repo-wide ESLint warnings and mobile analyzer info-level findings. `npm run lint` now runs with `--max-warnings=0`, and mobile workflows run `flutter analyze` without `--no-fatal-infos`.
+
+Risk:
+
+- Agents may try to reintroduce scoped warning-tolerant lint commands to move faster.
+
+Recommendation:
+
+- Keep `npm run lint`, `lint:ci`, and mobile `flutter analyze` fail-closed. The CI policy guard forbids `flutter analyze --no-fatal-infos`.
+
 ### Admin Auth Split
 
 Admin endpoints use two authentication models:
@@ -152,29 +164,19 @@ Recommendation:
 - Confirm rollout intent before changing production mobile API routing.
 - If production should use Cloud Run, update `EnvConfig`, mobile release docs, generated agent docs, and smoke/parity validation.
 
-### Firebase Deploy Workflow References Missing Script
+### Moderate Upstream Dependency Advisories
 
-`.github/workflows/firebase-deploy.yml` references `npm run test:db`, but `package.json` does not define that script. The workflow currently treats the command as non-blocking.
-
-Risk:
-
-- Database rule tests may not be running even when the workflow appears to include them.
-
-Recommendation:
-
-- Add a real database test script or remove/replace the stale workflow step.
-
-### Lint Strictness Drift
-
-`.cursor/rules/build-and-lint.mdc` says lint must be zero-warning, but `npm run lint` does not pass `--max-warnings=0`, and ESLint config intentionally demotes several rules to warnings.
+`npm audit --omit=dev --audit-level=high` passes, but moderate transitive advisories remain in upstream Next/Firebase dependency trees where npm currently suggests breaking or incorrect forced fixes.
 
 Risk:
 
-- Agents may report lint compliance inconsistently.
+- Agents may try unsafe downgrades just to make `npm audit --audit-level=moderate` pass.
 
 Recommendation:
 
-- Decide whether zero-warning lint is required, then align package script, workflow, and editor rules.
+- Keep high/critical vulnerabilities blocking in CI.
+- Let Dependabot and scanner output surface moderate advisories.
+- Upgrade upstream packages when a non-breaking patched path exists; do not downgrade major frameworks.
 
 ## Lower Priority
 

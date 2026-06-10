@@ -740,6 +740,14 @@ export default function Home() {
               {pendingExpense && (
                 <div className="max-w-3xl mx-auto w-full mt-4 animate-in fade-in-50 slide-in-from-bottom-2">
                   <ExpenseConfirmationCard
+                    key={[
+                      pendingExpense.vendor,
+                      pendingExpense.amount,
+                      pendingExpense.date,
+                      pendingExpense.category,
+                      pendingExpense.description,
+                      pendingExpense.groupId,
+                    ].join('|')}
                     vendor={pendingExpense.vendor}
                     amount={pendingExpense.amount}
                     date={pendingExpense.date}

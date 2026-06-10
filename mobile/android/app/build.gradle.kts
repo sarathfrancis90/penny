@@ -15,6 +15,38 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(keystorePropertiesFile.inputStream())
 }
 
+fun releaseTaskRequested(): Boolean =
+    gradle.startParameter.taskNames.any { taskName ->
+        taskName.contains("release", ignoreCase = true)
+    }
+
+fun requireReleaseSigningProperty(name: String): String {
+    val value = keystoreProperties.getProperty(name)?.trim()
+    if (value.isNullOrEmpty()) {
+        throw GradleException("Release signing requires $name in mobile/android/key.properties")
+    }
+    return value
+}
+
+fun validateReleaseSigning() {
+    if (!keystorePropertiesFile.exists()) {
+        throw GradleException("Release signing requires mobile/android/key.properties")
+    }
+
+    val storeFilePath = requireReleaseSigningProperty("storeFile")
+    requireReleaseSigningProperty("storePassword")
+    requireReleaseSigningProperty("keyAlias")
+    requireReleaseSigningProperty("keyPassword")
+
+    if (!file(storeFilePath).exists()) {
+        throw GradleException("Release signing storeFile does not exist: $storeFilePath")
+    }
+}
+
+if (releaseTaskRequested()) {
+    validateReleaseSigning()
+}
+
 android {
     namespace = "com.penny.penny_mobile"
     compileSdk = 36
@@ -35,29 +67,33 @@ android {
     }
 
     signingConfigs {
-        if (keystorePropertiesFile.exists()) {
-            create("release") {
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
-                storePassword = keystoreProperties.getProperty("storePassword")
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = requireReleaseSigningProperty("keyAlias")
+                keyPassword = requireReleaseSigningProperty("keyPassword")
+                storeFile = file(requireReleaseSigningProperty("storeFile"))
+                storePassword = requireReleaseSigningProperty("storePassword")
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+}
+
+tasks.configureEach {
+    if (name.contains("release", ignoreCase = true)) {
+        doFirst {
+            validateReleaseSigning()
         }
     }
 }

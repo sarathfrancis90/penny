@@ -11,7 +11,7 @@ void main() {
       exportService = ExportService();
     });
 
-    ExpenseModel _makeExpense({
+    ExpenseModel makeExpense({
       String vendor = 'Tim Hortons',
       double amount = 14.50,
       String category = 'Meals and entertainment',
@@ -55,7 +55,7 @@ void main() {
       });
 
       test('produces correct CSV for a single personal expense', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           vendor: 'Tim Hortons',
           amount: 14.50,
           category: 'Meals and entertainment',
@@ -75,12 +75,12 @@ void main() {
 
       test('produces correct CSV for multiple expenses', () {
         final expenses = [
-          _makeExpense(
+          makeExpense(
             vendor: 'Tim Hortons',
             amount: 14.50,
             date: DateTime(2025, 3, 15),
           ),
-          _makeExpense(
+          makeExpense(
             vendor: 'Staples',
             amount: 45.00,
             category: 'Office expenses',
@@ -104,7 +104,7 @@ void main() {
       });
 
       test('handles group expenses with group name lookup', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           vendor: 'Costco',
           amount: 150.00,
           expenseType: 'group',
@@ -123,7 +123,7 @@ void main() {
       });
 
       test('handles group expense with missing group name', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           vendor: 'Costco',
           amount: 150.00,
           expenseType: 'group',
@@ -142,7 +142,7 @@ void main() {
       });
 
       test('handles null description', () {
-        final expense = _makeExpense(description: null);
+        final expense = makeExpense(description: null);
 
         final csv = exportService.generateCsv([expense]);
         final lines = csv.split('\n');
@@ -152,7 +152,7 @@ void main() {
       });
 
       test('amount formatted to 2 decimal places', () {
-        final expense = _makeExpense(amount: 100.0);
+        final expense = makeExpense(amount: 100.0);
 
         final csv = exportService.generateCsv([expense]);
 
@@ -160,7 +160,7 @@ void main() {
       });
 
       test('amount with many decimals is truncated to 2', () {
-        final expense = _makeExpense(amount: 14.999);
+        final expense = makeExpense(amount: 14.999);
 
         final csv = exportService.generateCsv([expense]);
 
@@ -170,7 +170,7 @@ void main() {
 
     group('CSV escaping', () {
       test('escapes vendor names containing commas', () {
-        final expense = _makeExpense(vendor: 'Amazon.ca, Inc.');
+        final expense = makeExpense(vendor: 'Amazon.ca, Inc.');
 
         final csv = exportService.generateCsv([expense]);
 
@@ -178,7 +178,7 @@ void main() {
       });
 
       test('escapes vendor names containing double quotes', () {
-        final expense = _makeExpense(vendor: 'Tim "Timmies" Hortons');
+        final expense = makeExpense(vendor: 'Tim "Timmies" Hortons');
 
         final csv = exportService.generateCsv([expense]);
 
@@ -187,7 +187,7 @@ void main() {
       });
 
       test('escapes vendor names containing newlines', () {
-        final expense = _makeExpense(vendor: 'Line1\nLine2');
+        final expense = makeExpense(vendor: 'Line1\nLine2');
 
         final csv = exportService.generateCsv([expense]);
 
@@ -195,7 +195,7 @@ void main() {
       });
 
       test('does not escape vendor names without special characters', () {
-        final expense = _makeExpense(vendor: 'Tim Hortons');
+        final expense = makeExpense(vendor: 'Tim Hortons');
 
         final csv = exportService.generateCsv([expense]);
         final lines = csv.split('\n');
@@ -205,7 +205,7 @@ void main() {
       });
 
       test('escapes descriptions containing commas', () {
-        final expense = _makeExpense(
+        final expense = makeExpense(
           description: 'Coffee, donut, and sandwich',
         );
 
@@ -216,7 +216,7 @@ void main() {
 
       test('escapes categories containing special characters', () {
         // Some CRA categories contain parentheses and commas
-        final expense = _makeExpense(
+        final expense = makeExpense(
           category: 'Advertising (Promotion, gift cards etc.)',
         );
 
@@ -228,7 +228,7 @@ void main() {
 
     group('date formatting', () {
       test('formats date as yyyy-MM-dd', () {
-        final expense = _makeExpense(date: DateTime(2025, 1, 5));
+        final expense = makeExpense(date: DateTime(2025, 1, 5));
 
         final csv = exportService.generateCsv([expense]);
 
@@ -236,7 +236,7 @@ void main() {
       });
 
       test('handles end-of-year date', () {
-        final expense = _makeExpense(date: DateTime(2025, 12, 31));
+        final expense = makeExpense(date: DateTime(2025, 12, 31));
 
         final csv = exportService.generateCsv([expense]);
 

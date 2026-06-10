@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useForm } from "react-hook-form";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,24 +12,15 @@ interface ChatInputProps {
   isProcessing?: boolean;
 }
 
-interface ChatFormData {
-  message: string;
-}
-
 export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
+  const [message, setMessage] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, reset, watch } = useForm<ChatFormData>({
-    defaultValues: {
-      message: "",
-    },
-  });
-
-  const messageValue = watch("message");
+  const messageValue = message;
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,18 +45,19 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
     }
   };
 
-  const onSubmit = (data: ChatFormData) => {
-    if (!data.message.trim() && !selectedImage) return;
+  const onSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    if (!message.trim() && !selectedImage) return;
 
-    onSendMessage(data.message.trim(), selectedImage || undefined);
-    reset();
+    onSendMessage(message.trim(), selectedImage || undefined);
+    setMessage("");
     removeImage();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(onSubmit)();
+      onSubmit();
     }
   };
 
@@ -102,7 +93,7 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
         )}
 
         {/* Input Form with Modern Styling */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-3">
           <div className={cn(
             "flex items-end gap-3 p-3 rounded-2xl transition-all duration-300",
             isFocused 
@@ -172,7 +163,8 @@ export function ChatInput({ onSendMessage, isProcessing }: ChatInputProps) {
             {/* Text Input with Enhanced Styling */}
             <div className="flex-1 relative">
               <Input
-                {...register("message")}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}

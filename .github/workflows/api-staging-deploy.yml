@@ -1,0 +1,233 @@
+name: API Staging Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'scripts/api/**'
+      - 'Dockerfile.api'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.api.json'
+      - '.github/workflows/api-staging-deploy.yml'
+
+concurrency:
+  group: api-staging-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+jobs:
+  staging:
+    name: API staging no-traffic deploy, smoke, promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    environment: staging
+    env:
+      API_ENV: staging
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION || 'northamerica-northeast1' }}
+      ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REPOSITORY || 'penny-api' }}
+      CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'penny-api' }}
+      CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT || 'penny-api-runtime' }}
+      API_CORS_ORIGINS: ${{ vars.API_CORS_ORIGINS }}
+      FIREBASE_AUTH_PROJECT_ID: ${{ vars.FIREBASE_AUTH_PROJECT_ID }}
+      FIRESTORE_PROJECT_ID: ${{ vars.FIRESTORE_PROJECT_ID }}
+      FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID }}
+      GEMINI_SECRET_NAME: ${{ vars.GEMINI_SECRET_NAME || 'penny-gemini-api-key' }}
+      CRON_SECRET_NAME: ${{ vars.CRON_SECRET_NAME || 'penny-cron-secret' }}
+      CANDIDATE_TAG: candidate-${{ github.run_id }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Guard staging deployment ref
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::API staging deploys must run from a commit contained in origin/main."
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify API and contracts
+        run: npm run api:check && npm run api:contract && npm run mobile:api-only:check
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@b7593ed2efd1c1617e1b0254da33b86225adb2a5
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f
+
+      - name: Configure Docker auth
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Build API container
+        id: build-image
+        run: |
+          set -euo pipefail
+          IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/${CLOUD_RUN_SERVICE}:${GITHUB_SHA}"
+          echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          docker build -f Dockerfile.api -t "$IMAGE" .
+
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ steps.build-image.outputs.image }}
+          scanners: vuln
+          version: v0.70.0
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Push API container
+        id: push-image
+        run: |
+          set -euo pipefail
+          docker push "$IMAGE"
+          IMAGE_WITH_DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")"
+          IMAGE_DIGEST="${IMAGE_WITH_DIGEST#*@}"
+          echo "IMAGE_WITH_DIGEST=${IMAGE_WITH_DIGEST}" >> "$GITHUB_ENV"
+          echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> "$GITHUB_ENV"
+          echo "image_with_digest=${IMAGE_WITH_DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "image_digest=${IMAGE_DIGEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate image SBOM
+        uses: anchore/sbom-action@f8bdd1d8ac5e901a77a92f111440fdb1b593736b
+        with:
+          image: ${{ steps.push-image.outputs.image_with_digest }}
+          format: spdx-json
+          output-file: api-image-sbom.spdx.json
+
+      - name: Upload image SBOM
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: api-image-sbom
+          path: api-image-sbom.spdx.json
+          retention-days: 90
+
+      - name: Attest image provenance
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32
+        with:
+          subject-name: ${{ steps.build-image.outputs.image }}
+          subject-digest: ${{ steps.push-image.outputs.image_digest }}
+          push-to-registry: true
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62
+
+      - name: Sign image digest
+        run: cosign sign --yes "$IMAGE_WITH_DIGEST"
+
+      - name: Capture previous serving revision
+        run: |
+          set -euo pipefail
+          gcloud run services describe "$CLOUD_RUN_SERVICE" \
+            --platform managed \
+            --region "$GCP_REGION" \
+            --format=json > cloud-run-service.json
+          PREVIOUS_REVISION="$(node -e "const service=require('./cloud-run-service.json'); const entry=(service.status?.traffic||[]).find((item)=>Number(item.percent||0)>0 && item.revisionName); console.log(entry?.revisionName || '')")"
+          echo "PREVIOUS_REVISION=${PREVIOUS_REVISION}" >> "$GITHUB_ENV"
+
+      - name: Deploy candidate with no traffic
+        run: |
+          set -euo pipefail
+          FIRESTORE_TARGET_PROJECT="${FIRESTORE_PROJECT_ID:-$GCP_PROJECT_ID}"
+          ENV_DELIM='|'
+          ENV_VARS="^${ENV_DELIM}^"
+          ENV_COUNT=0
+          append_env() {
+            local key="$1"
+            local value="$2"
+            if [[ "$value" == *"$ENV_DELIM"* ]]; then
+              echo "::error::Environment variable ${key} contains unsupported delimiter ${ENV_DELIM}."
+              exit 1
+            fi
+            if [ "$ENV_COUNT" -gt 0 ]; then
+              ENV_VARS="${ENV_VARS}${ENV_DELIM}"
+            fi
+            ENV_VARS="${ENV_VARS}${key}=${value}"
+            ENV_COUNT=$((ENV_COUNT + 1))
+          }
+
+          append_env NODE_ENV production
+          append_env OBSERVABILITY_ENV "$API_ENV"
+          append_env FIREBASE_PROJECT_ID "$GCP_PROJECT_ID"
+          append_env FIRESTORE_PROJECT_ID "$FIRESTORE_TARGET_PROJECT"
+          if [ -n "$FIREBASE_AUTH_PROJECT_ID" ]; then append_env FIREBASE_AUTH_PROJECT_ID "$FIREBASE_AUTH_PROJECT_ID"; fi
+          if [ -n "$API_CORS_ORIGINS" ]; then append_env API_CORS_ORIGINS "$API_CORS_ORIGINS"; fi
+          if [ -n "$FIRESTORE_DATABASE_ID" ]; then append_env FIRESTORE_DATABASE_ID "$FIRESTORE_DATABASE_ID"; fi
+
+          gcloud run deploy "$CLOUD_RUN_SERVICE" \
+            --image "$IMAGE_WITH_DIGEST" \
+            --platform managed \
+            --region "$GCP_REGION" \
+            --service-account "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+            --allow-unauthenticated \
+            --port 8080 \
+            --cpu 1 \
+            --memory 512Mi \
+            --concurrency 80 \
+            --timeout 120s \
+            --min-instances 0 \
+            --set-env-vars "$ENV_VARS" \
+            --set-secrets "GEMINI_API_KEY=${GEMINI_SECRET_NAME}:latest,CRON_SECRET=${CRON_SECRET_NAME}:latest" \
+            --tag "$CANDIDATE_TAG" \
+            --no-traffic \
+            --quiet
+
+      - name: Resolve candidate URL
+        run: |
+          set -euo pipefail
+          gcloud run services describe "$CLOUD_RUN_SERVICE" \
+            --platform managed \
+            --region "$GCP_REGION" \
+            --format=json > cloud-run-service.json
+          CANDIDATE_URL="$(node -e "const service=require('./cloud-run-service.json'); const traffic=(service.status.traffic||[]).find((entry)=>entry.tag===process.env.CANDIDATE_TAG); if (!traffic?.url) throw new Error('candidate URL not found'); console.log(traffic.url)")"
+          echo "API_BASE_URL=${CANDIDATE_URL}" >> "$GITHUB_ENV"
+
+      - name: Smoke candidate API
+        run: npm run api:smoke
+
+      - name: Promote candidate to staging traffic
+        run: |
+          set -euo pipefail
+          gcloud run services update-traffic "$CLOUD_RUN_SERVICE" \
+            --platform managed \
+            --region "$GCP_REGION" \
+            --to-tags "$CANDIDATE_TAG=100" \
+            --quiet
+
+      - name: Roll back staging traffic on failure
+        if: failure()
+        run: |
+          set -euo pipefail
+          if [ -n "${PREVIOUS_REVISION:-}" ]; then
+            gcloud run services update-traffic "$CLOUD_RUN_SERVICE" \
+              --platform managed \
+              --region "$GCP_REGION" \
+              --to-revisions "$PREVIOUS_REVISION=100" \
+              --quiet
+          fi

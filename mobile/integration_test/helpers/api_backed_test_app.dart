@@ -702,7 +702,7 @@ class IntegrationFakeApiClient extends ApiClient {
       'date': date,
       'expenseType': expenseType,
       'groupId': groupId,
-      if (groupMetadata != null) 'groupMetadata': groupMetadata,
+      'groupMetadata': ?groupMetadata,
       'createdAt': date,
       'updatedAt': date,
       'syncStatus': 'synced',

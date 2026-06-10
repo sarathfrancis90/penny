@@ -1,73 +1,79 @@
 name: Deploy to Firebase
 
 on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Firebase deployment environment.
+        required: true
+        default: production
+        type: choice
+        options:
+          - staging
+          - production
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - 'database/firestore.rules'
       - 'database/firestore.indexes.json'
       - 'database/storage.rules'
       - 'firebase.json'
-  workflow_dispatch: # Allow manual triggers
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/firebase-deploy.yml'
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   deploy-database:
     name: Deploy Database Configuration
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 35
+    environment: ${{ inputs.environment || 'production' }}
+    env:
+      FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID || secrets.FIREBASE_PROJECT_ID }}
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '21'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Deploy Firestore Rules
-        run: firebase deploy --only firestore:rules --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
-
-      - name: Deploy Firestore Indexes
-        run: firebase deploy --only firestore:indexes --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
-
-      - name: Deploy Storage Rules
-        run: firebase deploy --only storage --token "${{ secrets.FIREBASE_TOKEN }}" --project "${{ secrets.FIREBASE_PROJECT_ID }}"
-
-      - name: Notify on Success
-        if: success()
-        run: echo "✅ Database configuration deployed successfully!"
-
-      - name: Notify on Failure
-        if: failure()
-        run: echo "❌ Database deployment failed. Check logs above."
-
-  verify-deployment:
-    name: Verify Deployment
-    runs-on: ubuntu-latest
-    needs: deploy-database
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+          node-version: '22'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run database connectivity tests
-        run: npm run test:db || echo "⚠️  Database tests not configured yet"
+      - name: Test Firestore and Storage rules before deploy
+        run: npm run test:db
 
-      - name: Check Firestore indexes status
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@b7593ed2efd1c1617e1b0254da33b86225adb2a5
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools@15.19.1
+
+      - name: Deploy Firestore and Storage configuration
         run: |
-          echo "🔍 Checking if indexes are building..."
-          # Add script to check index status via Firebase Admin SDK
-
+          set -euo pipefail
+          test -n "${FIREBASE_PROJECT_ID}"
+          firebase deploy \
+            --only firestore:rules,firestore:indexes,storage \
+            --project "${FIREBASE_PROJECT_ID}" \
+            --non-interactive

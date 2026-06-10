@@ -33,28 +33,21 @@ export function useConversation(
 ): UseConversationResult {
   const { user } = useAuth();
   const userId = user?.uid;
+  const hasConversationScope = Boolean(userId && conversationId);
+  const queryKey = `${userId ?? ""}|${conversationId ?? ""}`;
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadedKey, setLoadedKey] = useState("");
 
   useEffect(() => {
-    if (!userId || !conversationId) {
-      setConversation(null);
-      setMessages([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
+    if (!userId || !conversationId) return;
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Subscribe to conversation document
-      const conversationRef = doc(db, "conversations", conversationId);
-      const unsubscribeConversation = onSnapshot(
+    // Subscribe to conversation document
+    const conversationRef = doc(db, "conversations", conversationId);
+    const unsubscribeConversation = onSnapshot(
         conversationRef,
         (docSnap) => {
           if (docSnap.exists()) {
@@ -84,11 +77,14 @@ export function useConversation(
                 isPinned: data.metadata?.isPinned || false,
               },
             });
+            setError(null);
+            setLoadedKey(queryKey);
             setLoading(false);
           } else {
             // Conversation was deleted or doesn't exist - clear state without error
             setConversation(null);
             setMessages([]);
+            setLoadedKey(queryKey);
             setLoading(false);
             // Don't set error - this is expected when conversation is deleted
           }
@@ -102,58 +98,54 @@ export function useConversation(
           // Don't set error state - let the UI handle missing conversation gracefully
           setConversation(null);
           setMessages([]);
+          setLoadedKey(queryKey);
           setLoading(false);
         }
-      );
+    );
 
-      // Subscribe to messages subcollection
-      const messagesQuery = query(
-        collection(db, "conversations", conversationId, "messages"),
-        orderBy("timestamp", "asc")
-      );
+    // Subscribe to messages subcollection
+    const messagesQuery = query(
+      collection(db, "conversations", conversationId, "messages"),
+      orderBy("timestamp", "asc")
+    );
 
-      const unsubscribeMessages = onSnapshot(
-        messagesQuery,
-        (snapshot) => {
-          const fetchedMessages: ConversationMessage[] = [];
-          
-          snapshot.forEach((doc) => {
-            const data = doc.data();
-            fetchedMessages.push({
-              id: doc.id,
-              conversationId: data.conversationId,
-              role: data.role,
-              content: data.content,
-              timestamp: data.timestamp,
-              attachments: data.attachments,
-              expenseData: data.expenseData,
-              metadata: data.metadata,
-              status: data.status || "sent",
-            });
+    const unsubscribeMessages = onSnapshot(
+      messagesQuery,
+      (snapshot) => {
+        const fetchedMessages: ConversationMessage[] = [];
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          fetchedMessages.push({
+            id: doc.id,
+            conversationId: data.conversationId,
+            role: data.role,
+            content: data.content,
+            timestamp: data.timestamp,
+            attachments: data.attachments,
+            expenseData: data.expenseData,
+            metadata: data.metadata,
+            status: data.status || "sent",
           });
+        });
 
-          setMessages(fetchedMessages);
-        },
-        (err) => {
-          // Only log permission errors if it's not a "conversation deleted" case
-          if (err.code !== 'permission-denied') {
-            console.error("Error fetching messages:", err);
-          }
-          // Don't set error - conversation might have been deleted
-          setMessages([]);
+        setMessages(fetchedMessages);
+      },
+      (err) => {
+        // Only log permission errors if it's not a "conversation deleted" case
+        if (err.code !== 'permission-denied') {
+          console.error("Error fetching messages:", err);
         }
-      );
+        // Don't set error - conversation might have been deleted
+        setMessages([]);
+      }
+    );
 
-      return () => {
-        unsubscribeConversation();
-        unsubscribeMessages();
-      };
-    } catch (err) {
-      console.error("Error setting up conversation listener:", err);
-      setError("Failed to set up conversation");
-      setLoading(false);
-    }
-  }, [userId, conversationId]);
+    return () => {
+      unsubscribeConversation();
+      unsubscribeMessages();
+    };
+  }, [userId, conversationId, queryKey]);
 
   const updateLastAccessed = async () => {
     if (!conversationId || !userId) return;
@@ -169,11 +161,10 @@ export function useConversation(
   };
 
   return {
-    conversation,
-    messages,
-    loading,
-    error,
+    conversation: hasConversationScope && loadedKey === queryKey ? conversation : null,
+    messages: hasConversationScope && loadedKey === queryKey ? messages : [],
+    loading: hasConversationScope ? loadedKey !== queryKey || loading : false,
+    error: hasConversationScope ? error : null,
     updateLastAccessed,
   };
 }
-

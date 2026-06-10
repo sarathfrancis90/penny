@@ -9,7 +9,8 @@ This guide is for agents working on the active standalone API under `apps/api`. 
 - Production entrypoint: `apps/api/src/server.ts`.
 - Env parsing: `apps/api/src/config/env.ts`.
 - Container build: `Dockerfile.api`.
-- Deployment workflow: `.github/workflows/api-cloud-run-deploy.yml`.
+- Autonomous staging deployment workflow: `.github/workflows/api-staging-deploy.yml`.
+- Manual environment deployment workflow: `.github/workflows/api-cloud-run-deploy.yml`.
 - OpenAPI artifact: `docs/api/openapi.json`.
 - Route surface source: `scripts/api/route-surface.ts`.
 
@@ -143,7 +144,7 @@ Common commands:
 - `npm run api:smoke` - smoke deployed API health endpoint.
 - `npm run api:parity` - compare old and new API behavior.
 
-Cloud Run deploy verification runs `npm run api:check && npm run api:contract` before container build.
+Cloud Run deploy verification runs `npm run api:check && npm run api:contract` before container build. The autonomous staging workflow also runs `npm run mobile:api-only:check`, builds the API image, scans the image, writes an SBOM artifact, attests and signs the pushed digest, deploys a no-traffic Cloud Run candidate, smokes the candidate URL, then promotes staging traffic only after smoke passes.
 
 Route-surface validation should prove three things together: Fastify route registration, `scripts/api/route-surface.ts`, and `docs/api/openapi.json`. Do not treat `api:contract` alone as runtime parity; it only checks OpenAPI against the route-surface file.
 
@@ -168,4 +169,4 @@ Important variables:
 
 Never copy secret values into docs or logs. Reference variable names and file paths only.
 
-GitHub deploy workflow variables and secrets are defined in `.github/workflows/api-cloud-run-deploy.yml`. When debugging deployment, inspect that workflow for `GCP_PROJECT_ID`, `GCP_REGION`, Artifact Registry, Cloud Run service names, workload identity, deploy service account, runtime service account, Secret Manager names, and optional smoke-test URL.
+GitHub deploy workflow variables and secrets are defined in `.github/workflows/api-staging-deploy.yml` and `.github/workflows/api-cloud-run-deploy.yml`. When debugging deployment, inspect those workflows for `GCP_PROJECT_ID`, `GCP_REGION`, Artifact Registry, Cloud Run service names, workload identity, deploy service account, runtime service account, and Secret Manager names. Smoke tests are mandatory; do not make `npm run api:smoke` conditional on a manually configured URL.
