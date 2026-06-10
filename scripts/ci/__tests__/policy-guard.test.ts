@@ -97,7 +97,7 @@ function requiredWorkflowFixtures(overrides: Record<string, string> = {}) {
     ),
     '.github/workflows/mobile-ios-ci.yml': workflow(
       'Mobile iOS CI',
-      '      - run: flutter build ios\n',
+      '      - run: flutter test integration_test\n      - run: flutter build ios\n',
     ),
     '.github/workflows/penny-required-gate.yml': workflow(
       'Penny Required Gate',

@@ -56,9 +56,9 @@ For deployment mechanics, see [`CICD.md`](./CICD.md). For codebase layout, see [
 - `list` rules use `isAuthenticated()` because Firestore rules can't enforce query filters; security depends on mobile clients always passing `where('userId', isEqualTo: ...)`. **Mobile repos audited and verified to do this.**
 
 ### Code health and CI
-- `mobile-shared-ci` runs `flutter analyze`, unit/widget tests, and `integration_test`. Analyzer infos, warnings, and errors all fail the gate.
+- `mobile-shared-ci` runs `flutter analyze` plus unit/widget tests with coverage. Analyzer infos, warnings, and errors all fail the gate.
 - `mobile-android-ci` builds a release AAB with an ephemeral CI release keystore so the signing path is exercised without production keys.
-- `mobile-ios-ci` builds iOS release with `--no-codesign`.
+- `mobile-ios-ci` runs the API-backed integration tests on a booted iOS simulator, then builds iOS release with `--no-codesign`.
 - `api-ci` runs zero-warning lint for API/packages/scripts, API checks, contract checks, mobile API-only boundary checks, and an API container build.
 - `security-ci` runs dependency review, high-severity npm audit, OSV, and Trivy filesystem scanning.
 

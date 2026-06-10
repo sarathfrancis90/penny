@@ -82,7 +82,7 @@ const requiredWorkflows: RequiredWorkflow[] = [
   },
   {
     file: 'mobile-ios-ci.yml',
-    requiredText: ['name: Mobile iOS CI', 'flutter build ios'],
+    requiredText: ['name: Mobile iOS CI', 'integration_test', 'flutter build ios'],
   },
   {
     file: 'penny-required-gate.yml',

@@ -43,10 +43,6 @@ jobs:
         working-directory: mobile
         run: flutter test --coverage --reporter expanded test
 
-      - name: Run integration tests
-        working-directory: mobile
-        run: flutter test --reporter expanded integration_test
-
       - name: Upload Flutter coverage
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
