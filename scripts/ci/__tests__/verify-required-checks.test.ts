@@ -61,6 +61,32 @@ describe('verify required checks', () => {
     ).resolves.toMatchObject({ success: true });
   });
 
+  it('retries transient GitHub check-runs API failures', async () => {
+    let calls = 0;
+
+    await expect(
+      verifyRequiredChecks({
+        repository: 'owner/repo',
+        sha: 'abc',
+        token: 'token',
+        requiredChecks: ['api-ci'],
+        timeoutMs: 100,
+        pollMs: 1,
+        fetchRuns: async () => {
+          calls += 1;
+          if (calls === 1) {
+            const error = new Error('GitHub check-runs API returned 500');
+            (error as Error & { status?: number }).status = 500;
+            throw error;
+          }
+
+          return [{ name: 'api-ci', status: 'completed', conclusion: 'success' }];
+        },
+      }),
+    ).resolves.toMatchObject({ success: true });
+    expect(calls).toBe(2);
+  });
+
   it('uses the newest matching check run instead of any historical success', () => {
     const result = evaluateRequiredChecks(
       [

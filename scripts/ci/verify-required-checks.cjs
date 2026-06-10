@@ -65,7 +65,9 @@ async function fetchCheckRuns({ repository, sha, token }) {
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(`GitHub check-runs API returned ${response.status}: ${body}`);
+    const error = new Error(`GitHub check-runs API returned ${response.status}: ${body}`);
+    error.status = response.status;
+    throw error;
   }
 
   const payload = await response.json();
@@ -74,6 +76,11 @@ async function fetchCheckRuns({ repository, sha, token }) {
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableFetchError(error) {
+  const status = Number(error?.status);
+  return status === 429 || status >= 500;
 }
 
 async function verifyRequiredChecks({
@@ -89,7 +96,19 @@ async function verifyRequiredChecks({
   let lastEvaluation;
 
   while (Date.now() <= deadline) {
-    const checkRuns = await fetchRuns({ repository, sha, token });
+    let checkRuns;
+    try {
+      checkRuns = await fetchRuns({ repository, sha, token });
+    } catch (error) {
+      if (!isRetryableFetchError(error)) {
+        throw error;
+      }
+
+      console.log(`Waiting for GitHub check-runs API to recover:\n${error.message}`);
+      await sleep(pollMs);
+      continue;
+    }
+
     lastEvaluation = evaluateRequiredChecks(checkRuns, requiredChecks);
 
     if (lastEvaluation.success) {
@@ -111,7 +130,7 @@ async function verifyRequiredChecks({
 
 async function main() {
   const repository = process.env.GITHUB_REPOSITORY;
-  const sha = process.env.GITHUB_SHA;
+  const sha = process.env.REQUIRED_CHECK_SHA || process.env.GITHUB_SHA;
   const token = process.env.GITHUB_TOKEN;
   const requiredChecks = parseRequiredChecks(process.env.REQUIRED_CHECKS);
 
