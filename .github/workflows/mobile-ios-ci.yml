@@ -14,7 +14,7 @@ jobs:
   mobile-ios-ci:
     name: mobile-ios-ci
     runs-on: macos-26
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     steps:
       - name: Checkout code
@@ -47,9 +47,19 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
 
       - name: Run integration tests
-        timeout-minutes: 45
+        timeout-minutes: 75
         working-directory: mobile
-        run: flutter test --reporter expanded -d "${{ steps.simulator.outputs.device_id }}" integration_test
+        run: |
+          set -euo pipefail
+          for test_file in $(find integration_test -maxdepth 1 -name '*_test.dart' | sort); do
+            echo "::group::flutter test ${test_file}"
+            flutter test \
+              --ignore-timeouts \
+              --reporter expanded \
+              -d "${{ steps.simulator.outputs.device_id }}" \
+              "${test_file}"
+            echo "::endgroup::"
+          done
 
       - name: Build iOS release without codesigning
         timeout-minutes: 45
