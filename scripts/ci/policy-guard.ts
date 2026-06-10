@@ -271,7 +271,7 @@ function checkWorkflowJobTimeouts(relativePath: string, content: string, failure
       return;
     }
 
-    const jobMatch = line.match(/^  ([A-Za-z0-9_-]+):\s*$/);
+    const jobMatch = line.match(/^ {2}([A-Za-z0-9_-]+):\s*$/);
     if (jobMatch) {
       finishJob();
       currentJob = {
@@ -285,11 +285,11 @@ function checkWorkflowJobTimeouts(relativePath: string, content: string, failure
 
     if (!currentJob) return;
 
-    if (/^    runs-on:\s*/.test(line)) {
+    if (/^ {4}runs-on:\s*/.test(line)) {
       currentJob.hasRunsOn = true;
     }
 
-    const timeoutMatch = line.match(/^    timeout-minutes:\s*([0-9]+)\s*$/);
+    const timeoutMatch = line.match(/^ {4}timeout-minutes:\s*([0-9]+)\s*$/);
     if (timeoutMatch) {
       currentJob.hasTimeout = true;
       const timeoutMinutes = Number(timeoutMatch[1]);
