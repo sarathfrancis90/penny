@@ -46,7 +46,7 @@ jobs:
       build_number: ${{ steps.derive.outputs.build_number }}
       release_notes: ${{ steps.derive.outputs.release_notes }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           fetch-depth: 0
 
@@ -113,7 +113,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
       - name: Read pinned Flutter version
         id: flutter
@@ -150,7 +150,7 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
       - name: Read pinned tool versions
         id: tools
@@ -243,7 +243,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
 
       - name: Read pinned tool versions
         id: tools
