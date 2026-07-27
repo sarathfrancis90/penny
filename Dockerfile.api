@@ -24,7 +24,9 @@ RUN npm init -y \
     @google/genai@1.42.0 \
     fastify@5.8.5 \
     firebase-admin@14.0.0 \
-  && npm cache clean --force
+  && npm cache clean --force \
+  && rm -rf /usr/local/lib/node_modules/npm \
+  && rm -f /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=build --chown=node:node /app/dist ./dist
 USER node
 EXPOSE 8080
