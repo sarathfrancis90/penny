@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
-import { expenseCategories } from "@/lib/categories";
+import { GoogleGenAI, Type } from "@google/genai";
+import {
+  CANONICAL_OTHER_EXPENSE_CATEGORY,
+  expenseCategories,
+  normalizeExpenseCategory,
+} from "../../../../packages/shared/src/categories";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { findMatchingGroup } from "@/lib/groupMatching";
@@ -90,6 +94,127 @@ interface AnalyzeExpenseResponse {
   description?: string;
   groupName?: string | null;
   confidence?: number;
+}
+
+const expenseSchema = {
+  type: Type.OBJECT,
+  properties: {
+    expenses: {
+      type: Type.ARRAY,
+      minItems: "1",
+      maxItems: "20",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          vendor: { type: Type.STRING },
+          amount: { type: Type.NUMBER },
+          date: { type: Type.STRING },
+          category: {
+            type: Type.STRING,
+            enum: [...expenseCategories],
+          },
+          description: { type: Type.STRING, nullable: true },
+          groupName: { type: Type.STRING, nullable: true },
+          confidence: { type: Type.NUMBER, nullable: true },
+        },
+        required: ["vendor", "amount", "date", "category"],
+      },
+    },
+  },
+  required: ["expenses"],
+};
+
+function tryParseJson(candidate: string): unknown | undefined {
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    return undefined;
+  }
+}
+
+function stripJsonFence(text: string): string | undefined {
+  const match = text.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return match?.[1]?.trim();
+}
+
+function sliceBetween(text: string, startChar: string, endChar: string) {
+  const start = text.indexOf(startChar);
+  const end = text.lastIndexOf(endChar);
+  return start >= 0 && end > start ? text.slice(start, end + 1) : undefined;
+}
+
+function extractJsonValue(text: string): unknown {
+  const trimmed = text.trim();
+  const fenced = stripJsonFence(trimmed);
+  const candidates = [
+    trimmed,
+    fenced,
+    sliceBetween(trimmed, "[", "]"),
+    sliceBetween(trimmed, "{", "}"),
+  ].filter((candidate): candidate is string => Boolean(candidate));
+
+  for (const candidate of candidates) {
+    const parsed = tryParseJson(candidate);
+    if (parsed !== undefined) return parsed;
+  }
+
+  throw new Error("AI response did not contain valid JSON");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeExpense(raw: Record<string, unknown>): AnalyzeExpenseResponse {
+  const vendor = typeof raw.vendor === "string" ? raw.vendor : "";
+  const amount = typeof raw.amount === "number"
+    ? raw.amount
+    : Number.parseFloat(String(raw.amount ?? "0"));
+  const date = typeof raw.date === "string" ? raw.date : "";
+  const category = normalizeExpenseCategory(
+    typeof raw.category === "string" ? raw.category : "",
+  );
+
+  return {
+    vendor,
+    amount,
+    date,
+    category,
+    description:
+      typeof raw.description === "string" ? raw.description : undefined,
+    groupName:
+      typeof raw.groupName === "string" || raw.groupName === null
+        ? raw.groupName
+        : undefined,
+    confidence:
+      typeof raw.confidence === "number" ? raw.confidence : undefined,
+  };
+}
+
+function normalizeExpenseList(parsed: unknown): AnalyzeExpenseResponse[] {
+  if (Array.isArray(parsed)) {
+    return parsed
+      .filter(isRecord)
+      .map((expense) => normalizeExpense(expense));
+  }
+
+  if (isRecord(parsed) && Array.isArray(parsed.expenses)) {
+    return parsed.expenses.filter(isRecord).map((expense) => normalizeExpense(expense));
+  }
+
+  if (isRecord(parsed)) return [normalizeExpense(parsed)];
+
+  throw new Error("AI response JSON was not an expense object");
+}
+
+function normalizeDate(date: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+  return new Date().toISOString().split("T")[0];
+}
+
+function normalizeAmount(value: number | string): number {
+  const parsed = typeof value === "number" ? value : Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
 
@@ -184,6 +309,10 @@ async function postHandler(request: NextRequest) {
     const result = await getGenAI().models.generateContent({
       model: "gemini-3-flash-preview",
       contents: parts,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: expenseSchema,
+      },
     });
     
     const responseText = result.text;
@@ -197,64 +326,47 @@ async function postHandler(request: NextRequest) {
 
     console.log("Gemini response:", responseText);
 
-    // Parse the JSON response
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      
-      if (!jsonMatch) {
-        throw new Error("No JSON object found in response");
-      }
+      const expenses = normalizeExpenseList(extractJsonValue(responseText));
 
-      const parsedResponse = JSON.parse(jsonMatch[0]);
-
-      // Helper function to validate and process a single expense
       const processExpense = (expense: AnalyzeExpenseResponse) => {
-        // Validate required fields
-        if (!expense.vendor || !expense.amount || !expense.category) {
-          throw new Error("Missing required fields in expense");
+        if (!expense.vendor) {
+          throw new Error("Missing required vendor in expense data");
         }
 
-        // Validate category
-        const categoryList = expenseCategories as readonly string[];
-        if (!categoryList.includes(expense.category)) {
-          console.warn(`Invalid category: ${expense.category}, defaulting to "Other Business Expenses"`);
-          expense.category = "Other Business Expenses";
+        const normalizedAmount = normalizeAmount(expense.amount as number);
+        if (!Number.isFinite(normalizedAmount)) {
+          throw new Error("Missing required amount in expense data");
         }
 
-        // Ensure amount is a valid number
-        if (typeof expense.amount === "string") {
-          expense.amount = parseFloat(expense.amount);
+        const normalizedCategory = normalizeExpenseCategory(expense.category);
+        if (normalizedCategory !== expense.category) {
+          console.warn(
+            `Invalid category: ${expense.category}, defaulting to "${CANONICAL_OTHER_EXPENSE_CATEGORY}"`,
+          );
         }
 
-        // Validate date format (YYYY-MM-DD)
-        if (expense.date && !/^\d{4}-\d{2}-\d{2}$/.test(expense.date)) {
+        const normalizedDate = normalizeDate(expense.date);
+        if (normalizedDate !== expense.date) {
           console.warn(`Invalid date format: ${expense.date}, using today's date`);
-          expense.date = new Date().toISOString().split("T")[0];
         }
 
-        // Default date to today if not provided
-        if (!expense.date) {
-          expense.date = new Date().toISOString().split("T")[0];
-        }
-
-        // Match group name to group ID
         const groupId = findMatchingGroup(expense.groupName, userGroups);
-        
+
         return {
           ...expense,
-          groupId, // Add matched groupId
+          amount: normalizedAmount,
+          category: normalizedCategory,
+          date: normalizedDate,
+          groupId,
           groupName: expense.groupName || null,
         };
       };
 
-      // Check if it's a multi-expense response
-      const isMultiExpense = 'expenses' in parsedResponse && Array.isArray(parsedResponse.expenses);
+      const processedExpenses = expenses.map(processExpense);
+      const isMultiExpense = processedExpenses.length > 1;
 
       if (isMultiExpense) {
-        // Handle multiple expenses
-        const expenses = parsedResponse.expenses.map(processExpense);
-
         // Track analytics
         const duration = Date.now() - startTime;
         trackAnalytics({
@@ -266,36 +378,34 @@ async function postHandler(request: NextRequest) {
           hasImage: !!imageBase64,
         }).catch(err => console.error("Analytics tracking failed:", err));
 
-        console.log(`AI analyzed ${expenses.length} expenses in ${duration}ms`);
+        console.log(`AI analyzed ${processedExpenses.length} expenses in ${duration}ms`);
 
         return NextResponse.json({
           success: true,
           multiExpense: true,
-          data: expenses,
-        });
-
-      } else {
-        // Handle single expense
-        const expenseData = processExpense(parsedResponse);
-
-        // Track analytics
-        const duration = Date.now() - startTime;
-        trackAnalytics({
-          userId,
-          requestType: imageBase64 ? "image" : "text",
-          success: true,
-          duration,
-          inputLength: text?.length || 0,
-          hasImage: !!imageBase64,
-        }).catch(err => console.error("Analytics tracking failed:", err));
-
-        console.log(`AI analyzed expense in ${duration}ms`);
-
-        return NextResponse.json({
-          success: true,
-          data: expenseData,
+          data: processedExpenses,
         });
       }
+
+      const expenseData = processedExpenses[0];
+
+      // Track analytics
+      const duration = Date.now() - startTime;
+      trackAnalytics({
+        userId,
+        requestType: imageBase64 ? "image" : "text",
+        success: true,
+        duration,
+        inputLength: text?.length || 0,
+        hasImage: !!imageBase64,
+      }).catch(err => console.error("Analytics tracking failed:", err));
+
+      console.log(`AI analyzed expense in ${duration}ms`);
+
+      return NextResponse.json({
+        success: true,
+        data: expenseData,
+      });
 
     } catch (parseError) {
       console.error("Failed to parse AI response:", parseError);
