@@ -5,10 +5,6 @@ import {
   expenseCategories,
   normalizeExpenseCategory,
 } from "../../../../packages/shared/src/categories";
-import { Timestamp } from "firebase-admin/firestore";
-import { adminDb } from "@/lib/firebase-admin";
-import { findMatchingGroup } from "@/lib/groupMatching";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
@@ -220,15 +216,12 @@ async function postHandler(request: NextRequest) {
   let userId: string | undefined;
   
   try {
-    // Authenticate: prefer Bearer token (mobile), fall back to body/header userId (web)
-    const tokenUserId = await getAuthenticatedUserId(request);
-
     // Parse request body
     const body: AnalyzeExpenseRequest = await request.json();
     const { text, imageBase64, userId: bodyUserId } = body;
 
-    // Extract userId: Bearer token > body > x-user-id header
-    userId = tokenUserId || bodyUserId || request.headers.get("x-user-id") || undefined;
+    // Extract userId from request body/header
+    userId = bodyUserId || request.headers.get("x-user-id") || undefined;
 
     // Validate input
     if (!text && !imageBase64) {
@@ -247,34 +240,7 @@ async function postHandler(request: NextRequest) {
       );
     }
 
-    // Fetch user's groups if userId is provided
-    let userGroups: { id: string; name: string; icon: string }[] = [];
-    if (userId) {
-      try {
-        const membershipSnapshot = await adminDb
-          .collection("groupMembers")
-          .where("userId", "==", userId)
-          .where("status", "==", "active")
-          .get();
-
-        const groupIds = membershipSnapshot.docs.map(doc => doc.data().groupId);
-        
-        if (groupIds.length > 0) {
-          const groupsSnapshot = await adminDb
-            .collection("groups")
-            .where("__name__", "in", groupIds.slice(0, 10)) // Firestore 'in' limit is 10
-            .get();
-
-          userGroups = groupsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            name: doc.data().name || "",
-            icon: doc.data().icon || "👥",
-          }));
-        }
-      } catch (error) {
-        console.warn("Failed to fetch user groups, continuing without them:", error);
-      }
-    }
+    const userGroups: { id: string; name: string; icon: string }[] = [];
 
     // Prepare the content parts
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
@@ -348,14 +314,12 @@ async function postHandler(request: NextRequest) {
           console.warn(`Invalid date format: ${expense.date}, using today's date`);
         }
 
-        const groupId = findMatchingGroup(expense.groupName, userGroups);
-
         return {
           ...expense,
           amount: normalizedAmount,
           category: normalizedCategory,
           date: normalizedDate,
-          groupId,
+          groupId: null,
           groupName: expense.groupName || null,
         };
       };
@@ -452,16 +416,14 @@ async function trackAnalytics(data: {
   error?: string;
 }) {
   try {
-    // Estimate tokens (rough approximation)
-    const estimatedTokens = data.inputLength ? Math.ceil(data.inputLength / 4) + 500 : 500;
-    
-    // Estimate cost (Gemini 2.0 Flash pricing: ~$0.075 per 1M input tokens, $0.30 per 1M output tokens)
-    // Rough estimate: 500 input tokens + 200 output tokens per request
+    // Track analytics as logs to avoid Firebase Admin dependency in the Vercel
+    // route path, which can fail in serverless builds.
+    const estimatedTokens = data.inputLength
+      ? Math.ceil(data.inputLength / 4) + 500
+      : 500;
     const estimatedCost = (estimatedTokens * 0.075 + 200 * 0.30) / 1000000;
 
-    // Save analytics using Admin SDK (bypasses security rules)
-    await adminDb.collection("analytics").add({
-      timestamp: Timestamp.now(),
+    console.log("Analyze expense analytics:", {
       userId: data.userId || "anonymous",
       requestType: data.requestType,
       success: data.success,
