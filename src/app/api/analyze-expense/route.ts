@@ -101,18 +101,15 @@ const expenseSchema = {
   properties: {
     expenses: {
       type: Type.ARRAY,
-      minItems: "1",
-      maxItems: "20",
+      minItems: 1,
+      maxItems: 20,
       items: {
         type: Type.OBJECT,
         properties: {
           vendor: { type: Type.STRING },
           amount: { type: Type.NUMBER },
           date: { type: Type.STRING },
-          category: {
-            type: Type.STRING,
-            enum: [...expenseCategories],
-          },
+          category: { type: Type.STRING },
           description: { type: Type.STRING, nullable: true },
           groupName: { type: Type.STRING, nullable: true },
           confidence: { type: Type.NUMBER, nullable: true },

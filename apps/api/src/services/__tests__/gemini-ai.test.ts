@@ -71,4 +71,33 @@ describe('Gemini AI service', () => {
       },
     ]);
   });
+
+  it('uses a broad category schema to avoid enum rejection', async () => {
+    mocks.generateContent.mockResolvedValueOnce({
+      text: JSON.stringify({
+        expenses: [
+          {
+            vendor: 'Subway',
+            amount: 12.5,
+            date: '2026-06-06',
+            category: 'Meals and entertainment',
+          },
+        ],
+      }),
+    });
+
+    const service = createGeminiAiService('test-key');
+
+    await service.analyzeExpense({
+      userId: 'user-1',
+      text: 'I spent $12.50 at Subway',
+    });
+
+    const call = mocks.generateContent.mock.calls.at(-1)?.[0];
+    expect(call?.config?.responseSchema?.properties?.expenses?.items?.properties?.category).toEqual({
+      type: 'STRING',
+    });
+    expect(call?.config?.responseSchema?.properties?.expenses?.items?.type).toBe('OBJECT');
+    expect(call?.config?.responseSchema?.properties?.expenses?.minItems).toBe(1);
+  });
 });
