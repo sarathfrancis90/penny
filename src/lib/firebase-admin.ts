@@ -1,12 +1,22 @@
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
-import { getAuth, Auth } from 'firebase-admin/auth';
 import { getMessaging, Messaging } from 'firebase-admin/messaging';
+import { type Auth } from 'firebase-admin/auth';
 
 let adminApp: App;
 let adminDb: Firestore;
-let adminAuth: Auth;
 let adminMessaging: Messaging;
+let adminAuthPromise: Promise<Auth> | null = null;
+
+function getAuthClient(): Promise<Auth> {
+  if (!adminAuthPromise) {
+    adminAuthPromise = (async () => {
+      const { getAuth } = await import('firebase-admin/auth');
+      return getAuth(adminApp);
+    })();
+  }
+  return adminAuthPromise;
+}
 
 /**
  * Initialize Firebase Admin SDK
@@ -49,13 +59,35 @@ function initializeFirebaseAdmin() {
   }
 
   adminDb = getFirestore(adminApp);
-  adminAuth = getAuth(adminApp);
   adminMessaging = getMessaging(adminApp);
 
-  return { adminApp, adminDb, adminAuth, adminMessaging };
+  return { adminApp, adminDb, adminMessaging };
 }
 
 // Initialize on module load
-const { adminApp: app, adminDb: db, adminAuth: auth, adminMessaging: messaging } = initializeFirebaseAdmin();
+const { adminApp: app, adminDb: db, adminMessaging: messaging } = initializeFirebaseAdmin();
 
-export { app as adminApp, db as adminDb, auth as adminAuth, messaging as adminMessaging };
+const adminAuth = {
+  verifyIdToken: (...args: Parameters<Auth['verifyIdToken']>) =>
+    getAuthClient().then((client) => client.verifyIdToken(...args)),
+  deleteUser: (...args: Parameters<Auth['deleteUser']>) =>
+    getAuthClient().then((client) => client.deleteUser(...args)),
+  revokeRefreshTokens: (...args: Parameters<Auth['revokeRefreshTokens']>) =>
+    getAuthClient().then((client) => client.revokeRefreshTokens(...args)),
+  getUser: (...args: Parameters<Auth['getUser']>) =>
+    getAuthClient().then((client) => client.getUser(...args)),
+  createUser: (...args: Parameters<Auth['createUser']>) =>
+    getAuthClient().then((client) => client.createUser(...args)),
+  createCustomToken: (...args: Parameters<Auth['createCustomToken']>) =>
+    getAuthClient().then((client) => client.createCustomToken(...args)),
+} satisfies Pick<
+  Auth,
+  | 'verifyIdToken'
+  | 'deleteUser'
+  | 'revokeRefreshTokens'
+  | 'getUser'
+  | 'createUser'
+  | 'createCustomToken'
+>;
+
+export { app as adminApp, db as adminDb, adminAuth, messaging as adminMessaging };
