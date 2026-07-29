@@ -24,7 +24,18 @@ async function postHandler(request: NextRequest) {
     const tokenUserId = await getAuthenticatedUserId(request);
 
     // Parse request body
-    const body: CreateExpenseRequest = await request.json();
+    let body: CreateExpenseRequest;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Invalid JSON body",
+          details: "Request body must be valid JSON",
+        },
+        { status: 400 }
+      );
+    }
     const { vendor, amount, date, category, description, userId: bodyUserId, receiptUrl, receiptPath, groupId } =
       body;
 

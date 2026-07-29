@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 842
+- Total source-visible files: 843
 
 | Path | Area |
 |---|---|
@@ -629,6 +629,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `src/app/api/conversations/route.ts` | web-next |
 | `src/app/api/cron/store-metrics/route.ts` | web-next |
 | `src/app/api/expenses/[id]/route.ts` | web-next |
+| `src/app/api/expenses/__tests__/route.test.ts` | web-next |
 | `src/app/api/expenses/route.ts` | web-next |
 | `src/app/api/groups/[groupId]/archive/route.ts` | web-next |
 | `src/app/api/groups/[groupId]/leave/route.ts` | web-next |
