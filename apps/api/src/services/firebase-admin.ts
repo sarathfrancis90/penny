@@ -27,6 +27,7 @@ export interface FirebaseProjectConfig {
   authProjectId?: string;
   dataProjectId?: string;
   firestoreDatabaseId?: string;
+  storageBucket?: string;
 }
 
 export function resolveFirebaseAdminMode(
@@ -59,6 +60,9 @@ export function resolveFirebaseProjectConfig(
     authProjectId:
       env.FIREBASE_AUTH_PROJECT_ID ?? env.FIREBASE_PROJECT_ID ?? dataProjectId,
     dataProjectId,
+    storageBucket:
+      env.FIREBASE_STORAGE_BUCKET ??
+      (dataProjectId ? `${dataProjectId}.firebasestorage.app` : undefined),
     firestoreDatabaseId:
       !env.FIRESTORE_DATABASE_ID || env.FIRESTORE_DATABASE_ID === '(default)'
         ? undefined
@@ -69,12 +73,14 @@ export function resolveFirebaseProjectConfig(
 function appOptionsFor(
   mode: FirebaseAdminMode,
   projectId: string | undefined,
+  storageBucket: string | undefined,
 ): AppOptions {
   return {
     ...(mode.mode === 'service-account-json'
       ? { credential: cert(mode.serviceAccount) }
       : {}),
     ...(projectId ? { projectId } : {}),
+    ...(storageBucket ? { storageBucket } : {}),
   };
 }
 
@@ -91,14 +97,18 @@ export function initializeFirebaseAdmin(): FirebaseAdminServices {
   const projectConfig = resolveFirebaseProjectConfig();
   const app = getOrInitializeNamedApp(
     'penny-api-data',
-    appOptionsFor(mode, projectConfig.dataProjectId),
+    appOptionsFor(
+      mode,
+      projectConfig.dataProjectId,
+      projectConfig.storageBucket,
+    ),
   );
   const authApp =
     projectConfig.authProjectId &&
     projectConfig.authProjectId !== projectConfig.dataProjectId
       ? getOrInitializeNamedApp(
           'penny-api-auth',
-          appOptionsFor(mode, projectConfig.authProjectId),
+          appOptionsFor(mode, projectConfig.authProjectId, undefined),
         )
       : app;
 

@@ -32,6 +32,7 @@ describe('Firebase Admin service configuration', () => {
       .toEqual({
         authProjectId: 'penny-data',
         dataProjectId: 'penny-data',
+        storageBucket: 'penny-data.firebasestorage.app',
         firestoreDatabaseId: undefined,
       });
   });
@@ -46,7 +47,27 @@ describe('Firebase Admin service configuration', () => {
     ).toEqual({
       authProjectId: 'penny-mobile-auth',
       dataProjectId: 'penny-data',
+      storageBucket: 'penny-data.firebasestorage.app',
       firestoreDatabaseId: 'penny-api',
+    });
+  });
+
+  it('uses FIREBASE_STORAGE_BUCKET when provided', () => {
+    expect(
+      resolveFirebaseProjectConfig({
+        FIREBASE_PROJECT_ID: 'penny-data',
+        FIREBASE_STORAGE_BUCKET: 'my-custom-bucket.appspot.com',
+      }),
+    ).toMatchObject({
+      dataProjectId: 'penny-data',
+      storageBucket: 'my-custom-bucket.appspot.com',
+    });
+  });
+
+  it('falls back when no project id is available', () => {
+    expect(resolveFirebaseProjectConfig({})).toMatchObject({
+      dataProjectId: undefined,
+      storageBucket: undefined,
     });
   });
 
