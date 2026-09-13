@@ -90,3 +90,9 @@ The shared PNG corpus exposed seven malformed images admitted by ImageIO, so bot
 The normal Android development app (`ca.penny.offline.dev`) is also installed and running on the Android 17/16KiB emulator, with an empty local vault and no Drive client configuration. Compact [iOS launch](evidence/ios-demo-launch.png) and [Android launch](evidence/android-demo-launch.png) captures show the actual normal apps; neither uses test launch arguments or public test recovery keys.
 
 At the 14,545-second integration checkpoint, the goal tool reported **6,760,360 aggregate tokens used**. This substantially exceeds the original 120,000 soft estimate and is not budget compliance. The tool reports aggregate usage without an enforced per-worker ceiling; final delivery accounting remains separate from phase estimates.
+
+## Review publication and hosted checks
+
+Draft [PR44](https://github.com/sarathfrancis90/penny/pull/44) contains the native development milestone on `codex/penny-offline-native`. Initial implementation commit is `8a3a777`; `bf9a53d` fixes the retained pre-push hook's Git environment when Flutter probes its separate SDK repository. The complete **290-test legacy Flutter suite** passed with the hook enabled before push. The clean review worktree contains none of the user's pre-existing API/Flutter source edits.
+
+Hosted checks have started. The native contract and OSV jobs passed on the first PR head; the Android build job failed before compilation because `sdkmanager` was absent from the runner PATH. The workflow now explicitly installs Android command-line tools with a pinned setup action. Hosted results remain pending until the corrected head completes. No merge, native store upload or public rollout occurred.
