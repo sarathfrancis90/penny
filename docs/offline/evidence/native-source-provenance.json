@@ -110,6 +110,16 @@
     "apps/android/app/src/main/AndroidManifest.xml": {
       "sha256": "da82c59ace6bcc7032c1ceb4c089d6a088a807324d927bdd8452b32ce20dda8b",
       "reason": "Comment-only explanation and scoped SAST annotation for the required launcher export; no manifest attribute or runtime behavior change."
+    },
+    "apps/ios/PennyOffline/ExpensesView.swift": {
+      "sha256": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+      "reason": "44pt minimum empty-state action; focused UI tests pass on iPhone17 and iPhone16e, actual58pt hit height. See ios-hosted-harness-phone.json and ios-hosted-harness-small.json."
     }
-  }
+  },
+  "latestIosInstalledExecutableHashes": {
+    "PennyOffline": "608e25a33161c73e472d921d75e108aee9bcf9cbc09824fa188af85f260a96f0",
+    "__preview.dylib": "1fd227a18b40b233ac6bc56ee718504064c6993b561d11697d249bb5f98179a2",
+    "PennyOffline.debug.dylib": "518a32cfcf44e70e8551a615edc990197dab6d25df83f4b6dc70bd60b8b9ffa4"
+  },
+  "latestIosDemoScope": "Normal development build after UI-only44pt target correction; prior unsigned device artifact predates this change."
 }

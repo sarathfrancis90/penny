@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1122
+- Total source-visible files: 1129
 
 | Path | Area |
 |---|---|
@@ -377,11 +377,18 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/REVIEW.md` | docs |
 | `docs/offline/STATUS.md` | docs |
 | `docs/offline/evidence/README.md` | docs |
+| `docs/offline/evidence/android-api26-capture-sync.json` | docs |
 | `docs/offline/evidence/android-demo-launch.png` | docs |
 | `docs/offline/evidence/android-p6-api26-summary.json` | docs |
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
+| `docs/offline/evidence/hosted-security-25a776c.json` | docs |
+| `docs/offline/evidence/ios-accessibility-disposition.md` | docs |
+| `docs/offline/evidence/ios-accessibility-recheck.json` | docs |
 | `docs/offline/evidence/ios-demo-launch.png` | docs |
+| `docs/offline/evidence/ios-hosted-first-summary.json` | docs |
+| `docs/offline/evidence/ios-hosted-harness-phone.json` | docs |
+| `docs/offline/evidence/ios-hosted-harness-small.json` | docs |
 | `docs/offline/evidence/ios-p6-final-fix-summary.json` | docs |
 | `docs/offline/evidence/ios-p6-functional-summary.json` | docs |
 | `docs/offline/evidence/ios-p6-performance.json` | docs |

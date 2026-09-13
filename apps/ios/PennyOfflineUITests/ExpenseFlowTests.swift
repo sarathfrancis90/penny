@@ -1,6 +1,17 @@
 import XCTest
 
 @MainActor final class ExpenseFlowTests: XCTestCase {
+    func testEmptyExpenseActionHasAccessibleHitArea() {
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting", "--reset-vault"]; app.launch()
+        let addExpense = app.buttons["emptyAddExpense"]
+        XCTAssertTrue(addExpense.waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(addExpense.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(addExpense.frame.height, 44)
+        if !addExpense.isHittable { app.swipeUp() }
+        addExpense.tap(); XCTAssertTrue(app.textFields["merchantField"].waitForExistence(timeout: 5))
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(addExpense.waitForExistence(timeout: 5))
+    }
     func testLocalExpenseSurvivesRelaunchThenEditAndDelete() {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting", "--reset-vault"]

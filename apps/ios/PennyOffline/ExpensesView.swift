@@ -58,7 +58,11 @@ struct ExpensesView: View {
                             Text(search.isEmpty ? "A fresh start" : "No matches").font(.title2.bold())
                             Text(search.isEmpty ? "Add your first expense. Your money story stays with you." : "Try another merchant, category, or note.")
                                 .font(.body).foregroundStyle(Color.pennySecondary).fixedSize(horizontal: false, vertical: true)
-                            if search.isEmpty { Button("Add an expense") { adding = true }.font(.body).buttonStyle(.glassProminent).tint(Color.pennyButton).foregroundStyle(.white) }
+                            if search.isEmpty {
+                                Button { adding = true } label: {
+                                    Text("Add an expense").font(.body).frame(minWidth: 44, minHeight: 44)
+                                }.buttonStyle(.glassProminent).tint(Color.pennyButton).foregroundStyle(.white).accessibilityIdentifier("emptyAddExpense")
+                            }
                         }.frame(maxWidth: .infinity).multilineTextAlignment(.center).padding(.vertical, 24)
 
                     }

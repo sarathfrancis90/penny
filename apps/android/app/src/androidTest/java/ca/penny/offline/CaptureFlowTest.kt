@@ -42,8 +42,17 @@ class CaptureFlowTest {
         compose.onNodeWithTag("amount").performTextInput("7.89")
         compose.onNodeWithTag("expense-editor").performScrollToNode(hasTestTag("save-expense"))
         compose.onNodeWithTag("save-expense").performClick()
-        compose.waitUntil(10_000) { compose.onAllNodesWithText(merchant,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
+        lateinit var vm:PennyViewModel
+        compose.activityRule.scenario.onActivity {vm=androidx.lifecycle.ViewModelProvider(it)[PennyViewModel::class.java]}
+        // The merchant still matches the closing editor until the durable save
+        // finishes. Wait for its dismissal and the covering save snackbar first.
+        compose.waitUntil(10_000) {
+            !vm.state.value.busy && vm.state.value.message==null &&
+                compose.onAllNodesWithTag("expense-editor").fetchSemanticsNodes().isEmpty() &&
+                compose.onAllNodesWithText(merchant,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithText(merchant,useUnmergedTree=true).performClick()
+        compose.waitUntil(10_000) {compose.onAllNodesWithTag("amount").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("amount").assertTextContains("7.89")
         compose.onNodeWithTag("expense-editor").performScrollToNode(hasText("Delete expense"))
         compose.onNodeWithText("Delete expense",useUnmergedTree=true).performClick()

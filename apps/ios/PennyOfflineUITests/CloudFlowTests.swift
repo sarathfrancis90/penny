@@ -24,32 +24,52 @@ import XCTest
         app.terminate(); app.launch()
         XCTAssertTrue(app.buttons["expense-Local without cloud"].waitForExistence(timeout: 5))
     }
-    func testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable() {
+    func testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable() throws {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting", "--reset-vault", "--synthetic-cloud"]; app.launch()
         func openCloud() {
             app.buttons["Vault"].tap(); let link = app.buttons["Optional iCloud backup"]
             if !link.isHittable { app.swipeUp() }; link.tap()
             XCTAssertTrue(app.staticTexts["syntheticCloudProvider"].exists || app.otherElements["syntheticCloudProvider"].exists)
         }
-        func toggle() -> XCUIElement {
+        func toggle() throws -> XCUIElement {
             let element = app.switches["automaticCloudBackup"]
-            for _ in 0..<3 { if element.isHittable { break }; app.swipeUp() }
-            XCTAssertTrue(element.waitForExistence(timeout: 5)); return element
+            for _ in 0..<8 {
+                let frame = element.exists ? element.frame : .zero
+                let bottom = app.tabBars.firstMatch.exists ? app.tabBars.firstMatch.frame.minY : app.frame.maxY
+                let top = app.navigationBars.firstMatch.frame.maxY
+                if element.exists, element.isHittable, !frame.isEmpty,
+                   frame.minY > top + 8, frame.maxY < bottom - 8 { return element }
+                let aboveNavigation = !frame.isEmpty && frame.minY <= top + 8
+                app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: aboveNavigation ? 0.4 : 0.7))
+                    .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: aboveNavigation ? 0.7 : 0.4)))
+            }
+            XCTFail("Automatic backup switch must be fully visible between navigation and tab bars")
+            throw NSError(domain: "CloudFlowTests", code: 1)
+        }
+        func tapToggle() throws {
+            let row = try toggle()
+            let controls = row.descendants(matching: .switch).allElementsBoundByIndex.filter { $0.isHittable && $0.frame.width <= 100 && $0.frame.height <= 60 }
+            // SwiftUI may expose the compact UISwitch as a child of a labelled
+            // switch row. Require a single control; never tap near obscuring tabs.
+            if controls.count == 1 { controls[0].tap() }
+            else if controls.isEmpty { row.tap() }
+            else { XCTFail("Ambiguous automatic-backup switch controls"); throw NSError(domain: "CloudFlowTests", code: 2) }
         }
         openCloud(); let enable = app.buttons["enableCloudBackup"]
         if !enable.isHittable { app.swipeUp() }; enable.tap()
-        let automatic = toggle(); XCTAssertEqual(automatic.value as? String, "0"); XCTAssertTrue(automatic.isEnabled)
-        automatic.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+        let automatic = try toggle(); XCTAssertEqual(automatic.value as? String, "0"); XCTAssertTrue(automatic.isEnabled)
+        try tapToggle()
         let consent = app.buttons["Enable automatic backup"]
-        XCTAssertTrue(consent.waitForExistence(timeout: 5)); app.buttons["Cancel"].tap()
+        guard consent.waitForExistence(timeout: 5) else { XCTFail("Explicit automatic backup consent must appear"); return }
+        app.buttons["Cancel"].tap()
         XCTAssertEqual(automatic.value as? String, "0")
-        automatic.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap(); consent.tap()
+        try tapToggle(); XCTAssertTrue(consent.waitForExistence(timeout: 5)); consent.tap()
         XCTAssertEqual(automatic.value as? String, "1")
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = "Synthetic provider automatic consent"; image.lifetime = .keepAlways; add(image)
         app.terminate(); app.launchArguments = ["--uitesting", "--synthetic-cloud"]; app.launch(); openCloud()
-        let persisted = toggle(); XCTAssertEqual(persisted.value as? String, "1")
-        persisted.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap(); XCTAssertEqual(persisted.value as? String, "0")
-        app.terminate(); app.launch(); openCloud(); XCTAssertEqual(toggle().value as? String, "0")
+        let persisted = try toggle(); XCTAssertEqual(persisted.value as? String, "1")
+        try tapToggle(); XCTAssertEqual(persisted.value as? String, "0")
+        app.terminate(); app.launch(); openCloud(); XCTAssertEqual(try toggle().value as? String, "0")
     }
 
 }

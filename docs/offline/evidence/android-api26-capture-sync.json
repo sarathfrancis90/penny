@@ -1,0 +1,13 @@
+{
+  "scope": "Three affected API26 capture methods after save/editor synchronization correction; hosted next-head full regression pending",
+  "suite": {
+    "tests": "3",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "14.23",
+    "timestamp": "2026-09-13T23:21:20",
+    "hostname": "localhost"
+  },
+  "tests": []
+}
