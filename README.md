@@ -21,7 +21,16 @@ Open the [iOS project](apps/ios/README.md) in Xcode or build the [Android projec
 
 The native apps implement encrypted expenses and receipts, offline OCR and optional on-device suggestions, budgets, income, savings, recurring review, reports, CSV and encrypted portable recovery. Both platforms read the same versioned backup format. iCloud/Drive adapters and default-off scheduling have passed synthetic-provider tests; real-account recovery requires configured signing and account verification.
 
-Run the shared local gate with `npm run offline:check`. Platform build/device commands and exact evidence are in the native READMEs. [Native CI](.github/workflows/native-offline-ci.yml) covers contract checks, native builds and simulator/emulator journeys; hosted execution is a separate gate.
+Set up the isolated Python tooling once, then run the shared local gate:
+
+```sh
+python3 -m venv artifacts/offline/python
+source artifacts/offline/python/bin/activate
+python3 -m pip install --require-hashes --only-binary=:all: -r scripts/offline/requirements.txt
+npm run offline:check
+```
+
+The pinned XML parser is build tooling only. Activate this environment when running the gate in a new shell. Platform build/device commands and exact evidence are in the native READMEs. [Native CI](.github/workflows/native-offline-ci.yml) covers contract checks, native builds and simulator/emulator journeys; hosted execution is a separate gate.
 
 ## Release and retained compatibility
 

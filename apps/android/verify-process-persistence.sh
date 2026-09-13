@@ -10,7 +10,7 @@ package=ca.penny.offline.dev.test
 marker="Process-test-$(date +%s)"
 ./gradlew -PpennyTestSandbox=true :app:installDebug :app:installDebugAndroidTest > evidence/process-build.log 2>&1
 "$adb" shell am instrument -w -e class ca.penny.offline.ProcessPersistenceTest#createBeforeForceStop -e pennyMarker "$marker" "$package.test/androidx.test.runner.AndroidJUnitRunner" > evidence/process-create.log
-rg -q 'OK \(1 test\)' evidence/process-create.log
+grep -Fqx 'OK (1 test)' evidence/process-create.log
 "$adb" shell am start -W -n "$package/ca.penny.offline.MainActivity" > evidence/process-restart.log
 before=$("$adb" shell pidof "$package" | tr -d '\r')
 test -n "$before"
@@ -25,5 +25,5 @@ test -n "$after"
 test "$before" != "$after"
 printf 'Process before force-stop: %s\nNew process after restart: %s\n' "$before" "$after" >> evidence/process-restart.log
 "$adb" shell am instrument -w -e class ca.penny.offline.ProcessPersistenceTest#verifyAfterForceStopAndDelete -e pennyMarker "$marker" "$package.test/androidx.test.runner.AndroidJUnitRunner" > evidence/process-verify.log
-rg -q 'OK \(1 test\)' evidence/process-verify.log
+grep -Fqx 'OK (1 test)' evidence/process-verify.log
 echo 'PASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record.' >> evidence/process-restart.log

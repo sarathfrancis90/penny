@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1120
+- Total source-visible files: 1122
 
 | Path | Area |
 |---|---|
@@ -860,6 +860,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/migrate-legacy.test.mjs` | script |
 | `scripts/offline/package-native.py` | script |
 | `scripts/offline/release-preflight.py` | script |
+| `scripts/offline/requirements.txt` | script |
+| `scripts/offline/test_adb_boundary.py` | script |
 | `scripts/offline/test_avd_metadata.py` | script |
 | `scripts/offline/test_package_native.py` | script |
 | `scripts/offline/test_release_preflight.py` | script |

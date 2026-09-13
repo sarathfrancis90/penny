@@ -10,6 +10,8 @@
         android:dataExtractionRules="@xml/data_extraction_rules" android:supportsRtl="true">
         <meta-data android:name="ca.penny.offline.DRIVE_ANDROID_CLIENT_ID" android:value="${driveClientId}" />
         <meta-data android:name="ca.penny.offline.DRIVE_SIGNING_SHA256" android:value="${driveSigningSha256}" />
+        <!-- The launcher must be exported. MainActivity ignores incoming intent data/extras and exposes no privileged intent action. -->
+        <!-- nosemgrep: java.android.security.exported_activity.exported_activity -->
         <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
         </activity>

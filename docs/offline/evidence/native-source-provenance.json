@@ -105,5 +105,11 @@
     "PennyOffline.debug.dylib": "af6da11902f95924ced39922244ea5d5651ae04a8145d7827f08c7418d9a2667"
   },
   "androidApkSha256": "4e67859a03a61012ea55e70f905db26c6b8f985a84c5837be69dad3688e0f8f8",
-  "preservedLegacyFiles": 18
+  "preservedLegacyFiles": 18,
+  "postAcceptanceChanges": {
+    "apps/android/app/src/main/AndroidManifest.xml": {
+      "sha256": "da82c59ace6bcc7032c1ceb4c089d6a088a807324d927bdd8452b32ce20dda8b",
+      "reason": "Comment-only explanation and scoped SAST annotation for the required launcher export; no manifest attribute or runtime behavior change."
+    }
+  }
 }

@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     open-pull-requests-limit: 10
@@ -12,14 +14,20 @@ updates:
         dependency-type: development
   - package-ecosystem: github-actions
     directory: /
+    cooldown:
+      default-days: 7
     schedule:
       interval: daily
     open-pull-requests-limit: 10
   - package-ecosystem: bundler
     directory: /mobile
+    cooldown:
+      default-days: 7
     schedule:
       interval: weekly
   - package-ecosystem: gradle
     directory: /mobile/android
+    cooldown:
+      default-days: 7
     schedule:
       interval: weekly

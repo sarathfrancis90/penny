@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import re
 import sys
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
 failures = []
@@ -34,7 +34,7 @@ for source in sources:
 
 android_ns = "{http://schemas.android.com/apk/res/android}"
 tools_ns = "{http://schemas.android.com/tools}"
-manifest = ET.parse(ROOT / "apps/android/app/src/main/AndroidManifest.xml").getroot()
+manifest = ET.parse(ROOT / "apps/android/app/src/main/AndroidManifest.xml", forbid_dtd=True).getroot()
 app = manifest.find("application")
 if app is None or app.get(android_ns + "allowBackup") != "false":
     failures.append("Android must disable automatic OS backup of the device-bound local vault")
@@ -44,7 +44,7 @@ for name, required_node in (("android.permission.INTERNET", None), ("android.per
         failures.append(f"Android optional Drive permission policy differs for {name}")
 if app is None or app.get(android_ns + "usesCleartextTraffic") != "false" or app.get(android_ns + "networkSecurityConfig") != "@xml/network_security_config":
     failures.append("Android must disable cleartext and use the explicit provider network policy")
-network = ET.parse(ROOT / "apps/android/app/src/main/res/xml/network_security_config.xml").getroot()
+network = ET.parse(ROOT / "apps/android/app/src/main/res/xml/network_security_config.xml", forbid_dtd=True).getroot()
 base, domains = network.find("base-config"), network.findall("domain-config")
 if base is None or base.get("cleartextTrafficPermitted") != "false" or [c.get("src") for c in base.findall("trust-anchors/certificates")] != ["@raw/penny_network_deny_ca"]:
     failures.append("Android default TLS trust must use only the dedicated non-public deny anchor")

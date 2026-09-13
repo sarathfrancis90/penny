@@ -26,6 +26,7 @@ jobs:
           node-version: '22'
       - name: Portable format and native dependency gates
         run: |
+          python3 -m pip install --require-hashes --only-binary=:all: -r scripts/offline/requirements.txt
           node --test packages/offline-contract/*.test.mjs scripts/offline/*.test.mjs
           python3 -m unittest discover -s scripts/offline -p 'test_*.py'
           python3 scripts/offline/check-boundaries.py
@@ -107,8 +108,9 @@ jobs:
           api-level: '37.0'
           system-image-api-level: ${{ matrix.runtime }}
           arch: x86_64
+          profile: pixel_2
           target: ${{ matrix.target }}
-          pre-emulator-launch-script: python3 scripts/offline/check-avd-metadata.py --name test --expected-api "$PENNY_EXPECTED_ANDROID_API"
+          pre-emulator-launch-script: python3 scripts/offline/check-avd-metadata.py --name test --expected-api "$PENNY_EXPECTED_ANDROID_API" --expected-profile pixel_2
           disable-animations: true
           script: bash scripts/offline/check-android-device.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
