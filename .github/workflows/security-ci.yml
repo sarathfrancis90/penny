@@ -58,7 +58,6 @@ jobs:
         uses: google/osv-scanner-action/osv-scanner-action@8dc09193bb540e09b23da07ad7e30bd33bf87018
         with:
           scan-args: |-
-            --config=osv-scanner.toml
             --lockfile=package-lock.json
 
   security-ci:

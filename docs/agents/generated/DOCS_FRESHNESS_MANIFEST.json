@@ -9,6 +9,12 @@
     "docs/agents/generated/DOCS_FRESHNESS_MANIFEST.json"
   ],
   "watchPaths": [
+    "apps/ios/**",
+    "apps/android/**",
+    "packages/offline-contract/**",
+    "assets/offline/**",
+    "scripts/offline/**",
+    "docs/offline/**",
     "mobile/**",
     "apps/api/**",
     "packages/shared/**",
@@ -28,6 +34,11 @@
     "docs/api/**"
   ],
   "sourceOfTruth": {
+    "native": [
+      "apps/ios",
+      "apps/android",
+      "packages/offline-contract"
+    ],
     "mobile": [
       "mobile/lib",
       "mobile/pubspec.yaml",

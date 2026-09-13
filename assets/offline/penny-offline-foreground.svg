@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Penny Offline foreground</title>
+  <circle cx="512" cy="512" r="304" fill="#E7B38B"/>
+  <circle cx="512" cy="512" r="276" fill="none" stroke="#F4D7B8" stroke-width="8"/>
+  <path transform="translate(-22)" fill="#173F36" fill-rule="evenodd" d="M390 308H538C640 308 696 364 696 452C696 540 638 596 538 596H470V716H390Z M470 382V522H534C587 522 616 500 616 452C616 405 587 382 534 382Z"/>
+</svg>

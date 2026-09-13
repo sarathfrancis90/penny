@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "manifestId": "12345678-1234-4234-8234-123456789abc",
+  "provider": "drive",
+  "accountTag": "19a8bb0409f4b37f42ba171e64e4bb864ed91d82fa17f1b6929207407c3e2ddb",
+  "vaultTag": "8d51872130630bfd01b6d3935654dca25567a0e9f0e05b6dbb7db4f838eb9e64",
+  "writerId": "23456789-2345-4345-8345-23456789abcd",
+  "localRevision": 42,
+  "createdAt": "2026-09-13T12:05:00.000Z",
+  "verifiedAt": "2026-09-13T12:04:59.000Z",
+  "previousManifestId": null,
+  "snapshot": {
+    "objectId": "3456789a-3456-4456-8456-3456789abcde",
+    "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "envelopeVersion": 1,
+    "snapshotSchemaVersion": 3,
+    "sha256": "e7193272378cfaa0caf2df8b267f5482f173ee044dd7d257feeddcf055df9624",
+    "byteCount": 5829,
+    "createdAt": "2026-09-13T12:01:00.000Z"
+  }
+}

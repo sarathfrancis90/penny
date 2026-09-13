@@ -1,5 +1,11 @@
 # Repository Guide
 
+## Penny Offline transition
+
+New native development is governed by `docs/offline/PLAN.md` and its evidence in `docs/offline/STATUS.md`. Separate SwiftUI and Compose apps own local data; portable schema and backup fixtures live in `packages/offline-contract/`. The web product is retired from feature development. The remainder of this guide describes the legacy system, retained for migration.
+
+Verified source correction (2026-09-13): current Flutter repositories are API-backed via `mobile/lib/presentation/providers/providers.dart`; local shadow bootstrap is not the UI's data authority. `mobile/lib/core/constants/env_config.dart` defaults production to Cloud Run. Historical direct-Firestore and Vercel-default descriptions below should not override current source.
+
 ## Product
 
 Penny is an AI-assisted expense, group spending, budgeting, income, savings, and conversation product aimed at Canadian self-incorporated software professionals. Core product behavior centers on:

@@ -1,0 +1,137 @@
+name: Penny Offline Native CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: native-offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Portable format and native dependency gates
+        run: |
+          node --test packages/offline-contract/*.test.mjs scripts/offline/*.test.mjs
+          python3 -m unittest discover -s scripts/offline -p 'test_*.py'
+          python3 scripts/offline/check-boundaries.py
+
+  android:
+    name: native-offline-android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Unit tests, lint and development APK
+        working-directory: apps/android
+        run: |
+          sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+          ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: penny-offline-android-development
+          path: |
+            apps/android/app/build/outputs/apk/debug/*.apk
+            apps/android/app/build/reports/
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    name: native-offline-ios-simulator
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - name: Native unit and UI tests
+        run: bash scripts/offline/check-ios.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-ios-simulator-evidence
+          path: apps/ios/.build/evidence.*/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  android-device:
+    name: native-offline-android-api-${{ matrix.runtime }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runtime: '26'
+            api: '26'
+            target: google_apis
+            page_size: '4096'
+          - runtime: '37.0'
+            api: '37'
+            target: google_apis_ps16k
+            page_size: '16384'
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Allow this runner to use KVM
+        run: sudo setfacl -m u:"$(id -un)":rw /dev/kvm
+      - name: Native UI, OCR, encrypted storage and process persistence
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        env:
+          ANDROID_SERIAL: emulator-5554
+          PENNY_EXPECTED_ANDROID_API: ${{ matrix.api }}
+          PENNY_EXPECTED_PAGE_SIZE: ${{ matrix.page_size }}
+        with:
+          api-level: '37.0'
+          system-image-api-level: ${{ matrix.runtime }}
+          arch: x86_64
+          target: ${{ matrix.target }}
+          pre-emulator-launch-script: python3 scripts/offline/check-avd-metadata.py --name test --expected-api "$PENNY_EXPECTED_ANDROID_API"
+          disable-animations: true
+          script: bash scripts/offline/check-android-device.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-android-api-${{ matrix.runtime }}-evidence
+          path: |
+            apps/android/app/build/reports/androidTests/
+            apps/android/app/build/outputs/androidTest-results/
+            apps/android/evidence/
+          if-no-files-found: error
+          retention-days: 14
+
+  native-gate:
+    name: native-offline-gate
+    if: always()
+    needs: [contract, android, ios, android-device]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every native platform and contract check
+        env:
+          NATIVE_JOB_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, sys
+          jobs = json.loads(os.environ['NATIVE_JOB_RESULTS'])
+          failed = [name for name, job in jobs.items() if job['result'] != 'success']
+          if failed:
+              sys.exit('Native checks did not pass: ' + ', '.join(failed))
+          print('All native platform and contract checks passed.')
+          PYTHON

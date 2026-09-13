@@ -24,6 +24,7 @@ env:
     mobile-shared-ci
     mobile-android-ci
     mobile-ios-ci
+    native-offline-gate
 
 jobs:
   penny-required-gate:

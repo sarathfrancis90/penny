@@ -1,0 +1,163 @@
+[
+  {
+    "workload": "1000 expenses",
+    "operation": "initial encrypted restore",
+    "elapsedMs": 274,
+    "pssKiB": 208051,
+    "javaUsedBytes": 11924544
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "reopen and decrypt",
+    "elapsedMs": 138,
+    "pssKiB": 205596,
+    "javaUsedBytes": 11596864
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "edit and durable save",
+    "elapsedMs": 158,
+    "pssKiB": 210572,
+    "javaUsedBytes": 11121728
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "snapshot after save",
+    "elapsedMs": 143,
+    "pssKiB": 210892,
+    "javaUsedBytes": 13546560
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "monthly report",
+    "elapsedMs": 12,
+    "pssKiB": 210956,
+    "javaUsedBytes": 13612096
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "CSV export",
+    "elapsedMs": 27,
+    "pssKiB": 209276,
+    "javaUsedBytes": 11334720
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "encrypted export",
+    "elapsedMs": 36,
+    "pssKiB": 208988,
+    "javaUsedBytes": 14545984
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "authenticate and decode",
+    "elapsedMs": 134,
+    "pssKiB": 219068,
+    "javaUsedBytes": 16659520
+  },
+  {
+    "workload": "1000 expenses",
+    "operation": "replace existing vault",
+    "elapsedMs": 197,
+    "pssKiB": 215436,
+    "javaUsedBytes": 16036928
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "initial encrypted restore",
+    "elapsedMs": 2057,
+    "pssKiB": 213996,
+    "javaUsedBytes": 16905280
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "reopen and decrypt",
+    "elapsedMs": 1302,
+    "pssKiB": 217324,
+    "javaUsedBytes": 19379264
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "edit and durable save",
+    "elapsedMs": 1338,
+    "pssKiB": 235788,
+    "javaUsedBytes": 38892608
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "snapshot after save",
+    "elapsedMs": 1355,
+    "pssKiB": 211756,
+    "javaUsedBytes": 21165120
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "monthly report",
+    "elapsedMs": 23,
+    "pssKiB": 220108,
+    "javaUsedBytes": 21656640
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "CSV export",
+    "elapsedMs": 145,
+    "pssKiB": 247452,
+    "javaUsedBytes": 29963328
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "encrypted export",
+    "elapsedMs": 246,
+    "pssKiB": 249788,
+    "javaUsedBytes": 52294720
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "authenticate and decode",
+    "elapsedMs": 1235,
+    "pssKiB": 276780,
+    "javaUsedBytes": 55080000
+  },
+  {
+    "workload": "10000 expenses",
+    "operation": "replace existing vault",
+    "elapsedMs": 1579,
+    "pssKiB": 228556,
+    "javaUsedBytes": 35206208
+  },
+  {
+    "workload": "8 MiB receipts",
+    "operation": "initial encrypted restore",
+    "elapsedMs": 1588,
+    "pssKiB": 229804,
+    "javaUsedBytes": 44692544
+  },
+  {
+    "workload": "8 MiB receipts",
+    "operation": "reopen and decrypt",
+    "elapsedMs": 788,
+    "pssKiB": 232140,
+    "javaUsedBytes": 46658624
+  },
+  {
+    "workload": "8 MiB receipts",
+    "operation": "encrypted export",
+    "elapsedMs": 943,
+    "pssKiB": 302956,
+    "javaUsedBytes": 122876992
+  },
+  {
+    "workload": "8 MiB receipts",
+    "operation": "authenticate and full image decode",
+    "elapsedMs": 1840,
+    "pssKiB": 258228,
+    "javaUsedBytes": 74921024
+  },
+  {
+    "workload": "8 MiB receipts",
+    "operation": "replace existing vault",
+    "elapsedMs": 1793,
+    "pssKiB": 267140,
+    "javaUsedBytes": 82080832
+  }
+]

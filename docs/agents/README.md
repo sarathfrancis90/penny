@@ -11,7 +11,9 @@ This directory is the working manual for agents operating on Penny. It is design
 
 ## Active Development Focus
 
-Active development is currently centered on:
+New product development is Penny Offline: independent native iOS and Android apps. Start with `docs/offline/PLAN.md` and `docs/offline/STATUS.md`, then the app-specific README and portable contract. The native app has no required Firebase/API data path. The web app is retired from feature development.
+
+The following existing system is retained for compatibility and migration:
 
 - Flutter mobile app for iOS and Android under `mobile/`.
 - Standalone Fastify API under `apps/api/`.

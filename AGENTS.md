@@ -23,9 +23,13 @@ This repository uses agentic engineering. Start here before changing code.
    - `docs/agents/generated/API_ROUTE_SURFACE.md`
    - `docs/agents/generated/MOBILE_API_ENDPOINT_MATRIX.md`
    - `docs/agents/generated/VALIDATION_COMMANDS.md`
+7. For Penny Offline native work: `docs/offline/PLAN.md`, `docs/offline/STATUS.md`, `docs/offline/BACKUP_CONTRACT.md`, the relevant native app README, and `packages/offline-contract/`.
 
 ## Non-Negotiable Agent Rules
 
+- Penny Offline is a separate native data plane in `apps/ios/` and `apps/android/`. Core operations must not require a network service, account, or available generative model. Use only on-device AI; never add a silent cloud fallback.
+- Native data and backup changes require matching Swift/Kotlin validation and shared golden fixtures in `packages/offline-contract/`. Preserve legacy Firestore/API contracts unless an explicit migration change requires updating them.
+- Web feature development is retired. Keep retained contracts, migration support and production privacy/account routes until the retirement gates in `docs/offline/PLAN.md` pass.
 - Treat TypeScript web types in `src/lib/types.ts`, standalone API/shared serializers, and Flutter models under `mobile/lib/**/models/` as a cross-platform contract. Update every affected side when data shape changes.
 - Keep Canadian tax category strings synchronized across `src/lib/categories.ts`, `packages/shared/src/categories.ts`, and `mobile/lib/core/constants/categories.dart`.
 - Respect Firebase security rules before introducing new reads or writes. Rules live in `database/firestore.rules` and `database/storage.rules`.

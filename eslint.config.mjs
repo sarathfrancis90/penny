@@ -21,6 +21,10 @@ export default [
       "dist/**",
       "next-env.d.ts",
       "mobile/**",
+      "apps/ios/.build/**",
+      "apps/android/.gradle/**",
+      "apps/android/.kotlin/**",
+      "apps/android/**/build/**",
       "**/*.d.ts",
       // Generated service-worker / PWA code with its own globals
       "public/**/*.js",
@@ -51,7 +55,7 @@ export default [
   },
   {
     // Node CLI scripts use Node globals (require, process, __dirname, etc.).
-    files: ["scripts/**/*.js", "scripts/**/*.mjs", "scripts/**/*.cjs"],
+    files: ["scripts/**/*.js", "scripts/**/*.mjs", "scripts/**/*.cjs", "packages/offline-contract/*.mjs"],
     languageOptions: {
       globals: { ...globals.node },
     },

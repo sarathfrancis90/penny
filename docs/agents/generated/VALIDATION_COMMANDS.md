@@ -19,7 +19,7 @@ Use the smallest command set that proves the change. Mobile/API agent-doc change
 - `npm run typecheck` -> `tsc --noEmit`
 - `npm run lint` -> `eslint --max-warnings=0`
 - `npm run test` -> `vitest run`
-- `npm run build` -> `next build`
+- `npm run build` -> `next build --webpack`
 
 ## Mobile Commands
 

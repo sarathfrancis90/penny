@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Public certificate only. The generated private key was discarded, never stored.
+         Defense in depth: SDK custom/native networking needs separate traffic audit. -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors><certificates src="@raw/penny_network_deny_ca" /></trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="false">www.googleapis.com</domain>
+        <trust-anchors><certificates src="system" /></trust-anchors>
+    </domain-config>
+</network-security-config>

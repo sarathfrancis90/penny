@@ -1,0 +1,80 @@
+import Foundation
+
+extension VaultSnapshot {
+    func validateFinance() throws {
+        func unique<T: Identifiable>(_ records: [T], limit: Int, name: String) throws where T.ID: Hashable {
+            guard records.count <= limit else { throw ExpenseError.recordCapacity(name, limit) }
+            try FinanceValidation.require(Set(records.map(\.id)).count == records.count)
+        }
+        try unique(budgets, limit: 1_200, name: "budgets"); try unique(incomeSources, limit: 1_000, name: "income sources"); try unique(incomeEntries, limit: 10_000, name: "received entries")
+        try unique(savingsGoals, limit: 1_000, name: "savings goals"); try unique(savingsEntries, limit: 10_000, name: "savings contributions"); try unique(recurringExpenses, limit: 1_000, name: "recurring templates")
+        try budgets.forEach { try $0.validate() }; try incomeSources.forEach { try $0.validate() }; try incomeEntries.forEach { try $0.validate() }
+        try savingsGoals.forEach { try $0.validate() }; try savingsEntries.forEach { try $0.validate() }; try recurringExpenses.forEach { try $0.validate() }
+        try FinanceValidation.require(Set(budgets.map { $0.category + "/" + $0.month }).count == budgets.count)
+        let sources = Set(incomeSources.map(\.id)), goals = Set(savingsGoals.map(\.id)), templates = Set(recurringExpenses.map(\.id))
+        try FinanceValidation.require(incomeEntries.allSatisfy { sources.contains($0.sourceId) })
+        try FinanceValidation.require(savingsEntries.allSatisfy { goals.contains($0.goalId) })
+        try FinanceValidation.require(expenses.allSatisfy { $0.recurringTemplateId == nil || templates.contains($0.recurringTemplateId!) })
+        let incomeOccurrences = incomeEntries.compactMap { record in record.occurrenceDate.map { record.sourceId + "/" + $0 } }
+        let expenseOccurrences = expenses.compactMap { record in record.recurringOccurrenceDate.map { record.recurringTemplateId! + "/" + $0 } }
+        try FinanceValidation.require(Set(incomeOccurrences).count == incomeOccurrences.count && Set(expenseOccurrences).count == expenseOccurrences.count)
+        _ = try FinanceValidation.total(incomeEntries.map(\.amountMinor))
+        _ = try FinanceValidation.total(savingsGoals.map(\.openingMinor) + savingsEntries.map(\.amountMinor))
+        for goal in savingsGoals { _ = try FinanceValidation.total([goal.openingMinor] + savingsEntries.filter { $0.goalId == goal.id }.map(\.amountMinor)) }
+    }
+}
+
+@MainActor extension VaultStore {
+    private func upsert<T: Identifiable>(_ record: T, in list: inout [T]) where T.ID: Equatable {
+        if let index = list.firstIndex(where: { $0.id == record.id }) { list[index] = record } else { list.append(record) }
+    }
+    func save(_ record: Budget) throws { var next = snapshot; upsert(record, in: &next.budgets); try replace(next) }
+    func save(_ record: IncomeSource) throws { var next = snapshot; upsert(record, in: &next.incomeSources); try replace(next) }
+    func save(_ record: IncomeEntry) throws { var next = snapshot; upsert(record, in: &next.incomeEntries); try replace(next) }
+    func save(_ record: SavingsGoal) throws { var next = snapshot; upsert(record, in: &next.savingsGoals); try replace(next) }
+    func save(_ record: SavingsEntry) throws { var next = snapshot; upsert(record, in: &next.savingsEntries); try replace(next) }
+    func save(_ record: RecurringExpense) throws { var next = snapshot; upsert(record, in: &next.recurringExpenses); try replace(next) }
+    func deleteBudget(_ id: String) throws { var next = snapshot; next.budgets.removeAll { $0.id == id }; try replace(next) }
+    func deleteIncomeEntry(_ id: String) throws { var next = snapshot; next.incomeEntries.removeAll { $0.id == id }; try replace(next) }
+    func deleteSavingsEntry(_ id: String) throws { var next = snapshot; next.savingsEntries.removeAll { $0.id == id }; try replace(next) }
+    func saveAsync(_ record: Budget) async throws { var next = snapshot; upsert(record, in: &next.budgets); try await replaceAsync(next) }
+    func saveAsync(_ record: IncomeSource) async throws { var next = snapshot; upsert(record, in: &next.incomeSources); try await replaceAsync(next) }
+    func saveAsync(_ record: IncomeEntry) async throws { var next = snapshot; upsert(record, in: &next.incomeEntries); try await replaceAsync(next) }
+    func saveAsync(_ record: SavingsGoal) async throws { var next = snapshot; upsert(record, in: &next.savingsGoals); try await replaceAsync(next) }
+    func saveAsync(_ record: SavingsEntry) async throws { var next = snapshot; upsert(record, in: &next.savingsEntries); try await replaceAsync(next) }
+    func saveAsync(_ record: RecurringExpense) async throws { var next = snapshot; upsert(record, in: &next.recurringExpenses); try await replaceAsync(next) }
+    func deleteBudgetAsync(_ id: String) async throws { var next = snapshot; next.budgets.removeAll { $0.id == id }; try await replaceAsync(next) }
+    func deleteIncomeEntryAsync(_ id: String) async throws { var next = snapshot; next.incomeEntries.removeAll { $0.id == id }; try await replaceAsync(next) }
+    func deleteSavingsEntryAsync(_ id: String) async throws { var next = snapshot; next.savingsEntries.removeAll { $0.id == id }; try await replaceAsync(next) }
+    func postRecurringAsync(_ id: String, occurrence: String, asOf: String = CivilDate.string(Date())) async throws {
+        if snapshot.expenses.contains(where: { $0.recurringTemplateId == id && $0.recurringOccurrenceDate == occurrence }) { return }
+        let record = try recurringProposal(id, occurrence: occurrence, asOf: asOf); try await saveAsync(record)
+    }
+    func postIncomeAsync(_ id: String, occurrence: String, receivedDate: String, amountMinor: Int64, note: String = "", asOf: String = CivilDate.string(Date())) async throws {
+        if snapshot.incomeEntries.contains(where: { $0.sourceId == id && $0.occurrenceDate == occurrence }) { return }
+        let record = try incomeProposal(id, occurrence: occurrence, receivedDate: receivedDate, amountMinor: amountMinor, note: note, asOf: asOf); try await saveAsync(record)
+    }
+    @discardableResult func postRecurring(_ id: String, occurrence: String, asOf: String = CivilDate.string(Date())) throws -> Expense {
+        if let existing = snapshot.expenses.first(where: { $0.recurringTemplateId == id && $0.recurringOccurrenceDate == occurrence }) { return existing }
+        let record = try recurringProposal(id, occurrence: occurrence, asOf: asOf); try save(record); return record
+    }
+    private func recurringProposal(_ id: String, occurrence: String, asOf: String) throws -> Expense {
+        guard let template = snapshot.recurringExpenses.first(where: { $0.id == id }), template.isActive,
+              template.schedule.contains(occurrence), occurrence <= asOf else { throw ExpenseError.invalidDate }
+        var record = try Expense(merchant: template.merchant, amountMinor: template.amountMinor, expenseDate: occurrence,
+                                 category: template.category, note: template.note)
+        record.description = template.description; record.recurringTemplateId = id; record.recurringOccurrenceDate = occurrence
+        return record
+    }
+    @discardableResult func postIncome(_ id: String, occurrence: String, receivedDate: String, amountMinor: Int64, note: String = "", asOf: String = CivilDate.string(Date())) throws -> IncomeEntry {
+        if let existing = snapshot.incomeEntries.first(where: { $0.sourceId == id && $0.occurrenceDate == occurrence }) { return existing }
+        let record = try incomeProposal(id, occurrence: occurrence, receivedDate: receivedDate, amountMinor: amountMinor, note: note, asOf: asOf); try save(record); return record
+    }
+    private func incomeProposal(_ id: String, occurrence: String, receivedDate: String, amountMinor: Int64, note: String, asOf: String) throws -> IncomeEntry {
+        guard let source = snapshot.incomeSources.first(where: { $0.id == id }), source.isActive,
+              source.schedule.contains(occurrence, enabled: source.isRecurring), occurrence <= asOf else { throw ExpenseError.invalidDate }
+        var record = IncomeEntry(); record.sourceId = id; record.receivedDate = receivedDate
+        record.amountMinor = amountMinor; record.note = note; record.occurrenceDate = occurrence
+        return record
+    }
+}

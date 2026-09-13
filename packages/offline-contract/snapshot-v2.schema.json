@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Penny Offline expenses and receipts snapshot v2",
+  "description": "Same expense semantics as v1. Semantic validators additionally enforce attachment ownership, unique IDs, exact canonical base64/byte count/SHA256, decoded image validity/dimensions, total attachment bytes and snapshot/export byte budgets. No paths or URLs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotId",
+    "vaultId",
+    "createdAt",
+    "expenses",
+    "attachments"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "vaultId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "expenses": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/expense"
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/attachment"
+      }
+    }
+  },
+  "$defs": {
+    "expense": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "merchant",
+        "amountMinor",
+        "currencyCode",
+        "expenseDate",
+        "category",
+        "note",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "merchant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "amountMinor": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99999999999
+        },
+        "currencyCode": {
+          "const": "CAD"
+        },
+        "expenseDate": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "category": {
+          "enum": [
+            "Advertising (Promotion, gift cards etc.)",
+            "Meals and entertainment",
+            "Groceries",
+            "Insurance (No life insurance)",
+            "Interest (and bank charges)",
+            "Fees, licences, dues, memberships, and subscriptions",
+            "Office expenses",
+            "Supplies (for example PPT kit etc.)",
+            "Rent (covers only office rent in industrial area)",
+            "Legal, accounting, and other professional fees",
+            "Management and administration fees",
+            "Sub contracts / consultants paid in Canada",
+            "Sub contracts / consultants paid outside Canada",
+            "Salaries, wages, and benefits paid to the employees",
+            "Withdrawal by Directors",
+            "Travel (including transportation fees, accommodations, and meals)",
+            "Telephone",
+            "Motor vehicle expenses",
+            "Other expenses (specify)",
+            "Home Office - Heat (gas, propane, wood, etc.)",
+            "Home Office - Electricity",
+            "Home Office - Water",
+            "Home Office - Insurance",
+            "Home Office - Maintenance",
+            "Home Office - Mortgage interest or rent",
+            "Home Office - Property taxes",
+            "Home Office - Monitoring and internet",
+            "Home Office - Office furnishings",
+            "Vehicle - Fuel (gasoline, propane, oil)",
+            "Vehicle - Repairs and maintenance (including oil changes)",
+            "Vehicle - Lease payments",
+            "Vehicle - Car washes",
+            "Vehicle - Insurance",
+            "Vehicle - Licence and registration",
+            "Vehicle - Interest expense on vehicle purchase loan",
+            "Vehicle - ETR 407",
+            "Vehicle - CAA (Canadian Auto Association)",
+            "Vehicle - Parking costs (non-prorated)"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        }
+      }
+    },
+    "attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "expenseId",
+        "mediaType",
+        "byteCount",
+        "sha256",
+        "dataBase64"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "expenseId": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "mediaType": {
+          "enum": [
+            "image/png",
+            "image/jpeg"
+          ]
+        },
+        "byteCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2097152
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "dataBase64": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "maxLength": 2796204
+        }
+      }
+    }
+  }
+}

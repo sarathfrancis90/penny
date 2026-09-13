@@ -1,5 +1,13 @@
 # Penny — AI Expense Tracker
 
+## Active direction: Penny Offline
+
+As of 2026-09-13, new product development targets separate native apps in `apps/ios/` (Swift/SwiftUI) and `apps/android/` (Kotlin/Compose). Read `docs/offline/PLAN.md`, `docs/offline/STATUS.md` and `packages/offline-contract/` before native changes. Normal operation is local without a Penny account; encrypted backup and device model acquisition are optional network boundaries. Native development identifiers are isolated from the existing installed app.
+
+The web app is retired from feature development. The Flutter app and API remain migration/compatibility sources. Do not delete shared contracts or production support routes until their dependency and migration gates pass. The sections below document the legacy system and may contain historical architecture descriptions. Current Flutter providers use `ApiClient`; the local shadow database is not authoritative, and `env_config.dart` now defaults production to Cloud Run.
+
+Preserve pre-existing uncommitted mobile/API work. Native wire contracts live separately from Firestore contracts; coordinate both native decoders and portable fixtures for every native schema change. Canonical category strings remain shared across products.
+
 ## Project Overview
 
 Penny is an AI-powered expense tracking and personal finance management app for **self-incorporated software professionals in Canada**. It features intelligent expense analysis via Google Gemini, comprehensive budgeting, group expense management, income tracking, and savings goals — all organized around **CRA T2125 tax categories**.

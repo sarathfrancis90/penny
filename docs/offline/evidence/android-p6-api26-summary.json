@@ -1,0 +1,252 @@
+{
+  "source": "apps/android/evidence/p6-api26-final-results.xml",
+  "summary": {
+    "tests": "34",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "5",
+    "time": "69.422",
+    "timestamp": "2026-09-13T22:36:33",
+    "hostname": "localhost"
+  },
+  "tests": [
+    {
+      "class": "ca.penny.offline.AutomaticBackupDeviceTest",
+      "name": "uniquePeriodicWorkHasConstraintsAndCanBeCancelled",
+      "seconds": "0.04",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.AutomaticBackupDeviceTest",
+      "name": "defaultOffDedupeRetryExpiryAndForegroundCancellation",
+      "seconds": "0.518",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.AutomaticSafetyDeviceTest",
+      "name": "checkpointKeepsDataAndRevisionAtomicAcrossTwoConnections",
+      "seconds": "0.157",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.AutomaticSafetyDeviceTest",
+      "name": "failedOptOutRetryAndAttentionWritesRemainStoppedAfterReopen",
+      "seconds": "0.253",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureDeviceTest",
+      "name": "sharedPngIntegrityCorpusRejectsPartialPixelsBeforeRestore",
+      "seconds": "0.095",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureDeviceTest",
+      "name": "preparationPreservesValidBytesBoundsCopiesAndRejectsCorruption",
+      "seconds": "0.001",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureDeviceTest",
+      "name": "canceledOcrCannotReopenDraftAndFailureRetainsImage",
+      "seconds": "0.07",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureDeviceTest",
+      "name": "confirmedRecoveryKeyIsSeparateProtectedAndExportRequiresReadback",
+      "seconds": "0.058",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureFlowTest",
+      "name": "actualCameraDenialKeepsManualExpenseAvailable",
+      "seconds": "4.913",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureFlowTest",
+      "name": "recoveryReentryMismatchRefusesExportAndPickerCancellationKeepsVault",
+      "seconds": "2.427",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CaptureFlowTest",
+      "name": "zCameraCallbackPreparesInMemoryAndSavesReceipt",
+      "seconds": "4.948",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CloudDeviceTest",
+      "name": "encryptedStateRollbackReopenAndMissingKeyFailClosed",
+      "seconds": "0.066",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.CloudDeviceTest",
+      "name": "controllerPublicationRetryKeyRotationAndGuardedRestore",
+      "seconds": "1.027",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.DriveFlowTest",
+      "name": "unconfiguredDriveIsDisabledAndManualCoreRemainsAvailable",
+      "seconds": "0.606",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.FinanceDeviceTest",
+      "name": "schemaTwoDatabaseMigratesWithoutLosingExpense",
+      "seconds": "0.122",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.FinanceDeviceTest",
+      "name": "postingIsAtomicIdempotentAndRestoreRejectsFinanceEdits",
+      "seconds": "0.247",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.FinanceDeviceTest",
+      "name": "fullFinanceRestoreRoundTripAndFinanceOnlyKeyLoss",
+      "seconds": "0.06",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.FinanceFlowTest",
+      "name": "budgetsIncomeSavingsRecurringAndHistoricalReportPersist",
+      "seconds": "37.433",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.NetworkBoundaryTest",
+      "name": "platformTlsDefaultDenyAndExactDriveHost",
+      "seconds": "0.004",
+      "skipped": true,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.OfflineFlowTest",
+      "name": "addEditRecreateDelete",
+      "seconds": "3.867",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.PerformanceDeviceTest",
+      "name": "tenThousandRecordsAcrossProcessRestart",
+      "seconds": "0.001",
+      "skipped": true,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.PerformanceDeviceTest",
+      "name": "nativeVaultScaleAndFullReceiptCapacity",
+      "seconds": "0.001",
+      "skipped": true,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.PolishFlowTest",
+      "name": "accessibleMonthNavigationAndDisplayJourney",
+      "seconds": "4.613",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.ProcessPersistenceTest",
+      "name": "verifyAfterForceStopAndDelete",
+      "seconds": "0.12",
+      "skipped": true,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.ProcessPersistenceTest",
+      "name": "createBeforeForceStop",
+      "seconds": "0.219",
+      "skipped": true,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.ReceiptFlowTest",
+      "name": "unreadableTextRetainsImageForManualEntryViewAndDelete",
+      "seconds": "3.207",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.RowKeyMigrationDeviceTest",
+      "name": "legacyReceiptLargerThanCursorWindowMigratesExactly",
+      "seconds": "0.948",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.RowKeyMigrationDeviceTest",
+      "name": "staleReceiptRemovalRefusesLostOrDamagedKey",
+      "seconds": "0.065",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.RowKeyMigrationDeviceTest",
+      "name": "legacyAllDomainMigrationRollsBackThenReopensAndSharesGeneration",
+      "seconds": "0.115",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.RowKeyMigrationDeviceTest",
+      "name": "missingOrCorruptWrappedKeyNeverResetsFinanceOnlyVault",
+      "seconds": "0.09",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.VaultDeviceTest",
+      "name": "bundledReceiptOcrWorksWithDeviceNetworksDisabled",
+      "seconds": "0.434",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.VaultDeviceTest",
+      "name": "ciphertextPersistsAndConfirmedBackupRecoversLostKey",
+      "seconds": "0.068",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.VaultDeviceTest",
+      "name": "receiptRestoreIsEncryptedCompleteAndRollsBackOnStorageFailure",
+      "seconds": "0.129",
+      "skipped": false,
+      "failed": false
+    },
+    {
+      "class": "ca.penny.offline.VaultDeviceTest",
+      "name": "largeReceiptReopensBeyondCursorWindowSize",
+      "seconds": "1.609",
+      "skipped": false,
+      "failed": false
+    }
+  ]
+}
