@@ -94,3 +94,5 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Combined current-cap native acceptance](combined-current-cap-integration.json): one shared10k/100receipt/8MiB workload, populated finance, exact native roundtrips; measured iOS read/install responsiveness issue remains open.
 
 - [Hosted1305c5e](hosted-native-1305c5e.json): Android, contract and build passed; one iOS automatic-backup completion-wait failure, with all nine UI methods passing. Historical failure retained.
+
+- [Async iOS candidate installation](async-install-integration.json): nineteen focused methods and one combined-cap Release run; sole ownership moves to the serial worker, with an observed83.75ms restore heartbeat gap and preserved publication guards.

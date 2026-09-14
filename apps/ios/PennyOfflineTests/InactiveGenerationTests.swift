@@ -306,7 +306,7 @@ import XCTest
             XCTAssertEqual(reopened.restoreEpoch, store.restoreEpoch)
         }
     }
-    func testBoundInstallConsumesStaleOwnerRevisionIncarnationAndRoot() throws {
+    func testBoundInstallConsumesStaleOwnerRevisionIncarnationAndRoot() async throws {
         for variant in ["sameOwnerEdit", "otherInstanceEdit", "incarnation", "otherOwner", "rootReplaced", "rootReplacedEmpty", "unbound"] {
             let dir = directory()
             var previous = try input("previous"), replacement = try input()
@@ -334,10 +334,14 @@ import XCTest
                 var url = root(dir), flags = URLResourceValues(); flags.isExcludedFromBackup = true; try url.setResourceValues(flags)
             }
             let expected = (try VaultStore(directory: dir, key: key).compatibilitySnapshot()), pointer = try live(dir)
-            XCTAssertThrowsError(try destination.installLocalReceiptReplacement(value), variant)
+            await rejectsInstall { try await destination.installLocalReceiptReplacementAsync(value) }
+            if variant == "sameOwnerEdit" {
+                XCTAssertTrue(store.isReady)
+                try equal(try store.compatibilitySnapshot(), expected)
+            }
             if variant == "otherOwner" {
                 XCTAssertEqual(try live(dir), pointer); XCTAssertEqual(try value.verifiedSummary().vaultId, replacement.vaultId)
-                try store.installLocalReceiptReplacement(value)
+                try await store.installLocalReceiptReplacementAsync(value)
                 try value.close(); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), replacement)
                 continue
             }
@@ -345,12 +349,12 @@ import XCTest
                 XCTAssertEqual(try value.verifiedSummary().vaultId, replacement.vaultId); try value.close()
                 XCTAssertEqual(try live(dir), pointer); continue
             }
-            XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); XCTAssertThrowsError(try value.verifiedSummary())
+            await rejectsInstall { try await store.installLocalReceiptReplacementAsync(value) }; XCTAssertThrowsError(try value.verifiedSummary())
             try value.close(); XCTAssertEqual(try live(dir), pointer)
             try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), expected)
         }
     }
-    func testBoundInstallChecksExistingKeyBeforeBeginAndBeforePublication() throws {
+    func testBoundInstallChecksExistingKeyBeforeBeginAndBeforePublication() async throws {
         let publicKey = key
         for stage in ["begin", "install", "prepublication", "changedKey"] {
             let dir = directory(), replacement = try input()
@@ -374,13 +378,13 @@ import XCTest
                 let value = try candidate(replacement, store: store)
                 if stage == "install" { state.withLock { $0.available = false } }
                 if stage == "changedKey" { state.withLock { $0.changed = true } }
-                XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); XCTAssertThrowsError(try value.verifiedSummary())
+                await rejectsInstall { try await store.installLocalReceiptReplacementAsync(value) }; XCTAssertThrowsError(try value.verifiedSummary())
             }
             XCTAssertEqual(state.withLock { $0.creates }, provisionCount); XCTAssertFalse(store.isReady)
             XCTAssertEqual(try live(dir), pointer); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), input("previous"))
         }
     }
-    func testBoundInstallFailureRollbackAndUncertainRecovery() throws {
+    func testBoundInstallFailureRollbackAndUncertainRecovery() async throws {
         for stage in [VaultStore.CommitStage.staged, .rollbackSaved, .committed, .verified, .journalCleared] {
             for crash in [false, true] {
                 let dir = directory(), previous = try input("previous"), replacement = try input()
@@ -389,7 +393,7 @@ import XCTest
                     if point == stage { if crash { throw DurableCrash.interrupted }; throw LocalReceiptBlobError.file }
                 })
                 let pointer = try live(dir), value = try candidate(replacement, store: store)
-                XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); try value.close()
+                await rejectsInstall { try await store.installLocalReceiptReplacementAsync(value) }; try value.close()
                 XCTAssertThrowsError(try value.verifiedSummary())
                 let published = crash && [.committed, .verified, .journalCleared].contains(stage)
                 if !published { XCTAssertEqual(try live(dir), pointer) }
@@ -404,13 +408,13 @@ import XCTest
             try VaultStore(directory: dir, key: key).replace(previous)
             let store = VaultStore(directory: dir, key: key, commitCheckpoint: { if $0 == stage { withUnsafeCurrentTask { $0?.cancel() } } })
             let pointer = try live(dir), value = try candidate(replacement, store: store)
-            let task = Task { @MainActor in try store.installLocalReceiptReplacement(value) }
+            let task = Task { @MainActor in try await store.installLocalReceiptReplacementAsync(value) }
             do { try await task.value; XCTFail("Cancelled install accepted") } catch is CancellationError {} catch { XCTFail("Expected cancellation: \(error)") }
             XCTAssertEqual(try live(dir), pointer); try value.close()
             XCTAssertThrowsError(try value.verifiedSummary()); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         }
     }
-    func testBoundInstallTamperBeforeAndAfterPublicationPreservesPrevious() throws {
+    func testBoundInstallTamperBeforeAndAfterPublicationPreservesPrevious() async throws {
         for stage in [VaultStore.CommitStage.staged, .committed] {
             let dir = directory(), previous = try input("previous"), replacement = try input()
             try VaultStore(directory: dir, key: key).replace(previous); let names = try inventory(dir)
@@ -423,8 +427,39 @@ import XCTest
                 }
             })
             let pointer = try live(dir), value = try candidate(replacement, store: store)
-            XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); try value.close()
+            await rejectsInstall { try await store.installLocalReceiptReplacementAsync(value) }; try value.close()
             XCTAssertEqual(try live(dir), pointer); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         }
     }
+    private func rejectsInstall(_ work: () async throws -> Void, file: StaticString = #filePath, line: UInt = #line) async {
+        do { try await work(); XCTFail("Rejected installation succeeded", file: file, line: line) } catch {}
+    }
+    func testAsyncInstallReservesWriterAndTransfersSoleCandidateOffMain() async throws {
+        let dir = directory(), previous = try input("previous"), replacement = try input()
+        try VaultStore(directory: dir, key: key).replace(previous)
+        let gate = DispatchSemaphore(value: 0), state = Mutex((entered: false, main: false))
+        let store = VaultStore(directory: dir, key: key, commitCheckpoint: { stage in
+            state.withLock { $0.main = $0.main || Thread.isMainThread }
+            if stage == .staged {
+                state.withLock { $0.entered = true }
+                guard gate.wait(timeout: .now() + 5) == .success else { throw LocalReceiptBlobError.file }
+            }
+        })
+        let value = try candidate(replacement, store: store), revision = store.revision
+        let task = Task { @MainActor in try await store.installLocalReceiptReplacementAsync(value) }
+        defer { gate.signal() }
+        let deadline = ContinuousClock.now.advanced(by: .seconds(4))
+        while !state.withLock({ $0.entered }) && ContinuousClock.now < deadline { try await Task.sleep(for: .milliseconds(5)) }
+        XCTAssertTrue(state.withLock { $0.entered }); XCTAssertFalse(state.withLock { $0.main })
+        // The caller's alias is consumed, including cleanup: it cannot delete the worker's candidate.
+        XCTAssertThrowsError(try value.verifiedSummary()); try value.close()
+        store.load(); XCTAssertEqual(store.revision, revision)
+        await rejectsInstall { try await store.replaceAsync(previous) }
+        await rejectsInstall { try await store.saveAsync(previous.expenses[0]) }
+        await rejectsInstall { try await store.installLocalReceiptReplacementAsync(value) }
+        gate.signal(); try await task.value
+        XCTAssertTrue(store.isReady); try equal(try store.compatibilitySnapshot(), replacement)
+        try equal(try VaultStore(directory: dir, key: key).compatibilitySnapshot(), replacement)
+    }
+
 }

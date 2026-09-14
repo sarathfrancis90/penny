@@ -120,7 +120,7 @@ import zlib
         let receiver = VaultStore(directory: receiverDir, key: key)
         metric("v4ReadInstall", try await responsive {
             let candidate = try await receiver.prepareV4Replacement(source: export.ownedInput().take(), recoveryKey: recovery)
-            try receiver.installLocalReceiptReplacement(candidate)
+            try await receiver.installLocalReceiptReplacementAsync(candidate)
         })
         try assertExact(receiver.compatibilitySnapshot(), snapshot)
         let (reopened, reopenMs) = timed { VaultStore(directory: receiverDir, key: key) }; results["reopenMs"] = reopenMs

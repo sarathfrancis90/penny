@@ -30,6 +30,7 @@ import PennyV4
     func replace(in store: VaultStore) async throws {
         guard let held = payload else { throw CancellationError() }
         if case .repair(_, let binding) = held, !store.ownsRepairTarget(binding) { throw CloudFailure.staleRestore }
+        if case .candidate(let candidate) = held, !store.ownsLocalReceiptCandidate(candidate) { throw CloudFailure.staleRestore }
         payload = nil
         defer { if case .repair(_, let binding) = held { binding.close() } }
         try Task.checkCancellation()
@@ -37,7 +38,7 @@ import PennyV4
         case .legacy(let snapshot, let revision): try await store.restoreAsync(snapshot, expectedRevision: revision)
         case .repair(let snapshot, let binding): try await store.installRepair(snapshot, binding: binding)
         case .candidate(let candidate):
-            do { try store.installLocalReceiptReplacement(candidate) }
+            do { try await store.installLocalReceiptReplacementAsync(candidate) }
             catch { try candidate.close(); throw error }
         }
     }

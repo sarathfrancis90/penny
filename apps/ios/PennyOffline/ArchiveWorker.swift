@@ -13,6 +13,12 @@ struct PreparedArchive: Sendable {
 actor ArchiveWorker {
     static let shared = ArchiveWorker()
     private var exports: [UUID: VerifiedBackupExport] = [:]
+    func installCandidate(_ transfer: V4Transfer<DurableVaultStorage.InactiveCandidate>, owner: UUID,
+                          validate: @Sendable (LocalReceiptTarget, SymmetricKey) throws -> Void,
+                          checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?, SymmetricKey) {
+        let candidate = try transfer.take()
+        return try candidate.install(owner: owner, validate: validate, checkpoint: checkpoint)
+    }
     func repair(_ snapshot: VaultSnapshot, binding: V4Transfer<DurableVaultStorage.RepairBinding>,
                 currentKey: @escaping @Sendable () throws -> SymmetricKey, createKey: @Sendable () throws -> SymmetricKey,
                 checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?, SymmetricKey) {

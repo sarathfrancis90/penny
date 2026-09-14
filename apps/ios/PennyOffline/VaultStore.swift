@@ -242,6 +242,44 @@ final class VaultStore {
             metadata: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
         return V4Transfer(request, cleanup: { _ in })
     }
+    func ownsLocalReceiptCandidate(_ candidate: DurableVaultStorage.InactiveCandidate) -> Bool { candidate.belongs(to: localReceiptOwner) }
+    /// Reserve on MainActor; the sole candidate owner and all leased publication
+    /// work (including final hydration) move to ArchiveWorker.
+    func installLocalReceiptReplacementAsync(_ candidate: DurableVaultStorage.InactiveCandidate) async throws {
+        let owner = localReceiptOwner, sourceRevision = revision, sourceWriter = writerId, sourceEpoch = restoreEpoch
+        let sourceStore = storeId, sourceDigest = diskDigest, sourceKey = key
+        let supplied = suppliedKey, reader = deviceKeyReader
+        let validateIdentity: @Sendable (LocalReceiptTarget, SymmetricKey) throws -> Void = { target, candidateKey in
+            try Task.checkCancellation()
+            guard target.owner == owner, target.metadata.revision == sourceRevision,
+                  target.metadata.writerId == sourceWriter, target.metadata.restoreEpoch == sourceEpoch,
+                  target.storeId == sourceStore, target.digest == sourceDigest, sourceKey == candidateKey else { throw CloudFailure.staleRestore }
+        }
+        let validate: @Sendable (LocalReceiptTarget, SymmetricKey) throws -> Void = { target, candidateKey in
+            try validateIdentity(target, candidateKey)
+            guard try (supplied ?? reader(false)) == candidateKey else { throw ExpenseError.missingKey }
+        }
+        var entered = false
+        defer { if entered { isWriting = false } }
+        do {
+            let transfer = try candidate.reserve(owner: owner) { target, candidateKey in
+                guard !isWriting, isReady else { throw CloudFailure.staleRestore }
+                try validateIdentity(target, candidateKey)
+                isWriting = true; entered = true
+                try validate(target, candidateKey)
+            }
+            let (loaded, digest, installedKey) = try await ArchiveWorker.shared.installCandidate(transfer, owner: owner, validate: validate, checkpoint: commitCheckpoint)
+            // No cancellation throw after a successful durable result: publication
+            // already applied its cancellation/rollback policy on the worker.
+            guard isWriting, isReady, revision == sourceRevision, writerId == sourceWriter, restoreEpoch == sourceEpoch,
+                  storeId == sourceStore, diskDigest == sourceDigest, key == sourceKey else { throw CloudFailure.staleRestore }
+            guard try (supplied ?? reader(false)) == installedKey else { throw ExpenseError.missingKey }
+            adopt(loaded); diskDigest = digest; key = installedKey; isReady = true; errorMessage = nil
+        } catch {
+            if entered { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription }
+            throw error
+        }
+    }
     func installLocalReceiptReplacement(_ candidate: DurableVaultStorage.InactiveCandidate) throws {
         var entered = false
         defer { if entered { isWriting = false } }

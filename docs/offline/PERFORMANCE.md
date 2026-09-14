@@ -145,3 +145,23 @@ locates the long stall in installation. The [paired report](evidence/combined-cu
 pins the ignored instrumentation diff and raw result. Moving the existing leased
 installation/publication operation off MainActor is the next targeted change;
 ownership, actual key/source checks, cancellation and rollback must remain intact.
+
+## Async candidate installation follow-up
+
+The [async installation checkpoint](evidence/async-install-integration.json)
+transfers the candidate's sole ownership to the existing serial worker for leased
+publication and final hydration. MainActor reserves the writer, captures receiver
+identity, and checks identity and the actual key again before adopting the result.
+Stale identity rejects before entering the write state; a stale preview cannot
+lock a healthy current vault. Cancellation, source checks, rollback and foreign
+candidate ownership remain covered by the focused tests.
+
+All 19 focused methods passed, followed by one Release run of the unchanged
+combined fixture with the real async Files installation API. Read/install took
+3,069.19 ms with a maximum MainActor heartbeat gap of 83.75 ms, versus the earlier
+single normal observation of 3,142.44 ms / 1,277.55 ms. This establishes responsive
+worker execution for this observed workload, not a statistical throughput gain
+or physical p95. The exact full Snapshot and receipt oracle still passes.
+Legacy compatibility export/decode reached a 316.37 ms heartbeat gap and remains
+outside this change. Native formats, limits and Android production code are
+unchanged; Android's preceding paired fixture evidence remains separate.

@@ -1027,6 +1027,10 @@ final class DurableVaultStorage {
                 return (loaded, try storage.liveBytes().map(DurableVaultStorage.digest), key)
             }
         }
+        fileprivate func validateReservation(_ validate: (LocalReceiptTarget, SymmetricKey) throws -> Void) throws {
+            guard let target, let key else { throw LocalReceiptBlobError.closed }
+            try validate(target, key)
+        }
         fileprivate func matchesOwner(_ owner: UUID) -> Bool { target?.owner == owner }
         private func retainCommitted() throws {
             key = nil
@@ -1059,6 +1063,18 @@ final class DurableVaultStorage {
         let summary: DurableVerifiedMetadata
         private var owner: Preparation?
         fileprivate init(owner: Preparation, summary: DurableVerifiedMetadata) { self.owner = owner; self.summary = summary }
+        func belongs(to token: UUID) -> Bool { owner?.matchesOwner(token) == true }
+        /// Consume the original capability before suspension. No usable Preparation
+        /// alias remains with the sender; foreign receivers leave it untouched.
+        func reserve(owner token: UUID, validate: (LocalReceiptTarget, SymmetricKey) throws -> Void) throws -> V4Transfer<InactiveCandidate> {
+            guard let held = owner else { throw LocalReceiptBlobError.closed }
+            guard held.matchesOwner(token) else { throw CloudFailure.staleRestore }
+            owner = nil
+            do {
+                try held.validateReservation(validate)
+                return V4Transfer(InactiveCandidate(owner: held, summary: summary), cleanup: { try $0.close() })
+            } catch { try held.cleanup(); throw error }
+        }
         func verifiedSummary() throws -> DurableVerifiedMetadata {
             guard let owner else { throw LocalReceiptBlobError.closed }; return try owner.verifiedSummary()
         }
