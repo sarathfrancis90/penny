@@ -12,6 +12,8 @@ import org.json.JSONObject
  * candidate installation or portable backup-capacity acceptance is implied.
  * Owns input/sink; caller owns and wipes the recovery root. */
 internal object V4BackupReader {
+    const val maxPolicyMetadataBytes = ((Backup.maxEnvelopeBytes - 1024) / 4) * 3
+    internal fun requirePolicyMetadata(bytes: Long) { require(bytes in 0..maxPolicyMetadataBytes.toLong()) {"Current metadata capacity exceeded"} }
     fun decode(root: ByteArray, input: InputStream, sink: LogicalValidationSink,
         cancellation: FrameCancellation = FrameCancellation()): LogicalSummary =
         LogicalCodec.decode(root,input,CurrentLimits(sink),cancellation)
@@ -28,7 +30,7 @@ internal object V4BackupReader {
             val count=(counts[domain] ?: 0)+1
             require(count <= if(domain=="expenses") 10000 else FinanceData.limits.getValue(domain)) {"Current $domain capacity exceeded"}
             metadataBytes=Math.addExact(metadataBytes,9L+StrictJson.bytes(value).size)
-            require(metadataBytes<=Backup.maxPlaintextBytes) {"Current metadata capacity exceeded"}
+            requirePolicyMetadata(metadataBytes)
             counts[domain]=count // Finish all guard state before a sink may mutate the detached JSON.
             sink.record(kind,value)
         }
@@ -39,7 +41,8 @@ internal object V4BackupReader {
             sink.receipt(descriptor,bytes)
         }
         override fun finishUncommitted(summary: LogicalSummary) {
-            require(summary.policyMetadataBytes<=Backup.maxPlaintextBytes && summary.receiptBytes==receiptBytes)
+            requirePolicyMetadata(summary.policyMetadataBytes)
+            require(summary.receiptBytes==receiptBytes)
             require(summary.counts.getValue("attachments")==receiptCount.toLong())
             sink.finishUncommitted(summary)
         }

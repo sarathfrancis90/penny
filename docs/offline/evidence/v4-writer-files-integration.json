@@ -1,0 +1,77 @@
+{
+  "scope": "Native v4 logical export, owned ciphertext readback, reciprocal native candidate install/reopen, and Files restore controller/worker integration at existing caps. No Files export destination, full picker journey or provider/release acceptance.",
+  "baseCommit": "8461f1c",
+  "ios": {
+    "report": "apps/ios/evidence/v4-export.json",
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "groups": {
+      "writerIncludingAndroidInterchange": 6,
+      "filesRestore": 6,
+      "candidateRegression": 7
+    }
+  },
+  "android": {
+    "writerReport": "apps/android/evidence/v4-export.json",
+    "writerEachApi26And37": {
+      "passed": 21,
+      "skipped": 0
+    },
+    "reciprocalReport": "apps/android/evidence/v4-export-interchange.json",
+    "separateFinalOverlayEachApi": {
+      "passed": 4,
+      "skipped": 0,
+      "groups": "Swift native interchange1 and Files controller3"
+    },
+    "earlierFilesOverlayEachApi": {
+      "passed": 5,
+      "skipped": 0,
+      "note": "Controller3 + legacy2 before conservative metadata ceiling alignment; final controller3 repeated with final app."
+    },
+    "jvmPassed": 25,
+    "buildAndLint": "passed"
+  },
+  "rootEvidence": {
+    "pinCountsByReport": [
+      113,
+      107,
+      16,
+      13,
+      69
+    ],
+    "note": "Reports overlap; these are not unique-file totals. All referenced current paths matched. Root independently extracted iOS19/19 xcresult, Android21/4 logs and exact native export hashes.",
+    "androidCiphertextSha256": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+    "iosCiphertextSha256": "a8f04fd31473f78aef3a146d25af1edea04fcae1bb3d3f6c4d1cfadaf7ad6565"
+  },
+  "integrationChecks": {
+    "nodePassed": 124,
+    "pythonPassed": 62,
+    "skipped": 0,
+    "staticFiles": 87,
+    "canonicalCategories": 38,
+    "reviewDocsPassed": 104,
+    "originalDocsPassed": 105,
+    "changedSourceSast": {
+      "scanned": 24,
+      "findings": 0,
+      "errors": 0
+    },
+    "targetedEslint": "passed",
+    "diffCheck": "passed"
+  },
+  "reviewCorrections": [
+    "Actual Android no_backup mode0771 requires owned private0700 ciphertext child; platform directory mode unchanged.",
+    "Both v4 metadata policies now cap at15727872bytes, removing768-byte Android/iOS disagreement.",
+    "iOS exported input verifies actual EOF, count and digest rather than trusting private file identity alone.",
+    "iOS Files target capture preserves a Result until format dispatch so current key loss cannot block legacy backup preview; v4 still uses original pre-copy binding."
+  ],
+  "limits": [
+    "Android ordinary writes wait during its bounded export transaction; iOS captured receipt pins allow edits.",
+    "Legacy and live Snapshot paths still hydrate receipts; no ProfileA capacity or constant-memory/performance acceptance.",
+    "Files controller/worker tests are not full system picker/confirmation UI automation.",
+    "Same-process fresh-store reopen and injected checkpoint errors are not physical process/power/disk-full proof.",
+    "Abandoned Android candidate cleanup is best effort; failures can quarantine data.",
+    "No real account/provider completion, signed upload, store approval or production retirement."
+  ]
+}

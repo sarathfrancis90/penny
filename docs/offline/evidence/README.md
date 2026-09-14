@@ -58,3 +58,5 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Hosted nativeb22b4f6](hosted-native-b22b4f6.json): iOS103/103, both Android68/76 with eight named skips, and separate process phases. Later source is separate.
 - [iOS v4 candidate](../../../apps/ios/evidence/v4-candidate.md) and [Android v4 restore](../../../apps/android/evidence/v4-restore.md): two-pass authenticated input to existing guarded internal installation at current limits.
 - [iOS observed savings](../../../apps/ios/evidence/observed-savings-migration.md) and [Android observed savings](../../../apps/android/evidence/raw-savings.json): exact new shared balance-only migration golden restored/reopened on each runtime.
+
+- [Native v4 writer and Files restore](v4-writer-files-integration.json): paired native exports, actual reciprocal install/reopen, controller/worker preview guards and exact current integration checks. Export destination, system picker UI and provider completion remain separate.

@@ -47,7 +47,7 @@ class V4RestoreDeviceTest {
             store.generations.fault={point->if(point==VaultGenerations.Point.SNAPSHOT_HYDRATION) error("aggregate snapshot hydration in prepare")
                 if(point==VaultGenerations.Point.CANDIDATE_VERIFIED) assertTrue(order.containsAll(listOf(V4Restore.Point.PASS1_CLOSED,V4Restore.Point.PASS2_CLOSED,V4Restore.Point.SOURCE_CLOSED)))}
             val candidate=store.prepareV4(ByteArrayInputStream(data),root,fault={point,_->order+=point})
-            store.generations.fault={};assertEquals(original,state(store));assertTrue(dir.listFiles()!!.none {it.extension=="ciphertext"})
+            store.generations.fault={};assertEquals(original,state(store));assertTrue(dir.walkTopDown().none {it.extension=="ciphertext"})
             val expected=cases().single {it.getString("name")==name}.getJSONObject("summary")
             assertEquals(expected.getString("vaultId"),candidate.metadata.vaultId)
             candidate.metadata.counts.forEach {(domain,count)->assertEquals(expected.getJSONObject("counts").getInt(domain),count)}
@@ -64,7 +64,7 @@ class V4RestoreDeviceTest {
         for(data in malformed) fails {store.restoreV4(ByteArrayInputStream(data),root)}
         fails {store.restoreV4(ByteArrayInputStream(good),ByteArray(32) {8})}
         for(name in listOf("end-in-message","end-transcript","orphan-receipt","duplicate-key","escaped-equivalent-key","beyond-legacy-count")) fails {store.restoreV4(ByteArrayInputStream(logical(name)),root)}
-        assertEquals(original,store.snapshot());assertEquals(before,state(store));assertTrue(dir.listFiles()!!.none {it.extension=="ciphertext"})
+        assertEquals(original,store.snapshot());assertEquals(before,state(store));assertTrue(dir.walkTopDown().none {it.extension=="ciphertext"})
     }
     @Test fun authenticatedNativeInvalidImageCannotReachCandidateOrPublication()=isolated {store,_,_,dir->
         val before=state(store)
@@ -81,7 +81,7 @@ class V4RestoreDeviceTest {
         val end=StrictJson.objectFrom(records.last().second).put("streamSha256",Attachment.digest(prefix.toByteArray()))
         val error=fails {store.restoreV4(ByteArrayInputStream(seal(prefix.toByteArray()+record(11,StrictJson.bytes(end)))),root)}
         assertTrue(error.stackTrace.any {it.className==ReceiptImage::class.java.name && it.methodName=="decode"})
-        assertEquals(before,state(store));assertTrue(dir.listFiles()!!.none {it.extension=="ciphertext"})
+        assertEquals(before,state(store));assertTrue(dir.walkTopDown().none {it.extension=="ciphertext"})
     }
     @Test fun originalTargetRejectsEditsDuringEitherPassAndBeforeInstall() {
         for(point in listOf(V4Restore.Point.COPY,V4Restore.Point.PASS1_READ,V4Restore.Point.PASS1_DONE,V4Restore.Point.PASS2_READ,V4Restore.Point.PASS2_DONE)) isolated {store,context,alias,_ ->
@@ -110,14 +110,14 @@ class V4RestoreDeviceTest {
                 if((mode=="cancel-copy" && point==V4Restore.Point.COPY)||(mode=="cancel-pass1" && point==V4Restore.Point.PASS1_READ)||(mode=="cancel-pass2" && point==V4Restore.Point.PASS2_READ)||(mode=="cancel-source-close" && point==V4Restore.Point.SOURCE_CLOSED)) token.cancel()
                 if((mode=="fail-pass1-close" && point==V4Restore.Point.PASS1_CLOSED)||(mode=="fail-pass2-close" && point==V4Restore.Point.PASS2_CLOSED)||(mode=="fail-source-close" && point==V4Restore.Point.SOURCE_CLOSED)) throw IOException("injected $point")
             }}
-            assertTrue(closed);assertEquals(before,state(store));assertTrue(dir.listFiles()!!.none {it.extension=="ciphertext"})
+            assertTrue(closed);assertEquals(before,state(store));assertTrue(dir.walkTopDown().none {it.extension=="ciphertext"})
         }
     }
     @Test fun pinnedCiphertextMutationAndSubstitutionAreRejectedWithOwnedCleanup() {
         for(mode in listOf("mutation","truncate","append","substitute","alternate")) isolated {store,_,_,dir->
             val before=state(store);var file:File?=null;var replacement:ByteArray?=null;var changed=false
             fails {store.restoreV4(ByteArrayInputStream(bytes("v4-frames/one-receipt.pennyframe")),root,fault={point,path->
-                if(point==V4Restore.Point.COPY) file=File(dir,path.name)
+                if(point==V4Restore.Point.COPY) file=File(File(dir,CiphertextDirectory.NAME),path.name)
                 if(point==V4Restore.Point.PASS1_DONE && !changed) {changed=true;val selected=checkNotNull(file);val original=selected.readBytes()
                     val next=when(mode) {"truncate"->original.copyOf(original.size-1);"append"->original+byteArrayOf(0);"alternate"->bytes("v4-frames/empty-ledger.pennyframe");else->original.copyOf().also {if(mode=="mutation") it[it.lastIndex]=(it.last().toInt() xor 1).toByte()}}
                     if(mode=="substitute") {assertTrue(selected.delete());replacement=next} else Os.chmod(selected.path,384)
@@ -125,7 +125,7 @@ class V4RestoreDeviceTest {
                 }
             })}
             assertTrue(changed);assertEquals(before,state(store))
-            if(mode=="substitute") assertArrayEquals(replacement,checkNotNull(file).readBytes()) else assertTrue(dir.listFiles()!!.none {it.extension=="ciphertext"})
+            if(mode=="substitute") assertArrayEquals(replacement,checkNotNull(file).readBytes()) else assertTrue(dir.walkTopDown().none {it.extension=="ciphertext"})
         }
     }
 }

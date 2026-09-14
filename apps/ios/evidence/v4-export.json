@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "scope": "Internal authenticated native v4 export at existing limits; actual Android writer import/install/fresh-store reopen. No Files export UI or provider publication.",
+  "result": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "groups": {
+      "V4ExportTests": 6,
+      "FilesRestoreTests": 6,
+      "V4CandidateTests": 7
+    }
+  },
+  "device": {
+    "id": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "model": "iPhone 16e",
+    "runtime": "iOS Simulator 26.4.1 (23E254a)",
+    "architecture": "arm64"
+  },
+  "toolchain": "Xcode 26.6 (17F113), Swift 6.3.3, SDK 26.5, deployment 26.0",
+  "sourceHashes": {
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "5abeb6d8de3b8d016c069000fafea3ed773ccdcd1972707e5d87d10cd91501f8",
+    "apps/ios/PennyOffline/VaultStore.swift": "fd2fb1ff377748a65ee00162efdc626672ed16fc4639adb0ec68467e36b25f50",
+    "apps/ios/PennyOffline/V4Export.swift": "aabeba0f2cbba37a26453da5c53e3b567fc85bcb95fcebe0b80fe4444bf24b7f",
+    "apps/ios/PennyOffline/V4LogicalWriter.swift": "f98fa38dbe7eeba5c9fb06e2ce654631719a8825fb22fe4abeeb2346da0878bb",
+    "apps/ios/PennyOfflineTests/V4ExportTests.swift": "0ff5b03f5eff8efe667069e86693c596254ca60119c7315fdf70aa71a4912d22",
+    "packages/offline-crypto/apple/module/PennyV4FrameWriter.swift": "a525fb03ac3da6c9abcbc594b18e431ffb973fd4a5661c92e2efed8731f4a04c",
+    "apps/ios/PennyOfflineTests/FilesRestoreTests.swift": "e4cc1f5268759efaa3d2f954e08e60fde6f650259ebe4806d7c8e5008048182b",
+    "apps/ios/PennyOffline/FilesRestore.swift": "b5967d4960426cffb3617023c48c4910cc92c5ba9538c083df9d6acc3c6f95f0",
+    "apps/ios/PennyOffline/V4CandidateRestore.swift": "184f2227fb36e8c5ad9a8a144c2383132082c04d81f2a82a55101e1e72f5e230",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "6596745887674852a68000d9cc8308a231b6e54bd2e7a45d6659daee3cc5da3e"
+  },
+  "binaryHashes": {
+    "artifacts/offline/v4-export-ios/validation-01/binaries/PennyOffline": "ac020b3f1786d56067a9414e6c47fa222748829383c6b708047d5b23a618a1e0",
+    "artifacts/offline/v4-export-ios/validation-01/binaries/PennyOffline.debug.dylib": "ce22b4ccfef7fda18c90aabd557249d660a0215bd3ef8cfd8b119a646fec63c8",
+    "artifacts/offline/v4-export-ios/validation-01/binaries/PennyOfflineTests": "d0ee5554403cf2f511241f5eb98815d279657a4917badb0c34cec577febe1ae4"
+  },
+  "provenance": "artifacts/offline/v4-export-ios/validation-01/provenance.json",
+  "provenanceSha256": "cd5b7edad24a8573e52c2cdebf7b6ca6e6e62cd7e93905b84f6d398866da6809",
+  "resultBundle": "apps/ios/.build/v4-export/Tests03.xcresult",
+  "nativeExports": {
+    "ios-v4-finance.manifest.json": "09b30deb369d5f8e8269461a5a5f31c35f1297c3704778446b510b504a12c150",
+    "ios-v4-finance.pennybackup": "a8f04fd31473f78aef3a146d25af1edea04fcae1bb3d3f6c4d1cfadaf7ad6565",
+    "ios-v4-finance.snapshot.json": "67667cc2e87f3896c6a1797e445d591132efb06ee5095c3d35ee857290474d62"
+  },
+  "peerCiphertextSha256": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+  "peerSnapshotSha256": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3",
+  "limits": [
+    "Device protection runtime not executed; existing compile-time simulator filesystem mode was used.",
+    "No capacity increase, 50k proof, performance benchmark, constant-memory claim, or UI export/provider publication.",
+    "Fault checkpoints run after real write/fsync/close operations; injected exceptions are not actual ENOSPC or hardware durability tests.",
+    "Source retains bounded receipt-free typed arrays; final restored Snapshot facade still hydrates receipts.",
+    "Fresh-store reopen is a second store instance in the same XCTest process, not a launched fresh OS process.",
+    "Successful export requires an authenticated durable generation; caller must establish existing empty-vault publication identity first."
+  ],
+  "historicalAttempts": {
+    "build01.log": "writer compile error; no tests",
+    "Tests01.xcresult": "FilesRestoreTests compile errors; no tests",
+    "Tests02.xcresult": "V4ExportTests compile errors; no tests"
+  },
+  "estimatedTokens": "Approximately 17k including implementation, compiler corrections, focused runtime proof, native exchange, and evidence; soft allocation exceeded with parent-approved completion."
+}

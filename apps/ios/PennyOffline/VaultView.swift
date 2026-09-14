@@ -14,8 +14,7 @@ struct VaultView: View {
     private var working: Bool { action.working }
     @State private var exporting = false
     @State private var importing = false
-    @State private var pendingRestore: VaultSnapshot?
-    @State private var pendingRevision: Int?
+    @State private var pendingRestore: FilesRestorePreview?
     @State private var error: String?
     @State private var message: String?
     var body: some View {
@@ -104,29 +103,34 @@ struct VaultView: View {
             }
             .onDisappear { cancelWork() }
             .onAppear { do { confirmedKey = try RecoveryKeyStore.load() } catch { self.error = error.localizedDescription } }
-            .confirmationDialog("Replace your local financial records?", isPresented: Binding(get: { pendingRestore != nil }, set: { if !$0 { pendingRestore = nil } }), titleVisibility: .visible) {
+            .confirmationDialog("Replace your local financial records?", isPresented: Binding(get: { pendingRestore != nil }, set: { if !$0 { clearRestorePreview() } }), titleVisibility: .visible) {
                 Button("Replace with backup", role: .destructive) {
                     guard let pendingRestore else { return }
-                    let revision = pendingRevision; self.pendingRestore = nil
+                    self.pendingRestore = nil
                     cancelWork(); let id = action.begin()
                     work = Task {
                         do {
-                            try await store.restoreAsync(pendingRestore, expectedRevision: revision)
+                            try await pendingRestore.replace(in: store)
                             guard action.id == id, !Task.isCancelled else { return }
-                            message = "Restored \(pendingRestore.recordCount) financial records and \(pendingRestore.attachments.count) receipts on this device."
+                            message = "Restored \(pendingRestore.recordCount) financial records and \(pendingRestore.receiptCount) receipts on this device."
                         } catch { if action.id == id && !Task.isCancelled { self.error = error.localizedDescription } }
                         _ = action.finish(id)
                     }
                 }
             } message: {
-                Text("This verified backup from \(pendingRestore?.createdAt ?? "") contains \(pendingRestore?.recordCount ?? 0) financial records and \(pendingRestore?.attachments.count ?? 0) receipts. Expense total: \(Money.formatted(pendingRestore?.expenses.reduce(0, { $0 + $1.amountMinor }) ?? 0)). It will replace all \(store.snapshot.recordCount) financial records on this device. Save a backup first if you want to keep them.")
+                Text("This verified backup from \(pendingRestore?.createdAt ?? "") contains \(pendingRestore?.recordCount ?? 0) financial records and \(pendingRestore?.receiptCount ?? 0) receipts. Expense total: \(Money.formatted(pendingRestore?.expenseTotalMinor ?? 0)). It will replace all \(store.snapshot.recordCount) financial records on this device. Save a backup first if you want to keep them.")
             }
             .alert("Vault action failed", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
                 Button("OK", role: .cancel) {}
             } message: { Text(error ?? "") }
         }
     }
+    private func clearRestorePreview() {
+        let preview = pendingRestore; pendingRestore = nil
+        do { try preview?.close() } catch { self.error = error.localizedDescription }
+    }
     private func cancelWork() {
+        clearRestorePreview()
         action.cancel(); work?.cancel(); work = nil
         if let stagedExport { Task { await ArchiveWorker.shared.cancel(stagedExport) } }
         stagedExport = nil
@@ -148,13 +152,13 @@ struct VaultView: View {
     }
     private func prepareRestore(_ url: URL) {
         cancelWork(); message = nil; error = nil
-        let id = action.begin(), revision = store.revision, key = restoreKey
+        let id = action.begin(), key = restoreKey
+        restoreKey = ""
         work = Task {
             do {
-                let snapshot = try await ArchiveWorker.shared.read(url, key: key)
-                guard action.id == id, !Task.isCancelled else { return }
-                guard store.revision == revision else { throw CloudFailure.staleRestore }
-                pendingRestore = snapshot; pendingRevision = revision; _ = action.finish(id)
+                let preview = try await store.prepareFilesRestore(url, recoveryKey: key)
+                guard action.id == id, !Task.isCancelled else { try preview.close(); return }
+                pendingRestore = preview; _ = action.finish(id)
             } catch { if action.id == id { _ = action.finish(id); self.error = error.localizedDescription } }
         }
     }

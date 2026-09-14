@@ -244,10 +244,7 @@ final class DurableVaultStorage {
             expenseTotalMinor: try FinanceValidation.total(snapshot.expenses.map(\.amountMinor)),
             receiptBytes: receiptBytes, snapshotBytes: snapshotBytes, digest: digest)
     }
-    private func readVerified(_ ref: DurableReference, storeId: String, key: SymmetricKey,
-                              hydration: SnapshotHydration? = nil,
-                              localMetadata: ((LocalVaultMetadata) -> Void)? = nil,
-                              receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil) throws -> DurableVerifiedMetadata {
+    private func exportMetadata(_ ref: DurableReference, storeId: String, key: SymmetricKey) throws -> (DurableRecord, VaultSnapshot, Int, Int) {
         let wire = try referenced(ref)
         guard wire.starts(with: Self.recordMagic) else { throw ExpenseError.invalidSnapshot }
         let plain = try Self.open(wire.dropFirst(Self.recordMagic.count), key: key, domain: "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + ref.id)
@@ -258,6 +255,13 @@ final class DurableVaultStorage {
         try record.metadata.validate()
         let snapshot = try StrictJSON.snapshot(record.body)
         let (receiptBytes, snapshotBytes) = try Self.receiptCapacity(snapshot, receipts: record.receipts)
+        return (record, snapshot, receiptBytes, snapshotBytes)
+    }
+    private func readVerified(_ ref: DurableReference, storeId: String, key: SymmetricKey,
+                              hydration: SnapshotHydration? = nil,
+                              localMetadata: ((LocalVaultMetadata) -> Void)? = nil,
+                              receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil) throws -> DurableVerifiedMetadata {
+        let (record, snapshot, receiptBytes, snapshotBytes) = try exportMetadata(ref, storeId: storeId, key: key)
         for descriptor in record.receipts {
             try autoreleasepool {
                 let bytes = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: descriptor, root: key)
@@ -354,6 +358,79 @@ final class DurableVaultStorage {
                   actual.restoreEpoch == target.metadata.restoreEpoch else { throw CloudFailure.staleRestore }
         } else { guard target.metadata.revision == 0 else { throw CloudFailure.staleRestore } }
     }
+    /// Captures only a private root capability and local authority on the store
+    /// actor. Authentication and receipt pin acquisition happen on the worker.
+    final class ExportRequest {
+        private let storage: DurableVaultStorage, key: SymmetricKey, target: LocalReceiptTarget
+        private var consumed = false
+        init(directory: URL, key: SymmetricKey, owner: UUID, digest: String?, storeId: String, metadata: LocalVaultMetadata) throws {
+            storage = try DurableVaultStorage(directory); self.key = key
+            target = LocalReceiptTarget(owner: owner, digest: digest, storeId: storeId, metadata: metadata)
+        }
+        func open() throws -> ExportSource {
+            guard !consumed else { throw LocalReceiptBlobError.closed }; consumed = true
+            return try storage.leased {
+                try Task.checkCancellation()
+                guard let wire = try storage.liveBytes(), DurableVaultStorage.digest(wire) == target.digest else { throw CloudFailure.staleRestore }
+                let pointer = try storage.pointer(wire, key: key)
+                guard pointer.journal == nil, pointer.storeId == target.storeId else { throw CloudFailure.staleRestore }
+                let (record, body, _, _) = try storage.exportMetadata(pointer.current, storeId: target.storeId, key: key)
+                guard record.metadata.writerId == target.metadata.writerId, record.metadata.revision == target.metadata.revision,
+                      record.metadata.restoreEpoch == target.metadata.restoreEpoch else { throw CloudFailure.staleRestore }
+                var pins: [ExportSource.Pin] = []
+                do {
+                    for generation in Set(record.receipts.map(\.generationId)).sorted() {
+                        let pin = openat(storage.fd, generation, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+                        guard pin >= 0 else { throw LocalReceiptBlobError.file }
+                        var info = stat()
+                        guard fstat(pin, &info) == 0, info.st_uid == geteuid(), info.st_mode & S_IFMT == S_IFDIR,
+                              info.st_mode & 0o077 == 0, flock(pin, LOCK_SH | LOCK_NB) == 0 else {
+                            _ = Darwin.close(pin); throw LocalReceiptBlobError.file
+                        }
+                        pins.append(ExportSource.Pin(name: generation, fd: pin, identity: info))
+                    }
+                    let held = pins; pins = []
+                    let source = ExportSource(storage: storage, key: key, body: body,
+                        receipts: record.receipts.sorted { $0.id < $1.id }, pins: held)
+                    try source.validatePins(); try Task.checkCancellation(); return source
+                } catch { for pin in pins { _ = Darwin.close(pin.fd) }; throw error }
+            }
+        }
+    }
+    /// Receipt-free metadata and existing SH directory locks protect one immutable
+    /// generation while ordinary edits/GC proceed. This is not a Snapshot lease.
+    final class ExportSource {
+        fileprivate struct Pin { let name: String, fd: Int32, identity: stat }
+        let body: VaultSnapshot, receipts: [LocalReceiptDescriptor]
+        private let storage: DurableVaultStorage
+        private var key: SymmetricKey?, pins: [Pin]
+        fileprivate init(storage: DurableVaultStorage, key: SymmetricKey, body: VaultSnapshot, receipts: [LocalReceiptDescriptor], pins: [Pin]) {
+            self.storage = storage; self.key = key; self.body = body; self.receipts = receipts; self.pins = pins
+        }
+        fileprivate func validatePins() throws {
+            guard key != nil else { throw LocalReceiptBlobError.closed }; try storage.checkRoot()
+            for pin in pins {
+                var held = stat(), current = stat()
+                guard fstat(pin.fd, &held) == 0, fstatat(storage.fd, pin.name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+                      held.st_dev == pin.identity.st_dev, held.st_ino == pin.identity.st_ino,
+                      current.st_dev == held.st_dev, current.st_ino == held.st_ino,
+                      current.st_uid == geteuid(), current.st_mode & S_IFMT == S_IFDIR, current.st_mode & 0o077 == 0 else { throw LocalReceiptBlobError.replaced }
+            }
+        }
+        func receipt(at index: Int) throws -> Data {
+            guard receipts.indices.contains(index), let key else { throw LocalReceiptBlobError.closed }
+            try Task.checkCancellation(); try validatePins()
+            let bytes = try LocalReceiptGeneration.readCommitted(parent: storage.url, descriptor: receipts[index], root: key)
+            try validatePins(); try Task.checkCancellation(); return bytes
+        }
+        func close() throws {
+            key = nil; let held = pins; pins = []; var failed = false
+            for pin in held { if Darwin.close(pin.fd) != 0 { failed = true } }
+            if failed { throw LocalReceiptBlobError.file }
+        }
+        deinit { try? close() }
+    }
+
     func pinSnapshot(key: SymmetricKey) throws -> DurableSnapshotLease {
         guard let loaded = try load(key: key) else { throw ExpenseError.lockedVault }
         var pins: [Int32] = []

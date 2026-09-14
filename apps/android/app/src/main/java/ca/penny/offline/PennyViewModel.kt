@@ -12,19 +12,34 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+data class RestorePreviewSummary(val counts: Map<String,Int>, val expenseTotalMinor: Long, val version: Int) {
+    companion object {
+        fun from(snapshot: Snapshot) = RestorePreviewSummary(mapOf("expenses" to snapshot.expenses.size,"attachments" to snapshot.attachments.size)+snapshot.finance.domains().mapValues {it.value.size},Money.total(snapshot.expenses),3)
+    }
+}
+
 data class VaultUiState(val expenses: List<Expense> = emptyList(), val ready: Boolean = false, val busy: Boolean = false,
     val message: String? = null, val fatalError: Boolean = false, val nano: NanoState = NanoState.CHECKING, val finance: FinanceData = FinanceData(),
-    val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<Attachment> = emptyList(), val categorySuggestion: String? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null, val restoreBinding: String? = null)
+    val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<Attachment> = emptyList(), val categorySuggestion: String? = null, val restoreSummary: RestorePreviewSummary? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null, val restoreBinding: String? = null)
 
-class PennyViewModel(application: Application, private val ai: ReceiptIntelligence, private val store: VaultStore = VaultStore(application)) : AndroidViewModel(application) {
+class PennyViewModel(application: Application, private val ai: ReceiptIntelligence, private val store: VaultStore = VaultStore(application), private val restoreInput: (Uri)->java.io.InputStream = {checkNotNull(application.contentResolver.openInputStream(it))}) : AndroidViewModel(application) {
     constructor(application: Application) : this(application,LocalIntelligence())
     private val mutex = Mutex()
     private val restoreOperation = java.util.concurrent.atomic.AtomicReference<RestoreOperation?>()
+    private val restoreLock=Any()
+    private var candidate: VaultGenerations.PreparedGeneration?=null
+    private var disposed=false
+    private fun closeLater(value: VaultGenerations.PreparedGeneration?) { if(value!=null) kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {mutex.withLock {runCatching {value.close()}}} }
+    private fun clearPreview() {mutable.value=mutable.value.copy(restoreSummary=null,restorePreview=null,restoreRevision=null,restoreBinding=null)}
     private val receiptGeneration = java.util.concurrent.atomic.AtomicLong()
     private val mutable = MutableStateFlow(VaultUiState())
     val state = mutable.asStateFlow()
     private var cloudRestoreGuard: (suspend (RestoreOperation) -> Unit)?=null
-    val drive = DriveController(application,store,viewModelScope, { snapshot,revision,guard -> restoreOperation.getAndSet(RestoreOperation())?.cancel();cloudRestoreGuard=guard;mutable.value=mutable.value.copy(restorePreview=snapshot,restoreRevision=revision) })
+    val drive = DriveController(application,store,viewModelScope, { snapshot,revision,guard -> synchronized(restoreLock) {
+        check(!disposed && restoreOperation.get()?.cancel()!=false)
+        closeLater(candidate);candidate=null;restoreOperation.set(RestoreOperation());cloudRestoreGuard=guard
+        mutable.value=mutable.value.copy(restoreSummary=RestorePreviewSummary.from(snapshot),restorePreview=snapshot,restoreRevision=revision,restoreBinding=null)
+    } })
     init {
         operation { refresh() }
         viewModelScope.launch { val status = ai.status(); mutable.value = mutable.value.copy(nano = status) }
@@ -101,48 +116,88 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
         mutable.value=mutable.value.copy(message="Encrypted file exported and read back successfully. This confirms the file only; it does not confirm a cloud upload. Keep your recovery key separately.")
     }
     fun preview(uri: Uri, recovery: String) {
-        val restore=RestoreOperation();restoreOperation.getAndSet(restore)?.cancel()
-        operation {
-        restore.check()
-        cloudRestoreGuard=null;drive.cancel()
-        val data = getApplication<Application>().contentResolver.openInputStream(uri).use {
-            checkNotNull(it)
-            val output = java.io.ByteArrayOutputStream()
-            val buffer = ByteArray(8192)
-            while (true) {
-                val read = it.read(buffer)
-                if (read == -1) break
-                require(output.size() + read <= Backup.maxEnvelopeBytes) { "Backup exceeds size limit" }
-                output.write(buffer, 0, read)
-            }
-            output.toByteArray()
+        val restore=RestoreOperation()
+        synchronized(restoreLock) {
+            if(disposed || restoreOperation.get()?.cancel()==false) return
+            closeLater(candidate);candidate=null;cloudRestoreGuard=null;clearPreview();mutable.value=mutable.value.copy(message=null);restoreOperation.set(restore)
         }
-        val snapshot = Backup.decrypt(data, recovery)
-        ReceiptImage.validate(snapshot.attachments)
-        restore.check()
-        mutable.value = mutable.value.copy(restorePreview = snapshot, restoreRevision = store.revision(), restoreBinding = store.restoreBinding())
+        operation(failureMessage="Backup preview failed. Check the file and recovery key. V4 import requires an unlocked existing vault; no replacement was confirmed.") {
+            var prepared: VaultGenerations.PreparedGeneration?=null
+            try {
+                restore.check();drive.cancel()
+                val original=restoreInput(uri) // Provider open and all reads run on IO.
+                var delegated=false
+                try {
+                    val input=java.io.PushbackInputStream(original,8)
+                    val prefix=ByteArray(8);var count=0
+                    while(count<8) {restore.check();val n=input.read(prefix,count,8-count);if(n<0) break;check(n>0);count+=n}
+                    input.unread(prefix,0,count)
+                    val magic=byteArrayOf(80,78,89,66,75,80,52,10)
+                    if(count==8 && prefix.contentEquals(magic)) {
+                        val key=Backup.key(recovery)
+                        try {delegated=true;prepared=store.prepareV4(input,key,restore)} finally {key.fill(0)}
+                        val summary=checkNotNull(prepared).metadata
+                        synchronized(restoreLock) {
+                            restore.check();check(!disposed && restoreOperation.get()===restore)
+                            candidate=prepared;prepared=null
+                            mutable.value=mutable.value.copy(restoreSummary=RestorePreviewSummary(summary.counts.toMap(),summary.expenseTotalMinor,4))
+                        }
+                    } else {
+                        // Reserved/partial v4 prefix cannot be interpreted as a legacy envelope.
+                        check(count==0 || !prefix.copyOfRange(0,minOf(count,7)).contentEquals(magic.copyOfRange(0,minOf(count,7))))
+                        val data=java.io.ByteArrayOutputStream();val buffer=ByteArray(8192)
+                        delegated=true
+                        input.use {while(true) {restore.check();val n=it.read(buffer);if(n<0) break;check(n>0);require(data.size()+n<=Backup.maxEnvelopeBytes);data.write(buffer,0,n)}}
+                        val bytes=data.toByteArray()
+                        val snapshot=try {Backup.decrypt(bytes,recovery)} finally {bytes.fill(0);buffer.fill(0)}
+                        ReceiptImage.validate(snapshot.attachments);restore.check()
+                        val revision=store.revision();val binding=store.restoreBinding()
+                        synchronized(restoreLock) {
+                            restore.check();check(!disposed && restoreOperation.get()===restore)
+                            mutable.value=mutable.value.copy(restoreSummary=RestorePreviewSummary.from(snapshot),restorePreview=snapshot,restoreRevision=revision,restoreBinding=binding)
+                        }
+                    }
+                } finally {if(!delegated) original.close()}
+            } finally {prepared?.close()}
+        }
     }
+    fun cancelRestore() = synchronized(restoreLock) {
+        if(restoreOperation.get()?.cancel()==false) return@synchronized
+        if(cloudRestoreGuard!=null) drive.cancel();cloudRestoreGuard=null
+        closeLater(candidate);candidate=null;clearPreview()
     }
-    fun cancelRestore() { if(restoreOperation.get()?.cancel()==false) return; if(cloudRestoreGuard!=null) drive.cancel();cloudRestoreGuard=null;mutable.value = mutable.value.copy(restorePreview = null, restoreRevision = null, restoreBinding = null) }
     fun restore() {
-        val preview = checkNotNull(mutable.value.restorePreview)
-        val revision=checkNotNull(mutable.value.restoreRevision);val binding=mutable.value.restoreBinding
-        val restore=checkNotNull(restoreOperation.get());val cloudCommit=cloudRestoreGuard
-        if(!restore.start()) return
+        val restore: RestoreOperation;val owned: VaultGenerations.PreparedGeneration?;val preview: Snapshot?
+        val revision: Long?;val binding: String?;val cloudCommit: (suspend (RestoreOperation)->Unit)?
+        synchronized(restoreLock) {
+            restore=restoreOperation.get() ?: return
+            if(mutable.value.restoreSummary==null || !restore.start()) return
+            owned=candidate;preview=mutable.value.restorePreview
+            revision=mutable.value.restoreRevision;binding=mutable.value.restoreBinding;cloudCommit=cloudRestoreGuard
+        }
         operation(failureMessage = "Restore could not finish. Reopen your vault to verify its saved state, then open the backup again if needed.") {
             try {
+                synchronized(restoreLock) {if(candidate===owned) candidate=null}
                 restore.check()
-                if(cloudCommit!=null) cloudCommit(restore) else drive.localRestore { store.replace(preview, expectedRevision = revision, expectedBinding = checkNotNull(binding), operation = restore) }
-                cloudRestoreGuard=null;drive.vaultRestored()
-                refresh("Backup restored on this device")
+                if(cloudCommit!=null) cloudCommit(restore)
+                else drive.localRestore {
+                    if(owned!=null) store.installPrepared(owned)
+                    else store.replace(checkNotNull(preview),expectedRevision=checkNotNull(revision),expectedBinding=checkNotNull(binding),operation=restore)
+                }
+                drive.vaultRestored();refresh("Backup restored on this device")
             } finally {
-                restore.finish()
-                // Each confirmation consumes its preview, including failed attempts.
-                cloudRestoreGuard=null
-                mutable.value = mutable.value.copy(restorePreview = null, restoreRevision = null, restoreBinding = null)
+                try {owned?.close()} finally {
+                    restore.finish()
+                    synchronized(restoreLock) {if(restoreOperation.get()===restore) {cloudRestoreGuard=null;clearPreview()}}
+                }
             }
         }
     }
 
-    override fun onCleared() { restoreOperation.get()?.cancel();drive.cancel(); ai.close(); store.close() }
+    override fun onCleared() {
+        val abandoned=synchronized(restoreLock) {disposed=true;restoreOperation.get()?.cancel();val value=candidate;candidate=null;clearPreview();value}
+        drive.cancel();ai.close()
+        // A cancelled blocking IO operation still owns its store until its mutex exits.
+        kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {mutex.withLock {try {abandoned?.close()} finally {store.close()}}}
+    }
 }

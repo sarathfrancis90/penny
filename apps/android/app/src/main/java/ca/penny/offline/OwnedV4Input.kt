@@ -13,6 +13,7 @@ import java.security.MessageDigest
 /** One private ciphertext snapshot; never stores decoded plaintext. No caller path. */
 internal class OwnedV4Input private constructor(private val context: Context, private val operation: RestoreOperation,
     private val fault: (V4Restore.Point,File)->Unit) : Closeable {
+    private val directory=CiphertextDirectory.get(context)
     private val name="v4-input-${Wire.id()}.ciphertext"
     private var parent: FileDescriptor?=null
     private var writer: FileDescriptor?=null
@@ -26,7 +27,7 @@ internal class OwnedV4Input private constructor(private val context: Context, pr
     private var parentHandle: android.os.ParcelFileDescriptor?=null
     private fun selected()="/proc/self/fd/${checkNotNull(parentHandle).fd}/$name"
     private fun rootCheck() {
-        val stat=Os.lstat(context.noBackupFilesDir.absolutePath)
+        val stat=Os.lstat(directory.absolutePath)
         check(OsConstants.S_ISDIR(stat.st_mode) && stat.st_uid==Process.myUid() && stat.st_mode and 63==0 && (stat.st_dev to stat.st_ino)==rootIdentity) {"Ciphertext namespace changed"}
     }
     private fun fileCheck() {
@@ -47,7 +48,7 @@ internal class OwnedV4Input private constructor(private val context: Context, pr
         }
     }
     private fun copy(input: InputStream) {
-        parent=Os.open(context.noBackupFilesDir.absolutePath,OsConstants.O_RDONLY or OsConstants.O_NOFOLLOW or OsConstants.O_NONBLOCK,0)
+        parent=Os.open(directory.absolutePath,OsConstants.O_RDONLY or OsConstants.O_NOFOLLOW or OsConstants.O_NONBLOCK,0)
         rootIdentity=identity(checkNotNull(parent));rootCheck()
         parentHandle=android.os.ParcelFileDescriptor.dup(checkNotNull(parent))
         writer=Os.open(selected(),OsConstants.O_WRONLY or OsConstants.O_CREAT or OsConstants.O_EXCL or OsConstants.O_NOFOLLOW,384)
@@ -97,6 +98,6 @@ internal class OwnedV4Input private constructor(private val context: Context, pr
         attempt {writer?.let(Os::close)};attempt {pin?.let(Os::close)};attempt {parentHandle?.close()};attempt {parent?.let(Os::close)}
         writer=null;pin=null;parentHandle=null;parent=null;hash.fill(0)
         failure?.let {throw it}
-        fault(V4Restore.Point.SOURCE_CLOSED,File(context.noBackupFilesDir,name));operation.check()
+        fault(V4Restore.Point.SOURCE_CLOSED,File(directory,name));operation.check()
     }
 }

@@ -141,7 +141,8 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         readVerified(id,hydration)
         return checkNotNull(hydration.result)
     }
-    private fun readVerified(id: String, hydration: SnapshotHydration? = null): VerifiedMetadata {
+    private fun readVerified(id: String, hydration: SnapshotHydration? = null,
+        capture: ((Snapshot,List<LocalReceiptBlob.Descriptor>,ByteArray,VerifiedMetadata)->Unit)? = null): VerifiedMetadata {
         val raw=key(id)
         try {
             val secret=SecretKeySpec(raw,"AES");val h=header(id,secret)
@@ -181,8 +182,47 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             val metadata=VerifiedMetadata(Wire.string(h,"vaultId"),Wire.string(h,"snapshotId"),Wire.string(h,"createdAt"),
                 java.util.Collections.unmodifiableMap(counts),Money.total(expenses),receiptBytes,membership)
             hydration?.finish(metadata,sortedExpenses,decodedFinance)
+            capture?.invoke(Snapshot(metadata.vaultId,sortedExpenses,metadata.snapshotId,metadata.createdAt,finance=decodedFinance),descriptors.toList(),raw,metadata)
             return metadata
         } finally {raw.fill(0)}
+    }
+    /** Worker-only bounded lease: holds the DB lock/transaction through emission.
+     * No cross-operation cache; ordinary writes wait until the callback returns. */
+    internal fun <T> withVerifiedExportSource(block: (ExportSource)->T): T = locked {
+        CandidateNamespace().use {namespace -> transaction {
+            namespace.check();val before=state();check(!before.pending)
+            val token=checkNotNull(get("activeState"))
+            val envelope=db().rawQuery("SELECT wrappedKey FROM vault_generations WHERE id=?",arrayOf(before.active)).use {check(it.moveToFirst());CloudContract.sha256(it.getBlob(0))}
+            var result: T? = null
+            readVerified(before.active,capture={body,descriptors,raw,metadata ->
+                requireReceiptCapacity(body,descriptors)
+                ExportSource(body,descriptors,raw,metadata).use {source -> result=block(source)}
+            })
+            // Re-fetch the existing device key and active envelope, including
+            // same-thread reentrant edits; never return bytes for changed source.
+            namespace.check();check(state()==before && get("activeState")==token)
+            key(before.active).fill(0)
+            check(db().rawQuery("SELECT wrappedKey FROM vault_generations WHERE id=?",arrayOf(before.active)).use {check(it.moveToFirst());CloudContract.sha256(it.getBlob(0))}==envelope)
+            @Suppress("UNCHECKED_CAST")
+            (result as T)
+        }}
+    }
+    internal inner class ExportSource internal constructor(val body: Snapshot,
+        val descriptors: List<LocalReceiptBlob.Descriptor>,private val raw: ByteArray,val metadata: VerifiedMetadata): java.io.Closeable {
+        private var open=true
+        private var group: LocalReceiptBlob.ReceiptGeneration?=null
+        private var groupId: String?=null
+        /** Owned bytes, unlike consumeReopened's borrowed callback; caller wipes. */
+        fun read(descriptor: LocalReceiptBlob.Descriptor): ByteArray {
+            check(open && descriptor in descriptors)
+            if(groupId!=descriptor.generationId) {
+                group?.close();group=null;groupId=null
+                group=LocalReceiptBlob.reopen(context,raw,body.vaultId,descriptor.generationId,descriptors.filter {it.generationId==descriptor.generationId})
+                groupId=descriptor.generationId
+            }
+            return checkNotNull(group).let {it.read(it.handles.single {handle->handle.descriptor==descriptor})}
+        }
+        override fun close() {if(open) {open=false;group?.close();group=null}}
     }
     internal data class ReceiptDeclaration(val id: String, val expenseId: String, val mediaType: String,
         val byteCount: Long, val sha256: String)

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		02770BB7E1F1898DCD54AC96 /* FinanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD6DF43A1B12D8665202745A /* FinanceStore.swift */; };
+		02F15618B48F543E51F29F79 /* PennyV4FrameWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3B227587E571D66F641D20 /* PennyV4FrameWriter.swift */; };
 		0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1237EA66D63CF1A8814D217B /* CaptureTests.swift */; };
 		04944A99EB4CAA278E624E82 /* FinanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8750B4BAD2433AF5B574886 /* FinanceModels.swift */; };
 		08EBAFFF09E743A12A637DF8 /* LocalVaultFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */; };
@@ -45,6 +46,7 @@
 		73F5E74FFD0627203285399F /* LocalReceiptFileProtection.c in Sources */ = {isa = PBXBuildFile; fileRef = 851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */; };
 		7A1DEBC869DD7CDE25E9C9CA /* V4CandidateRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */; };
 		7F8B900BA8399D45EA1B2017 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C22B18EDED088A9F987FB /* Expense.swift */; };
+		802A964B84F9A84C30CA3454 /* FilesRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461E4C025B8D1DDF442064EB /* FilesRestore.swift */; };
 		804B7F402D12960813722249 /* AutomaticBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */; };
 		81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */; };
 		84060300EC023E819FB8ACDC /* PreparedVaultWrite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FE3A1B95BD1D58C5D42093 /* PreparedVaultWrite.swift */; };
@@ -61,9 +63,12 @@
 		AF547DC9F990F174DA89678B /* FinanceSnapshotValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */; };
 		AF674AA6F3B611C7F1B49E83 /* ReceiptAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */; };
 		B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167DD103EA432460F89A98FD /* ExpensesView.swift */; };
+		B367C2AA93EAB70FBF5A098D /* V4LogicalWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32F2178123A3DEAB5AF36B1C /* V4LogicalWriter.swift */; };
 		B384213C765FBBD031FFE791 /* Categories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2CE221C9BD854F0C3E4D58 /* Categories.swift */; };
 		B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A066CE638380BFBDAC4B47EB /* VaultTests.swift */; };
+		B7B0C3F66F4587F28E91C54A /* FilesRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */; };
 		BC50978C550AC6A3A6ADC83C /* UITestCloudTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */; };
+		BCB0ECFC002834735B0016C4 /* V4ExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424ACA46C91287CE42FA8607 /* V4ExportTests.swift */; };
 		BCC2653CBDEB3410A35F260F /* PennyColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */; };
 		C1B9BDD6DF308EBB756A2CEF /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82EB561A258A5147019AA6C9 /* VaultView.swift */; };
 		C2AAFBF841D597BC7CD5D8FF /* PNGIntegrity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */; };
@@ -75,6 +80,7 @@
 		D32EF33D48D1D0DAD6A646D8 /* PNGIntegrity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */; };
 		D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */; };
 		DA205FB68306F0DDE453D11B /* FinanceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E46C25CD198B4864A458AAF /* FinanceEngine.swift */; };
+		DA8A85FC14A08149287F22FF /* V4Export.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DE67DCBE934B35385810A5D /* V4Export.swift */; };
 		DF169F25C5DA9400568873DA /* FinanceFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */; };
 		E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */; };
 		E172A9DC31FFF12E44BA9565 /* FinanceSnapshotValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */; };
@@ -150,13 +156,17 @@
 		2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVaultFrame.swift; sourceTree = "<group>"; };
 		2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudManifest.swift; sourceTree = "<group>"; };
 		2CE7748F3191C9FFBB2B55DF /* V4NativeValidationSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4NativeValidationSink.swift; sourceTree = "<group>"; };
+		2DE67DCBE934B35385810A5D /* V4Export.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4Export.swift; sourceTree = "<group>"; };
 		2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InactiveGenerationTests.swift; sourceTree = "<group>"; };
 		2E46C25CD198B4864A458AAF /* FinanceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEngine.swift; sourceTree = "<group>"; };
+		32F2178123A3DEAB5AF36B1C /* V4LogicalWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4LogicalWriter.swift; sourceTree = "<group>"; };
 		3444B6B77A5502EF8550C9A5 /* PennyV4Reader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyV4Reader.swift; sourceTree = "<group>"; };
 		39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CandidateRestore.swift; sourceTree = "<group>"; };
 		39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceTests.swift; sourceTree = "<group>"; };
+		424ACA46C91287CE42FA8607 /* V4ExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4ExportTests.swift; sourceTree = "<group>"; };
+		461E4C025B8D1DDF442064EB /* FilesRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesRestore.swift; sourceTree = "<group>"; };
 		4798055FDD88C040803D578B /* AccessibilityAuditTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityAuditTests.swift; sourceTree = "<group>"; };
 		50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEditor.swift; sourceTree = "<group>"; };
 		507B21C459E45BD05AFEC912 /* PennyOfflineUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -205,7 +215,9 @@
 		DE03DE482052A1981E646D02 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E1D63928F747E05013AEC16F /* CloudKitTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitTransport.swift; sourceTree = "<group>"; };
 		E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4AppModuleTests.swift; sourceTree = "<group>"; };
+		EE3B227587E571D66F641D20 /* PennyV4FrameWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyV4FrameWriter.swift; sourceTree = "<group>"; };
 		F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4ReadOnlyAdapter.swift; sourceTree = "<group>"; };
+		FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesRestoreTests.swift; sourceTree = "<group>"; };
 		FFD1994B4A73E90B0D80C4FA /* NativePerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePerformanceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -291,6 +303,7 @@
 				723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */,
 				C96C22B18EDED088A9F987FB /* Expense.swift */,
 				167DD103EA432460F89A98FD /* ExpensesView.swift */,
+				461E4C025B8D1DDF442064EB /* FilesRestore.swift */,
 				50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */,
 				2E46C25CD198B4864A458AAF /* FinanceEngine.swift */,
 				C8750B4BAD2433AF5B574886 /* FinanceModels.swift */,
@@ -318,6 +331,8 @@
 				D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */,
 				39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */,
 				67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */,
+				2DE67DCBE934B35385810A5D /* V4Export.swift */,
+				32F2178123A3DEAB5AF36B1C /* V4LogicalWriter.swift */,
 				F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */,
 				8416389EE9D9C67FA8EF492D /* VaultStore.swift */,
 				82EB561A258A5147019AA6C9 /* VaultView.swift */,
@@ -343,12 +358,14 @@
 				1237EA66D63CF1A8814D217B /* CaptureTests.swift */,
 				23DE085B368DC456F5429CC0 /* CloudTests.swift */,
 				6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */,
+				FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */,
 				3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */,
 				2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */,
 				1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */,
 				B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */,
 				E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */,
 				6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */,
+				424ACA46C91287CE42FA8607 /* V4ExportTests.swift */,
 				A066CE638380BFBDAC4B47EB /* VaultTests.swift */,
 			);
 			path = PennyOfflineTests;
@@ -371,6 +388,7 @@
 		D6FA9BA929A3E178453D4695 /* module */ = {
 			isa = PBXGroup;
 			children = (
+				EE3B227587E571D66F641D20 /* PennyV4FrameWriter.swift */,
 				3444B6B77A5502EF8550C9A5 /* PennyV4Reader.swift */,
 			);
 			name = module;
@@ -700,6 +718,7 @@
 				81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */,
 				56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */,
 				B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */,
+				802A964B84F9A84C30CA3454 /* FilesRestore.swift in Sources */,
 				41B145070CC0D6E47CCF15FF /* FinanceEditor.swift in Sources */,
 				6B116BF2AE6768A1323FB844 /* FinanceEngine.swift in Sources */,
 				04944A99EB4CAA278E624E82 /* FinanceModels.swift in Sources */,
@@ -724,6 +743,8 @@
 				BC50978C550AC6A3A6ADC83C /* UITestCloudTransport.swift in Sources */,
 				7A1DEBC869DD7CDE25E9C9CA /* V4CandidateRestore.swift in Sources */,
 				8A37EB64320F380994D99FC5 /* V4CiphertextSnapshot.swift in Sources */,
+				DA8A85FC14A08149287F22FF /* V4Export.swift in Sources */,
+				B367C2AA93EAB70FBF5A098D /* V4LogicalWriter.swift in Sources */,
 				4CB66CC5B8BE2B207C2EF002 /* V4ReadOnlyAdapter.swift in Sources */,
 				2D766284692897041D4EC0E9 /* VaultStore.swift in Sources */,
 				C1B9BDD6DF308EBB756A2CEF /* VaultView.swift in Sources */,
@@ -768,6 +789,7 @@
 				1B8C203D5A77E6156CB1AED8 /* FinanceModels.swift in Sources */,
 				AF547DC9F990F174DA89678B /* FinanceSnapshotValidation.swift in Sources */,
 				C2AAFBF841D597BC7CD5D8FF /* PNGIntegrity.swift in Sources */,
+				02F15618B48F543E51F29F79 /* PennyV4FrameWriter.swift in Sources */,
 				C32A23A5E37D5878BB2E64B9 /* PennyV4Reader.swift in Sources */,
 				276E3FA30E9C2B1F783E5327 /* ReceiptAttachment.swift in Sources */,
 				36DC2BE0E103FCEA7FFEB08D /* V4FrameCodec.swift in Sources */,
@@ -786,12 +808,14 @@
 				0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */,
 				1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */,
 				5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */,
+				B7B0C3F66F4587F28E91C54A /* FilesRestoreTests.swift in Sources */,
 				D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */,
 				A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */,
 				E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */,
 				6FE3D8D1D49172EEAC3C8752 /* ObservedSavingsMigrationTests.swift in Sources */,
 				A0C690887AF00071B71AAA62 /* V4AppModuleTests.swift in Sources */,
 				6ECAA7AC6C75E1DB0D0C623C /* V4CandidateTests.swift in Sources */,
+				BCB0ECFC002834735B0016C4 /* V4ExportTests.swift in Sources */,
 				B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

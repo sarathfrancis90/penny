@@ -22,6 +22,8 @@ class VaultStore(private val context: Context, databaseName: String = "penny-vau
     fun replace(snapshot: Snapshot, expectedRevision: Long? = null, expectedBinding: String? = null, operation: RestoreOperation = RestoreOperation()) = generations.replace(snapshot,expectedRevision,expectedBinding,operation)
     internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<VaultGenerations.ReceiptDeclaration>, operation: RestoreOperation = RestoreOperation()) = generations.beginReceiptPreparation(metadata,receipts,operation)
     internal fun installPrepared(candidate: VaultGenerations.PreparedGeneration) = generations.installPrepared(candidate)
+    internal fun exportV4(root: ByteArray, operation: RestoreOperation = RestoreOperation(),
+        fault: (V4Export.Point,java.io.File)->Unit = {_,_->}) = V4Export.create(context,this,root,operation,fault)
     internal fun prepareV4(input: java.io.InputStream, root: ByteArray, operation: RestoreOperation = RestoreOperation(),
         fault: (V4Restore.Point,java.io.File)->Unit = {_,_->}): VaultGenerations.PreparedGeneration = V4Restore.prepare(context,this,input,root,operation,fault)
     internal fun restoreV4(input: java.io.InputStream, root: ByteArray, operation: RestoreOperation = RestoreOperation(),

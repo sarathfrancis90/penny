@@ -150,6 +150,13 @@ final class VaultStore {
             source: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch)) else { throw CloudFailure.staleRestore }
         return try binding.begin(body: body, receipts: receipts, owner: localReceiptOwner, key: existing, cancellation: cancellation)
     }
+    func captureV4Export() throws -> V4Transfer<DurableVaultStorage.ExportRequest> {
+        let existing = try existingReplacementKey()
+        let request = try DurableVaultStorage.ExportRequest(directory: file.deletingLastPathComponent(), key: existing,
+            owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
+            metadata: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
+        return V4Transfer(request, cleanup: { _ in })
+    }
     func installLocalReceiptReplacement(_ candidate: DurableVaultStorage.InactiveCandidate) throws {
         var entered = false
         defer { if entered { isWriting = false } }

@@ -86,7 +86,8 @@ passed iOS103/103, Android68/76 on each API26/37 (eight named skips), and
 separate process phases. Retained Flutter iOS and the repository aggregate
 remain pending at capture; this result coversb22b4f6 only.
 
-The app-link milestone is committed as `ac8b670` (not yet pushed at capture).
+The app-link milestone is committed as `ac8b670`, followed by `8461f1c` for
+two-pass candidates and observed savings (not yet pushed at capture).
 Its [integration report](evidence/app-codec-integration.json) records the actual
 app builds, current-cap correction and authenticated dependency preparation.
 
@@ -98,8 +99,7 @@ receipt graph is constructed during preparation. Existing live hydration and
 product limits remain. [Android](../../apps/android/evidence/v4-restore.md)
 passes25 focused tests on each runtime; [iOS](../../apps/ios/evidence/v4-candidate.md)
 passes29 combined methods, then7 candidate methods on the final overlay.
-These are separate runs. UI confirmation, a logical writer and provider transfer
-are not connected to v4 yet.
+These are separate runs. This internal checkpoint is followed by the writer and Files restore integration below.
 
 A separate observed-savings migration extension preserves recorded goal balances
 when exported contribution rows are empty, with original fields/caches retained
@@ -111,7 +111,13 @@ restore/reopen proof passes1/1 on iOS and1/1 on each Android runtime. See
 [the converter contract](../../scripts/offline/MIGRATE_RAW_EVIDENCE.md).
 Six nonempty history/group domains still block this subset conversion.
 
-Next, the locally achievable work is v4 UI restore and logical export,
+The native v4 writers and Files restore controllers now have focused runtime proof.
+See [the integration contract](V4_EXPORT_INTEGRATION.md) and the new platform writer
+reports. Actual native outputs are retained as shared fixtures for reciprocal
+restore/reopen checks. Full system picker/confirmation UI automation and Files
+export destination integration remain separate.
+
+Next, the locally achievable work is v4 Files export destination integration,
 incremental storage/reads, file-based provider transfer, measured Profile A
 capacity, complete legacy reconciliation and signed packaging. Real provider
 recovery, physical AI/security/accessibility and store gates remain separate.
@@ -264,6 +270,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the latest 2026-09-14 integration reading reported **26% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the latest 2026-09-14 integration reading reported **24% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **14,626,837 aggregate tokens and 37,936 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

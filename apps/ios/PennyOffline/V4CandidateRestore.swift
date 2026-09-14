@@ -12,6 +12,16 @@ import PennyV4
         do { try cancellation(); binding = try captureLocalReceiptTarget() }
         catch { try source.close(); throw error }
         let worker = V4RestoreWorker(source: source, recoveryKey: recoveryKey, cancellation: cancellation, checkpoint: checkpoint)
+        return try await prepareV4Replacement(binding: binding, worker: worker, cancellation: cancellation, checkpoint: checkpoint)
+    }
+    func prepareV4Replacement(binding: DurableVaultStorage.ReceivingBinding, encrypted: V4Transfer<V4CiphertextSnapshot>,
+                              recoveryKey: String) async throws -> DurableVaultStorage.InactiveCandidate {
+        let worker = V4RestoreWorker(encrypted: encrypted, recoveryKey: recoveryKey)
+        return try await prepareV4Replacement(binding: binding, worker: worker, cancellation: { try Task.checkCancellation() }, checkpoint: { _ in })
+    }
+    private func prepareV4Replacement(binding: DurableVaultStorage.ReceivingBinding, worker: V4RestoreWorker,
+                                       cancellation: @escaping @Sendable () throws -> Void,
+                                       checkpoint: @escaping @MainActor (V4Phase) throws -> Void) async throws -> DurableVaultStorage.InactiveCandidate {
         var preparation: DurableVaultStorage.Preparation?
         do {
             let first = try await worker.firstPass()
@@ -28,6 +38,7 @@ import PennyV4
 }
 private actor V4RestoreWorker {
     private var source: (any PennyV4Input)?, encrypted: V4CiphertextSnapshot?
+    private var incoming: V4Transfer<V4CiphertextSnapshot>?
     private let recoveryKey: String, cancellation: @Sendable () throws -> Void
     private let checkpoint: @MainActor (VaultStore.V4Phase) throws -> Void
     private var summary: PennyV4Summary?
@@ -35,10 +46,19 @@ private actor V4RestoreWorker {
          checkpoint: @escaping @MainActor (VaultStore.V4Phase) throws -> Void) {
         self.source = source; self.recoveryKey = recoveryKey; self.cancellation = cancellation; self.checkpoint = checkpoint
     }
+    init(encrypted: V4Transfer<V4CiphertextSnapshot>, recoveryKey: String) {
+        incoming = encrypted; self.recoveryKey = recoveryKey
+        cancellation = { try Task.checkCancellation() }; checkpoint = { _ in }
+    }
     struct Metadata: Sendable { let body: VaultSnapshot, receipts: [DurableReceiptDeclaration] }
     func firstPass() async throws -> Metadata {
-        guard let input = source else { throw LocalReceiptBlobError.closed }; source = nil
-        let snapshot = try V4CiphertextSnapshot.capture(input, cancellation: cancellation); encrypted = snapshot
+        let snapshot: V4CiphertextSnapshot
+        if let incoming { self.incoming = nil; snapshot = try incoming.take() }
+        else {
+            guard let input = source else { throw LocalReceiptBlobError.closed }; source = nil
+            snapshot = try V4CiphertextSnapshot.capture(input, cancellation: cancellation)
+        }
+        encrypted = snapshot
         try cancellation(); try await checkpoint(.captured); try cancellation()
         let collected = V4CollectedRecords(), first = try snapshot.reader()
         summary = try V4ReadOnlyAdapter.validate(source: first, recoveryKey: recoveryKey, events: collected, cancellation: cancellation)
@@ -60,13 +80,16 @@ private actor V4RestoreWorker {
             return V4Transfer(candidate, cleanup: { try $0.close() })
         } catch { try preparation.close(); try close(); throw error }
     }
-    func close() throws { let held = encrypted; encrypted = nil; summary = nil; try held?.close() }
+    func close() throws {
+        let held = encrypted, pending = incoming; encrypted = nil; incoming = nil; summary = nil
+        defer { try? pending?.close() }; try held?.close(); try pending?.close()
+    }
 }
 
 /// Sole ownership crosses an actor boundary once. The durable objects themselves
 /// are not Sendable. No callback receives the preparation; the sender performs
 /// no further operations after boxing. Pending/cancelled transfer owns cleanup.
-private final class V4Transfer<Value>: @unchecked Sendable {
+final class V4Transfer<Value>: @unchecked Sendable {
     private let lock = NSLock(), cleanup: @Sendable (Value) throws -> Void
     private var value: Value?
     init(_ value: Value, cleanup: @escaping @Sendable (Value) throws -> Void) { self.value = value; self.cleanup = cleanup }
