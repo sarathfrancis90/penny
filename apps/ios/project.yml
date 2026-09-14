@@ -114,7 +114,11 @@ targets:
   PennyOfflinePerformanceTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [PennyOfflinePerformanceTests]
+    sources:
+      - path: PennyOfflinePerformanceTests
+      - path: ../../packages/offline-contract/fixtures
+        type: folder
+        buildPhase: resources
     dependencies:
       - target: PennyOffline
   PennyOfflineAccessibilityTests:

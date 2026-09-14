@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1474
+- Total source-visible files: 1483
 
 | Path | Area |
 |---|---|
@@ -70,6 +70,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CaptureDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CaptureFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CloudDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/CurrentCapDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/DriveFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationPerformanceTest.kt` | native-android |
@@ -174,6 +175,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/candidate-install.json` | native-android |
 | `apps/android/evidence/candidate-install.md` | native-android |
 | `apps/android/evidence/capacity-v4-assessment.md` | native-android |
+| `apps/android/evidence/current-cap.json` | native-android |
 | `apps/android/evidence/durable-generations.json` | native-android |
 | `apps/android/evidence/durable-generations.md` | native-android |
 | `apps/android/evidence/files-hosted-readiness.json` | native-android |
@@ -381,6 +383,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/candidate-install.md` | native-ios |
 | `apps/ios/evidence/capacity-count-reuse.json` | native-ios |
 | `apps/ios/evidence/capacity-count-reuse.md` | native-ios |
+| `apps/ios/evidence/combined-current-cap.json` | native-ios |
+| `apps/ios/evidence/combined-current-cap.md` | native-ios |
 | `apps/ios/evidence/current-cap-resource.json` | native-ios |
 | `apps/ios/evidence/current-cap-resource.md` | native-ios |
 | `apps/ios/evidence/durable-storage.json` | native-ios |
@@ -530,6 +534,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/candidate-ipa-integration.json` | docs |
 | `docs/offline/evidence/capacity-count-reuse-integration.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
+| `docs/offline/evidence/combined-current-cap-integration.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
 | `docs/offline/evidence/current-native-demo.json` | docs |
 | `docs/offline/evidence/durable-integration-8815d04.json` | docs |
@@ -925,6 +930,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/cloud.test.mjs` | offline-contract |
 | `packages/offline-contract/contract.mjs` | offline-contract |
 | `packages/offline-contract/contract.test.mjs` | offline-contract |
+| `packages/offline-contract/current-cap.mjs` | offline-contract |
+| `packages/offline-contract/current-cap.test.mjs` | offline-contract |
 | `packages/offline-contract/finance.mjs` | offline-contract |
 | `packages/offline-contract/finance.test.mjs` | offline-contract |
 | `packages/offline-contract/fixtures/attachment-valid.json` | offline-contract |
@@ -939,6 +946,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/fixtures/conformance-v2.json` | offline-contract |
 | `packages/offline-contract/fixtures/conformance-v3.json` | offline-contract |
 | `packages/offline-contract/fixtures/conformance.json` | offline-contract |
+| `packages/offline-contract/fixtures/current-cap-v1/README.md` | offline-contract |
+| `packages/offline-contract/fixtures/current-cap-v1/workload.json` | offline-contract |
 | `packages/offline-contract/fixtures/expense-valid.json` | offline-contract |
 | `packages/offline-contract/fixtures/expenses-v3.csv` | offline-contract |
 | `packages/offline-contract/fixtures/finance-golden.json` | offline-contract |

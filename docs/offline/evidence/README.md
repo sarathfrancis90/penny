@@ -90,3 +90,5 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Android59304d7 readiness correction](../../../apps/android/evidence/ui-readiness-59304d7.json): two source-confirmed test readiness fixes pass2/2 on each API26/37 against unchanged production APK; null accessibility state is never treated as proof of picker absence.
 
 - [Hosted59304d7](hosted-native-59304d7.json): iOS143 units/9 UI/two generation phases passed; Android37 passed with named skips and process phases; API26 readiness failures and a contract-download HTTP504 remain recorded.
+
+- [Combined current-cap native acceptance](combined-current-cap-integration.json): one shared10k/100receipt/8MiB workload, populated finance, exact native roundtrips; measured iOS read/install responsiveness issue remains open.

@@ -103,3 +103,36 @@ pins, all samples and exact limitations are in the
 The [current-source iOS evidence](../../apps/ios/evidence/current-cap-resource.md) records one Release run of the existing three workloads, with an updated test-only harness and exact snapshot/receipt checks after decode, install and new-store reopen. At10,000 expenses, save took2.14s, legacy compatibility export552ms and restore2.04s. The observed MainActor heartbeat gaps reached81ms for save and266ms for compatibility export. These limitations remain open; the sample does not establish physical p95 acceptance or comparative improvement. Receipt-byte/pixel capacity was exercised separately with100 expenses and four2MiB/16MP JPEG receipts. Receipt-count capacity, combined maximum, memory and physical behavior were not measured.
 
 A later [encoding-reuse checkpoint](../../apps/ios/evidence/capacity-count-reuse.md) removes only duplicate body-capacity encoding inside each authenticated read. All validation/reopen boundaries remain. Its single10k observation measured save1.55s, legacy export481ms and restore1.71s, with77ms/224ms save/export heartbeat maxima. These separate observations are not a controlled performance comparison. MainActor preflight/legacy hydration and full-capacity physical acceptance remain open.
+
+## Combined count and byte boundary
+
+The [shared workload](../../packages/offline-contract/fixtures/current-cap-v1/README.md)
+combines 10,000 expenses, 100 receipts and exactly 8 MiB of raw receipt bytes,
+including one 2 MiB image. All six finance arrays are populated. One iOS Release
+run and one API37 debug run pass complete field/raw-byte equality after an
+ordinary metadata edit, streamed v4 export/install/new-store reopen and legacy
+compatibility export/decode. [Paired evidence](evidence/combined-current-cap-integration.json)
+records root-verified source/binary pins and the exact scope.
+
+| Operation | iOS Release simulator | Android API37 debug emulator |
+| --- | ---: | ---: |
+| Local metadata edit | 1,969.87 ms | 3,188.76 ms |
+| Verified v4 export | 1,126.35 ms | 3,101.59 ms |
+| V4 read/install | 3,142.44 ms combined | 7,579.93 ms prepare +4,943.64 ms install |
+| Reopen | 237.84 ms open, oracle outside timing | 1,660.21 ms including full oracle |
+| Legacy export/decode | 1,175.23 ms including oracle | 6,173.25 ms including oracle |
+
+These columns have different timing boundaries and build modes; they are not a
+platform ranking. Both streamed files contain 11,814,682 bytes and both edited
+legacy envelopes 19,373,545 bytes. A source-hashed Node constructor also validates
+and exactly roundtrips the original workload at 14,530,063 plaintext bytes and
+19,373,541 envelope bytes.
+
+The iOS 2 ms heartbeat observed maximum gaps of 78.79 ms during edit, 3.10 ms during
+v4 export, 1,277.55 ms during combined read/install and 341.01 ms during legacy
+export/decode. The read/install stall remains a concrete responsiveness issue;
+this aggregate timer does not identify its exact blocking subphase. Android
+records operation-boundary Java/native/PSS samples including the retained test
+oracle, not peak app memory. Each platform ran once without overlapping native
+measurements. Padded 1×1 PNGs establish encoded-byte/count behavior, not maximum
+pixel pressure, physical p95, battery, thermal or every longest-field case.

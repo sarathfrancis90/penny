@@ -1,0 +1,79 @@
+{
+  "scope": "One opt-in Release combined count/byte boundary method; production runtime unchanged",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "runs": 1,
+  "result": "apps/ios/.build/combined-current-cap/Tests01.xcresult",
+  "evidence": "artifacts/offline/combined-current-cap-ios/validation-01",
+  "measurement": {
+    "compatibilityExportDecode": {
+      "heartbeatTicks": 238,
+      "maximumHeartbeatGapMs": 341.010625,
+      "milliseconds": 1175.234334
+    },
+    "create": {
+      "heartbeatTicks": 528,
+      "maximumHeartbeatGapMs": 3.165292,
+      "milliseconds": 1588.635125
+    },
+    "exactOraclePassed": true,
+    "expenses": 10000,
+    "imagePixels": 1,
+    "legacyCiphertextBytes": 19373545,
+    "metadataSave": {
+      "heartbeatTicks": 637,
+      "maximumHeartbeatGapMs": 78.787791,
+      "milliseconds": 1969.867667
+    },
+    "receiptBytes": 8388608,
+    "receipts": 100,
+    "reopenMs": 237.844375,
+    "v4CiphertextBytes": 11814682,
+    "v4Export": {
+      "heartbeatTicks": 376,
+      "maximumHeartbeatGapMs": 3.096708,
+      "milliseconds": 1126.351917
+    },
+    "v4ReadInstall": {
+      "heartbeatTicks": 590,
+      "maximumHeartbeatGapMs": 1277.554584,
+      "milliseconds": 3142.435166
+    }
+  },
+  "checks": [
+    "Exact source snapshot/workload hashes and every generated PNG length/hash match shared manifest.",
+    "10000 expenses;100 PNG receipts;8388608 raw bytes total;one2097152-byte image;all six finance arrays nonempty and preserved.",
+    "Ordinary metadata save retains descriptors and exact complete Snapshot/receipt bytes; expense total12351548 after shared edit.",
+    "Verified streamed v4 writer, existing full native reader/candidate/install, and new-store reopen match all eight arrays/fields/receipt bytes, with only fresh export identity and v4 canonical ID ordering normalized.",
+    "Legacy compatibility export/decode within existing exact encoded caps also passes complete equality."
+  ],
+  "sourceAndFixtureSha256": {
+    "apps/ios/PennyOfflinePerformanceTests/NativePerformanceTests.swift": "839b5b33dcce09f7bf8b9024e75ec30ec359fdfa724e72bd483fa15171ac7ac2",
+    "apps/ios/project.yml": "500645c1fe0eec414c97433dc1f0449bff7009dac0c83a3c2f04f8c1c2613edb",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "244d8be7629117b29895492b236040ef11dde053aba6f221239c04fa871dda73",
+    "packages/offline-contract/fixtures/current-cap-v1/workload.json": "35bdfaee6e8236504ed50c8e06e0eeb0f4b27c1f6716ad87fac3eab4b1b7afa9",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.snapshot.json": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3"
+  },
+  "completeRuntimeAndBinaryPins": "artifacts/offline/combined-current-cap-ios/validation-01/hashes.json",
+  "provenanceSha256": "0a183445e278aa4292d40c090d7a992630775afec74332a9be4c6065321eb4fb",
+  "sourceAndBinaryDrift": [],
+  "runtime": {
+    "device": "F70 iPhone16e / iOS Simulator26.4.1",
+    "xcode": "26.6",
+    "sdk": "26.5",
+    "optimization": "Release -O/WMO ENABLE_TESTABILITY=YES, arm64",
+    "bundleId": "ca.penny.offline.combinedcap",
+    "coordination": "Build completed and frozen before root exclusive slot; Android API37 run finished before this single iOS measurement",
+    "stateAfter": "F70shutdown; normal730A demo untouched"
+  },
+  "limits": [
+    "Padded1x1 PNGs test byte/count pressure, not decoded-pixel pressure. Existing earlier16MP case remains separate.",
+    "One observation; no physical p95, memory peak, energy, thermal or all-longest-field qualification.",
+    "Expected Snapshot/base64 receipt oracle is retained by this test; no app memory attribution attempted.",
+    "Receiver is a fresh directory using the same supplied local key, not new-device/hardware-key recovery.",
+    "Reopen is a new store instance in the same process, no page-cache eviction.",
+    "V4 read/install max MainActor heartbeat gap1277.55ms and compatibility export/decode341.01ms are observed limitations; no phase attribution or fix claimed."
+  ],
+  "estimatedTokens": "Approximately5\u20136k including shared generator, project registration, single proof and evidence; exceeded initial4k soft estimate without runtime work or extra runs"
+}

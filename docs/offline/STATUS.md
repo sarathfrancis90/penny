@@ -80,11 +80,17 @@ The [subsequent encoding reuse](evidence/capacity-count-reuse-integration.json) 
 
 The subsequent59304d7 hosted run exposed two API26 test-readiness failures: a camera lookup raced the opening sheet, and an immediate dismissal check dereferenced a null accessibility root. The [two-test correction](../../apps/android/evidence/ui-readiness-59304d7.json) requires an enabled camera control and a non-null foreground package matching Penny. Both original journeys pass2/2 on each API26/37 against unchanged production APK bytes. Its prior hosted failures remain recorded. The same hosted run encountered a pinned crypto-source HTTP504 before reference-corpus verification; the next corrected-source run must complete that gate.
 
+## Combined current-cap sample
+
+The [paired combined-boundary sample](evidence/combined-current-cap-integration.json) passes one iOS Release test and one API37 debug test with the same 10,000 expenses, 100 receipts totaling exactly 8 MiB and six nonempty finance arrays. All fields and receipt bytes survive a real metadata edit, streamed v4 export/install/reopen and legacy compatibility roundtrip. Both v4 files are 11,814,682 bytes; both edited legacy envelopes are 19,373,545 bytes. Runtime and capacity limits are unchanged.
+
+This closes one count/byte combination, using padded 1×1 PNGs. It does not close physical p95, peak memory, decoded-pixel/longest-field combinations or API26 combined-load qualification. The iOS read/install phase showed a 1,277.55 ms MainActor heartbeat gap; its exact blocking subphase still needs attribution. Android live edit measured 3,188.76 ms in debug. These remain performance limitations, despite exact data acceptance.
+
 ## Next implementation sequence
 
 1. [Hosted59304d7](evidence/hosted-native-59304d7.json) completed: iOS143/143 unit tests,9/9 UI tests and both separate generation phases passed. Android37 passed112/120 with eight named skips and four separate process methods. Android26 recorded two test-readiness failures; its subsequent process phases did not run. The contract job failed on an HTTP504 source download. Local successor `915a617c80a71837cb2122f7ad9115d38782246a` contains the passing Android test corrections and iOS encoding reuse; a new full hosted pass is required.
 2. Under the recorded [current-cap scope decision](PLAN.md#current-cap-release-scope-decision--2026-09-14), prioritize remaining release blockers at existing limits: provider configuration/real recovery, complete legacy reconciliation, accessibility and signed distribution. Larger-capacity work is a separate target and is not evidence of release readiness.
-3. Qualify current-cap compatibility paths and address the measured save/export latency. Further receipt/finance mutation deltas and file-based cloud transfer precede any later Profile A attempt. Cloud-v1 remains a separately versioned compatibility protocol until a paired successor is accepted.
+3. Use the combined-cap sample to address measured save/export latency and the iOS read/install main-thread stall; qualify remaining physical and maximum-pixel/resource paths. Further receipt/finance mutation deltas and file-based cloud transfer precede any later Profile A attempt. Cloud-v1 remains a separately versioned compatibility protocol until a paired successor is accepted.
 4. Execute physical-device and real-provider gates, then internal-store validation and controlled rollout. Retire web dependencies only after migration/support gates pass.
 
 Each slice reuses existing authenticated storage/publication primitives. Do not widen scope or repeat unchanged tests merely because an agent is idle. Substantial release work remains; test/file counts do not establish a completion percentage or delivery date.

@@ -1,0 +1,71 @@
+{
+  "scope": "Combined current-cap native acceptance; test/fixture/project-resource changes only, no production capacity or runtime change",
+  "workload": {
+    "path": "packages/offline-contract/fixtures/current-cap-v1/workload.json",
+    "sha256": "35bdfaee6e8236504ed50c8e06e0eeb0f4b27c1f6716ad87fac3eab4b1b7afa9",
+    "expenseCount": 10000,
+    "receiptCount": 100,
+    "receiptBytes": 8388608,
+    "maximumReceiptBytes": 2097152,
+    "nonemptyFinanceDomains": 6
+  },
+  "ios": {
+    "report": "apps/ios/evidence/combined-current-cap.json",
+    "sha256": "cfc0569905ffc57b8c925a80dd1ad36bf16d327a7e5933adc83ee2d16d548a8e",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "runs": 1,
+    "runtimeAndBinaryPinsMatched": 53,
+    "rootSummary": "artifacts/offline/combined-cap-ios-root-summary.json"
+  },
+  "android": {
+    "report": "apps/android/evidence/current-cap.json",
+    "sha256": "90a7b59e8cf92e67b446e8f8157fead2b554bcdfaf9815e2eedb8e6d64d8afda",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "runs": 1,
+    "api": 37,
+    "sourceAndArtifactPinsMatched": 114,
+    "productionApkUnchanged": true,
+    "rootValidation": "artifacts/offline/combined-cap-android-root-validation.json"
+  },
+  "reference": {
+    "scope": "One Node reference combined-current-cap legacy seal/open; native checks separate",
+    "initialAttempt": "Harness passed an envelope object instead of serialized bytes to openBackup; file_limit was corrected by JSON serialization, without source changes",
+    "fixtureSha256": "35bdfaee6e8236504ed50c8e06e0eeb0f4b27c1f6716ad87fac3eab4b1b7afa9",
+    "expenseCount": 10000,
+    "receiptCount": 100,
+    "receiptBytes": 8388608,
+    "plaintextBytes": 14530063,
+    "envelopeBytes": 19373541,
+    "exactSnapshotRoundTrip": true
+  },
+  "rootChecks": {
+    "node": 128,
+    "python": 62,
+    "skipped": 0,
+    "nativeStaticSourceFiles": 90,
+    "matchingCategories": 38,
+    "targetedEslint": "passed",
+    "runtimeDeltaReview": "No runtime edits; root reviewed both complete new harnesses and resource registration",
+    "logs": [
+      "artifacts/offline/combined-cap-offline.log",
+      "artifacts/offline/combined-cap-eslint.log"
+    ],
+    "documentationTests": {
+      "original": 105,
+      "review": 104
+    },
+    "protectedLegacyHashesUnchanged": 18,
+    "diffCheck": "passed"
+  },
+  "limits": [
+    "One local observation per native platform; no physical p95, peak memory, energy, thermal or every longest-field/pixel combination proof.",
+    "Both use padded1x1PNG count/byte stress. Existing16MP results remain separate.",
+    "iOS v4 read/install heartbeat gap1277.55ms is an observed responsiveness issue; exact blocking subphase has not been timed separately.",
+    "Android one API37 debug sample; no API26 combined-workload acceptance. Boundary memory includes the test oracle.",
+    "Fresh store instances are same-process evidence. iOS fresh receiver directory uses the same supplied key; Android installs into the existing isolated store. Neither is new-device recovery."
+  ]
+}

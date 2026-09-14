@@ -35,6 +35,7 @@
 		55DEC02B4A8F2CB7EA819858 /* ReceiptPreparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22100BC7E2A2DD78509A3A81 /* ReceiptPreparation.swift */; };
 		56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C22B18EDED088A9F987FB /* Expense.swift */; };
 		57E301C5689B7839C3F05365 /* V4LogicalGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171734B2F27E1C8AB1E581ED /* V4LogicalGate.swift */; };
+		58BF53D2F3745DD9F3197DA1 /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
 		59F47763FF3C89EA37B7749C /* FinanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */; };
 		5BFD77B1E6229AE913A8368C /* V4NativeValidationSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE7748F3191C9FFBB2B55DF /* V4NativeValidationSink.swift */; };
 		5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */; };
@@ -562,6 +563,7 @@
 			buildConfigurationList = D4552D207788356E2C065FF0 /* Build configuration list for PBXNativeTarget "PennyOfflinePerformanceTests" */;
 			buildPhases = (
 				9372DB40F91DD409B1821145 /* Sources */,
+				2F25FE18AB396906552AD3DB /* Resources */,
 			);
 			buildRules = (
 			);
@@ -650,6 +652,14 @@
 				35818B8E1533E17CDE203D71 /* Assets.xcassets in Resources */,
 				E233246DF130FA2A8B0C5F51 /* LICENSE.libsodium in Resources */,
 				8FF9758ED48B10509A5B0EB3 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2F25FE18AB396906552AD3DB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				58BF53D2F3745DD9F3197DA1 /* fixtures in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
