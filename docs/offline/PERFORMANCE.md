@@ -69,3 +69,31 @@ A five-pair, alternating-order benchmark on API37 ARM64/16 KiB measured the curr
 The measured median difference is 47.97%. This is not a clean original-binary versus new-binary comparison: earlier separate samples were confounded by overlapping builds/emulators and are retained as inconclusive evidence. The paired run began after agent build tasks finished and the temporary API26 emulator stopped; normal host processes and idle simulators remained. It is a debug emulator sample, not physical p95, receipt-capacity, 50k or peak-memory acceptance. The approximately one-second remaining full-validation cost motivates the separate storage/capacity phase.
 
 Raw samples, source hashes, commands, failed-attempt caveats and exact benchmark scope are in [mutation provenance](../../apps/android/evidence/mutation-performance/provenance.json) and [paired samples](../../apps/android/evidence/mutation-performance/paired-api37.json).
+
+## Durable receipt follow-up
+
+The detached-storage source has now been measured before and after removing
+redundant receipt reads. Earlier P6 and returned-state results above apply to
+their original source checkpoints. They are not current generation-storage
+latency or a direct comparison with the following workloads.
+
+- Android: five actual-write samples per source/workload on the same API37
+  debug emulator. At 10k expenses plus four exactly 2-MiB padded PNG receipts,
+  save/returned-state median changed 4145.73→3989.91 ms (-3.76%). The receipt-free
+  control changed 3088.13→3101.94 ms (+0.45%). Both sides use the same corrected
+  benchmark, with different merchant values and revision increments so both
+  paths perform real writes. API26/API37 each pass 17 focused tests.
+- iOS: three Release samples per side on one simulator. At 100 expenses plus
+  four near-2-MiB, 4000×4000 JPEG receipts, save median changed 374.82→370.73 ms
+  (-1.09%), with overlapping ranges and no meaningful gain established.
+  Receipt-free controls were essentially unchanged; unrelated export/restore
+  controls varied upward. All six benchmark tests and eight durable storage
+  tests pass. No timing reruns were selected.
+
+These workloads/configurations differ and do not compare platform speeds.
+Each change removes redundant work while preserving full authentication, native
+image validation and pre-publication checks. Neither establishes peak-memory,
+physical-device, streamed capacity or release acceptance. Source/APK/binary
+pins, all samples and exact limitations are in the
+[Android report](../../apps/android/evidence/receipt-hydration.md) and
+[iOS report](../../apps/ios/evidence/receipt-reuse-performance.md).

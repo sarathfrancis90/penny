@@ -121,6 +121,30 @@ import XCTest
         try equal(VaultStore(directory: dir, key: key).snapshot, previous)
     }
 
+    func testCorruptUnchangedReceiptFailsBeforeStagingAndPreservesPointer() async throws {
+        let dir = try directory(), previous = try input("previous")
+        try VaultStore(directory: dir, key: key).replace(previous)
+        let writing = VaultStore(directory: dir, key: key, commitCheckpoint: { stage in
+            if stage == .staged {
+                XCTFail("Corrupt unchanged receipt reached staged")
+                throw LocalReceiptBlobError.bytes
+            }
+        })
+        XCTAssertTrue(writing.isReady)
+        let live = dir.appendingPathComponent("PennyOffline/vault-v1.pennyvault")
+        let pointer = try Data(contentsOf: live)
+        let group = try XCTUnwrap(files(dir).first { UUID(uuidString: $0) != nil })
+        let receipt = dir.appendingPathComponent("PennyOffline").appendingPathComponent(group)
+            .appendingPathComponent(previous.attachments[0].id + ".pennyreceipt")
+        var bytes = try Data(contentsOf: receipt); bytes[bytes.count - 1] ^= 1; try bytes.write(to: receipt)
+        var edit = previous.expenses[0]; edit.merchant = "Unchanged receipt edit"
+        do { try await writing.saveAsync(edit); XCTFail("Corrupt reused receipt accepted") } catch {}
+        XCTAssertEqual(try Data(contentsOf: live), pointer)
+        try equal(writing.snapshot, previous)
+        // The externally damaged predecessor remains locked; no replacement was published.
+        XCTAssertFalse(VaultStore(directory: dir, key: key).isReady)
+    }
+
     func testMissingKeyRecoveryAndRepeatedRevisionIncarnation() async throws {
         let dir = try directory(), previous = try input("previous"), replacement = try input("replacement")
         try VaultStore(directory: dir, key: key).replace(previous)

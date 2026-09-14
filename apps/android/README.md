@@ -91,3 +91,5 @@ P6 primary references checked 2026-09-13: [Android 17 setup](https://developer.a
 ## Detached receipt foundation
 
 `LocalReceiptBlob` now supports durable reopen and receipt leases used by the local schema 4 `VaultGenerations` store. The existing 2 MiB/100 receipt/8 MiB limits and portable v1–v3 formats remain unchanged. The original foundation checkpoint is recorded in [evidence/local-receipt-foundation.md](evidence/local-receipt-foundation.md); current integration, exact API 26/API 37 evidence and outstanding lifecycle/performance scope are in [evidence/durable-generations.md](evidence/durable-generations.md).
+
+Snapshot hydration consumes each authenticated, fully decoded receipt once per read through an internal scoped callback. Borrowed bytes are wiped and final inventory/snapshot validation still gates return. [Single-pass hydration evidence](evidence/receipt-hydration.md) records focused API 26/API 37 regressions and a pinned before/after benchmark at the existing limits.

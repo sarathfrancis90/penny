@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-09-14T03:53:58.606993+00:00",
+  "scope": "Normal development apps rebuilt from current source, updated and launched without clearing app data or editing records. Empty-vault startup only, not a populated migration or signed release.",
+  "iOS": {
+    "destination": "730A6A04-3E7B-4B48-928C-7FE76873010F",
+    "name": "Penny Offline Demo",
+    "bundleId": "ca.penny.offline.dev",
+    "configuration": "Debug",
+    "appExecutableSha256": "81fe300bba8ec54e400fe4f79fb56efbbc300f1f5a428507d7d7d6b04ec47e4d",
+    "installedExecutableSha256": "81fe300bba8ec54e400fe4f79fb56efbbc300f1f5a428507d7d7d6b04ec47e4d",
+    "vaultFilesUnchanged": true,
+    "visualStartup": {
+      "screen": "Expenses",
+      "expenses": 0,
+      "monthTotal": "CA$0.00",
+      "status": "Offline ready",
+      "lockedVaultShown": false
+    }
+  },
+  "android": {
+    "package": "ca.penny.offline.dev",
+    "apkSha256": "a114182f17eb1ecafe95f3b272d439f60fed3cfd6a858e47f4f271165ba245c1",
+    "pid": "8202",
+    "fatalExceptionPresent": false
+  },
+  "rootVisualReview": {
+    "iOS": "Penny Expenses screen: CA$0.00, 0 expenses, Offline ready, add action and four tabs visible",
+    "android": "Penny Overview: September 2026, CAD$0.00, 0 expenses, add action and four navigation tabs visible"
+  },
+  "evidenceSHA256": {
+    "artifacts/offline/current-demo-ios/evidence.json": "df5713dbaf89ee138b3f27ab7e25e2617a58c5b3db858655ff95399cdf2e8446",
+    "artifacts/offline/current-demo-ios/startup.png": "0efe2f23863d082ed95471f7743fec8ae923b9b57874478e265856e44871a606",
+    "artifacts/offline/current-demo-android/provenance.json": "f411a0ac6a7cebb111ceb0ffffda7b7d6a33144e12e96b24847cf9abb41feab1",
+    "artifacts/offline/current-demo-android/screen.png": "32e5495422dfa8a8e799f8471bf8be75398370bc982bad6f228e58dd9a2c28b3"
+  },
+  "cleanup": "Normal iPhone17 simulator and API37 emulator left running; owned F70 and API26 test devices shut down"
+}

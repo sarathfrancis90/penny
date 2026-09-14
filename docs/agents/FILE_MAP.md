@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1287
+- Total source-visible files: 1292
 
 | Path | Area |
 |---|---|
@@ -186,6 +186,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/p6-performance-final-suite.json` | native-android |
 | `apps/android/evidence/p6-process-open.json` | native-android |
 | `apps/android/evidence/p6-source-sha256.txt` | native-android |
+| `apps/android/evidence/receipt-hydration.json` | native-android |
+| `apps/android/evidence/receipt-hydration.md` | native-android |
 | `apps/android/gradle.properties` | native-android |
 | `apps/android/gradle/wrapper/gradle-wrapper.jar` | native-android |
 | `apps/android/gradle/wrapper/gradle-wrapper.properties` | native-android |
@@ -310,6 +312,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/durable-storage.md` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.json` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
+| `apps/ios/evidence/receipt-reuse-performance.json` | native-ios |
+| `apps/ios/evidence/receipt-reuse-performance.md` | native-ios |
 | `apps/ios/project.yml` | native-ios |
 | `assets/offline/README.md` | repo |
 | `assets/offline/penny-offline-foreground.svg` | repo |
@@ -420,6 +424,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-performance.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
+| `docs/offline/evidence/current-native-demo.json` | docs |
 | `docs/offline/evidence/durable-integration-8815d04.json` | docs |
 | `docs/offline/evidence/durable-process-runners.json` | docs |
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |

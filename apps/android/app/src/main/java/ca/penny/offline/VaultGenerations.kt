@@ -135,11 +135,8 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             val attachments=mutableListOf<Attachment>()
             descriptors.groupBy {it.generationId}.forEach {(group,items) ->
                 require(items.all {it.vaultId==Wire.string(h,"vaultId")})
-                LocalReceiptBlob.reopen(context,raw,Wire.string(h,"vaultId"),group,items).use {lease ->
-                    lease.handles.forEach {handle ->
-                        val d=handle.descriptor;val bytes=lease.read(handle)
-                        try {attachments += Attachment(d.id,d.expenseId,d.mediaType,d.byteCount,d.sha256,Base64.getEncoder().encodeToString(bytes))} finally {bytes.fill(0)}
-                    }
+                LocalReceiptBlob.consumeReopened(context,raw,Wire.string(h,"vaultId"),group,items) { d,bytes ->
+                    attachments += Attachment(d.id,d.expenseId,d.mediaType,d.byteCount,d.sha256,Base64.getEncoder().encodeToString(bytes))
                 }
             }
             val snapshot=Snapshot(Wire.string(h,"vaultId"),expenses.sortedWith(compareByDescending<Expense>{it.expenseDate}.thenByDescending{it.createdAt}.thenBy{it.id}),Wire.string(h,"snapshotId"),Wire.string(h,"createdAt"),attachments,FinanceData.decode(finance))

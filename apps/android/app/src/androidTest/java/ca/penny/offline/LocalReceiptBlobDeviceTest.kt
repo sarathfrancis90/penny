@@ -191,6 +191,30 @@ class LocalReceiptBlobDeviceTest {
         }
     }
 
+    @Test fun onePassBorrowedBytesWipeAndFailureNeverDeletesCommittedFiles() = isolated { context,directory ->
+        val operation=LocalReceiptBlob.Operation(context,root,vault);val d=descriptor(operation)
+        operation.seal(d,image);operation.complete().release()
+        val file=File(namespace(directory),"${d.generationId}/${d.id}.pennyreceipt");val original=file.readBytes()
+        var borrowed:ByteArray?=null;var calls=0;var reads=0
+        LocalReceiptBlob.consumeReopened(context,root,vault,d.generationId,listOf(d),faults=LocalReceiptBlob.Faults {point,_->if(point==LocalReceiptBlob.Point.REOPEN) reads++}) {actual,bytes ->
+            calls++;assertEquals(d,actual);assertArrayEquals(image,bytes);borrowed=bytes
+        }
+        assertEquals(1,calls);assertEquals(1,reads);assertTrue(borrowed!!.all {it==0.toByte()})
+        for(failure in listOf("consumer","inventory","cancel")) {
+            val token=LocalReceiptBlob.Cancellation();borrowed=null;var returned=false
+            fails {
+                LocalReceiptBlob.consumeReopened(context,root,vault,d.generationId,listOf(d),token,LocalReceiptBlob.Faults {point,path ->
+                    if(failure=="inventory" && point==LocalReceiptBlob.Point.DIRECTORY_SYNC) File(path,"foreign").writeText("keep")
+                }) {_,bytes ->borrowed=bytes;if(failure=="consumer") throw IOException("consumer failure");if(failure=="cancel") token.cancel()}
+                returned=true
+            }
+            assertFalse(returned);assertTrue(borrowed!!.all {it==0.toByte()});assertArrayEquals(original,file.readBytes())
+            if(failure=="inventory") File(file.parentFile,"foreign").let {assertEquals("keep",it.readText());it.delete()}
+            LocalReceiptBlob.reopen(context,root,vault,d.generationId,listOf(d)).use {lease->assertArrayEquals(image,lease.read(lease.handles.single()))}
+        }
+        LocalReceiptBlob.reopen(context,root,vault,d.generationId,listOf(d)).discard()
+    }
+
     private fun paddedImage(size: Int): ByteArray {
         val original=image; val count=size-original.size-12; require(count>=0)
         val type="teSt".toByteArray();val data=ByteArray(count)

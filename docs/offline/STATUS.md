@@ -45,6 +45,16 @@ At the earlier inline-receipt checkpoint, Android expense save/delete began retu
 
 ## Streamed backup work in progress
 
+The following bounded receipt-read corrections preserve authentication and
+complete pre-publication validation. Android passes 17/17 focused tests on both
+API26/37 and all 25 JVM tests; its measured synthetic receipt workload median
+improved 3.76%, while the control was flat. iOS passes eight durable tests and
+six Release benchmark tests, with no meaningful timing gain established.
+[PERFORMANCE.md](PERFORMANCE.md) links exact source pins and workload limits.
+The fixed-time raw source exporter separately passes nine transport/filesystem
+test groups; the combined offline gate now passes 97 Node tests. Receipt
+acquisition and native conversion of that raw format remain open.
+
 The detached encrypted receipt foundation now passes the shared public golden
 and 35 negative cases, plus native ownership/cleanup/inventory/capacity tests:
 **9/9 iOS simulator methods** and **7/7 Android groups on each API26/37**. iOS
@@ -90,6 +100,12 @@ Profile A targets 50,000 expenses, 5,000 receipts and 512 MiB raw receipt bytes,
 
 ## Demo, design and physical boundaries
 
+[Current native demo proof](evidence/current-native-demo.json) records fresh builds,
+installed executable/APK hashes and root-inspected captures after the durable
+receipt corrections. Both normal development apps launched with empty vaults
+without clearing data or editing records. This is startup proof only; test
+identities, populated migration and physical release remain separate.
+
 Both normal development apps have been built, installed and launched with empty local vaults: `ca.penny.offline.dev` on the iPhone 17/iOS26.4.1 simulator and Android17/16 KiB emulator. Test automation uses separate sandbox identities. [iOS](evidence/ios-demo-launch.png) and [Android](evidence/android-demo-launch.png) captures show the actual development UI; current local binaries and hashes are recorded under ignored build/artifact directories. They are not signed store candidates.
 
 Small-phone/tablet, large-text/dark-mode and functional native journeys passed at documented checkpoints. The separate unfiltered iOS accessibility diagnostic remains **failed with 13 findings: ten Dynamic Type, two clipping and one contrast**. Inspected default/XXXL/AX5 targets and the 44pt action correction do not resolve the complete audit. See [element-specific disposition](evidence/ios-accessibility-disposition.md). Physical VoiceOver/TalkBack remains open.
@@ -104,6 +120,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage and recovery-runner validation it reported **46% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw export and bounded performance validation it reported **43% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **10,401,224 aggregate tokens and 25,791 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

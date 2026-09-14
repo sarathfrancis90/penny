@@ -96,6 +96,17 @@ internal object LocalReceiptBlob {
         return ReceiptGeneration(Core(context, generation, Codec.key(root, vault, generation), Cancellation(), Faults { _, _ -> }, descriptors), true)
     }
 
+    /** Bytes are borrowed only during the callback. The caller must keep its
+     * result uncommitted until this entire inventory/close operation succeeds. */
+    internal fun consumeReopened(context: Context, root: ByteArray, vault: String, generation: String,
+        descriptors: List<Descriptor>, cancellation: Cancellation = Cancellation(), faults: Faults = Faults { _, _ -> },
+        consume: (Descriptor, ByteArray) -> Unit) {
+        require(descriptors.size <= 100 && descriptors.sumOf { it.byteCount } <= Attachment.maxTotalBytes)
+        require(descriptors.all { it.vaultId == vault && it.generationId == generation })
+        require(descriptors.map { it.id }.toSet().size == descriptors.size)
+        Core(context, generation, Codec.key(root, vault, generation), cancellation, faults, descriptors, consume).release()
+    }
+
     internal object Codec {
         private val magic = "PNYRCP01".toByteArray(Charsets.US_ASCII)
         private val keyDomain = "PENNY-OFFLINE-LOCAL-RECEIPT-KEY:1\u0000".toByteArray(Charsets.US_ASCII)
@@ -135,7 +146,7 @@ internal object LocalReceiptBlob {
     private data class Identity(val device: Long, val inode: Long) {
         companion object { fun of(stat: StructStat) = Identity(stat.st_dev, stat.st_ino) }
     }
-    internal class Core(context: Context, private val operationName: String, private val key: ByteArray, private val cancellation: Cancellation, private val faults: Faults, existing: List<Descriptor>? = null) : Closeable {
+    internal class Core(context: Context, private val operationName: String, private val key: ByteArray, private val cancellation: Cancellation, private val faults: Faults, existing: List<Descriptor>? = null, onVerified: ((Descriptor, ByteArray) -> Unit)? = null) : Closeable {
         // A read-only descriptor pins each inode until cleanup. Without a pin,
         // unlink/recreate can reuse st_ino and trick ownership-based deletion.
         private data class Entry(val handle: Handle, val name: String, val identity: Identity, val pin: FileDescriptor)
@@ -164,7 +175,7 @@ internal object LocalReceiptBlob {
                     try { entries += Entry(Handle(d), name, Identity.of(Os.fstat(pin)), pin) }
                     catch (failure: Throwable) { try { Os.close(pin) } catch (cleanup: Throwable) { failure.addSuppressed(cleanup) }; throw failure }
                 }
-                if (existing != null) verifyAll()
+                if (existing != null) verifyAll(onVerified)
             } catch (failure: Throwable) {
                 key.fill(0)
                 entries.forEach { try { Os.close(it.pin) } catch (cleanup: Throwable) { failure.addSuppressed(cleanup) } }; entries.clear()
@@ -261,14 +272,17 @@ internal object LocalReceiptBlob {
             }
             finally { sealed?.fill(0) }
         }
-        fun verifyAll() {
+        fun verifyAll(consume: ((Descriptor, ByteArray) -> Unit)? = null) {
             fun inventory() {
                 ownedDirectory()
                 val names = checkNotNull(File(path(".")).list()) { "Receipt inventory unavailable" }
                 check(names.toSet() == entries.map { it.name }.toSet()) { "Receipt inventory changed" }
             }
             inventory()
-            entries.forEach { read(it.handle).fill(0) }
+            entries.forEach { entry ->
+                val bytes=read(entry.handle)
+                try {consume?.invoke(entry.handle.descriptor,bytes);cancellation.check()} finally {bytes.fill(0)}
+            }
             hit(Point.DIRECTORY_SYNC); Os.fsync(checkNotNull(directory).fileDescriptor)
             Os.fsync(checkNotNull(parent).fileDescriptor); cancellation.check(); inventory()
         }

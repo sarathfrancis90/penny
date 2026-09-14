@@ -284,7 +284,8 @@ final class DurableVaultStorage {
         defer { for generation in ownedGroups { try? generation.close() } }
         for receipt in prepared.snapshot.attachments {
             if prepared.metadata.restoreEpoch == prepared.sourceRestoreEpoch, let old = receipts.first(where: { $0.id == receipt.id && $0.vaultId == prepared.snapshot.vaultId && $0.expenseId == receipt.expenseId && $0.sha256 == receipt.sha256 && $0.byteCount == receipt.byteCount && $0.mediaType == receipt.mediaType }) {
-                _ = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: old, root: prepared.key); descriptors.append(old)
+                // The complete candidate hydrate below authenticates every reused receipt before staging.
+                descriptors.append(old)
             } else {
                 let group = try LocalReceiptBlobGroup(parent: url, vaultId: prepared.snapshot.vaultId, root: prepared.key)
                 let handle = try group.append(receipt), generation = try group.complete()

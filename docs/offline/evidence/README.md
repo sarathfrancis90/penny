@@ -26,3 +26,6 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Final required checks at e3d6dc5](hosted-required-e3d6dc5.json): retained Flutter iOS passed; aggregate-only retry passed after the first attempt timed out waiting for it. All 23 listed checks succeeded, before the later native storage changes.
 
 - [Durable recovery runner checkpoint](durable-process-runners.json): separate writer/reader processes on iOS and Android API26/37, with exact source and log hashes. This precedes the subsequent Drive cancellation correction. Full generation and cancellation coverage remains in each native app report.
+
+- [Durable integration at8815d04](durable-integration-8815d04.json): local gates and enabled pre-push hooks; hosted checks separately pending.
+- [Raw source exporter validation](raw-export-validation.json): nine synthetic transport/filesystem groups, including FIFO rejection, and97 combined offline Node tests; no real-account acquisition or migration completion.

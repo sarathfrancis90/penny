@@ -1,0 +1,1614 @@
+{
+  "recordedAt": "2026-09-14T03:46:12.797230+00:00",
+  "scope": "Single redundant unchanged-receipt pre-read removed; all full candidate hydrations retained. Simulator evidence only.",
+  "changeSourceSha256": {
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "575bb30d27f1e5bf5fd5e375629fd37bb0f34135275ae363363790bade46a3d9",
+    "apps/ios/PennyOfflineTests/DurableStorageTests.swift": "7783281231943b76687318a9e3d542117004d926c1d1229621670e6066887d4f"
+  },
+  "pins": {
+    "before": {
+      "sourceSha256": {
+        "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+        "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+        "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+        "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+        "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+        "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+        "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+        "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+        "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+        "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+        "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+        "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+        "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+        "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+        "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+        "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+        "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+        "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+        "apps/ios/PennyOffline/DurableVaultStorage.swift": "c9acb4d3f48f2724510b8edd4ac2c8390ee58fea6fa6aed99d049db4aa78e211",
+        "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+        "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+        "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+        "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+        "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+        "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+        "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+        "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+        "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+        "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+        "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+        "apps/ios/PennyOffline/LocalReceiptBlob.swift": "09a00a3c146b0b4410b3726174fb587c0d59315d29b09fb69812450d7a8e458c",
+        "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+        "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+        "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+        "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+        "apps/ios/PennyOfflinePerformanceTests/NativePerformanceTests.swift": "bcc48e9114998ac014dbfb3f850af40dd75b4cb4d5599dad237c2a3a866bd318",
+        "apps/ios/project.yml": "0dde29e2af82b3369ca5bbd9408475db8376186196ed2229bc23b524d8cff962",
+        "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "413f8560e34454f8b5369b00760b2533fb34af6be856075180abb5e9d42f9a3e"
+      },
+      "binarySha256": {
+        "DerivedData/Build/Products/Release-iphonesimulator/PennyOffline.app/PennyOffline": "f0ffbdb096534cbb44f9045cb267c2cc80ee09570d7bf20409c3513c47d038ae",
+        "DerivedData/Build/Products/Release-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflinePerformanceTests.xctest/PennyOfflinePerformanceTests": "2062a2463bf0a14105ae7e62a9f3e7cd1eb5d90dae4bddf91304170c09f3a297"
+      }
+    },
+    "after": {
+      "sourceSha256": {
+        "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+        "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+        "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+        "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+        "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+        "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+        "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+        "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+        "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+        "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+        "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+        "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+        "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+        "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+        "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+        "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+        "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+        "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+        "apps/ios/PennyOffline/DurableVaultStorage.swift": "575bb30d27f1e5bf5fd5e375629fd37bb0f34135275ae363363790bade46a3d9",
+        "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+        "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+        "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+        "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+        "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+        "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+        "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+        "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+        "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+        "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+        "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+        "apps/ios/PennyOffline/LocalReceiptBlob.swift": "09a00a3c146b0b4410b3726174fb587c0d59315d29b09fb69812450d7a8e458c",
+        "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+        "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+        "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+        "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+        "apps/ios/PennyOfflinePerformanceTests/NativePerformanceTests.swift": "bcc48e9114998ac014dbfb3f850af40dd75b4cb4d5599dad237c2a3a866bd318",
+        "apps/ios/project.yml": "0dde29e2af82b3369ca5bbd9408475db8376186196ed2229bc23b524d8cff962",
+        "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "413f8560e34454f8b5369b00760b2533fb34af6be856075180abb5e9d42f9a3e"
+      },
+      "binarySha256": {
+        "DerivedData/Build/Products/Release-iphonesimulator/PennyOffline.app/PennyOffline": "8d3b4d000b1e94990a40b680090cc98ab4ffaa5e5879e1e6897d7faee0f85208",
+        "DerivedData/Build/Products/Release-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflinePerformanceTests.xctest/PennyOfflinePerformanceTests": "2062a2463bf0a14105ae7e62a9f3e7cd1eb5d90dae4bddf91304170c09f3a297"
+      }
+    }
+  },
+  "regressionBinarySha256": {
+    "apps/ios/.build/durable-storage/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "b3d633585a91264bfc0571cabb898cbed469f41ba96b220e8cbe8137a577a12f",
+    "apps/ios/.build/durable-storage/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "db381d6a8343e056a646f49382533a4b2f08ba7bc7615854751a39b7d51b0371"
+  },
+  "toolchain": {
+    "xcode": "26.6 (17F113)",
+    "swift": "6.3.3",
+    "sdk": "iPhoneSimulator26.5",
+    "deploymentTarget": "26.0",
+    "optimization": "Release -O -whole-module-optimization, ENABLE_TESTABILITY=YES, arm64",
+    "regressionConfiguration": "Debug"
+  },
+  "measurements": {
+    "samples": {
+      "before": [
+        {
+          "index": 1,
+          "attachment": "before-1-attachments/E6FF41FF-909B-4FA4-BC6E-4D1578206801.json",
+          "attachmentSha256": "25e9b79bee16bb1d2c0657956f64e3db34345956c6de1273df99cd096ec5dd8d",
+          "measurement": {
+            "device": "Penny A11y System Sizes",
+            "results": [
+              {
+                "archiveBytes": 455049,
+                "case": "expenses-1000",
+                "coldOpenMs": 28.537042,
+                "commitMainActorHeartbeatTicks": 43,
+                "commitMaximumHeartbeatGapMs": 3.108875,
+                "createMs": 132.710708,
+                "expenses": 1000,
+                "exportMainActorHeartbeatTicks": 11,
+                "exportMaximumHeartbeatGapMs": 3.060375,
+                "protectedExportMs": 31.829708,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 0.301084,
+                "restoreCommitMs": 125.3615,
+                "restoreDecodeMs": 18.648375,
+                "restoreMainActorHeartbeatTicks": 7,
+                "restoreMaximumHeartbeatGapMs": 3.059334,
+                "restoreMs": 144.00987500000002,
+                "saveMainActorHeartbeatTicks": 43,
+                "saveMaximumHeartbeatGapMs": 3.07725,
+                "saveMs": 125.868792
+              },
+              {
+                "archiveBytes": 4559049,
+                "case": "expenses-10000",
+                "coldOpenMs": 264.157166,
+                "commitMainActorHeartbeatTicks": 410,
+                "commitMaximumHeartbeatGapMs": 3.134959,
+                "createMs": 1195.640625,
+                "expenses": 10000,
+                "exportMainActorHeartbeatTicks": 92,
+                "exportMaximumHeartbeatGapMs": 3.070375,
+                "protectedExportMs": 274.450042,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 2.718333,
+                "restoreCommitMs": 1209.613625,
+                "restoreDecodeMs": 181.697375,
+                "restoreMainActorHeartbeatTicks": 60,
+                "restoreMaximumHeartbeatGapMs": 3.103,
+                "restoreMs": 1391.311,
+                "saveMainActorHeartbeatTicks": 387,
+                "saveMaximumHeartbeatGapMs": 3.094,
+                "saveMs": 1173.788125
+              },
+              {
+                "archiveBytes": 14960185,
+                "case": "receipt-byte-and-pixel-bound",
+                "coldOpenMs": 82.314,
+                "commitMainActorHeartbeatTicks": 146,
+                "commitMaximumHeartbeatGapMs": 3.139208,
+                "createMs": 467.012584,
+                "expenses": 100,
+                "exportMainActorHeartbeatTicks": 50,
+                "exportMaximumHeartbeatGapMs": 3.083541,
+                "protectedExportMs": 150.360167,
+                "receiptBytes": 8388608,
+                "receipts": 4,
+                "reportMs": 0.040875,
+                "restoreCommitMs": 441.768625,
+                "restoreDecodeMs": 83.724917,
+                "restoreMainActorHeartbeatTicks": 28,
+                "restoreMaximumHeartbeatGapMs": 3.049917,
+                "restoreMs": 525.4935419999999,
+                "saveMainActorHeartbeatTicks": 120,
+                "saveMaximumHeartbeatGapMs": 3.051583,
+                "saveMs": 363.755166
+              }
+            ],
+            "runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat",
+            "systemVersion": "26.4.1"
+          }
+        },
+        {
+          "index": 2,
+          "attachment": "before-2-attachments/4F666D36-0F4B-41A5-9A7D-B6C4C8FFCE79.json",
+          "attachmentSha256": "bd5d58e4fc617b2a6d46e84b02885c014c6876e430bf41dfd6f476a9ad1d0827",
+          "measurement": {
+            "device": "Penny A11y System Sizes",
+            "results": [
+              {
+                "archiveBytes": 455049,
+                "case": "expenses-1000",
+                "coldOpenMs": 27.992458,
+                "commitMainActorHeartbeatTicks": 40,
+                "commitMaximumHeartbeatGapMs": 3.333375,
+                "createMs": 128.715917,
+                "expenses": 1000,
+                "exportMainActorHeartbeatTicks": 10,
+                "exportMaximumHeartbeatGapMs": 3.049417,
+                "protectedExportMs": 29.669292,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 0.299792,
+                "restoreCommitMs": 119.476459,
+                "restoreDecodeMs": 17.604166,
+                "restoreMainActorHeartbeatTicks": 6,
+                "restoreMaximumHeartbeatGapMs": 3.054167,
+                "restoreMs": 137.080625,
+                "saveMainActorHeartbeatTicks": 41,
+                "saveMaximumHeartbeatGapMs": 3.056,
+                "saveMs": 120.086375
+              },
+              {
+                "archiveBytes": 4559049,
+                "case": "expenses-10000",
+                "coldOpenMs": 260.281291,
+                "commitMainActorHeartbeatTicks": 395,
+                "commitMaximumHeartbeatGapMs": 3.102542,
+                "createMs": 1195.351334,
+                "expenses": 10000,
+                "exportMainActorHeartbeatTicks": 88,
+                "exportMaximumHeartbeatGapMs": 3.0595,
+                "protectedExportMs": 265.47025,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 2.816042,
+                "restoreCommitMs": 1200.680708,
+                "restoreDecodeMs": 176.365542,
+                "restoreMainActorHeartbeatTicks": 59,
+                "restoreMaximumHeartbeatGapMs": 3.068708,
+                "restoreMs": 1377.04625,
+                "saveMainActorHeartbeatTicks": 393,
+                "saveMaximumHeartbeatGapMs": 3.550125,
+                "saveMs": 1174.396875
+              },
+              {
+                "archiveBytes": 14960185,
+                "case": "receipt-byte-and-pixel-bound",
+                "coldOpenMs": 83.384833,
+                "commitMainActorHeartbeatTicks": 141,
+                "commitMaximumHeartbeatGapMs": 3.086333,
+                "createMs": 473.485,
+                "expenses": 100,
+                "exportMainActorHeartbeatTicks": 50,
+                "exportMaximumHeartbeatGapMs": 3.067708,
+                "protectedExportMs": 150.328542,
+                "receiptBytes": 8388608,
+                "receipts": 4,
+                "reportMs": 0.037708,
+                "restoreCommitMs": 427.434084,
+                "restoreDecodeMs": 77.880041,
+                "restoreMainActorHeartbeatTicks": 26,
+                "restoreMaximumHeartbeatGapMs": 3.0575,
+                "restoreMs": 505.314125,
+                "saveMainActorHeartbeatTicks": 125,
+                "saveMaximumHeartbeatGapMs": 3.066875,
+                "saveMs": 380.040708
+              }
+            ],
+            "runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat",
+            "systemVersion": "26.4.1"
+          }
+        },
+        {
+          "index": 3,
+          "attachment": "before-3-attachments/50345591-4748-42B2-B103-556AB335CBC3.json",
+          "attachmentSha256": "d9731405360775f02ca7df81051b0849a25f5eed9e0fe5d743c4dca6a55d7a0c",
+          "measurement": {
+            "device": "Penny A11y System Sizes",
+            "results": [
+              {
+                "archiveBytes": 455049,
+                "case": "expenses-1000",
+                "coldOpenMs": 27.304417,
+                "commitMainActorHeartbeatTicks": 39,
+                "commitMaximumHeartbeatGapMs": 3.230708,
+                "createMs": 127.64925,
+                "expenses": 1000,
+                "exportMainActorHeartbeatTicks": 10,
+                "exportMaximumHeartbeatGapMs": 3.05375,
+                "protectedExportMs": 29.029584,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 0.272375,
+                "restoreCommitMs": 118.003875,
+                "restoreDecodeMs": 17.674709,
+                "restoreMainActorHeartbeatTicks": 6,
+                "restoreMaximumHeartbeatGapMs": 3.050375,
+                "restoreMs": 135.678584,
+                "saveMainActorHeartbeatTicks": 41,
+                "saveMaximumHeartbeatGapMs": 3.136417,
+                "saveMs": 123.634791
+              },
+              {
+                "archiveBytes": 4559049,
+                "case": "expenses-10000",
+                "coldOpenMs": 258.017667,
+                "commitMainActorHeartbeatTicks": 378,
+                "commitMaximumHeartbeatGapMs": 3.0705,
+                "createMs": 1168.461042,
+                "expenses": 10000,
+                "exportMainActorHeartbeatTicks": 92,
+                "exportMaximumHeartbeatGapMs": 3.063666,
+                "protectedExportMs": 274.048417,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 2.685625,
+                "restoreCommitMs": 1148.9185830000001,
+                "restoreDecodeMs": 176.745,
+                "restoreMainActorHeartbeatTicks": 60,
+                "restoreMaximumHeartbeatGapMs": 3.065959,
+                "restoreMs": 1325.663583,
+                "saveMainActorHeartbeatTicks": 392,
+                "saveMaximumHeartbeatGapMs": 5.082417,
+                "saveMs": 1183.119583
+              },
+              {
+                "archiveBytes": 14960185,
+                "case": "receipt-byte-and-pixel-bound",
+                "coldOpenMs": 75.517209,
+                "commitMainActorHeartbeatTicks": 136,
+                "commitMaximumHeartbeatGapMs": 3.0745,
+                "createMs": 441.256125,
+                "expenses": 100,
+                "exportMainActorHeartbeatTicks": 52,
+                "exportMaximumHeartbeatGapMs": 3.07275,
+                "protectedExportMs": 156.384666,
+                "receiptBytes": 8388608,
+                "receipts": 4,
+                "reportMs": 0.080208,
+                "restoreCommitMs": 412.480959,
+                "restoreDecodeMs": 81.945083,
+                "restoreMainActorHeartbeatTicks": 28,
+                "restoreMaximumHeartbeatGapMs": 3.063959,
+                "restoreMs": 494.426042,
+                "saveMainActorHeartbeatTicks": 124,
+                "saveMaximumHeartbeatGapMs": 3.092792,
+                "saveMs": 374.82425
+              }
+            ],
+            "runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat",
+            "systemVersion": "26.4.1"
+          }
+        }
+      ],
+      "after": [
+        {
+          "index": 1,
+          "attachment": "after-1-attachments/89A89CE1-2AF0-432C-85E1-A30DF3E7DF82.json",
+          "attachmentSha256": "d02c3f570d28a974495a5b32fb57742bb93dd809afbcc071408246101ce7df38",
+          "measurement": {
+            "device": "Penny A11y System Sizes",
+            "results": [
+              {
+                "archiveBytes": 455049,
+                "case": "expenses-1000",
+                "coldOpenMs": 27.811333,
+                "commitMainActorHeartbeatTicks": 40,
+                "commitMaximumHeartbeatGapMs": 3.059083,
+                "createMs": 128.172666,
+                "expenses": 1000,
+                "exportMainActorHeartbeatTicks": 10,
+                "exportMaximumHeartbeatGapMs": 3.051334,
+                "protectedExportMs": 30.016708,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 0.288917,
+                "restoreCommitMs": 120.060375,
+                "restoreDecodeMs": 18.661292,
+                "restoreMainActorHeartbeatTicks": 7,
+                "restoreMaximumHeartbeatGapMs": 3.052167,
+                "restoreMs": 138.721667,
+                "saveMainActorHeartbeatTicks": 40,
+                "saveMaximumHeartbeatGapMs": 3.07175,
+                "saveMs": 120.244542
+              },
+              {
+                "archiveBytes": 4559049,
+                "case": "expenses-10000",
+                "coldOpenMs": 255.723583,
+                "commitMainActorHeartbeatTicks": 399,
+                "commitMaximumHeartbeatGapMs": 3.179791,
+                "createMs": 1198.931458,
+                "expenses": 10000,
+                "exportMainActorHeartbeatTicks": 91,
+                "exportMaximumHeartbeatGapMs": 3.081417,
+                "protectedExportMs": 275.236417,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 3.23325,
+                "restoreCommitMs": 1189.67925,
+                "restoreDecodeMs": 176.005875,
+                "restoreMainActorHeartbeatTicks": 58,
+                "restoreMaximumHeartbeatGapMs": 3.059583,
+                "restoreMs": 1365.685125,
+                "saveMainActorHeartbeatTicks": 389,
+                "saveMaximumHeartbeatGapMs": 3.091291,
+                "saveMs": 1168.513834
+              },
+              {
+                "archiveBytes": 14960185,
+                "case": "receipt-byte-and-pixel-bound",
+                "coldOpenMs": 89.293417,
+                "commitMainActorHeartbeatTicks": 164,
+                "commitMaximumHeartbeatGapMs": 3.332084,
+                "createMs": 469.955292,
+                "expenses": 100,
+                "exportMainActorHeartbeatTicks": 56,
+                "exportMaximumHeartbeatGapMs": 3.116041,
+                "protectedExportMs": 169.23075,
+                "receiptBytes": 8388608,
+                "receipts": 4,
+                "reportMs": 0.052583,
+                "restoreCommitMs": 484.087125,
+                "restoreDecodeMs": 89.400583,
+                "restoreMainActorHeartbeatTicks": 30,
+                "restoreMaximumHeartbeatGapMs": 3.064417,
+                "restoreMs": 573.487708,
+                "saveMainActorHeartbeatTicks": 141,
+                "saveMaximumHeartbeatGapMs": 3.159333,
+                "saveMs": 417.132417
+              }
+            ],
+            "runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat",
+            "systemVersion": "26.4.1"
+          }
+        },
+        {
+          "index": 2,
+          "attachment": "after-2-attachments/7CB41DD6-3D0F-42F9-B3D1-AE5F13311169.json",
+          "attachmentSha256": "69809d3512817d8fb2729c54f04353d0b05da2fb424290ca98d73fd7d3aea43c",
+          "measurement": {
+            "device": "Penny A11y System Sizes",
+            "results": [
+              {
+                "archiveBytes": 455049,
+                "case": "expenses-1000",
+                "coldOpenMs": 29.698,
+                "commitMainActorHeartbeatTicks": 43,
+                "commitMaximumHeartbeatGapMs": 3.216167,
+                "createMs": 131.829125,
+                "expenses": 1000,
+                "exportMainActorHeartbeatTicks": 11,
+                "exportMaximumHeartbeatGapMs": 3.048917,
+                "protectedExportMs": 31.347166,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 0.335708,
+                "restoreCommitMs": 125.725,
+                "restoreDecodeMs": 18.616166,
+                "restoreMainActorHeartbeatTicks": 7,
+                "restoreMaximumHeartbeatGapMs": 3.05375,
+                "restoreMs": 144.341166,
+                "saveMainActorHeartbeatTicks": 44,
+                "saveMaximumHeartbeatGapMs": 3.067792,
+                "saveMs": 126.128375
+              },
+              {
+                "archiveBytes": 4559049,
+                "case": "expenses-10000",
+                "coldOpenMs": 265.032959,
+                "commitMainActorHeartbeatTicks": 383,
+                "commitMaximumHeartbeatGapMs": 3.074166,
+                "createMs": 1215.955625,
+                "expenses": 10000,
+                "exportMainActorHeartbeatTicks": 95,
+                "exportMaximumHeartbeatGapMs": 3.084458,
+                "protectedExportMs": 278.333125,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 3.267917,
+                "restoreCommitMs": 1165.116291,
+                "restoreDecodeMs": 183.329208,
+                "restoreMainActorHeartbeatTicks": 63,
+                "restoreMaximumHeartbeatGapMs": 3.076541,
+                "restoreMs": 1348.445499,
+                "saveMainActorHeartbeatTicks": 423,
+                "saveMaximumHeartbeatGapMs": 3.085875,
+                "saveMs": 1243.679333
+              },
+              {
+                "archiveBytes": 14960185,
+                "case": "receipt-byte-and-pixel-bound",
+                "coldOpenMs": 84.904084,
+                "commitMainActorHeartbeatTicks": 166,
+                "commitMaximumHeartbeatGapMs": 3.093708,
+                "createMs": 446.215708,
+                "expenses": 100,
+                "exportMainActorHeartbeatTicks": 55,
+                "exportMaximumHeartbeatGapMs": 3.106666,
+                "protectedExportMs": 166.398417,
+                "receiptBytes": 8388608,
+                "receipts": 4,
+                "reportMs": 0.050875,
+                "restoreCommitMs": 501.327417,
+                "restoreDecodeMs": 85.565125,
+                "restoreMainActorHeartbeatTicks": 28,
+                "restoreMaximumHeartbeatGapMs": 3.094084,
+                "restoreMs": 586.892542,
+                "saveMainActorHeartbeatTicks": 124,
+                "saveMaximumHeartbeatGapMs": 3.316416,
+                "saveMs": 369.432458
+              }
+            ],
+            "runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat",
+            "systemVersion": "26.4.1"
+          }
+        },
+        {
+          "index": 3,
+          "attachment": "after-3-attachments/457DBFBC-44CF-46FF-B94E-E9629A21E3AF.json",
+          "attachmentSha256": "996228a84e72a6c298247e2f1f0e86e36f6c194d9c98828a96117463fb07fb3a",
+          "measurement": {
+            "device": "Penny A11y System Sizes",
+            "results": [
+              {
+                "archiveBytes": 455049,
+                "case": "expenses-1000",
+                "coldOpenMs": 46.26625,
+                "commitMainActorHeartbeatTicks": 42,
+                "commitMaximumHeartbeatGapMs": 3.083042,
+                "createMs": 133.354625,
+                "expenses": 1000,
+                "exportMainActorHeartbeatTicks": 10,
+                "exportMaximumHeartbeatGapMs": 3.328084,
+                "protectedExportMs": 30.388583,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 0.303541,
+                "restoreCommitMs": 124.0045,
+                "restoreDecodeMs": 18.9795,
+                "restoreMainActorHeartbeatTicks": 7,
+                "restoreMaximumHeartbeatGapMs": 3.057167,
+                "restoreMs": 142.98399999999998,
+                "saveMainActorHeartbeatTicks": 42,
+                "saveMaximumHeartbeatGapMs": 3.060583,
+                "saveMs": 122.531667
+              },
+              {
+                "archiveBytes": 4559049,
+                "case": "expenses-10000",
+                "coldOpenMs": 263.879125,
+                "commitMainActorHeartbeatTicks": 388,
+                "commitMaximumHeartbeatGapMs": 3.072,
+                "createMs": 1205.867833,
+                "expenses": 10000,
+                "exportMainActorHeartbeatTicks": 89,
+                "exportMaximumHeartbeatGapMs": 3.061,
+                "protectedExportMs": 268.236083,
+                "receiptBytes": 0,
+                "receipts": 0,
+                "reportMs": 3.129166,
+                "restoreCommitMs": 1168.715292,
+                "restoreDecodeMs": 174.112584,
+                "restoreMainActorHeartbeatTicks": 58,
+                "restoreMaximumHeartbeatGapMs": 3.057834,
+                "restoreMs": 1342.827876,
+                "saveMainActorHeartbeatTicks": 389,
+                "saveMaximumHeartbeatGapMs": 3.095917,
+                "saveMs": 1173.396833
+              },
+              {
+                "archiveBytes": 14960185,
+                "case": "receipt-byte-and-pixel-bound",
+                "coldOpenMs": 80.850792,
+                "commitMainActorHeartbeatTicks": 144,
+                "commitMaximumHeartbeatGapMs": 3.062834,
+                "createMs": 442.515125,
+                "expenses": 100,
+                "exportMainActorHeartbeatTicks": 57,
+                "exportMaximumHeartbeatGapMs": 3.070084,
+                "protectedExportMs": 172.422125,
+                "receiptBytes": 8388608,
+                "receipts": 4,
+                "reportMs": 0.045916,
+                "restoreCommitMs": 434.737334,
+                "restoreDecodeMs": 91.223084,
+                "restoreMainActorHeartbeatTicks": 30,
+                "restoreMaximumHeartbeatGapMs": 3.066208,
+                "restoreMs": 525.960418,
+                "saveMainActorHeartbeatTicks": 123,
+                "saveMaximumHeartbeatGapMs": 3.068125,
+                "saveMs": 370.729208
+              }
+            ],
+            "runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat",
+            "systemVersion": "26.4.1"
+          }
+        }
+      ]
+    },
+    "comparison": [
+      {
+        "case": "expenses-1000",
+        "metrics": {
+          "saveMs": {
+            "before": {
+              "samples": [
+                125.868792,
+                120.086375,
+                123.634791
+              ],
+              "median": 123.634791,
+              "min": 120.086375,
+              "max": 125.868792
+            },
+            "after": {
+              "samples": [
+                120.244542,
+                126.128375,
+                122.531667
+              ],
+              "median": 122.531667,
+              "min": 120.244542,
+              "max": 126.128375
+            },
+            "medianChangePercent": -0.892243996271247
+          },
+          "createMs": {
+            "before": {
+              "samples": [
+                132.710708,
+                128.715917,
+                127.64925
+              ],
+              "median": 128.715917,
+              "min": 127.64925,
+              "max": 132.710708
+            },
+            "after": {
+              "samples": [
+                128.172666,
+                131.829125,
+                133.354625
+              ],
+              "median": 131.829125,
+              "min": 128.172666,
+              "max": 133.354625
+            },
+            "medianChangePercent": 2.41866590594233
+          },
+          "coldOpenMs": {
+            "before": {
+              "samples": [
+                28.537042,
+                27.992458,
+                27.304417
+              ],
+              "median": 27.992458,
+              "min": 27.304417,
+              "max": 28.537042
+            },
+            "after": {
+              "samples": [
+                27.811333,
+                29.698,
+                46.26625
+              ],
+              "median": 29.698,
+              "min": 27.811333,
+              "max": 46.26625
+            },
+            "medianChangePercent": 6.092862584629044
+          },
+          "protectedExportMs": {
+            "before": {
+              "samples": [
+                31.829708,
+                29.669292,
+                29.029584
+              ],
+              "median": 29.669292,
+              "min": 29.029584,
+              "max": 31.829708
+            },
+            "after": {
+              "samples": [
+                30.016708,
+                31.347166,
+                30.388583
+              ],
+              "median": 30.388583,
+              "min": 30.016708,
+              "max": 31.347166
+            },
+            "medianChangePercent": 2.424361862089608
+          },
+          "restoreCommitMs": {
+            "before": {
+              "samples": [
+                125.3615,
+                119.476459,
+                118.003875
+              ],
+              "median": 119.476459,
+              "min": 118.003875,
+              "max": 125.3615
+            },
+            "after": {
+              "samples": [
+                120.060375,
+                125.725,
+                124.0045
+              ],
+              "median": 124.0045,
+              "min": 120.060375,
+              "max": 125.725
+            },
+            "medianChangePercent": 3.7899022434201735
+          },
+          "saveMaximumHeartbeatGapMs": {
+            "before": {
+              "samples": [
+                3.07725,
+                3.056,
+                3.136417
+              ],
+              "median": 3.07725,
+              "min": 3.056,
+              "max": 3.136417
+            },
+            "after": {
+              "samples": [
+                3.07175,
+                3.067792,
+                3.060583
+              ],
+              "median": 3.067792,
+              "min": 3.060583,
+              "max": 3.07175
+            },
+            "medianChangePercent": -0.30735234381347176
+          }
+        }
+      },
+      {
+        "case": "expenses-10000",
+        "metrics": {
+          "saveMs": {
+            "before": {
+              "samples": [
+                1173.788125,
+                1174.396875,
+                1183.119583
+              ],
+              "median": 1174.396875,
+              "min": 1173.788125,
+              "max": 1183.119583
+            },
+            "after": {
+              "samples": [
+                1168.513834,
+                1243.679333,
+                1173.396833
+              ],
+              "median": 1173.396833,
+              "min": 1168.513834,
+              "max": 1243.679333
+            },
+            "medianChangePercent": -0.08515366664271218
+          },
+          "createMs": {
+            "before": {
+              "samples": [
+                1195.640625,
+                1195.351334,
+                1168.461042
+              ],
+              "median": 1195.351334,
+              "min": 1168.461042,
+              "max": 1195.640625
+            },
+            "after": {
+              "samples": [
+                1198.931458,
+                1215.955625,
+                1205.867833
+              ],
+              "median": 1205.867833,
+              "min": 1198.931458,
+              "max": 1215.955625
+            },
+            "medianChangePercent": 0.8797830981464472
+          },
+          "coldOpenMs": {
+            "before": {
+              "samples": [
+                264.157166,
+                260.281291,
+                258.017667
+              ],
+              "median": 260.281291,
+              "min": 258.017667,
+              "max": 264.157166
+            },
+            "after": {
+              "samples": [
+                255.723583,
+                265.032959,
+                263.879125
+              ],
+              "median": 263.879125,
+              "min": 255.723583,
+              "max": 265.032959
+            },
+            "medianChangePercent": 1.3822868275230604
+          },
+          "protectedExportMs": {
+            "before": {
+              "samples": [
+                274.450042,
+                265.47025,
+                274.048417
+              ],
+              "median": 274.048417,
+              "min": 265.47025,
+              "max": 274.450042
+            },
+            "after": {
+              "samples": [
+                275.236417,
+                278.333125,
+                268.236083
+              ],
+              "median": 275.236417,
+              "min": 268.236083,
+              "max": 278.333125
+            },
+            "medianChangePercent": 0.43350004097999495
+          },
+          "restoreCommitMs": {
+            "before": {
+              "samples": [
+                1209.613625,
+                1200.680708,
+                1148.9185830000001
+              ],
+              "median": 1200.680708,
+              "min": 1148.9185830000001,
+              "max": 1209.613625
+            },
+            "after": {
+              "samples": [
+                1189.67925,
+                1165.116291,
+                1168.715292
+              ],
+              "median": 1168.715292,
+              "min": 1165.116291,
+              "max": 1189.67925
+            },
+            "medianChangePercent": -2.6622744737229476
+          },
+          "saveMaximumHeartbeatGapMs": {
+            "before": {
+              "samples": [
+                3.094,
+                3.550125,
+                5.082417
+              ],
+              "median": 3.550125,
+              "min": 3.094,
+              "max": 5.082417
+            },
+            "after": {
+              "samples": [
+                3.091291,
+                3.085875,
+                3.095917
+              ],
+              "median": 3.091291,
+              "min": 3.085875,
+              "max": 3.095917
+            },
+            "medianChangePercent": -12.924446322312589
+          }
+        }
+      },
+      {
+        "case": "receipt-byte-and-pixel-bound",
+        "metrics": {
+          "saveMs": {
+            "before": {
+              "samples": [
+                363.755166,
+                380.040708,
+                374.82425
+              ],
+              "median": 374.82425,
+              "min": 363.755166,
+              "max": 380.040708
+            },
+            "after": {
+              "samples": [
+                417.132417,
+                369.432458,
+                370.729208
+              ],
+              "median": 370.729208,
+              "min": 369.432458,
+              "max": 417.132417
+            },
+            "medianChangePercent": -1.0925232292200882
+          },
+          "createMs": {
+            "before": {
+              "samples": [
+                467.012584,
+                473.485,
+                441.256125
+              ],
+              "median": 467.012584,
+              "min": 441.256125,
+              "max": 473.485
+            },
+            "after": {
+              "samples": [
+                469.955292,
+                446.215708,
+                442.515125
+              ],
+              "median": 446.215708,
+              "min": 442.515125,
+              "max": 469.955292
+            },
+            "medianChangePercent": -4.453172508088132
+          },
+          "coldOpenMs": {
+            "before": {
+              "samples": [
+                82.314,
+                83.384833,
+                75.517209
+              ],
+              "median": 82.314,
+              "min": 75.517209,
+              "max": 83.384833
+            },
+            "after": {
+              "samples": [
+                89.293417,
+                84.904084,
+                80.850792
+              ],
+              "median": 84.904084,
+              "min": 80.850792,
+              "max": 89.293417
+            },
+            "medianChangePercent": 3.146589887503959
+          },
+          "protectedExportMs": {
+            "before": {
+              "samples": [
+                150.360167,
+                150.328542,
+                156.384666
+              ],
+              "median": 150.360167,
+              "min": 150.328542,
+              "max": 156.384666
+            },
+            "after": {
+              "samples": [
+                169.23075,
+                166.398417,
+                172.422125
+              ],
+              "median": 169.23075,
+              "min": 166.398417,
+              "max": 172.422125
+            },
+            "medianChangePercent": 12.550254084248259
+          },
+          "restoreCommitMs": {
+            "before": {
+              "samples": [
+                441.768625,
+                427.434084,
+                412.480959
+              ],
+              "median": 427.434084,
+              "min": 412.480959,
+              "max": 441.768625
+            },
+            "after": {
+              "samples": [
+                484.087125,
+                501.327417,
+                434.737334
+              ],
+              "median": 484.087125,
+              "min": 434.737334,
+              "max": 501.327417
+            },
+            "medianChangePercent": 13.254216994075762
+          },
+          "saveMaximumHeartbeatGapMs": {
+            "before": {
+              "samples": [
+                3.051583,
+                3.066875,
+                3.092792
+              ],
+              "median": 3.066875,
+              "min": 3.051583,
+              "max": 3.092792
+            },
+            "after": {
+              "samples": [
+                3.159333,
+                3.316416,
+                3.068125
+              ],
+              "median": 3.159333,
+              "min": 3.068125,
+              "max": 3.316416
+            },
+            "medianChangePercent": 3.0147299775830527
+          }
+        }
+      }
+    ]
+  },
+  "testResults": {
+    "Before1": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOfflinePerformance \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357353.523,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357338.189,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOfflinePerformance",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "Before2": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOfflinePerformance \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357362.747,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357354.368,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOfflinePerformance",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "Before3": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOfflinePerformance \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357371.625,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357363.364,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOfflinePerformance",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "After1": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOfflinePerformance \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357430.18,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357415.546,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOfflinePerformance",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "After2": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOfflinePerformance \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357439.762,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357431.02,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOfflinePerformance",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "After3": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOfflinePerformance \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357450.284,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357441.005,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOfflinePerformance",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "Regression": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 8,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789357489.965,
+      "passedTests": 8,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789357475.233,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOffline",
+      "topInsights": [],
+      "totalTestCount": 8
+    }
+  },
+  "commands": {
+    "before-build-commands.json": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "build-for-testing"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ],
+    "before-commands.json": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "test-without-building",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/Before1.xcresult",
+        "-only-testing:PennyOfflinePerformanceTests/NativePerformanceTests/testNativeStorageOperationTimings"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "test-without-building",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/Before2.xcresult",
+        "-only-testing:PennyOfflinePerformanceTests/NativePerformanceTests/testNativeStorageOperationTimings"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "test-without-building",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/Before3.xcresult",
+        "-only-testing:PennyOfflinePerformanceTests/NativePerformanceTests/testNativeStorageOperationTimings"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ],
+    "after-commands.json": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "build-for-testing"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "test-without-building",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/After1.xcresult",
+        "-only-testing:PennyOfflinePerformanceTests/NativePerformanceTests/testNativeStorageOperationTimings"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "test-without-building",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/After2.xcresult",
+        "-only-testing:PennyOfflinePerformanceTests/NativePerformanceTests/testNativeStorageOperationTimings"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOfflinePerformance",
+        "-configuration",
+        "Release",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "ENABLE_TESTABILITY=YES",
+        "ONLY_ACTIVE_ARCH=YES",
+        "test-without-building",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/After3.xcresult",
+        "-only-testing:PennyOfflinePerformanceTests/NativePerformanceTests/testNativeStorageOperationTimings"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ],
+    "regression-commands.json": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOffline",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/durable-storage/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "test",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/receipt-reuse-performance/Regression.xcresult",
+        "-only-testing:PennyOfflineTests/DurableStorageTests"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ]
+  },
+  "logsSha256": {
+    "apps/ios/.build/receipt-reuse-performance/regression.log": "f34a3e65b0d09cac7d74ca5664ffa877fe5d2856fc2f8fdfea2efce810b51b4b",
+    "apps/ios/.build/receipt-reuse-performance/after-bootstatus.log": "e2336d6e3b07fe3c2abd33bd37e6b649610a380c61882ad6af8e06ebe5d08e0d",
+    "apps/ios/.build/receipt-reuse-performance/before-bootstatus.log": "8fd60a2d8b5bae3bd85c91a7f1cd1efbcf91c53cb51cd6b20d74d2c4abb0c3e7",
+    "apps/ios/.build/receipt-reuse-performance/before-build.log": "ee239b54ceb507fb9c5a8b9052bf89af0fd05c04cba04559d9b681733e3c4e10",
+    "apps/ios/.build/receipt-reuse-performance/after-1.log": "989dad42ce4dd52bb0d5cf102dd87f9a36b8ebfca4c1953d674ba742dee29f36",
+    "apps/ios/.build/receipt-reuse-performance/before-shutdown.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "apps/ios/.build/receipt-reuse-performance/before-boot.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "apps/ios/.build/receipt-reuse-performance/after-2.log": "a3b34ccfbea319496b8ea7a7d53d05b5fe4a472456f609e0e1915474f4c78dd3",
+    "apps/ios/.build/receipt-reuse-performance/after-shutdown.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "apps/ios/.build/receipt-reuse-performance/after-3.log": "1e6a133cd8c1d9a9db77cde19e463da19767b57575c3ca58a9334da13654c25d",
+    "apps/ios/.build/receipt-reuse-performance/regression-boot.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "apps/ios/.build/receipt-reuse-performance/after-boot.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "apps/ios/.build/receipt-reuse-performance/regression-shutdown.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "apps/ios/.build/receipt-reuse-performance/after-build.log": "31a573e00d5d7230fa88ff982f0d859310ad4e110aaaa63f278e6e645216b1a6",
+    "apps/ios/.build/receipt-reuse-performance/regression-bootstatus.log": "471fba4605ea0ad849a57f6a9ce66fb251cf11f492a804fd03b9bd066691019d",
+    "apps/ios/.build/receipt-reuse-performance/before-2.log": "c2ee9f56a28547f6bb416efc1fd4e31727075ac81bdf9f13b2b7b24bce4e98b6",
+    "apps/ios/.build/receipt-reuse-performance/before-3.log": "5186a0a10ac2b273fd74ca27efffae15bb6e6213dceee549e871eef75e706873",
+    "apps/ios/.build/receipt-reuse-performance/before-1.log": "5eb8d5b1d86b1d7d967379f34665bf0c46e7ae82ea26d96d3b7e096f3256bda1",
+    "apps/ios/.build/receipt-reuse-performance/initial-failed-before-build.log": "00d6981e3aaf9e174055d8d3ce8ff5fc1cd65009fc6028b641e9c1c468eb0266"
+  },
+  "limitations": [
+    "Three sequential before and three after samples; overlapping ranges, no statistical significance or capacity acceptance.",
+    "Receipt-free controls included by unchanged harness; no separate re-baseline or timing reruns.",
+    "Receipt workload is 100 expenses plus four near-2MiB 4000x4000 JPEGs, not 10000 expenses with receipts.",
+    "No memory measurement or physical-device durability/protection proof.",
+    "Harness runtime label says MainActor disk replacement; current pinned implementation commits on serial ArchiveWorker.",
+    "Initial Release build lacked ENABLE_TESTABILITY; corrected build passed. Initial binary pin path was wrong; neither setup failure produced timing samples."
+  ]
+}
