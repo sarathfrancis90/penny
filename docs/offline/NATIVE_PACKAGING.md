@@ -26,11 +26,11 @@ npm run offline:release:package -- ios \
   --store-max-build FRESH_STORE_MAXIMUM
 ```
 
-Xcode can re-sign during export, so packaging now checks the app inside the exported `.ipa`. The extractor snapshots the archive into private temporary storage, validates its bounded ZIP layout and inspects the resulting payload while that snapshot remains owned. The report records its exact SHA-256 and `exactUploadObjectPreflightPassed: true` only for the iOS IPA path. `storeUploadArtifactValidated: false` remains explicit: local payload/signature checks do not establish Apple processing, store delivery or installation. Direct `.app` preflight remains available but cannot satisfy this packaging gate.
+Xcode can re-sign during export, so packaging now checks the app inside the exported `.ipa`. The extractor snapshots the archive into private temporary storage, validates its bounded ZIP layout and inspects the resulting payload while that snapshot remains owned. The report records its exact SHA-256 and `exactUploadObjectPreflightPassed: true` for a checked IPA (or Android AAB in the separate profile). `storeUploadArtifactValidated: false` remains explicit: local payload/signature checks do not establish Apple processing, store delivery or installation. Direct `.app` preflight remains available but cannot satisfy this packaging gate.
 
 ## Android profile
 
-Create a protected local JSON file with exactly `version`, `build`, `driveClientId`, `uploadCertificateSha256`, `driveSigningSha256`, `apksigner` and `apkanalyzer`. Version/build rules match iOS. The two tools are absolute executable SDK paths. Both certificates use 64 lowercase hexadecimal characters and come from independent signing records.
+Create a protected local JSON file with exactly `version`, `build`, `driveClientId`, `uploadCertificateSha256`, `driveSigningSha256`, `apksigner`, `apkanalyzer`, `java` and `bundletool`. Version/build rules match iOS. The SDK tools and JDK17+ `java` are absolute executable paths. `bundletool` is the absolute path to an independently trusted standalone JAR; the dependency JAR in Gradle caches is insufficient. No runtime download occurs. Both certificates use 64 lowercase hexadecimal characters and come from independent signing records.
 
 `uploadCertificateSha256` identifies the key signing the locally built APK/AAB. `driveSigningSha256` identifies the certificate on the intended installed app and must match that package's `driveClientId` registration. With Play App Signing these certificates can differ. The local upload-signed APK will not authorize Drive when its embedded guard correctly expects Play's different installed certificate; test that path using a Play-delivered artifact. Do not replace the installed certificate with the upload fingerprint merely to make local authorization work.
 
@@ -43,7 +43,9 @@ npm run offline:release:package -- android \
   --store-max-build FRESH_STORE_MAXIMUM
 ```
 
-The script builds `assembleRelease` and `bundleRelease`, copies the APK/AAB into the evidence directory, and verifies the APK signature against the upload certificate while checking the packaged Drive guard against the installed certificate. The exact AAB signature/module contents and Play-generated APKs remain separate gates. Its report keeps `storeUploadArtifactValidated: false` and `uploaded: false`.
+The script builds `assembleRelease` and `bundleRelease` and retains the AAB first as the upload product, plus its separately checked installation APK. Both preflights must pass the requested version/build and provider/signing policy. AAB preflight validates the frozen single-module bundle, all signed content and its actual base manifest; APK preflight uses the SDK verifier/analyzer. The upload certificate and independently verified installed-app Drive certificate remain distinct inputs. Hash checks bind each report to its corresponding retained file and recheck both files after both inspections.
+
+`verifiedLocalArtifact` records the exact AAB check; `verifiedLocalApk` records the separate APK check. `exactUploadObjectPreflightPassed: true` means local IPA/AAB checks passed, while `storeUploadArtifactValidated: false` and `uploaded: false` remain explicit. Play processing, re-signing and delivered APK installation still require separate evidence.
 
 ## Current evidence
 

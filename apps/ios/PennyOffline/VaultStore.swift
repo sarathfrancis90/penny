@@ -52,6 +52,7 @@ final class VaultStore {
     private var diskDigest: String?
     private var storeId = UUID().uuidString.lowercased()
     private var receiptReferences: [LocalReceiptDescriptor] = []
+    private let localReceiptOwner = UUID()
     private var key: SymmetricKey?
     private let suppliedKey: SymmetricKey?
     private let deviceKeyReader: (Bool) throws -> SymmetricKey
@@ -122,6 +123,38 @@ final class VaultStore {
     func replace(_ next: VaultSnapshot) throws {
         guard isReady, let key else { throw ExpenseError.lockedVault }
         try commit(next, key: key)
+    }
+    /// Internal synchronous local seam; no UI/cloud/v4 caller. Never provisions a key.
+    func beginLocalReceiptReplacement(_ body: VaultSnapshot, receipts: [DurableReceiptDeclaration]) throws -> DurableVaultStorage.Preparation {
+        try Task.checkCancellation()
+        guard !isWriting, isReady, let key else { throw ExpenseError.lockedVault }
+        let existing: SymmetricKey
+        do {
+            existing = try suppliedKey ?? deviceKeyReader(false)
+            guard existing == key else { throw ExpenseError.missingKey }
+        } catch { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription; throw error }
+        return try DurableVaultStorage.Preparation.beginBound(directory: file.deletingLastPathComponent(), key: existing,
+            body: body, receipts: receipts, owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
+            source: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
+    }
+    func installLocalReceiptReplacement(_ candidate: DurableVaultStorage.InactiveCandidate) throws {
+        var entered = false
+        defer { if entered { isWriting = false } }
+        do {
+            let (loaded, digest, installedKey) = try candidate.install(owner: localReceiptOwner, validate: { target, candidateKey in
+                try Task.checkCancellation()
+                guard (!isWriting || entered), isReady, revision == target.metadata.revision,
+                      writerId == target.metadata.writerId, restoreEpoch == target.metadata.restoreEpoch,
+                      storeId == target.storeId, diskDigest == target.digest, let key, key == candidateKey else { throw CloudFailure.staleRestore }
+                isWriting = true; entered = true
+                let existing = try suppliedKey ?? deviceKeyReader(false)
+                guard existing == candidateKey else { throw ExpenseError.missingKey }
+            }, checkpoint: commitCheckpoint)
+            adopt(loaded); diskDigest = digest; key = installedKey; isReady = true; errorMessage = nil
+        } catch {
+            if entered { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription }
+            throw error
+        }
     }
     /// Called only after backup authentication, validation, and explicit replacement confirmation.
     func restore(_ next: VaultSnapshot, expectedRevision: Int? = nil) throws {

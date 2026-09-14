@@ -1,0 +1,74 @@
+{
+  "scope": "Internal synchronous raw-receipt candidate installation and exact AAB packaging validation; no v4 integration, higher capacity, provider/device/store acceptance.",
+  "baseCommit": "c633fb9",
+  "status": "local_integration_passed_hosted_pending",
+  "native": {
+    "ios": {
+      "passed": 61,
+      "failed": 0,
+      "skipped": 0
+    },
+    "android": {
+      "focusedPerApi": 38,
+      "separateFinalRegressionPerApi": 1,
+      "jvm": 25,
+      "apis": [
+        26,
+        37
+      ]
+    },
+    "rootHashesVerified": 153
+  },
+  "sharedAcceptance": {
+    "assertionRevision": 2,
+    "sha256": "a8cb4dd0f9b2c8df095ce64c09e4321a77d144a167a264db99f6cadcad0c9baf"
+  },
+  "reviews": [
+    "Root reviewed both native shared publication helpers and required namespace/foreign-owner corrections.",
+    "Root reviewed AAB helper; independent agent reviewed root preflight/packaging wiring with no actionable P1/P2."
+  ],
+  "evidence": [
+    "apps/ios/evidence/candidate-install.json",
+    "apps/android/evidence/candidate-install.json",
+    "docs/offline/evidence/aab-preflight.json"
+  ],
+  "limitations": [
+    "No candidate UI/v4/cloud linkage or increased caps.",
+    "Android38-suite and1 regression are separate test APK checkpoints with unchanged production source.",
+    "Native injected faults/new instances are not physical or process-death proof for the new entry.",
+    "AAB actual JDK/bundletool proof uses public synthetic fixtures, not signed Penny or Play delivery.",
+    "Older hosted5d98016 results do not cover this source."
+  ],
+  "capturedAt": "2026-09-14T05:32:03.483095+00:00",
+  "results": {
+    "node": 119,
+    "pythonGroups": 54,
+    "pythonSkipped": 0,
+    "staticBoundaries": "passed",
+    "reviewDocs": 104,
+    "originalDocs": 105,
+    "changedSourceSAST": {
+      "rules": 162,
+      "files": 10,
+      "findings": 0,
+      "errors": 0
+    }
+  },
+  "environmentCorrection": "Initial combined command passed119Node+49scriptPython+5cryptoPython, then boundary checker lacked defusedxml under system Python. Re-ran only boundary checker with existing configured security venv; passed. Source unchanged.",
+  "commands": {
+    "offline": "PENNY_TEST_JAVA=/opt/homebrew/opt/openjdk@17/bin/java PENNY_TEST_BUNDLETOOL=<original artifacts>/aab-preflight/bundletool-all-1.18.3.jar npm run offline:check",
+    "boundaryCorrection": "<original artifacts>/sast-venv/bin/python3 scripts/offline/check-boundaries.py",
+    "docs": "npm run docs:auto in each checkout",
+    "lint": "npx eslint scripts/offline/local-candidate-fixtures.test.mjs"
+  },
+  "logSha256": {
+    "artifacts/offline/candidate-install-review-offline.log": "41756441c2664c3d94a0cb1b2c2ea5d5bab064de64e75f18db784a0397e39985",
+    "artifacts/offline/candidate-install-review-boundaries.log": "95ff1db11c632b6c83125acc103904186595fd4d8a73c0c423386c5fad229817",
+    "artifacts/offline/candidate-install-review-docs.log": "8e23a2fe65397fce8b9c1b53ade8ce48ae6162504c564816c8467d1b069881e7",
+    "artifacts/offline/candidate-install-original-docs.log": "f752a89ecc3d097979dc626ecd1cc1cb63ea3e2ecd8f75395328539e457d83a5",
+    "artifacts/offline/candidate-install-review-sast.json": "6e7bff6cb9d0d08e74c8e74bd41bc1f5e1269fffd10af9199b064545f2bcae6c",
+    "artifacts/offline/candidate-install-review-sast.log": "db9042302103a1046339825cb6d0fd11ee2b472d5afd69b4d648a268d90ec128",
+    "artifacts/offline/candidate-install-root-hash-check.json": "e272864c10b45746837dce39fb025aa0fc99da7ff58ab4c6a8a94923e139ca56",
+    "artifacts/offline/candidate-install-ios-root-summary.json": "06175139f9884c1deb8aa9a5906dcda48e137f3156321b9bea0fec2d4b08d46d"
+  }
+}

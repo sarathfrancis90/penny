@@ -22,7 +22,7 @@ The check also requires the packaged privacy manifest and compiled icon metadata
 
 ## Android
 
-Use the signed installation **`.apk`** and the expected certificate for that artifact. A locally upload-key-signed APK and a Play-delivered APK may have different certificates under Play App Signing; compare each to its appropriate independently verified identity.
+Use the exact upload **`.aab`** or signed installation **`.apk`** and the independently expected certificate for that artifact. A locally upload-key-signed APK and a Play-delivered APK may have different certificates under Play App Signing; compare each to its appropriate independently verified identity.
 
 ```sh
 npm run offline:release:preflight -- android /absolute/path/penny-offline.apk \
@@ -38,7 +38,9 @@ The check verifies the APK signature and exact certificate, production package, 
 
 The Drive signing guard is compared to `--drive-signing-sha256`, separately from the APK's `--certificate-sha256`. Under Play App Signing the installed registration can use a different certificate from the local upload key; both must be supplied from the appropriate independent records. A structurally correct upload-signed APK need not authorize Drive locally when its guard expects Play's delivered certificate.
 
-Exact `.aab` module/signature validation and Play-generated artifacts remain separate. [Native packaging](NATIVE_PACKAGING.md) builds in an isolated working-tree snapshot, checks the exported IPA or local APK and binds the retained product digest to that preflight. An APK pass does not establish its sibling AAB. The development applications are expected to fail this preflight; a green simulator test is not a release artifact.
+AAB mode additionally requires `--java /absolute/path/to/jdk/bin/java` and `--bundletool /absolute/path/to/trusted/bundletool-all.jar`. It snapshots the regular bundle and trusted standalone tool into private temporary storage, bounds the ZIP directory and actual decoded bytes, rejects ambiguous paths/extra modules, and uses the JDK to verify every content entry against the independent upload certificate. Only exact JAR signature control entries are exempt from per-entry signer checks. The current single-module profile requires `base`; extra feature/asset modules fail closed. `bundletool validate` and `dump manifest --module=base` inspect those same frozen bytes before the existing Android manifest policy runs. The report records the bundle hash and tool version/hash. Tool paths are explicit trusted configuration; the checker never downloads tools.
+
+JAR content authentication against an independently supplied upload certificate does not establish public-CA trust, signing time, Play acceptance, Play re-signing or delivered behavior. [Native packaging](NATIVE_PACKAGING.md) builds in an isolated working-tree snapshot, checks the exact IPA or both AAB and APK, and binds retained hashes to the respective preflights. An APK pass cannot satisfy the AAB check. The development applications are expected to fail this preflight; a green simulator test is not a release artifact.
 
 ## Local evidence
 

@@ -1,11 +1,13 @@
 """Reject plausible but unsafe signed-artifact metadata; no signing credentials required."""
 from copy import deepcopy
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 import importlib.util
 import hashlib
 from pathlib import Path
 import unittest
 import tempfile
+from types import SimpleNamespace
 import zipfile
 from unittest.mock import patch
 
@@ -60,6 +62,52 @@ class ReleasePreflightTests(unittest.TestCase):
 
     def check_android(self, value):
         return preflight.validate_android(value, CERT, CLIENT, "3.0.0", 10014)
+
+    def test_exact_aab_routes_verified_snapshot_manifest_and_preserves_signature_failure(self):
+        closed = []
+        observed = []
+        xml = '<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.penny.penny_mobile" android:versionName="3.0.0" android:versionCode="10015"><uses-sdk android:minSdkVersion="26" android:targetSdkVersion="37"/><application android:allowBackup="false" android:usesCleartextTraffic="false"/></manifest>'
+        @contextmanager
+        def inspect(path, **kwargs):
+            observed.append((path, kwargs))
+            try:
+                yield SimpleNamespace(manifest_xml=xml, signature_verified=False, signer_sha256=CERT,
+                                      sha256="d" * 64, entries=7, uncompressed_bytes=100,
+                                      signed_content_entries=4, bundletool_sha256="e" * 64,
+                                      bundletool_version="1.18.3")
+            finally:
+                closed.append(True)
+        helper = SimpleNamespace(inspect_aab=inspect)
+        spec = SimpleNamespace(name="test_helper", loader=SimpleNamespace(exec_module=lambda _: None))
+        try:
+            with patch.object(preflight.importlib.util, "spec_from_file_location", return_value=spec), \
+                 patch.object(preflight.importlib.util, "module_from_spec", return_value=helper), \
+                 patch.object(preflight, "android_evidence") as apk:
+                result = preflight.android_bundle_evidence(Path("upload.aab"), ":".join(["A1"] * 32), "/trusted/java", "/trusted/bundletool.jar")
+            apk.assert_not_called()
+            self.assertEqual(closed, [True])
+            self.assertEqual(observed[0][1]["expected_signer_sha256"], CERT)
+            self.assertEqual(observed[0][1]["bundletool"], "/trusted/bundletool.jar")
+            self.assertEqual(result["containerType"], "aab")
+            self.assertEqual(result["artifactSha256"], "d" * 64)
+            self.assertEqual(result["bundle"], "com.penny.penny_mobile")
+            self.assertEqual(result["build"], "10015")
+            self.assertIs(result["signatureVerified"], False)
+            self.assertIn("Artifact signature verification failed", self.check_android(result))
+        finally:
+            preflight.sys.modules.pop("test_helper", None)
+
+    def test_aab_inspection_failure_cannot_fall_back_to_sibling_apk(self):
+        helper = SimpleNamespace(inspect_aab=lambda *a, **k: (_ for _ in ()).throw(ValueError("unsigned entry")))
+        spec = SimpleNamespace(name="test_helper", loader=SimpleNamespace(exec_module=lambda _: None))
+        try:
+            with patch.object(preflight.importlib.util, "spec_from_file_location", return_value=spec), \
+                 patch.object(preflight.importlib.util, "module_from_spec", return_value=helper), \
+                 patch.object(preflight, "android_evidence") as apk, self.assertRaisesRegex(ValueError, "unsigned entry"):
+                preflight.android_bundle_evidence(Path("upload.aab"), CERT, "/trusted/java", "/trusted/bundletool.jar")
+            apk.assert_not_called()
+        finally:
+            preflight.sys.modules.pop("test_helper", None)
 
     def test_exported_ipa_routes_frozen_payload_and_preserves_signature_failure(self):
         with tempfile.TemporaryDirectory() as directory:

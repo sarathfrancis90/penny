@@ -20,6 +20,8 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", alia
     fun cloudCheckpoint(afterSnapshot: () -> Unit = {}): Triple<Snapshot,Long,String> = generations.checkpoint(afterSnapshot)
     fun restoreBinding(): String = generations.binding()
     fun replace(snapshot: Snapshot, expectedRevision: Long? = null, expectedBinding: String? = null, operation: RestoreOperation = RestoreOperation()) = generations.replace(snapshot,expectedRevision,expectedBinding,operation)
+    internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<VaultGenerations.ReceiptDeclaration>, operation: RestoreOperation = RestoreOperation()) = generations.beginReceiptPreparation(metadata,receipts,operation)
+    internal fun installPrepared(candidate: VaultGenerations.PreparedGeneration) = generations.installPrepared(candidate)
     fun save(expense: Expense, receipts: List<Attachment> = emptyList()): Snapshot = generations.mutate { current ->
         require(receipts.all {it.expenseId==expense.id})
         current.copy(expenses=current.expenses.filterNot {it.id==expense.id}+expense,attachments=current.attachments+receipts)

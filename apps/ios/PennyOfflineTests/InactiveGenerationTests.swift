@@ -1,6 +1,7 @@
 import CryptoKit
 import Darwin
 import Foundation
+import Synchronization
 import XCTest
 @testable import PennyOffline
 
@@ -274,6 +275,156 @@ import XCTest
             } else { XCTAssertThrowsError(try preparation.append(receiptId: receipt.id, source: source)) }
             XCTAssertEqual(source.closeCount, 1); XCTAssertThrowsError(try preparation.finish())
             try assertPreserved(dir, pointer: pointer, names: names)
+        }
+    }
+    private func bound(_ snapshot: VaultSnapshot, store: VaultStore) throws -> DurableVaultStorage.Preparation {
+        var body = snapshot; body.attachments = []
+        return try store.beginLocalReceiptReplacement(body, receipts: snapshot.attachments.map(declaration))
+    }
+    private func candidate(_ snapshot: VaultSnapshot, store: VaultStore) throws -> DurableVaultStorage.InactiveCandidate {
+        let preparation = try bound(snapshot, store: store); try append(snapshot, to: preparation); return try preparation.finish()
+    }
+    func testGuardedInstallReopensAllDomainsIncludingLegacySource() throws {
+        for legacy in [false, true] {
+            let dir = directory(), previous = try input("previous"), replacement = try input()
+            if legacy {
+                try FileManager.default.createDirectory(at: root(dir), withIntermediateDirectories: true)
+                try VaultCipher.seal(JSONEncoder().encode(previous), key: key).write(to: root(dir).appendingPathComponent(DurableVaultStorage.live))
+            } else { try VaultStore(directory: dir, key: key).replace(previous) }
+            let store = VaultStore(directory: dir, key: key), pointer = try live(dir)
+            let revision = store.revision, writer = store.writerId, epoch = store.restoreEpoch
+            let preparation = try bound(replacement, store: store)
+            try append(replacement, to: preparation); let value = try preparation.finish()
+            XCTAssertEqual(try live(dir), pointer); XCTAssertEqual(store.revision, revision)
+            try store.installLocalReceiptReplacement(value)
+            XCTAssertEqual(store.revision, revision + 1); XCTAssertEqual(store.writerId, writer); XCTAssertNotEqual(store.restoreEpoch, epoch)
+            try equal(store.snapshot, replacement)
+            try preparation.close(); try value.close()
+            XCTAssertThrowsError(try value.verifiedSummary()); XCTAssertThrowsError(try store.installLocalReceiptReplacement(value))
+            let reopened = VaultStore(directory: dir, key: key); XCTAssertTrue(reopened.isReady)
+            try equal(reopened.snapshot, replacement); XCTAssertEqual(reopened.revision, revision + 1)
+            XCTAssertEqual(reopened.restoreEpoch, store.restoreEpoch)
+        }
+    }
+    func testBoundInstallConsumesStaleOwnerRevisionIncarnationAndRoot() throws {
+        for variant in ["sameOwnerEdit", "otherInstanceEdit", "incarnation", "otherOwner", "rootReplaced", "rootReplacedEmpty", "unbound"] {
+            let dir = directory()
+            var previous = try input("previous"), replacement = try input()
+            if variant == "rootReplacedEmpty" { previous.attachments = []; replacement.attachments = [] }
+            let store = VaultStore(directory: dir, key: key); try store.replace(previous)
+            let value: DurableVaultStorage.InactiveCandidate
+            if variant == "unbound" {
+                let preparation = try prepare(replacement, at: dir); try append(replacement, to: preparation); value = try preparation.finish()
+            } else { value = try candidate(replacement, store: store) }
+            var destination = store
+            if variant == "sameOwnerEdit" || variant == "otherInstanceEdit" {
+                let writer = variant == "sameOwnerEdit" ? store : VaultStore(directory: dir, key: key)
+                var edit = previous.expenses[0]; edit.merchant = "Authoritative intervening edit"; try writer.save(edit)
+                XCTAssertNoThrow(try writer.collectReceiptGarbage())
+                XCTAssertEqual(try value.verifiedSummary().vaultId, replacement.vaultId)
+            } else if variant == "incarnation" {
+                let revision = store.revision, epoch = store.restoreEpoch
+                try VaultCipher.seal(JSONEncoder().encode(previous), key: key).write(to: root(dir).appendingPathComponent(DurableVaultStorage.live))
+                let reincarnated = VaultStore(directory: dir, key: key); try reincarnated.replace(previous)
+                XCTAssertEqual(reincarnated.revision, revision); XCTAssertNotEqual(reincarnated.restoreEpoch, epoch)
+            } else if variant == "otherOwner" { destination = VaultStore(directory: dir, key: key) }
+            else if variant == "rootReplaced" || variant == "rootReplacedEmpty" {
+                let moved = dir.appendingPathComponent("moved-root")
+                try FileManager.default.moveItem(at: root(dir), to: moved); try FileManager.default.copyItem(at: moved, to: root(dir))
+                var url = root(dir), flags = URLResourceValues(); flags.isExcludedFromBackup = true; try url.setResourceValues(flags)
+            }
+            let expected = VaultStore(directory: dir, key: key).snapshot, pointer = try live(dir)
+            XCTAssertThrowsError(try destination.installLocalReceiptReplacement(value), variant)
+            if variant == "otherOwner" {
+                XCTAssertEqual(try live(dir), pointer); XCTAssertEqual(try value.verifiedSummary().vaultId, replacement.vaultId)
+                try store.installLocalReceiptReplacement(value)
+                try value.close(); try equal(VaultStore(directory: dir, key: key).snapshot, replacement)
+                continue
+            }
+            if variant == "unbound" {
+                XCTAssertEqual(try value.verifiedSummary().vaultId, replacement.vaultId); try value.close()
+                XCTAssertEqual(try live(dir), pointer); continue
+            }
+            XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); XCTAssertThrowsError(try value.verifiedSummary())
+            try value.close(); XCTAssertEqual(try live(dir), pointer)
+            try equal(VaultStore(directory: dir, key: key).snapshot, expected)
+        }
+    }
+    func testBoundInstallChecksExistingKeyBeforeBeginAndBeforePublication() throws {
+        let publicKey = key
+        for stage in ["begin", "install", "prepublication", "changedKey"] {
+            let dir = directory(), replacement = try input()
+            let state = Mutex((available: true, changed: false, creates: 0))
+            let store = VaultStore(directory: dir, deviceKeyReader: { create in
+                try state.withLock { value in
+                    if create { value.creates += 1 }
+                    guard value.available else { throw ExpenseError.missingKey }
+                    return value.changed ? SymmetricKey(data: Data(repeating: 0x0c, count: 32)) : publicKey
+                }
+            }, commitCheckpoint: { point in
+                if stage == "prepublication", point == .rollbackSaved { state.withLock { $0.available = false } }
+            })
+            // Seed through a separate store so the tested checkpoint starts only at install.
+            try VaultStore(directory: dir, key: key).replace(input("previous")); store.load()
+            let pointer = try live(dir), provisionCount = state.withLock { $0.creates }
+            if stage == "begin" {
+                state.withLock { $0.available = false }; let before = try inventory(dir)
+                XCTAssertThrowsError(try bound(replacement, store: store)); XCTAssertEqual(try inventory(dir), before)
+            } else {
+                let value = try candidate(replacement, store: store)
+                if stage == "install" { state.withLock { $0.available = false } }
+                if stage == "changedKey" { state.withLock { $0.changed = true } }
+                XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); XCTAssertThrowsError(try value.verifiedSummary())
+            }
+            XCTAssertEqual(state.withLock { $0.creates }, provisionCount); XCTAssertFalse(store.isReady)
+            XCTAssertEqual(try live(dir), pointer); try equal(VaultStore(directory: dir, key: key).snapshot, input("previous"))
+        }
+    }
+    func testBoundInstallFailureRollbackAndUncertainRecovery() throws {
+        for stage in [VaultStore.CommitStage.staged, .rollbackSaved, .committed, .verified, .journalCleared] {
+            for crash in [false, true] {
+                let dir = directory(), previous = try input("previous"), replacement = try input()
+                try VaultStore(directory: dir, key: key).replace(previous)
+                let store = VaultStore(directory: dir, key: key, commitCheckpoint: { point in
+                    if point == stage { if crash { throw DurableCrash.interrupted }; throw LocalReceiptBlobError.file }
+                })
+                let pointer = try live(dir), value = try candidate(replacement, store: store)
+                XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); try value.close()
+                XCTAssertThrowsError(try value.verifiedSummary())
+                let published = crash && [.committed, .verified, .journalCleared].contains(stage)
+                if !published { XCTAssertEqual(try live(dir), pointer) }
+                let reopened = VaultStore(directory: dir, key: key); XCTAssertTrue(reopened.isReady)
+                try equal(reopened.snapshot, published ? replacement : previous)
+            }
+        }
+    }
+    func testBoundInstallActualCancellationRollsBackAfterPublication() async throws {
+        for stage in [VaultStore.CommitStage.staged, .committed, .verified, .journalCleared] {
+            let dir = directory(), previous = try input("previous"), replacement = try input()
+            try VaultStore(directory: dir, key: key).replace(previous)
+            let store = VaultStore(directory: dir, key: key, commitCheckpoint: { if $0 == stage { withUnsafeCurrentTask { $0?.cancel() } } })
+            let pointer = try live(dir), value = try candidate(replacement, store: store)
+            let task = Task { @MainActor in try store.installLocalReceiptReplacement(value) }
+            do { try await task.value; XCTFail("Cancelled install accepted") } catch is CancellationError {} catch { XCTFail("Expected cancellation: \(error)") }
+            XCTAssertEqual(try live(dir), pointer); try value.close()
+            XCTAssertThrowsError(try value.verifiedSummary()); try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+        }
+    }
+    func testBoundInstallTamperBeforeAndAfterPublicationPreservesPrevious() throws {
+        for stage in [VaultStore.CommitStage.staged, .committed] {
+            let dir = directory(), previous = try input("previous"), replacement = try input()
+            try VaultStore(directory: dir, key: key).replace(previous); let names = try inventory(dir)
+            let store = VaultStore(directory: dir, key: key, commitCheckpoint: { point in
+                if point == stage {
+                    let folder = dir.appendingPathComponent("PennyOffline")
+                    let group = try XCTUnwrap(FileManager.default.contentsOfDirectory(atPath: folder.path).first { UUID(uuidString: $0) != nil && !names.contains($0) })
+                    let path = folder.appendingPathComponent(group + "/" + replacement.attachments[0].id + ".pennyreceipt")
+                    var bytes = try Data(contentsOf: path); bytes[bytes.count - 1] ^= 1; try bytes.write(to: path)
+                }
+            })
+            let pointer = try live(dir), value = try candidate(replacement, store: store)
+            XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); try value.close()
+            XCTAssertEqual(try live(dir), pointer); try equal(VaultStore(directory: dir, key: key).snapshot, previous)
         }
     }
 }

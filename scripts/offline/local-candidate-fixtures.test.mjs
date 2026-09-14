@@ -10,6 +10,18 @@ test('inactive candidate acceptance references exact existing goldens and unique
   assert.equal(manifest.status, 'required_unproven');
   const ids = manifest.requiredScenarios.map(s => s.id);
   assert.equal(new Set(ids).size, ids.length);
+  // These IDs are referenced by previously recorded native preparation evidence.
+  assert.deepEqual(ids, [
+    'prepare_isolated', 'candidate_metadata_receipt_roundtrip', 'guarded_install_reopen',
+    'receipt_wrong_owner', 'receipt_hash_mismatch', 'receipt_missing', 'receipt_duplicate',
+    'receipt_native_invalid', 'cancelled_input', 'cancelled_finish', 'input_read_close_failure',
+    'candidate_write_close_failure', 'single_use_lifecycle', 'candidate_gc_pin',
+    'candidate_gc_pin_then_stale', 'stale_incarnation', 'abort_owned_only', 'key_unavailable_preview',
+  ]);
+  assert.equal(manifest.assertionRevision, 2);
+  assert.equal(manifest.installationContract.status, 'required_unproven');
+  assert.deepEqual(manifest.requiredScenarios.filter(s => s.stage === 'installation_if_wired')
+    .map(s => s.id), ['guarded_install_reopen', 'candidate_gc_pin_then_stale', 'stale_incarnation']);
   for (const scenario of manifest.requiredScenarios) {
     assert.ok(['preparation', 'installation_if_wired'].includes(scenario.stage));
     assert.ok(scenario.trigger.length > 0 && scenario.requiredOutcome.length > 0);

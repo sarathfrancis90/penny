@@ -38,10 +38,21 @@ class PackagingTests(unittest.TestCase):
                 packaging.verify_upload_object_binding(report, [ipa], "ios")
             apk = Path(directory) / "Upload.apk"
             apk.write_bytes(b"synthetic APK, not a signing proof")
-            apk_report = {"artifactSha256": hashlib.sha256(apk.read_bytes()).hexdigest()}
-            self.assertEqual(packaging.verify_upload_object_binding(apk_report, [apk], "android"), apk_report["artifactSha256"])
+            apk_report = {"artifactSha256": hashlib.sha256(apk.read_bytes()).hexdigest(), "containerType": "apk"}
+            self.assertEqual(packaging.verify_product_binding(apk_report, apk, "apk"), apk_report["artifactSha256"])
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding(apk_report, [apk], "android")
             with self.assertRaises(ValueError):
                 packaging.verify_upload_object_binding(apk_report, [apk], "ios")
+            aab = Path(directory) / "Upload.aab"
+            aab.write_bytes(b"synthetic AAB, not a signing proof")
+            aab_report = {"artifactSha256": hashlib.sha256(aab.read_bytes()).hexdigest(), "containerType": "aab"}
+            self.assertEqual(packaging.verify_upload_object_binding(aab_report, [aab, apk], "android"), aab_report["artifactSha256"])
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding({**aab_report, "containerType": "apk"}, [aab], "android")
+            aab.write_bytes(b"substituted sibling bundle")
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding(aab_report, [aab, apk], "android")
 
     def test_ios_rejects_unbounded_or_injected_release_metadata(self):
         config = {"version": "3.0.0", "build": 10015, "teamId": "TESTTEAM01", "container": "iCloud.test.penny",
@@ -60,13 +71,20 @@ class PackagingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             key = Path(directory) / "test-store"
             key.write_bytes(b"synthetic, not a signing key")
+            bundletool = Path(directory) / "bundletool.jar"
+            bundletool.write_bytes(b"synthetic tool path; not executed")
             config = {"version": "3.0.0", "build": 10015, "driveClientId": "123-test.apps.googleusercontent.com",
                       "uploadCertificateSha256": "ab" * 32, "driveSigningSha256": "cd" * 32,
-                      "apksigner": sys.executable, "apkanalyzer": sys.executable}
+                      "apksigner": sys.executable, "apkanalyzer": sys.executable,
+                      "java": sys.executable, "bundletool": str(bundletool)}
             environment = {"PENNY_ANDROID_KEYSTORE": str(key), "PENNY_ANDROID_KEY_ALIAS": "test",
                            "PENNY_ANDROID_STORE_PASSWORD": "test", "PENNY_ANDROID_KEY_PASSWORD": "test"}
             with patch.dict(os.environ, environment, clear=True):
                 self.assertEqual(packaging.configuration(config, "android", 10014), config)
+                for changes in ({"java": "java"}, {"bundletool": "bundletool.jar"},
+                                {"bundletool": str(Path(directory) / "absent.jar")}):
+                    with self.assertRaises(ValueError):
+                        packaging.configuration({**config, **changes}, "android", 10014)
             for missing in environment:
                 with patch.dict(os.environ, {k: v for k, v in environment.items() if k != missing}, clear=True):
                     with self.assertRaises(ValueError):
@@ -74,6 +92,30 @@ class PackagingTests(unittest.TestCase):
             key.unlink()
             with patch.dict(os.environ, environment, clear=True), self.assertRaises(ValueError):
                 packaging.configuration(config, "android", 10014)
+
+    def test_android_selects_actual_bundle_and_retains_separate_apk(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            apk = root / "apps/android/app/build/outputs/apk/release/app.apk"
+            aab = root / "apps/android/app/build/outputs/bundle/release/app.aab"
+            for path, data in ((apk, b"apk bytes"), (aab, b"different bundle bytes")):
+                path.parent.mkdir(parents=True)
+                path.write_bytes(data)
+            output = root / "output"
+            output.mkdir()
+            config = {"version": "3.0.0", "build": 10015, "driveClientId": "123-test.apps.googleusercontent.com",
+                      "uploadCertificateSha256": "ab" * 32, "driveSigningSha256": "cd" * 32,
+                      "apksigner": "/trusted/apksigner", "apkanalyzer": "/trusted/apkanalyzer",
+                      "java": "/trusted/java", "bundletool": "/trusted/bundletool.jar"}
+            with patch.object(packaging, "run") as run:
+                products, args = packaging.android_build(config, output, output / "build.log", root)
+            self.assertEqual([p.suffix for p in products], [".aab", ".apk"])
+            self.assertEqual([p.read_bytes() for p in products], [aab.read_bytes(), apk.read_bytes()])
+            self.assertEqual(args[:2], ["android", str(products[0])])
+            self.assertIn(config["bundletool"], args)
+            self.assertIn(config["java"], args)
+            self.assertIn("assembleRelease", run.call_args.args[0])
+            self.assertIn("bundleRelease", run.call_args.args[0])
 
     def test_ios_profile_only_exports_and_does_not_mutate_source_plist(self):
         import plistlib

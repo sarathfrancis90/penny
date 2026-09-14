@@ -53,6 +53,14 @@ protocol DurableReceiptSource: AnyObject {
     func close() throws
 }
 
+/// Created only by the bound local entry; never decoded from incoming metadata.
+struct LocalReceiptTarget {
+    let owner: UUID, digest: String?, storeId: String, metadata: LocalVaultMetadata
+    fileprivate init(owner: UUID, digest: String?, storeId: String, metadata: LocalVaultMetadata) {
+        self.owner = owner; self.digest = digest; self.storeId = storeId; self.metadata = metadata
+    }
+}
+
 /// One FD lease addresses the actual directory inode across every store instance.
 /// Root provisioning occurs before this trusted storage context is exposed.
 final class DurableVaultStorage {
@@ -238,6 +246,7 @@ final class DurableVaultStorage {
     }
     private func readVerified(_ ref: DurableReference, storeId: String, key: SymmetricKey,
                               hydration: SnapshotHydration? = nil,
+                              localMetadata: ((LocalVaultMetadata) -> Void)? = nil,
                               receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil) throws -> DurableVerifiedMetadata {
         let wire = try referenced(ref)
         guard wire.starts(with: Self.recordMagic) else { throw ExpenseError.invalidSnapshot }
@@ -257,6 +266,7 @@ final class DurableVaultStorage {
         }
         let result = try summary(snapshot, receiptCount: record.receipts.count, receiptBytes: receiptBytes, snapshotBytes: snapshotBytes, digest: ref.sha256)
         try hydration?.finish(snapshot, record: record, metadata: result)
+        localMetadata?(record.metadata)
         record.receipts.forEach { receiptMetadata?($0) }
         return result
     }
@@ -326,6 +336,23 @@ final class DurableVaultStorage {
             guard let wire = try recoveredWire(key: key) else { throw ExpenseError.lockedVault }
             return try verifiedDecoded(wire, key: key)
         }
+    }
+    private func verifyTarget(_ target: LocalReceiptTarget, key: SymmetricKey) throws {
+        try checkRoot()
+        let wire = try liveBytes()
+        guard wire.map(Self.digest) == target.digest else { throw CloudFailure.staleRestore }
+        var actual: LocalVaultMetadata?
+        if let wire {
+            if wire.starts(with: Self.prefix) {
+                let p = try pointer(wire, key: key)
+                guard p.storeId == target.storeId, p.journal == nil else { throw CloudFailure.staleRestore }
+                _ = try readVerified(p.current, storeId: p.storeId, key: key, localMetadata: { actual = $0 })
+            } else { actual = try LocalVaultFrame.decode(VaultCipher.open(wire, key: key)).metadata }
+        }
+        if let actual {
+            guard actual.writerId == target.metadata.writerId, actual.revision == target.metadata.revision,
+                  actual.restoreEpoch == target.metadata.restoreEpoch else { throw CloudFailure.staleRestore }
+        } else { guard target.metadata.revision == 0 else { throw CloudFailure.staleRestore } }
     }
     func pinSnapshot(key: SymmetricKey) throws -> DurableSnapshotLease {
         guard let loaded = try load(key: key) else { throw ExpenseError.lockedVault }
@@ -415,6 +442,10 @@ final class DurableVaultStorage {
             if Darwin.close(held) != 0 { failed = true }
             if failed { throw LocalReceiptBlobError.file }
         }
+        func retainCommitted() throws {
+            guard pin >= 0 else { return }; let held = pin; pin = -1
+            guard Darwin.close(held) == 0 else { throw LocalReceiptBlobError.file }
+        }
         deinit { try? close() }
     }
     private func inactiveRecord(_ bytes: Data, id: String, cancellation: () throws -> Void) throws -> OwnedRecord {
@@ -443,7 +474,7 @@ final class DurableVaultStorage {
         } catch { try owned.close(); throw error }
     }
 
-    /// Unexposed, synchronous/off-main preparation. No activation/install API.
+    /// Synchronous preparation. The bound entry is installable only by its local owner.
     /// Callers provide an already-owned device key; this type never accesses Keychain.
     final class Preparation {
         enum Phase { case beforeFinish, afterMetadataClose, afterVerification }
@@ -454,6 +485,19 @@ final class DurableVaultStorage {
         private var key: SymmetricKey?, active = true
         private var groups: [LocalReceiptGeneration] = [], descriptors: [LocalReceiptDescriptor] = [], pins: [Int32] = []
         private var record: OwnedRecord?
+        private var target: LocalReceiptTarget?
+
+        static func beginBound(directory: URL, key: SymmetricKey, body: VaultSnapshot, receipts: [DurableReceiptDeclaration],
+                               owner: UUID, digest: String?, storeId: String, source: LocalVaultMetadata) throws -> Preparation {
+            guard source.revision < CloudWire.maximumRevision else { throw ExpenseError.invalidSnapshot }
+            let target = LocalReceiptTarget(owner: owner, digest: digest, storeId: storeId, metadata: source)
+            let next = LocalVaultMetadata(writerId: source.writerId, revision: source.revision + 1, restoreEpoch: UUID().uuidString.lowercased())
+            let prepared = try begin(directory: directory, key: key, body: body, receipts: receipts, metadata: next, storeId: storeId)
+            do {
+                try prepared.storage.leased { try prepared.storage.verifyTarget(target, key: key); try Task.checkCancellation() }
+                prepared.target = target; return prepared
+            } catch { try prepared.close(); throw error }
+        }
 
         static func begin(directory: URL, key: SymmetricKey?, body: VaultSnapshot, receipts: [DurableReceiptDeclaration],
                           metadata: LocalVaultMetadata, storeId: String,
@@ -560,6 +604,32 @@ final class DurableVaultStorage {
             try record?.validateOwnership()
             for group in groups { try group.validateOwnership() }
         }
+        fileprivate func install(owner: UUID, validate: (LocalReceiptTarget, SymmetricKey) throws -> Void,
+                                 checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?, SymmetricKey) {
+            guard let target, target.owner == owner, let key, let record else { throw CloudFailure.staleRestore }
+            try cancellation(); try validate(target, key)
+            return try storage.leased {
+                try storage.verifyTarget(target, key: key); try validateOwnership(); try cancellation()
+                let loaded = try storage.publish(record.reference, key: key, sourceDigest: target.digest, storeId: target.storeId,
+                    checkpoint: checkpoint,
+                    validateOwned: { try self.validateOwnership(); try self.cancellation() },
+                    beforePublication: { try validate(target, key); try self.storage.verifyTarget(target, key: key) },
+                    finalize: { try self.cancellation(); try self.validateOwnership(); try self.retainCommitted() },
+                    uncertain: { try self.retainCommitted() })
+                return (loaded, try storage.liveBytes().map(DurableVaultStorage.digest), key)
+            }
+        }
+        fileprivate func matchesOwner(_ owner: UUID) -> Bool { target?.owner == owner }
+        private func retainCommitted() throws {
+            key = nil
+            let ownedRecord = record, ownedGroups = groups, ownedPins = pins
+            record = nil; groups.removeAll(); pins.removeAll(); descriptors.removeAll()
+            var failed = false
+            do { try ownedRecord?.retainCommitted() } catch { failed = true }
+            for group in ownedGroups { do { try group.retainCommitted() } catch { failed = true } }
+            for pin in ownedPins { if Darwin.close(pin) != 0 { failed = true } }
+            if failed { throw LocalReceiptBlobError.file }
+        }
         /// After transfer this cannot delete the candidate; candidate close owns cleanup.
         func close() throws { guard active else { return }; active = false; try cleanup() }
         fileprivate func cleanup() throws {
@@ -576,7 +646,7 @@ final class DurableVaultStorage {
         }
         deinit { try? close() }
     }
-    /// Opaque informational result, intentionally unusable by current install APIs.
+    /// Opaque, one-shot candidate. Only a bound candidate can use local installation.
     final class InactiveCandidate {
         let summary: DurableVerifiedMetadata
         private var owner: Preparation?
@@ -585,6 +655,15 @@ final class DurableVaultStorage {
             guard let owner else { throw LocalReceiptBlobError.closed }; return try owner.verifiedSummary()
         }
         func close() throws { let owned = owner; owner = nil; try owned?.cleanup() }
+        func install(owner token: UUID, validate: (LocalReceiptTarget, SymmetricKey) throws -> Void,
+                     checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?, SymmetricKey) {
+            guard let held = owner else { throw LocalReceiptBlobError.closed }
+            // A foreign receiver cannot consume the legitimate owner's capability.
+            guard held.matchesOwner(token) else { throw CloudFailure.staleRestore }
+            owner = nil
+            do { return try held.install(owner: token, validate: validate, checkpoint: checkpoint) }
+            catch { try held.cleanup(); throw error }
+        }
         deinit { try? close() }
     }
 
@@ -609,33 +688,46 @@ final class DurableVaultStorage {
         let record = DurableRecord(version: 1, storeId: storeId, generationId: id, metadata: prepared.metadata, body: try JSONEncoder().encode(body), receipts: descriptors)
         let encrypted = try Self.recordMagic + Self.seal(JSONEncoder().encode(record), key: prepared.key, domain: "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + id)
         let current = DurableReference(id: id, sha256: Self.digest(encrypted)); try write(encrypted, name: current.name)
-        _ = try readVerified(current, storeId: storeId, key: prepared.key); try checkpoint?(.staged)
+        return try publish(current, key: prepared.key, sourceDigest: sourceDigest, storeId: storeId, checkpoint: checkpoint,
+                           beforePublication: { for generation in ownedGroups { try generation.retainCommitted() } })
+    }
+    /// Shared publication protocol for existing Snapshot writes and bound candidates.
+    private func publish(_ current: DurableReference, key: SymmetricKey, sourceDigest: String?, storeId: String,
+                         checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?,
+                         validateOwned: () throws -> Void = {}, beforePublication: () throws -> Void = {},
+                         finalize: () throws -> Void = {}, uncertain: () throws -> Void = {}) throws -> DurableLoaded {
+        let previousBytes = try liveBytes()
+        guard previousBytes.map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }
+        _ = try readVerified(current, storeId: storeId, key: key); try validateOwned(); try checkpoint?(.staged)
         let previous = try previousBytes.map { try reference($0) }
         if let previousBytes { try write(previousBytes, name: Self.rollback, replacing: true) }
         try checkpoint?(.rollbackSaved); try Task.checkCancellation()
         guard try liveBytes().map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }
-        _ = try readVerified(current, storeId: storeId, key: prepared.key)
-        let journal = try Self.seal(JSONEncoder().encode(DurableJournal(currentHash: current.sha256, previousHash: previous?.sha256)), key: prepared.key, domain: "PENNY-LOCAL-JOURNAL:1\0" + storeId)
+        _ = try readVerified(current, storeId: storeId, key: key); try validateOwned()
+        let journal = try Self.seal(JSONEncoder().encode(DurableJournal(currentHash: current.sha256, previousHash: previous?.sha256)), key: key, domain: "PENNY-LOCAL-JOURNAL:1\0" + storeId)
         // Optional Codable omission is avoided for this closed journal schema.
         let journalObject: [String: Any] = ["currentHash":current.sha256,"previousHash":previous?.sha256 as Any? ?? NSNull()]
-        let closedJournal = previous == nil ? try Self.seal(JSONSerialization.data(withJSONObject: journalObject), key: prepared.key, domain: "PENNY-LOCAL-JOURNAL:1\0" + storeId) : journal
+        let closedJournal = previous == nil ? try Self.seal(JSONSerialization.data(withJSONObject: journalObject), key: key, domain: "PENNY-LOCAL-JOURNAL:1\0" + storeId) : journal
         let pending = DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: closedJournal)
         // Transfer lifetime before an uncertain atomic publication can succeed.
-        for generation in ownedGroups { try generation.retainCommitted() }
+        try beforePublication()
         do {
-            try write(encodePointer(pending, key: prepared.key), name: Self.live, replacing: true)
+            try write(encodePointer(pending, key: key), name: Self.live, replacing: true)
             try checkpoint?(.committed)
-            _ = try readVerified(current, storeId: storeId, key: prepared.key)
+            _ = try readVerified(current, storeId: storeId, key: key); try validateOwned()
             try checkpoint?(.verified)
-            let loaded = try hydrate(current, storeId: storeId, key: prepared.key)
+            let loaded = try hydrate(current, storeId: storeId, key: key); try validateOwned()
             try Task.checkCancellation()
-            try write(encodePointer(DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: nil), key: prepared.key), name: Self.live, replacing: true)
+            try write(encodePointer(DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: nil), key: key), name: Self.live, replacing: true)
             try checkpoint?(.journalCleared)
+            try finalize()
             return loaded
         } catch {
-            if case DurableCrash.interrupted = error { throw error } // test-only simulated process interruption leaves journal intact
-            if let previousBytes { try write(previousBytes, name: Self.live, replacing: true, cancellable: false) }
-            else { guard unlinkat(fd, Self.live, 0) == 0, fsync(fd) == 0 else { throw LocalReceiptBlobError.file } }
+            if case DurableCrash.interrupted = error { try uncertain(); throw error } // simulated interruption leaves journal intact
+            do {
+                if let previousBytes { try write(previousBytes, name: Self.live, replacing: true, cancellable: false) }
+                else { guard unlinkat(fd, Self.live, 0) == 0, fsync(fd) == 0 else { throw LocalReceiptBlobError.file } }
+            } catch { try uncertain(); throw error }
             throw error
         }
     }

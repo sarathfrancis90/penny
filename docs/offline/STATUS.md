@@ -77,7 +77,21 @@ recorded below. Hosted results for the base commit do not cover this delta.
 
 ## Streamed backup work in progress
 
-Internal inactive preparation now accepts bounded raw receipts with required
+The accepted local source is committed as `6d3e22d` (metadata/raw migration)
+and `c633fb9` (owned candidates/exported IPA), after hosted base5d98016.
+The next validated slice adds guarded installation of those raw-receipt
+candidates. iOS and Android each have a12k soft implementation checkpoint;
+shared acceptance has4k. Installation captures actual target/key identity, rejects intervening
+edits/restores and reuses the existing publication/recovery protocol. It remains internal, with no new UI, cloud or v4 integration.
+
+After that, the locally achievable work is v4 app linkage and a logical writer,
+incremental storage/reads, file-based provider transfer, measured Profile A
+capacity, complete legacy reconciliation and signed packaging. Real provider
+recovery, physical AI/security/accessibility and store gates remain separate.
+Release is still substantial work; test or file counts are not a readiness
+percentage.
+
+At the earlier c633fb9 checkpoint, internal inactive preparation accepted bounded raw receipts with required
 source EOF/close, complete native validation and original-file ownership through
 cleanup. The shared acceptance manifest separates preparation from three future
 installation scenarios. iOS passed a 53-method compatibility checkpoint, then
@@ -91,9 +105,25 @@ format2 candidate intent remains quarantined after uncertain cleanup and is
 never implicitly promoted to persisted-generation ownership.
 The combined local gate passes 119 Node tests, 43 Python groups and static
 boundaries; review/original documentation checks pass 104/105 tests.
-No new candidate installation, v4 app linkage, larger capacity or performance
-acceptance is implied. Existing Snapshot publication remains in use.
+That preparation checkpoint did not add candidate installation, v4 app linkage,
+larger capacity or performance acceptance. Existing Snapshot publication remains in use.
 
+
+The subsequent guarded local installation passes **61/61 iOS methods** and
+**38 focused Android groups plus one separate moved-database regression on each
+API26/37**, with25 JVM tests, build and lint passing. Root verified153 current
+source/fixture/binary/report hashes and reviewed both shared publication helpers.
+The three shared installation scenarios now have actual platform mappings.
+[iOS](../../apps/ios/evidence/candidate-install.md) and
+[Android](../../apps/android/evidence/candidate-install.md) preserve exact source
+checkpoints, before/after-publication outcomes and ownership limits. This is an
+internal synchronous seam: v4, provider and UI linkage remain pending. In-process
+fault/reopen tests do not establish physical failure or separate-process recovery
+through this new entry point. The combined gate passes119 Node tests and54
+Python groups (zero skips), plus static boundaries,104/105 documentation tests
+and changed-source SAST (162 rules, ten files, zero findings/errors). An initial
+Python dependency-path failure in the boundary checker was corrected with the
+existing configured venv; preceding tests were not unnecessarily repeated.
 
 Both platforms now verify durable generation metadata and every native receipt
 without building aggregate receipt Base64 for validation-only paths. The existing
@@ -176,8 +206,11 @@ The [exported IPA checker](evidence/exported-ipa-preflight.json) now validates a
 private snapshot of the actual export and binds that digest to the retained
 packaging product. All 38 Python groups in `scripts/offline` pass, including 13
 archive-helper groups. A synthetic simulator payload reached the real signing
-checker and was rejected as expected. No signed distribution artifact or exact
-AAB validation has passed.
+checker and was rejected as expected. No signed distribution artifact has passed. The subsequent AAB helper passes
+eight synthetic groups with actual JDK signatures and pinned bundletool1.18.3
+validation/base-manifest dumping. Packaging requires separate AAB and APK checks
+and matches both retained hashes. This is local tooling; no real signed Penny
+AAB, Play processing or delivered-app acceptance is implied.
 
 ## Demo, design and physical boundaries
 
@@ -202,6 +235,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **35% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **34% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
-The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **13,921,673 aggregate tokens and 35,841 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.
+The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **14,626,837 aggregate tokens and 37,936 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

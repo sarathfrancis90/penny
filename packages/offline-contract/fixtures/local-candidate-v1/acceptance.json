@@ -67,7 +67,7 @@
       "receiptBytes": 2097152,
       "totalReceiptBytes": 8388608
     },
-    "installation": "Current slice exposes no public install capability; existing Snapshot commit stays unchanged. Installation-tagged scenarios remain not_implemented until a separately reviewed guarded live-store seam exists."
+    "installation": "A separately reviewed internal synchronous local install seam may consume only its own opaque finished candidate through the existing guarded publication/recovery path. Installation scenarios require fresh platform evidence; preparation evidence alone proves none of them. No cloud/provider or v4 archive integration."
   },
   "invalidImageReference": {
     "path": "../png-integrity-corpus.json",
@@ -91,7 +91,13 @@
       "id": "guarded_install_reopen",
       "stage": "installation_if_wired",
       "trigger": "Finish replacement, satisfy captured current identity guards, install and reopen from durable storage.",
-      "requiredOutcome": "All eight domain arrays equal replacement values, and receipt bytes equal the referenced original. Only documented local revision/incarnation metadata may change."
+      "requiredOutcome": "All eight domain arrays equal replacement values, and receipt bytes equal the referenced original. Only documented local revision/incarnation metadata may change.",
+      "assertions": [
+        "Keep previous active throughout receipt preparation/finish; install replacement through the same owning store only after all captured guards match.",
+        "Authenticate candidate catalog, metadata, complete receipt inventory, pinned file identity and native image bytes before publication; do not hydrate a new inline receipt graph merely to enter installation.",
+        "After successful guarded install, close candidate/old preparation owners and reopen a fresh store; compare exact fixture arrays, incoming vault/snapshot IDs and receipt bytes, plus documented local revision/incarnation changes.",
+        "Exercise duplicate/foreign-owner install, unavailable/changed current key, cancellation immediately before publication and failures at existing publication/verification checkpoints. Apply installationContract ownership and platform outcome rules; report each exercised boundary separately."
+      ]
     },
     {
       "id": "receipt_wrong_owner",
@@ -163,13 +169,24 @@
       "id": "candidate_gc_pin_then_stale",
       "stage": "installation_if_wired",
       "trigger": "Finish candidate; perform an ordinary active-vault edit through another instance; run ordinary GC while the candidate remains retained; try its original guarded install.",
-      "requiredOutcome": "Candidate-owned rows/blobs remain readable while pinned, but install rejects stale current identity. The ordinary edit stays active; discard releases candidate ownership only."
+      "requiredOutcome": "Candidate-owned rows/blobs remain readable while pinned, but install rejects stale current identity. The ordinary edit stays active; discard releases candidate ownership only.",
+      "assertions": [
+        "Finish against previous; edit through another store instance and run ordinary GC while the candidate remains retained.",
+        "Prove candidate metadata and exact receipt bytes still authenticate while pinned, then attempt installation with the original captured binding.",
+        "Reject stale digest/revision/binding under the publication lease even if this instance cached previous; reopen and prove the ordinary edit remains active.",
+        "Reject subsequent handle reuse; close/discard removes only owned inactive data and preserves edited current data plus unknown/replaced entries."
+      ]
     },
     {
       "id": "stale_incarnation",
       "stage": "installation_if_wired",
       "trigger": "After candidate finish, restore/recreate current state so a numeric revision repeats under a new incarnation, then install the old candidate.",
-      "requiredOutcome": "Reject using authenticated state/incarnation guards; numeric revision equality is insufficient."
+      "requiredOutcome": "Reject using authenticated state/incarnation guards; numeric revision equality is insufficient.",
+      "assertions": [
+        "Finish candidate, then perform an independently valid restore/recreation that repeats a numeric revision under a new authenticated incarnation/state binding.",
+        "Install rejects despite revision equality; it cannot refresh its captured source digest/owner/key binding from current state or derive authority from candidate fixture IDs.",
+        "Reopen and verify the intervening state remains active; rejected handle reuse and cleanup preserve current and unknown/replaced entries."
+      ]
     },
     {
       "id": "abort_owned_only",
@@ -188,11 +205,33 @@
     "Incremental metadata parsing and larger-capacity admission",
     "v4 record grammar, authenticated FINAL and strict EOF before candidate success",
     "Provider/account/session/revision guards and exact downloaded-input binding when a provider reader is linked",
-    "Crash recovery and atomic installation evidence for newly wired live-store candidate seams"
+    "Actual crash/fresh-process recovery and atomic-install evidence for this newly wired candidate entry point; ordinary in-process injection is not equivalent."
   ],
   "evidenceRequirements": [
     "Each native report records manifest SHA-256, source/build/runtime identity, exact test methods and per-scenario outcome.",
     "Any omitted, skipped or not-yet-wired scenario includes its reason and remains unproved.",
     "Prove single-use ownership, input close/cancel boundaries, current identity and native image validation on actual runtime; no filesystem simulation acceptance."
-  ]
+  ],
+  "assertionRevision": 2,
+  "installationContract": {
+    "status": "required_unproven",
+    "targetBinding": {
+      "shared": "Capture the receiving store and durable namespace identity, authenticated current-state digest/binding, current revision/incarnation and device-key identity before preparation. Revalidate under the same exclusive publication lease immediately before install. Re-read the current device key without provisioning. Candidate handles are one-shot and same-owner; fixture/public metadata cannot construct installation authority.",
+      "ios": "Capture real directory/inode, sourceStoreId, sourceDigest, writerId, revision, restoreEpoch and key identity. Use fresh deviceKeyReader(false); derive the next local metadata internally and preserve the existing publication/rollback/reopen helper.",
+      "android": "Capture owning store/database, activeState token, active generation/revision/incarnation, restoreBinding, verified source digest/vault and key-envelope identity. No new cloud writer setting is required. Authenticate owned catalog2 bytes/pinned files; catalog2-to-1 conversion and active-pointer publication occur in the same existing replacement transaction."
+    },
+    "requiredAssertions": [
+      "Install preserves replacement vaultId, snapshotId, all eight represented domain arrays and exact original receipt bytes; only platform-local revision/incarnation metadata changes according to the existing restore rule.",
+      "A failed current-key lookup or changed key identity before publication rejects/locks without provisioning, key-envelope replacement, empty initialization or current-data deletion.",
+      "Cancellation accepted before publication, stale identity and prepublication read/write/close/authentication failures never activate candidate bytes. The attempt cannot be retried with the consumed handle; owned inactive cleanup preserves current and unknown/replaced data.",
+      "Success transfers durable ownership: closing the candidate or former preparation operation cannot delete newly active or predecessor data. Duplicate install/input/finish/reuse rejects.",
+      "After publication, cancellation/failure follows the existing platform recovery boundary. Return success only for an authenticated settled replacement; confirmed rollback may report failure with previous preserved. An uncertain outcome retains potentially referenced bytes and locks/requires recovery; never claim previous kept without verifying rollback.",
+      "Candidate close/discard is idempotent or explicitly rejects without touching another owner. Retained pins protect candidate files until successful ownership transfer or safe owned cleanup; garbage collection must not decide install freshness."
+    ],
+    "platformCancellation": {
+      "ios": "Existing cancellation-aware publication uses noncancellable rollback I/O. Confirm rollback before discarding candidate ownership; retain bytes after successful or uncertain publication.",
+      "android": "RestoreOperation.beginPublication is the cancellation boundary. An accepted pre-CAS cancel rejects; after CAS, cancellation cannot claim old-vault retention and existing recover owns the settled result. Post-CAS/uncertain cleanup releases handles without deleting possibly published bytes."
+    },
+    "evidence": "Report each assertion as executed, failed or not_run with reason and exact method/checkpoint. Failure injection is not process-death or physical power-loss proof; existing durable tests do not automatically establish the new candidate entry point."
+  }
 }

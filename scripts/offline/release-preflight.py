@@ -207,14 +207,33 @@ def android_evidence(apk, apksigner, apkanalyzer):
     info = android_manifest_evidence(command([apkanalyzer, "manifest", "print", str(apk)]))
     info.update({"signatureVerified": verified,
                  "signers": re.findall(r"^Signer #[0-9]+ certificate SHA-256 digest: ([0-9a-fA-F]+)$", signature, re.M),
-                 "artifactSha256": sha256(apk)})
+                 "artifactSha256": sha256(apk), "containerType": "apk"})
     return info
+
+
+def android_bundle_evidence(aab, fingerprint, java, bundletool):
+    """Apply manifest policy to the exact privately snapshotted upload bundle."""
+    spec = importlib.util.spec_from_file_location("penny_aab_artifact", Path(__file__).with_name("aab-artifact.py"))
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    with module.inspect_aab(aab, expected_signer_sha256=fingerprint.lower().replace(":", ""),
+                            java=java, bundletool=bundletool) as inspected:
+        info = android_manifest_evidence(inspected.manifest_xml)
+        info.update({"signatureVerified": inspected.signature_verified,
+                     "signers": [inspected.signer_sha256], "containerType": "aab",
+                     "artifactSha256": inspected.sha256, "archiveEntries": inspected.entries,
+                     "archiveUncompressedBytes": inspected.uncompressed_bytes,
+                     "signedContentEntries": inspected.signed_content_entries,
+                     "bundletoolSha256": inspected.bundletool_sha256,
+                     "bundletoolVersion": inspected.bundletool_version})
+        return info
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("platform", choices=["ios", "android"])
-    parser.add_argument("artifact", type=Path, help="Exported iOS .ipa, signed iPhoneOS .app, or signed Android .apk; exact AAB checks remain separate")
+    parser.add_argument("artifact", type=Path, help="Exported iOS .ipa, signed iPhoneOS .app, or signed Android .apk/.aab")
     parser.add_argument("--version", default="3.0.0")
     parser.add_argument("--store-max-build", type=int, required=True, help="Freshly observed store build/version-code maximum; no stale default")
     parser.add_argument("--team-id")
@@ -224,15 +243,16 @@ def main():
     parser.add_argument("--drive-signing-sha256", help="Independently verified installed-app certificate bound to Drive; may differ from the upload certificate")
     parser.add_argument("--apksigner", default="apksigner")
     parser.add_argument("--apkanalyzer", default="apkanalyzer")
+    parser.add_argument("--java", help="Absolute trusted JDK java executable; required for AAB")
+    parser.add_argument("--bundletool", help="Absolute trusted standalone bundletool JAR; required for AAB")
     args = parser.parse_args()
     if args.store_max_build < 0:
         parser.error("--store-max-build must be nonnegative")
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", args.version):
         parser.error("--version must be a numeric major.minor.patch")
     try:
-        # Keep an IPA's final path component intact so acquisition can reject
-        # symlinks/special files before snapshotting; other modes retain their API.
-        artifact = args.artifact.absolute() if args.platform == "ios" and args.artifact.suffix == ".ipa" else args.artifact.resolve(strict=True)
+        # Container helpers reject final symlinks/special files before snapshotting.
+        artifact = args.artifact.absolute() if args.artifact.suffix in (".ipa", ".aab") else args.artifact.resolve(strict=True)
         if args.platform == "ios":
             if not args.team_id or not re.fullmatch(r"[A-Z0-9]{10}", args.team_id) or not args.cloud_container or not re.fullmatch(r"iCloud\.[A-Za-z0-9.-]{1,248}", args.cloud_container):
                 parser.error("iOS requires --team-id and an iCloud. --cloud-container")
@@ -250,13 +270,18 @@ def main():
                 parser.error("Android requires the independently configured --drive-client-id")
             if not args.drive_signing_sha256 or not re.fullmatch(r"(?:[0-9a-fA-F]{64}|(?:[0-9a-fA-F]{2}:){31}[0-9a-fA-F]{2})", args.drive_signing_sha256):
                 parser.error("Android requires the independently verified installed-app --drive-signing-sha256")
-            if artifact.suffix != ".apk" or not artifact.is_file():
-                parser.error("Android artifact must be a signed .apk file")
-            info = android_evidence(artifact, args.apksigner, args.apkanalyzer)
+            if artifact.suffix == ".aab":
+                if not args.java or not args.bundletool:
+                    parser.error("AAB requires explicit trusted --java and standalone --bundletool paths")
+                info = android_bundle_evidence(artifact, args.certificate_sha256, args.java, args.bundletool)
+            elif artifact.suffix == ".apk" and artifact.is_file():
+                info = android_evidence(artifact, args.apksigner, args.apkanalyzer)
+            else:
+                parser.error("Android artifact must be a signed .apk or .aab file")
             failures = validate_android(info, args.certificate_sha256, args.drive_client_id, args.version, args.store_max_build, args.drive_signing_sha256)
-        report = {key: info.get(key) for key in ("bundle", "version", "build", "signatureVerified", "executableSha256", "artifactSha256", "containerType", "archiveEntries", "archiveUncompressedBytes") if key in info}
+        report = {key: info.get(key) for key in ("bundle", "version", "build", "signatureVerified", "executableSha256", "artifactSha256", "containerType", "archiveEntries", "archiveUncompressedBytes", "signedContentEntries", "bundletoolSha256", "bundletoolVersion") if key in info}
         report.update({"platform": args.platform, "artifact": os.fspath(artifact), "checkedAt": datetime.now(timezone.utc).isoformat(), "passed": not failures, "failures": failures,
-                       "scope": "Local artifact checks only. IPA mode checks the exact frozen exported payload; .app mode does not establish an IPA. Provider operation, Apple processing, signed upgrade, source provenance, exact AAB validation and store release approval remain separate gates."})
+                       "scope": "Local artifact checks only. IPA/AAB modes inspect the exact frozen upload object. Direct .app/APK checks do not establish IPA/AAB validity. Provider operation, signed upgrade, source provenance, Apple/Play processing, delivered signatures and installed behavior remain separate gates."})
     except (OSError, ValueError, KeyError, subprocess.TimeoutExpired, plistlib.InvalidFileException, ET.ParseError) as error:
         report = {"platform": args.platform, "passed": False, "failures": [str(error)]}
     print(json.dumps(report, indent=2))

@@ -1,0 +1,218 @@
+{
+  "capturedAt": "2026-09-14T05:25:59.318384+00:00",
+  "scope": "Internal guarded LOCAL receipt-streamed candidate installation at unchanged caps; no UI/cloud/v4 linkage",
+  "sourceSha256": {
+    "apps/android/app/src/main/AndroidManifest.xml": "da82c59ace6bcc7032c1ceb4c089d6a088a807324d927bdd8452b32ce20dda8b",
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceModels.kt": "c2b6f24beee88f7fd77eb418c1e6def5d30708200f857706944d08ecd9d1e08a",
+    "apps/android/app/src/main/java/ca/penny/offline/RecoveryDialog.kt": "09b680c5ef06869092f8fcc879c61bc717008cdf83328f85315e8ce4a01e948f",
+    "apps/android/app/src/main/java/ca/penny/offline/StrictJson.kt": "0b61d55be110cb588d9dd84db682edaa46f8ce183d377b5d6d758e19d97d31a4",
+    "apps/android/app/src/main/java/ca/penny/offline/MainActivity.kt": "c6c07bf7d9cafb5b999a8591a15196da3e547a33aabcc1621a0f86a1e9c69291",
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceScreen.kt": "4af696d8d42fe9af56255d3c507e4c933c72037ebed8ee67905bc08ae2fad56b",
+    "apps/android/app/src/main/java/ca/penny/offline/RecoveryKeyStore.kt": "ee78e48e8d5364a7b32aebcd33137433a902957dd7ce9c156bce86914a6536f8",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptImage.kt": "977bd205b8e6f7da26101f3f63029975e12f49c260828348e3a95dbd18cf9b27",
+    "apps/android/app/src/main/java/ca/penny/offline/Attachment.kt": "55b1f095ee2ced7fa73e2ba7e977fd125708b637e4f21115091f497b03d5508b",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "554dd1eb74aa9319e20388ef84f39a8d6755f7cda2212b26011ffc51dced6952",
+    "apps/android/app/src/main/java/ca/penny/offline/DrivePanel.kt": "937dbfe5238ee16f294ff9db30abd7baf32c33274526cdd596111041ee95a35f",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudCoordinator.kt": "84ec5b406603244b65dc4baeb0a3e2b1ade7ee687322743760d724e93a88588e",
+    "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "a2c9aef6f691f721f008c4f2f5dbba88f72908cc862cfd024c05ff657a0603e1",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "871d1c313e044ae211ea7d74f454beb1b790ffc6477b8b9b9450ec7eca51ce77",
+    "apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt": "a8eab51da168c449b0e55c61c5848f44de0ca000a05af70e608144287b9a4e49",
+    "apps/android/app/src/main/java/ca/penny/offline/DriveTransport.kt": "eccdb803f0dcef445693d7d42ef50b9c4d85b7d717b95d5b30a1ea28c43182b8",
+    "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+    "apps/android/app/src/main/java/ca/penny/offline/BackupExporter.kt": "6d7dba3c84094d4c1699b5a503a68764825d8af364f52c388b7fc2f766964a1d",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "0eb48e53c85e4df3dbf37620131c61d3c310df79ab5ab1fce2fd07fd55108ca0",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptParser.kt": "db7c01431cee2d1d28cfba43bf5c681f392e9d584400183991196e7545c9d0e8",
+    "apps/android/app/src/main/java/ca/penny/offline/Backup.kt": "3b679eb3bce15faa7ebe6436c940d56823c4c9cb72d67d5bd6db0405964621c1",
+    "apps/android/app/src/main/java/ca/penny/offline/Expense.kt": "fc6d6f8ef1fd23027ffd2df31842b48098c216e7480b345cf8baab225c162f77",
+    "apps/android/app/src/main/java/ca/penny/offline/AutomaticBackup.kt": "a67c6559bd106287799a03f0f7527596a0521cdf3ea05670b0b22e1dfb4d6c65",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptCamera.kt": "6cd1d029ff142acfcdcbaaca504def970e505be4f0ac6ff49d4cc4ed066449b7",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudContract.kt": "ff15348bb1acbc49d31d524d8752b5691df299eb1e321eb88af8f08534a66cce",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudPublication.kt": "eb9b5c6e3f32bcf2a0e551bdcb9e1e9587e5fa843084985cb8bf7f12006f8464",
+    "apps/android/app/src/main/java/ca/penny/offline/LocalIntelligence.kt": "c4c06113c94ebdd0a510d27d557a12218a64f53609b32c865f28e08a61f0406d",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyApp.kt": "ffa5c738d4376069f37a3ab4c8e9c090851ceb283b0ed14a22d7998da0442710",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyTheme.kt": "2d97a0657f93481b6589ad8b96f49e7a04849cd544f66a18d968d33b75e7f288",
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceMath.kt": "52674e1bb36684ea5f3668285c4e67a36c828ec0532e094bfbc21ba214bb9d25",
+    "apps/android/app/src/main/java/ca/penny/offline/Categories.kt": "25b6defb9197cd81b2a41250c763ebf685b027499bd07cee2e3f439c3772f00f",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudSettingsStore.kt": "e2880c34e9cc17533359071aac846ffc1523a37ecd5b4c0cd10a7aed7c04bbd2",
+    "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "3ffb280e23f78408db7c13790791b9aa691bff0815ce57e1b671bd37bdeaf9db",
+    "apps/android/app/src/main/res/drawable/ic_launcher_monochrome.xml": "6ec87044cb76eef71947bb9202e435c607a4a17918679ffefc9f3d00f49287cf",
+    "apps/android/app/src/main/res/drawable/ic_finance.xml": "98266aa137faca7ca695bd93927342581b1271829e5ffb03b6e8c97754e501f3",
+    "apps/android/app/src/main/res/drawable/ic_expenses.xml": "3a654dca068a9dd559a4bd6f6898c6892810fcafe194efcf6e6db71630f1148b",
+    "apps/android/app/src/main/res/drawable/ic_add.xml": "dbeb4598f0421cbd571008afd7c4fd774ea9457366e8b18214986abcb5f40551",
+    "apps/android/app/src/main/res/drawable/ic_launcher_foreground.xml": "bc4512a743a6a396336ba4fb45284a9d5ef657587a96565493d7b4032746026a",
+    "apps/android/app/src/main/res/drawable/ic_previous.xml": "e5f839089159fbe2b6d91c78f526116ac7ccf2c092a4318d2cd778a330589f63",
+    "apps/android/app/src/main/res/drawable/ic_next.xml": "d2ba351e4ede4a21ca6f6b6df507ab542d874a9afdce31ede00dc5f5abc79896",
+    "apps/android/app/src/main/res/drawable/ic_vault.xml": "c5ddb2f7a6592405d4250ba603e5644802fbc6ad62e43ec2e5890cb6bcb38c68",
+    "apps/android/app/src/main/res/drawable/ic_overview.xml": "29018a82b7e6f0ed578315b6ae6ac1fc4147e4122a2d78350a354ba441d2feff",
+    "apps/android/app/src/main/res/values/launcher.xml": "84f74b92c1e0a2f370ecab9f2f72315f4361444425df0b3f11e5f464b3d6441e",
+    "apps/android/app/src/main/res/values/styles.xml": "a16ce85065fabf0a3fa7cdc1849c7245c2f44701db358b1b201cff680b5863ea",
+    "apps/android/app/src/main/res/xml/network_security_config.xml": "e09c62bc80290bfdab07cd2fd944c20bab7235162a685dc1ad3b039306a671b1",
+    "apps/android/app/src/main/res/xml/data_extraction_rules.xml": "babb2b790c95fbb70730ac06063bde8783f7048eab2f74e3054d8f2d2bfc244b",
+    "apps/android/app/src/main/res/raw/penny_network_deny_ca.crt": "4fde04037a58f2872ba73145881617f907fbe794fa7f3b1374728d07f5059205",
+    "apps/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml": "72ad104952968a4d812ccb2bde15532dede04df6e2c0b09802de327a4132e009",
+    "apps/android/app/src/androidTest/assets/receipt-preparation.heic": "7dce6b32961babf27c2759b67f7371a5ef278341b2f1de6fbee467bfecf9d60f",
+    "apps/android/app/src/androidTest/assets/README.md": "98fb9017f8672070afeffe030fbd37bd8561d72c33650238ba2b6ba14aec749e",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/OfflineFlowTest.kt": "184c78ef1b23a3e6dfdc70310d745e721ff37732394c4e351bcd84057c0b82e5",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/CloudDeviceTest.kt": "15da4aaa1a7dede10434c957d45106c91faa158a345c68fbb9e633dbbd6fc162",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/PerformanceDeviceTest.kt": "108348325c4a36e4f4e6515b77568f6723015bb48bad15fa55cf31b0b7a0e245",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt": "7aecc2d2f5003fec80da2e45589375ccd064b20aaa70e4eed606d76b41a9be54",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/FinanceFlowTest.kt": "4710cdf823b17df0c2d9a0c09744be11fd557d7264bd4df10611e0415354cce3",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt": "491da2f5a527443fa6e6a8d9af3c79b86a72211afebcfbc92f262a16f7d5d9df",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/CandidateInstallDeviceTest.kt": "1c3df8b019767b46f85cabf33c8a20bdda6779aed3faa9d8ba053207f249c8dd",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptCandidateDeviceTest.kt": "246d01e60ace74ba791ac52af97ac426762459c6b928012aee3ea840bad9c58d",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/GenerationMetadataDeviceTest.kt": "3cb07778cdff2242f5c54777aa515a614a24a62797f1d795de0376f0048ae3ce",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt": "f17da802901c6017fcfa992b621ac5bad2a053539def7077335955a10330bd1b",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt": "99f49939f884d59c1bf25a8e306de9f9054eb7419e1bd258cc4f24c06e2a6617",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/AutomaticSafetyDeviceTest.kt": "b2145b3ed1fc466876180cb3065e9495a1b488fdad02ccf0747df066a39b9363",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ProcessPersistenceTest.kt": "6662fa6f57ca3ec65e5ab41b40848b10a86584932b7dfc07dcebbb0d3520e2d2",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/NetworkBoundaryTest.kt": "c8f23c26494849c808752051535d65e5db5197279421d92e7cb1495b55562ac2",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/AutomaticBackupDeviceTest.kt": "e706c8fba57ad92628af0ca9c8baf7294b57f9cfba9c737825e9e7e04e586162",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/PolishFlowTest.kt": "30537e7f32eda549bb6cc1ae0bf1f10c7ca5a7dd45e9042ac48b19eb2a463fff",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt": "7cf25fdc36d570009611270f0ccc05cc7a6e55a1cfe69c1723885b6bec634c3c",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/CaptureDeviceTest.kt": "1b2a505fa096c1aee2d5c3609c06c704333a85713e4ba633d76bd1a84f2c85bd",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RawMigrationDeviceTest.kt": "1091bcc0b92b957a9e9eb155a9a04f94edc7cdd5f8d49329678e8dd2035bb750",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationPerformanceTest.kt": "20269e76db2b8da6e050f3832d97cf2794fbfb13b5cfdf2ee4d07e349cfecf07",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/CaptureFlowTest.kt": "b9ca0ace6be146b1b977fbb458fdf3b8c2d66af8556b086a868380fb40c96188",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt": "a35e7c46f7fb73f54d329d545fe85678fe72149ded76b3c9a315095498deb873",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt": "b848c9618f7f35215677c1e6e39d75e875634c21170e83d863c1716a2f79849d",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptFlowTest.kt": "b055c6c3c1e94cc247a4b6a96c4a72c96c8fdcded593994e8aeda736fe91f474",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt": "729be917e41d48fcac775a02513d5d5a486ee8f4efa09b8fa68241df153ba1f5",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/DriveFlowTest.kt": "a293ccab8f6e396d6813c46094b421861872ed17d9a424fa3ff0f891368ec46b"
+  },
+  "artifactsSha256": {
+    "artifacts/offline/candidate-install/final/emulator-5560.log": "1cd1ac353e453ee82486df94ed4ccf2dbd82cf1a862191050ec5bfed2d5da72a",
+    "artifacts/offline/candidate-install/final/emulator-5560-commands.json": "f1eb040cc408796ad3e3c54169b4e25e919bba6eb45b61a9ceee29e796d84d5a",
+    "artifacts/offline/candidate-install/final/emulator-5562.log": "1bedaaf28e08113c89dcf0c9cdb7c4510dfda3a17182d669232886d4fbe06ddb",
+    "artifacts/offline/candidate-install/final/source.json": "37ef1fa6f79521062cdc3dc5efd58611893ed4e926c7c78ec75bffb26803cc51",
+    "artifacts/offline/candidate-install/final/app.apk": "e5cdd2f29255d66729df27ae1a2363ae738046b8094a8765cac0a0eb970e27ce",
+    "artifacts/offline/candidate-install/final/test.apk": "f8233ab397a097b0dd02400154d38adbeb459e62a76834bfbd3e2ad8e26ff2a6",
+    "artifacts/offline/candidate-install/final/emulator-5562-commands.json": "5bd5ba854316cde0d376f9ac9391b7b289fd7bca78032258907b12f6eac6aba6",
+    "artifacts/offline/candidate-install/before-begin/emulator-5562-cause.log": "aa96ff47f035f8c334b0007f63bf3f9d305d3830d784ccc62a1b1f3a86755e0e",
+    "artifacts/offline/candidate-install/before-begin/CandidateInstallDeviceTest-38-suite.kt": "16f7da75bf47d6974e6457315f8d12b2e2377fffec07f39f9944d312f777f35a",
+    "artifacts/offline/candidate-install/before-begin/emulator-5560.log": "35e5394809bcbc829960029106fbfc09ce95fa3274f90bf02bc63e2cd3430bfd",
+    "artifacts/offline/candidate-install/before-begin/emulator-5562.log": "14a1a1493dc08512dc5206cd14f0a8c959e4189caac3a3bea0b0b611255aff0e",
+    "artifacts/offline/candidate-install/before-begin/emulator-5560-cause.log": "4c8fd6fcee136c3f57e919a5cff7c564cba9acc95d3c43a20f08c143edaf0d59",
+    "artifacts/offline/candidate-install/before-begin/test.apk": "9e123b2ebdda968267b75efd4edc52a8ccc92e86f0fc5b29b60e938546e51704"
+  },
+  "buildSha256": {
+    "artifacts/offline/candidate-install-build-final2.log": "5701b86b915a9dab2adf8bd8baea8281f499feca35f7e67c6cc928deb298e9f6"
+  },
+  "reportsSha256": {
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.DriveTransportTest.xml": "06256a254cc430bb6a2f619a34cbcf5e39105e421dda2c2ce708ffc645853742",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.FinanceContractTest.xml": "418071b13fa1e3de8e3e613bd836a4961bc2ee200884a94bc84f14c294410bfb",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.OfflineContractTest.xml": "f7483bc39418e78a994404fa17b54e5b3995eade00b15af79e8732453bf3476d",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.CloudContractTest.xml": "157052687652777cc485cf33ec4cf7e8d6d534f2c9c42f9a5f506732b032640f",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.CaptureContractTest.xml": "4d227a7fb0271732834a8da21afdd1410c98a88adeb64fc8ef3095b3b1f2c942",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.StrictNumberTest.xml": "f12f6eef1120e991b2df973bd9338b5bde015f49d0b3f9ca89da200e231b916c",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.AutomaticBackupPolicyTest.xml": "5cbcb2402e8074344245e2b0b305f8cd5ca6e78838937787756f3b4465d17606",
+    "apps/android/app/build/reports/lint-results-debug.xml": "43b32187cf8946d8e21cc0c5c1946308243e8cc53b16c618d390eba83e3e63d7"
+  },
+  "runtime": {
+    "emulator-5560": {
+      "api": "37",
+      "fingerprint": "google/sdk_gphone16k_arm64/emu64a16k:17/CE2A.260420.019/15611780:userdebug/dev-keys",
+      "focusedTests": 38,
+      "result": "pass"
+    },
+    "emulator-5562": {
+      "api": "26",
+      "fingerprint": "google/sdk_gphone_arm64/generic_arm64:8.0.0/OSR1.180418.028.A3/10734686:userdebug/dev-keys",
+      "focusedTests": 38,
+      "result": "pass"
+    }
+  },
+  "jvmTests": 25,
+  "buildCommand": "ANDROID_HOME=/Users/sarathfrancis/Library/Android/sdk apps/android/gradlew -p apps/android -PpennyTestSandbox=true :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug",
+  "acceptanceSha256": "a8cb4dd0f9b2c8df095ce64c09e4321a77d144a167a264db99f6cadcad0c9baf",
+  "preparationScenarioMap": {
+    "prepare_isolated": {
+      "status": "passed_api26_api37",
+      "test": "isolatedRoundtripFreezesInputAndTransfersOwnershipOnce"
+    },
+    "candidate_metadata_receipt_roundtrip": {
+      "status": "passed_api26_api37",
+      "test": "isolatedRoundtripFreezesInputAndTransfersOwnershipOnce"
+    },
+    "receipt_wrong_owner": {
+      "status": "passed_api26_api37",
+      "test": "wrongOwnerHashMissingDuplicateAndNativeInvalidCannotReturnCandidate"
+    },
+    "receipt_hash_mismatch": {
+      "status": "passed_api26_api37",
+      "test": "wrongOwnerHashMissingDuplicateAndNativeInvalidCannotReturnCandidate"
+    },
+    "receipt_missing": {
+      "status": "passed_api26_api37",
+      "test": "wrongOwnerHashMissingDuplicateAndNativeInvalidCannotReturnCandidate"
+    },
+    "receipt_duplicate": {
+      "status": "passed_api26_api37",
+      "test": "wrongOwnerHashMissingDuplicateAndNativeInvalidCannotReturnCandidate"
+    },
+    "receipt_native_invalid": {
+      "status": "passed_api26_api37",
+      "test": "wrongOwnerHashMissingDuplicateAndNativeInvalidCannotReturnCandidate"
+    },
+    "cancelled_input": {
+      "status": "passed_api26_api37",
+      "test": "readEofCloseAndCancellationFailuresDiscardOnlyOwnedPreparation"
+    },
+    "cancelled_finish": {
+      "status": "passed_api26_api37",
+      "test": "readEofCloseAndCancellationFailuresDiscardOnlyOwnedPreparation"
+    },
+    "input_read_close_failure": {
+      "status": "passed_api26_api37",
+      "test": "readEofCloseAndCancellationFailuresDiscardOnlyOwnedPreparation"
+    },
+    "candidate_write_close_failure": {
+      "status": "partial_injection",
+      "test": null,
+      "scope": "Builder post-verification-close and suppressed cleanup injections; foundation write/sync/close boundary and partial-write tests pass separately. No real filesystem FD-close failure or full-volume proof."
+    },
+    "single_use_lifecycle": {
+      "status": "passed_api26_api37",
+      "test": "isolatedRoundtripFreezesInputAndTransfersOwnershipOnce"
+    },
+    "candidate_gc_pin": {
+      "status": "passed_api26_api37",
+      "test": "candidatePinSurvivesOrdinaryWriteAndCollectorAcrossConnections"
+    },
+    "abort_owned_only": {
+      "status": "passed_api26_api37",
+      "test": "foreignObjectsAndSuppressedCleanupFaultKeepEvidenceAndReleasePin"
+    },
+    "key_unavailable_preview": {
+      "status": "passed_api26_api37",
+      "test": "cancelledAndUnavailableKeyPreviewNeverProvisionsOrChangesActiveState"
+    }
+  },
+  "installationScenarioMap": {
+    "guarded_install_reopen": "pass: guardedInstallReopensAllDomainsAndLateCancelCannotReclaimFiles",
+    "candidate_gc_pin_then_stale": "pass: interveningEditAndRepeatedRevisionIncarnationRejectStaleCandidate (edit)",
+    "stale_incarnation": "pass: interveningEditAndRepeatedRevisionIncarnationRejectStaleCandidate (incarnation, authenticated repeated numeric revision)"
+  },
+  "additionalMethods": [
+    "interveningEditAndRepeatedRevisionIncarnationRejectStaleCandidate (digest-only mismatch with original authentic state restored)",
+    "cancelledTamperedAndUnavailableKeyInstallsCannotPublish",
+    "copiedDatabaseAndRootNamespacesRejectEvenWithoutReceipts",
+    "failedPublicationTransactionRetainsQuarantineAndPrevious",
+    "committedInterruptionRecoversAndInvalidPendingRollsBackPredecessor"
+  ],
+  "limits": [
+    "Same receiving instance and same open SQLiteDatabase connection required. First owned install attempt consumes candidate; foreign receiver rejection does not consume legitimate owner.",
+    "Existing authenticated local state/token, revision/incarnation, key envelope, source contents, database inode, noBackup directory and present receipt root bind the target. Android has no ledger writer; cloud writer/account/session is outside this local API.",
+    "Fresh-store reopen tests are new instances in one instrumentation process, not process-kill or physical-power-loss proof.",
+    "Pre-CAS failures discard only original-owned inactive state. After CAS, release-only handling retains pending key/catalog/ciphertext or rolled-back format2 quarantine; no old-state-kept promise.",
+    "Actual SQLite trigger abort tested. Other interruption/close boundaries are explicitly injected checkpoints, not actual OS close/disk-full/power-loss proof.",
+    "Metadata arrays still bounded by existing limits; no constant-memory/performance/capacity claim. Candidate preparation avoids aggregate receipt base64; Snapshot facade remains unchanged.",
+    "Normal demo untouched. Sandbox processes force-stopped; API26 remains running for coordination. Prior candidate preparation and initial37-test evidence preserved."
+  ],
+  "beforeBeginFollowup": {
+    "testsPerApi": 1,
+    "method": "databaseCopiedBeforeBeginCannotPrepareOnMovedConnection",
+    "result": "pass both; actual SQLiteReadOnlyDatabaseException code1032 SQLITE_READONLY_DBMOVED, newpath bytes unchanged",
+    "scope": "Test-only additive method. Previous38-test source frozen beside followup; production source/app APK unchanged.",
+    "command": "adb -s SERIAL shell am instrument -w -r -e class ca.penny.offline.CandidateInstallDeviceTest#databaseCopiedBeforeBeginCannotPrepareOnMovedConnection ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner"
+  }
+}

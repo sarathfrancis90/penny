@@ -47,3 +47,6 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - Inactive preparation: [iOS](../../../apps/ios/evidence/inactive-generation.md) 53-method compatibility checkpoint then 19 final-overlay methods; [Android](../../../apps/android/evidence/receipt-candidate.md) 32/32 per API26/37 and 25 JVM tests. Root checked 132 native source/artifact/report hashes. Original ownership pins and explicit quarantine preserve substitutions. New candidate installation remains unimplemented.
 
 - [Inactive candidate and IPA integration](candidate-ipa-integration.json): 119 Node tests, 43 Python groups, paired native focused checks and resolved ownership/header findings, at explicit checkpoints.
+
+- [Guarded local candidate installation and AAB integration](candidate-install-integration.json): paired local source/runtime gates, independent review and exact scope; no v4/capacity/store acceptance.
+- [AAB helper validation](aab-preflight.json): actual JDK/bundletool synthetic positives and rejections, pinned tool/source, no production signing.

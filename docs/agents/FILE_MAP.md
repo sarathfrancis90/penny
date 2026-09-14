@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1338
+- Total source-visible files: 1347
 
 | Path | Area |
 |---|---|
@@ -66,6 +66,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/assets/receipt-preparation.heic` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/AutomaticBackupDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/AutomaticSafetyDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/CandidateInstallDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CaptureDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CaptureFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CloudDeviceTest.kt` | native-android |
@@ -151,6 +152,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/P5.md` | native-android |
 | `apps/android/evidence/P5b.md` | native-android |
 | `apps/android/evidence/P6.md` | native-android |
+| `apps/android/evidence/candidate-install.json` | native-android |
+| `apps/android/evidence/candidate-install.md` | native-android |
 | `apps/android/evidence/capacity-v4-assessment.md` | native-android |
 | `apps/android/evidence/durable-generations.json` | native-android |
 | `apps/android/evidence/durable-generations.md` | native-android |
@@ -320,6 +323,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/a11y-search-prompt-before.png` | native-ios |
 | `apps/ios/evidence/a11y-search-prompt.json` | native-ios |
 | `apps/ios/evidence/a11y-search-prompt.md` | native-ios |
+| `apps/ios/evidence/candidate-install.json` | native-ios |
+| `apps/ios/evidence/candidate-install.md` | native-ios |
 | `apps/ios/evidence/durable-storage.json` | native-ios |
 | `apps/ios/evidence/durable-storage.md` | native-ios |
 | `apps/ios/evidence/generation-metadata.json` | native-ios |
@@ -435,12 +440,14 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/REVIEW.md` | docs |
 | `docs/offline/STATUS.md` | docs |
 | `docs/offline/evidence/README.md` | docs |
+| `docs/offline/evidence/aab-preflight.json` | docs |
 | `docs/offline/evidence/android-api26-capture-sync.json` | docs |
 | `docs/offline/evidence/android-demo-launch.png` | docs |
 | `docs/offline/evidence/android-p6-api26-summary.json` | docs |
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
 | `docs/offline/evidence/android-receipt-input-readiness.json` | docs |
+| `docs/offline/evidence/candidate-install-integration.json` | docs |
 | `docs/offline/evidence/candidate-ipa-integration.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
@@ -1054,6 +1061,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/LEGACY_RAW_EXPORT.md` | script |
 | `scripts/offline/LEGACY_RECEIPT_ACQUISITION.md` | script |
 | `scripts/offline/MIGRATE_RAW_EVIDENCE.md` | script |
+| `scripts/offline/aab-artifact.py` | script |
 | `scripts/offline/acquire-legacy-receipts.mjs` | script |
 | `scripts/offline/acquire-legacy-receipts.test.mjs` | script |
 | `scripts/offline/benchmark-contract.mjs` | script |
@@ -1076,6 +1084,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/package-native.py` | script |
 | `scripts/offline/release-preflight.py` | script |
 | `scripts/offline/requirements.txt` | script |
+| `scripts/offline/test_aab_artifact.py` | script |
 | `scripts/offline/test_adb_boundary.py` | script |
 | `scripts/offline/test_avd_metadata.py` | script |
 | `scripts/offline/test_ipa_artifact.py` | script |

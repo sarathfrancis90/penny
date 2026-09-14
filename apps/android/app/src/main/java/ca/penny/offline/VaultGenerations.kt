@@ -30,7 +30,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_receipts (id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL, sealed BLOB NOT NULL)")
         }
     }
-    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED }
+    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED, CANDIDATE_INSTALL_READY }
     internal var fault: (Point) -> Unit = {}
     private val domains = listOf("expenses", "attachments") + FinanceData.limits.keys
     private fun <T> locked(block: () -> T): T = synchronized(locks.getOrPut(db().path) { Any() }, block)
@@ -214,26 +214,82 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         descriptors.forEach {d -> size=Math.addExact(size,StrictJson.bytes(receiptMetadata(d).put("dataBase64","")).size+4*((d.byteCount+2)/3))}
         require(size<=Backup.maxPlaintextBytes && 4*((size+2)/3)+1024<=Backup.maxEnvelopeBytes) {"Vault backup capacity reached"}
     }
+    /** Pins both namespaces, including receipt-free preparations. SQLite itself
+     * keeps an open connection after pathname replacement; a path string/value
+     * digest is therefore insufficient. Closing/reopening that connection is stale. */
+    private inner class CandidateNamespace : java.io.Closeable {
+        val database=db()
+        val path=database.path
+        private val pins=mutableListOf<Triple<String,java.io.FileDescriptor,Boolean>>()
+        init {
+            try {
+                for((name,directory) in listOf(context.noBackupFilesDir.absolutePath to true,path to false)) {
+                    val fd=android.system.Os.open(name,android.system.OsConstants.O_RDONLY or android.system.OsConstants.O_NOFOLLOW or android.system.OsConstants.O_NONBLOCK,0)
+                    pins+=Triple(name,fd,directory)
+                }
+                val receiptRoot=java.io.File(context.noBackupFilesDir,LocalReceiptBlob.ROOT_NAME)
+                if(receiptRoot.exists()) pinReceiptRoot()
+                check()
+            } catch(error: Throwable) {try {close()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)};throw error}
+        }
+        fun pinReceiptRoot() {
+            val name=java.io.File(context.noBackupFilesDir,LocalReceiptBlob.ROOT_NAME).absolutePath
+            if(pins.none {it.first==name}) pins+=Triple(name,android.system.Os.open(name,
+                android.system.OsConstants.O_RDONLY or android.system.OsConstants.O_NOFOLLOW or android.system.OsConstants.O_NONBLOCK,0),true)
+            check()
+        }
+        fun check() {
+            for((name,fd,directory) in pins) {
+                val pinned=android.system.Os.fstat(fd);val current=android.system.Os.lstat(name)
+                check(pinned.st_dev==current.st_dev && pinned.st_ino==current.st_ino && current.st_uid==android.os.Process.myUid()) {"Receiving vault namespace changed"}
+                check(if(directory) android.system.OsConstants.S_ISDIR(current.st_mode) else android.system.OsConstants.S_ISREG(current.st_mode) && current.st_nlink==1L)
+            }
+            // No lazy SQLite open may occur after namespace/connection loss.
+            check(database.isOpen) {"Receiving vault connection was closed"}
+            check(db()===database) {"Receiving vault connection changed"}
+        }
+        override fun close() {
+            var error: Throwable?=null
+            pins.forEach {(_,fd,_)->try {android.system.Os.close(fd)} catch(failure: Throwable) {if(error==null) error=failure else error!!.addSuppressed(failure)}}
+            pins.clear();error?.let {throw it}
+        }
+    }
+    private fun <T> candidateLocked(storage: CandidateStorage, block: () -> T): T = synchronized(locks.getOrPut(storage.namespace.path) {Any()},block)
+    private data class CandidateTarget(val state: State, val token: String, val binding: String,
+        val keyEnvelope: String, val metadata: VerifiedMetadata)
+    /** Existing authenticated local identity only; cloud writer/account state is not part of this API. */
+    private fun candidateTarget(): CandidateTarget {
+        val current=state();check(!current.pending) {"Finish existing vault recovery before preparing or installing a candidate"}
+        val metadata=readVerified(current.active) // Retrieves the current existing device key, never provisions it.
+        val envelope=db().rawQuery("SELECT wrappedKey FROM vault_generations WHERE id=?",arrayOf(current.active)).use {check(it.moveToFirst());CloudContract.sha256(it.getBlob(0))}
+        return CandidateTarget(current,checkNotNull(get("activeState")),binding(),envelope,metadata)
+    }
     private inner class CandidateStorage(val id: String, val raw: ByteArray, val snapshot: Snapshot,
-        val group: String, val descriptors: List<LocalReceiptBlob.Descriptor>, val operation: RestoreOperation) {
+        val group: String, val descriptors: List<LocalReceiptBlob.Descriptor>, val operation: RestoreOperation, val target: CandidateTarget, val namespace: CandidateNamespace) {
         var writer: LocalReceiptBlob.Operation? = null
         var files: LocalReceiptBlob.ReceiptGeneration? = null
         var databaseOwned = false
         var cleanupUncertain = false
+        var publicationStarted = false
         val received=mutableSetOf<String>()
         fun discard() {
-            // No installation API exists for this capability. Its unique DB rows
-            // and file generation remain inactive for the entire owned lifetime.
+            // The publication CAS is the cancellation boundary. A transaction end
+            // can fail with uncertain durability: never delete a possibly published
+            // generation. Format 2 remains quarantined if publication rolled back.
+            val namespaceFailure=runCatching {namespace.check()}.exceptionOrNull()
+            cleanupUncertain=cleanupUncertain || namespaceFailure!=null
             try {
                 writer?.close()
-                if(files!=null) files!!.discard()
-                if(databaseOwned && !cleanupUncertain) transaction {
+                if(files!=null) {if(publicationStarted) files!!.release() else files!!.discard()}
+                if(databaseOwned && !cleanupUncertain && !publicationStarted) transaction {
                     db().delete("vault_receipts","owner=?",arrayOf(id));db().delete("vault_rows","generationId=?",arrayOf(id));db().delete("vault_generations","id=?",arrayOf(id))
                 }
+                namespaceFailure?.let {throw it}
             } finally {
-                // Failed authenticated reopen/cleanup retains ciphertext/catalog
-                // for conservative existing GC; it never becomes an active vault.
-                raw.fill(0);candidatePins[db().path]?.let {it.remove(id);if(it.isEmpty()) candidatePins.remove(db().path)}
+                // The active/pending pointer or candidate-only catalog protects
+                // release-only outcomes after the in-process candidate pin is gone.
+                raw.fill(0);candidatePins[namespace.path]?.let {it.remove(id);if(it.isEmpty()) candidatePins.remove(namespace.path)}
+                namespace.close()
             }
         }
         fun failed(error: Throwable): Nothing {
@@ -244,10 +300,10 @@ internal class VaultGenerations(private val context: Context, private val db: ()
     }
     private inner class Preparation(private val storage: CandidateStorage) : ReceiptPreparation {
         private var open=true
-        override fun append(receiptId: String, bytes: ByteArray) = locked {
+        override fun append(receiptId: String, bytes: ByteArray) = candidateLocked(storage) {
             check(open) {"Receipt preparation is closed"}
             try {
-                storage.operation.check()
+                storage.namespace.check();storage.operation.check()
                 val descriptor=checkNotNull(storage.descriptors.find {it.id==receiptId}) {"Undeclared receipt"}
                 check(receiptId !in storage.received) {"Receipt already supplied"}
                 require(bytes.size.toLong()==descriptor.byteCount) {"Receipt input length mismatch"}
@@ -255,11 +311,11 @@ internal class VaultGenerations(private val context: Context, private val db: ()
                 storage.received+=receiptId;fault(Point.CANDIDATE_INPUT);storage.operation.check()
             } catch(error: Throwable) {open=false;storage.failed(error)}
         }
-        override fun append(receiptId: String, input: java.io.InputStream) = locked {
+        override fun append(receiptId: String, input: java.io.InputStream) = candidateLocked(storage) {
             var bytes: ByteArray? = null
             try {
                 input.use {source ->
-                    check(open) {"Receipt preparation is closed"};storage.operation.check()
+                    check(open) {"Receipt preparation is closed"};storage.namespace.check();storage.operation.check()
                     val d=checkNotNull(storage.descriptors.find {it.id==receiptId}) {"Undeclared receipt"}
                     check(receiptId !in storage.received) {"Receipt already supplied"}
                     val data=ByteArray(d.byteCount.toInt());bytes=data
@@ -274,10 +330,10 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             } catch(error: Throwable) {if(open) {open=false;storage.failed(error)} else throw error}
             finally {bytes?.fill(0)}
         }
-        override fun finish(): PreparedGeneration = locked {
+        override fun finish(): PreparedGeneration = candidateLocked(storage) {
             check(open) {"Receipt preparation is closed"}
             try {
-                storage.operation.check();check(storage.received.size==storage.descriptors.size) {"Missing declared receipts"}
+                storage.namespace.check();storage.operation.check();check(storage.received.size==storage.descriptors.size) {"Missing declared receipts"}
                 storage.files=storage.writer?.complete()
                 val summary=transaction {readVerified(storage.id)}
                 fault(Point.CANDIDATE_VERIFIED);storage.operation.check()
@@ -288,24 +344,67 @@ internal class VaultGenerations(private val context: Context, private val db: ()
                 val candidate=Candidate(storage,summary);open=false;candidate
             } catch(error: Throwable) {open=false;storage.failed(error)}
         }
-        override fun close() = locked {if(open) {open=false;storage.discard()}}
+        override fun close() = candidateLocked(storage) {if(open) {open=false;storage.discard()}}
     }
     private inner class Candidate(private val storage: CandidateStorage, override val metadata: VerifiedMetadata) : PreparedGeneration {
         private var open=true
-        override fun close() = locked {if(open) {open=false;storage.discard()}}
+        private val owner=this@VaultGenerations
+        fun install(receiver: VaultGenerations) = candidateLocked(storage) {
+            check(owner===receiver) {"Candidate belongs to another receiving store"}
+            check(open) {"Candidate is consumed"};open=false
+            try {
+                storage.namespace.check();fault(Point.CANDIDATE_INSTALL_READY)
+                publish(storage.id,storage.target.state,storage.target.state.revision,storage.operation,
+                    guard={storage.namespace.check();check(candidateTarget()==storage.target) {"Your vault changed after candidate preparation"}},
+                    verify={actual ->
+                        check(actual==metadata) {"Candidate metadata changed"}
+                        // Retained creation pins reject identical-ciphertext inode or
+                        // directory substitutions that a fresh read lease cannot detect.
+                        storage.files?.let {files->files.handles.forEach {storage.operation.check();files.read(it).fill(0)}}
+                        storage.operation.check()
+                        check(candidateTarget()==storage.target) {"Your vault changed before publication"};storage.namespace.check()
+                    },
+                    afterPublicationStarted={storage.publicationStarted=true;adoptCandidate(storage)})
+            } catch(error: Throwable) {storage.failed(error)}
+            finally {storage.operation.finish()}
+            storage.discard() // Published: close ownership pins without deleting durable files.
+        }
+        override fun close() = candidateLocked(storage) {if(open) {open=false;storage.discard()}}
     }
-    /** Unexposed preparation seam: no ensure/recovery, device-key creation, active
-     * pointer write or installation capability. Callers must close their handles. */
+    internal fun installPrepared(candidate: PreparedGeneration) {
+        check(candidate is Candidate) {"Unsupported candidate capability"};candidate.install(this)
+    }
+    private fun adoptCandidate(storage: CandidateStorage) {
+        if(storage.descriptors.isEmpty()) return
+        val secret=SecretKeySpec(storage.raw,"AES")
+        val bytes=db().rawQuery("SELECT owner,sealed FROM vault_receipts WHERE id=?",arrayOf(storage.group)).use {
+            check(it.moveToFirst() && it.getString(0)==storage.id);it.getBlob(1)
+        }
+        val manifest=open(bytes,secret,"receipts:${storage.id}:${storage.group}")
+        Wire.exactKeys(manifest,"format","vaultId","descriptors")
+        check(Wire.integer(manifest,"format")==2L && Wire.string(manifest,"vaultId")==storage.snapshot.vaultId)
+        val array=manifest.getJSONArray("descriptors");check(array.length()==storage.descriptors.size)
+        check((0 until array.length()).map {descriptor(array.getJSONObject(it))}==storage.descriptors)
+        manifest.put("format",1)
+        check(db().update("vault_receipts",ContentValues().apply {put("sealed",seal(manifest,secret,"receipts:${storage.id}:${storage.group}"))},"id=? AND owner=?",arrayOf(storage.group,storage.id))==1)
+    }
+    /** Preparation never initializes, repairs or changes current state. The opaque
+     * capability can only be installed once by this receiving store. */
     internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<ReceiptDeclaration>,
         operation: RestoreOperation = RestoreOperation()): ReceiptPreparation = locked {
         operation.check()
         val snapshot=frozenMetadata(metadata);val id=Wire.id();val group=Wire.id()
         val descriptors=receipts.toList().map {LocalReceiptBlob.Descriptor(snapshot.vaultId,group,it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)}
         requireReceiptCapacity(snapshot,descriptors)
-        val current=state();check(!current.pending) {"Finish existing vault recovery before preparing a candidate"}
-        val device=device() // Existing key only. Rejected preview must never repair or provision it.
+        val namespace=CandidateNamespace()
+        val target: CandidateTarget
+        val device: SecretKey
+        try {
+            namespace.check();target=transaction {candidateTarget()};namespace.check()
+            device=device() // Existing key only. Rejected preview must never repair or provision it.
+        } catch(error: Throwable) {try {namespace.close()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)};throw error}
         val raw=ByteArray(32).also {SecureRandom().nextBytes(it)}
-        val storage=CandidateStorage(id,raw,snapshot,group,descriptors,operation)
+        val storage=CandidateStorage(id,raw,snapshot,group,descriptors,operation,target,namespace)
         check(candidatePins.getOrPut(db().path) {mutableSetOf()}.add(id)) {"Candidate identity already owned"}
         try {
             val membership=digest(snapshot.vaultId,snapshot.expenses,descriptors.map {it.id to receiptMetadata(it)},snapshot.finance)
@@ -324,7 +423,8 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             storage.databaseOwned=true
             if(descriptors.isNotEmpty()) storage.writer=LocalReceiptBlob.Operation(context,raw,snapshot.vaultId,
                 faults=LocalReceiptBlob.Faults {_,_->operation.check()},generationId=group)
-            operation.check();Preparation(storage)
+            if(descriptors.isNotEmpty()) namespace.pinReceiptRoot()
+            namespace.check();operation.check();Preparation(storage)
         } catch(error: Throwable) {storage.failed(error)}
     }
     private fun receiptFiles(id: String, raw: ByteArray, snapshot: Snapshot, guard: () -> Unit = {}): List<LocalReceiptBlob.Descriptor> {
@@ -486,16 +586,22 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         require(expectedRevision==null || revision==expectedRevision) {"Your vault changed after the preview. Open the backup again before replacing it."}
         operation.check()
         val id=prepare(snapshot,operation::check)
-        try { transaction {
-            operation.check()
+        publish(id,old,revision,operation,guard={
             require(expectedBinding==null || binding()==expectedBinding) {"Vault identity changed during preparation"}
             check(get("activeState")==token) {"Vault changed during preparation"}
-            readVerified(id)
-            operation.beginPublication() // Cancellation after this CAS cannot claim the old vault was retained.
+        })
+    }
+    /** Shared publication protocol for legacy Snapshot and receipt-streamed local candidates. */
+    private fun publish(id: String, old: State?, revision: Long, operation: RestoreOperation,
+        guard: () -> Unit, verify: (VerifiedMetadata) -> Unit = {}, afterPublicationStarted: () -> Unit = {}) {
+        try {transaction {
+            operation.check();guard()
+            verify(readVerified(id));operation.check()
+            operation.beginPublication() // Late cancellation cannot claim the old vault was retained.
+            afterPublicationStarted()
             setState(State(id,old?.let {Previous(it.active,it.revision,it.incarnation)},true,Math.addExact(revision,1),Wire.id()))
-        }
-        } catch(failure: Throwable) {cleanupFailed(failure);throw failure}
+        }} catch(failure: Throwable) {cleanupFailed(failure);throw failure}
         fault(Point.POINTER_COMMITTED)
-        recover();Unit
+        recover()
     }
 }
