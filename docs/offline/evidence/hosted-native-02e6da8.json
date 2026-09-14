@@ -1,0 +1,80 @@
+{
+  "sourceCommit": "02e6da82b21d62cd4f9a5b59e525910582b8277f",
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34789614351",
+  "nativeGate": "success",
+  "ios": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+          "deviceName": "iPhone 17 Pro",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 64,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789343156.163,
+    "passedTests": 64,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789342171.499,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "48% of duration",
+        "text": "1 longest test run with outlier durations exceeding 2.70s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 64
+  },
+  "android": [
+    {
+      "api": "26",
+      "suite": {
+        "tests": "34",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "5",
+        "time": "114.336",
+        "timestamp": "2026-09-13T23:33:17",
+        "hostname": "localhost"
+      },
+      "tests": [],
+      "processPhases": "create and verify passed under separate processes",
+      "restartEvidence": "Starting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nThisTime: 1794\nTotalTime: 2248\nWaitTime: 1908\nComplete\nStarting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nThisTime: 1674\nTotalTime: 1674\nWaitTime: 1733\nComplete\nProcess before force-stop: 6460\nNew process after restart: 6516\nPASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+    },
+    {
+      "api": "37",
+      "suite": {
+        "tests": "34",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "5",
+        "time": "141.214",
+        "timestamp": "2026-09-13T23:34:23",
+        "hostname": "localhost"
+      },
+      "tests": [],
+      "processPhases": "create and verify passed under separate processes",
+      "restartEvidence": "Starting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nLaunchState: COLD\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nTotalTime: 2064\nWaitTime: 2066\nComplete\nStarting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nLaunchState: COLD\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nTotalTime: 1997\nWaitTime: 2001\nComplete\nProcess before force-stop: 7323\nNew process after restart: 7373\nPASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+    }
+  ],
+  "scope": "Hosted native checkpoints only. Later source edits require fresh checks; retained Flutter iOS failed separately on this head."
+}

@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1129
+- Total source-visible files: 1139
 
 | Path | Area |
 |---|---|
@@ -70,6 +70,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CaptureFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/CloudDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/DriveFlowTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationPerformanceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/FinanceFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/NetworkBoundaryTest.kt` | native-android |
@@ -138,12 +140,17 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/P5.md` | native-android |
 | `apps/android/evidence/P5b.md` | native-android |
 | `apps/android/evidence/P6.md` | native-android |
+| `apps/android/evidence/capacity-v4-assessment.md` | native-android |
 | `apps/android/evidence/interoperability/android-cloud-runtime.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/android-cloud-runtime.pennymanifest` | native-android |
 | `apps/android/evidence/interoperability/android-runtime-v2.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/android-runtime-v3.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/ios-produced-v2.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/ios-runtime-v3.pennybackup` | native-android |
+| `apps/android/evidence/mutation-performance/after-api37.json` | native-android |
+| `apps/android/evidence/mutation-performance/before-api37.json` | native-android |
+| `apps/android/evidence/mutation-performance/paired-api37.json` | native-android |
+| `apps/android/evidence/mutation-performance/provenance.json` | native-android |
 | `apps/android/evidence/p6-displays/dark-large-font-editor.png` | native-android |
 | `apps/android/evidence/p6-displays/dark-large-font-finance.png` | native-android |
 | `apps/android/evidence/p6-displays/dark-large-font-overview.png` | native-android |
@@ -363,6 +370,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/observability/SETUP.md` | docs |
 | `docs/offline/ARTIFACT_PREFLIGHT.md` | docs |
 | `docs/offline/BACKUP_CONTRACT.md` | docs |
+| `docs/offline/CAPACITY_V4_DECISION.md` | docs |
+| `docs/offline/CAPACITY_V4_PROPOSAL.md` | docs |
 | `docs/offline/CAPTURE.md` | docs |
 | `docs/offline/CLOUD_BACKUP.md` | docs |
 | `docs/offline/COMPATIBILITY_SECURITY.md` | docs |
@@ -382,6 +391,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-api26-summary.json` | docs |
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
+| `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
 | `docs/offline/evidence/ios-accessibility-disposition.md` | docs |
 | `docs/offline/evidence/ios-accessibility-recheck.json` | docs |

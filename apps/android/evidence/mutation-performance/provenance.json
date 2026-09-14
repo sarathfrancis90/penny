@@ -1,0 +1,43 @@
+{
+  "status": "Functional gates passed; five-pair same-binary timing passed. Historical before/after samples remain confounded.",
+  "beforeSource": {
+    "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "d31bdf894c4b27c14ec99118ad05ce671e83d54b1b9f81d3678f84cc5babb40e",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "ce441cf518ceaae310219cf77ca8b65d050fad1a0b24bb1263eb32a00a11155a"
+  },
+  "afterSource": {
+    "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "7103f2f0e6304fd3e85c432593aecbc4d2d91e688de78b6497db1365cc3c58d0",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "f55ea4c8c61eb5818dad815b062ec2dc6508f72eb8b0a770fad240de021e5d91",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt": "b2ba4d7857546f7d06c55e62a00cf0024c40dcee1005a4a21c4cca6c2b5f5552",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationPerformanceTest.kt": "78c811924c0e879bf35463dd54eb97e5abdd44774b1ca011b14c15f5a288fd2d"
+  },
+  "beforeSourceMethod": "Git index content predating this slice; runtime diff consists only of this slice changes.",
+  "runtime": "PennyOffline_API37_16K emulator-5560 API37 getconf PAGE_SIZE=16384; debug instrumented isolated ca.penny.offline.dev.test",
+  "commands": [
+    "ANDROID_HOME=/Users/sarathfrancis/Library/Android/sdk ./gradlew -PpennyTestSandbox=true :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug",
+    "adb -s emulator-5560 shell am instrument -w -e class ca.penny.offline.ExpenseMutationPerformanceTest -e pennyMutationPerformance true ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner"
+  ],
+  "results": {
+    "api26NewRegression": "4 passed",
+    "api37RegressionAndUi": "16 passed",
+    "jvmBuildLint": "passed",
+    "pairedApi37": "1 benchmark passed, 5 alternating pairs, exact full-snapshot oracle after each timed path"
+  },
+  "timingLimitations": [
+    "Original before-source run5 samples median2090.706042ms",
+    "After-source run5 samples median2991.205001ms under changed host/emulator workload; no improvement claim",
+    "First after attempt interrupted by overlapping instrumentation; stale JSON subsequently replaced only after a fresh OK(1test) result",
+    "Final paired harness rebuilt and passed1test/5alternating pairs in one process; results compare paths in the same new binary, not original-source binaries."
+  ],
+  "baselineHarness": "The original harness timed store.save(changed) then VaultUiState(expenses=store.all(),attachments=store.attachments()); full store.snapshot oracle outside timer. No warmup;5repeated edits,10000synthetic expenses,no receipts.",
+  "afterHarness": "The after-source run timed val saved=store.save(changed) then VaultUiState using saved expenses/attachments/finance. Same untimed full snapshot oracle. Final paired harness supersedes this runner.",
+  "pairedBenchmark": {
+    "file": "paired-api37.json",
+    "sha256": "54ef9b923a20c2fb80b7e99269b94533f8b84ab0c47c0f417eba61485e17c6cd",
+    "source": "afterSource",
+    "timedPath": "Current save+returned snapshot vs same current save+replayed all/attachments reads. No original-binary speedup claim.",
+    "medianReturnedMs": 1074.507709,
+    "medianReplayMs": 2065.090626,
+    "medianReductionPercent": 47.968011889082106,
+    "conditions": "Root ran after Flutter/iOS/libsodium build tasks completed, API26 task emulator shut down, API37 isolated test package only. Normal user host processes and idle simulators were not stopped. Debug emulator, no receipts, not physical p95."
+  }
+}

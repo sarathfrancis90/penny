@@ -32,6 +32,7 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", priv
     private fun createFinance(db: SQLiteDatabase) { FinanceData.limits.keys.forEach { db.execSQL("CREATE TABLE $it (id TEXT PRIMARY KEY NOT NULL, sealed BLOB NOT NULL)") } }
 
     private val recordTables get() = listOf("expenses", "attachments") + FinanceData.limits.keys
+    private val expenseOrder = compareByDescending<Expense> { it.expenseDate }.thenByDescending { it.createdAt }
     private fun metadata(name: String): String? = readableDatabase.rawQuery("SELECT value FROM metadata WHERE key=?",arrayOf(name)).use { if(it.moveToFirst()) it.getString(0) else null }
     private fun putMetadata(name: String,value: String) { writableDatabase.execSQL("INSERT OR REPLACE INTO metadata VALUES (?, ?)",arrayOf(name,value)) }
     private fun aad(table: String,id: String) = (when(table) { "expenses" -> id; "attachments" -> "receipt:$id"; else -> "$table:$id" }).toByteArray(Charsets.UTF_8)
@@ -142,7 +143,7 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", priv
                     require(expense.id == id) { "Vault record identity mismatch" }
                     add(expense)
                 }
-            }.also { Money.total(it) }.sortedWith(compareByDescending<Expense> { it.expenseDate }.thenByDescending { it.createdAt })
+            }.also { Money.total(it) }.sortedWith(expenseOrder)
         }
     }
     @Synchronized fun attachments(): List<Attachment> = transaction {
@@ -189,8 +190,10 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", priv
         return try { Snapshot(vaultId(), all(), attachments = attachments(), finance = finance()).also { it.validate(); db.setTransactionSuccessful() } }
         finally { db.endTransaction() }
     }
-    @Synchronized fun save(expense: Expense, receipts: List<Attachment> = emptyList()) = transaction {
-        val proposed = all().filterNot { it.id == expense.id } + expense
+    /** Returns the validated view only after the outer transaction commits. No
+     * state/key cache survives this operation; another connection is read afresh. */
+    @Synchronized fun save(expense: Expense, receipts: List<Attachment> = emptyList()): Snapshot = transaction {
+        val proposed = (all().filterNot { it.id == expense.id } + expense).sortedWith(expenseOrder)
         require(proposed.size <= 10_000) { "The 10,000 expense limit is reached. Export and verify a backup before removing records to free space." }
         Money.total(proposed)
         require(receipts.all { it.expenseId == expense.id })
@@ -202,6 +205,7 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", priv
         db.beginTransaction()
         try { write(expense, secret); receipts.forEach { writeAttachment(it, secret) }; bumpRevision(); db.setTransactionSuccessful() }
         finally { db.endTransaction() }
+        candidate
     }
     private fun write(expense: Expense, secret: SecretKey) {
         writableDatabase.insertWithOnConflict("expenses", null, ContentValues().apply {
@@ -213,13 +217,18 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", priv
         val sealed = cipher.iv + cipher.doFinal(attachment.json().toString().toByteArray(Charsets.UTF_8))
         check(writableDatabase.insertOrThrow("attachments", null, ContentValues().apply { put("id", attachment.id); put("sealed", sealed) }) != -1L)
     }
-    @Synchronized fun delete(id: String) = transaction {
+    @Synchronized fun delete(id: String): Snapshot = transaction {
         Wire.requireId(id)
-        val receipts = attachments().filter { it.expenseId == id }
+        val currentReceipts = attachments()
+        val receipts = currentReceipts.filter { it.expenseId == id }
+        val candidate = Snapshot(vaultId(), all().filterNot { it.id == id },
+            attachments = currentReceipts.filterNot { it.expenseId == id }, finance = finance())
+        candidate.validate()
         val db = writableDatabase
         db.beginTransaction()
         try { receipts.forEach { db.delete("attachments", "id=?", arrayOf(it.id)) }; db.delete("expenses", "id=?", arrayOf(id)); bumpRevision(); db.setTransactionSuccessful() }
         finally { db.endTransaction() }
+        candidate
     }
     @Synchronized fun deleteAttachment(id: String) {
         Wire.requireId(id)

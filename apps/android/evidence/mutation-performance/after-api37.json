@@ -1,0 +1,15 @@
+{
+  "kind": "save-plus-ui-refresh",
+  "samplesMs": [
+    3302.668627,
+    2955.261876,
+    2991.205001,
+    2982.575501,
+    3109.513793
+  ],
+  "api": 37,
+  "build": "debug instrumented",
+  "recordCount": 10000,
+  "receiptCount": 0,
+  "pid": 3764
+}

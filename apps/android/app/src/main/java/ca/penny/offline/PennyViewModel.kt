@@ -16,9 +16,8 @@ data class VaultUiState(val expenses: List<Expense> = emptyList(), val ready: Bo
     val message: String? = null, val fatalError: Boolean = false, val nano: NanoState = NanoState.CHECKING, val finance: FinanceData = FinanceData(),
     val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<Attachment> = emptyList(), val categorySuggestion: String? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null)
 
-class PennyViewModel(application: Application, private val ai: ReceiptIntelligence) : AndroidViewModel(application) {
+class PennyViewModel(application: Application, private val ai: ReceiptIntelligence, private val store: VaultStore = VaultStore(application)) : AndroidViewModel(application) {
     constructor(application: Application) : this(application,LocalIntelligence())
-    private val store = VaultStore(application)
     private val mutex = Mutex()
     private val receiptGeneration = java.util.concurrent.atomic.AtomicLong()
     private val mutable = MutableStateFlow(VaultUiState())
@@ -46,11 +45,14 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
     fun exportCsv(uri: Uri) = operation { val data = FinanceMath.csv(store.snapshot()); getApplication<Application>().contentResolver.openOutputStream(uri,"wt").use { output -> checkNotNull(output); output.write(data); output.flush() }; mutable.value=mutable.value.copy(message="Expense CSV saved to your chosen file") }
     fun consumeReceipt() { receiptGeneration.incrementAndGet(); mutable.value = mutable.value.copy(receipt = null, receiptBytes = null, receiptOptimized = false, categorySuggestion = null) }
     fun save(expense: Expense, done: () -> Unit) = operation {
-        store.save(expense, mutable.value.receiptBytes?.let { listOf(Attachment.fromBytes(expense.id, it)) } ?: emptyList())
-        mutable.value = mutable.value.copy(expenses = store.all(), attachments = store.attachments(), message = "Saved on this device")
+        val saved = store.save(expense, mutable.value.receiptBytes?.let { listOf(Attachment.fromBytes(expense.id, it)) } ?: emptyList())
+        mutable.value = mutable.value.copy(expenses = saved.expenses, attachments = saved.attachments, finance = saved.finance, message = "Saved on this device")
         withContext(Dispatchers.Main) { done() }
     }
-    fun delete(expense: Expense) = operation { store.delete(expense.id); mutable.value = mutable.value.copy(expenses = store.all(), attachments = store.attachments(), message = "Expense deleted") }
+    fun delete(expense: Expense) = operation {
+        val saved = store.delete(expense.id)
+        mutable.value = mutable.value.copy(expenses = saved.expenses, attachments = saved.attachments, finance = saved.finance, message = "Expense deleted")
+    }
     fun deleteReceipt(id: String) = operation { store.deleteAttachment(id); mutable.value = mutable.value.copy(attachments = store.attachments(), message = "Receipt removed") }
     fun setReceiptLocale(locale: String) {
         require(locale in listOf("en-CA","fr-CA"))

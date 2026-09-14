@@ -54,3 +54,18 @@ Initial engineering targets for a supported physical phone are: cold opening of 
 Before a large-dataset release, decouple receipt blobs from inline whole-vault JSON and define a versioned streaming encrypted archive or bounded chunk manifest. Keep prior v1/v2/v3 exports readable. A new format must authenticate each blob's identity, content, length and ownership, enforce total limits, preserve atomic restore and carry shared Swift/Kotlin vectors. Raising an integer limit alone is insufficient: backup staging, providers, local writes, restore rollback and UI capacity reporting must agree.
 
 Do not silently drop receipts or delete old backups to satisfy these limits. At capacity, preserve the existing vault and provide a clear export/capacity action until a measured compatible storage revision is ready.
+
+## Committed expense state follow-up
+
+An ordinary Android save/delete now returns its fully validated snapshot only after the outer SQLite transaction ends successfully. The ViewModel publishes that result instead of reading/decrypting the vault again. No cache, key-check shortcut, schema or capacity increase was introduced. Four new device regressions cover second-connection edits/restores, full validation/report agreement, late SQL rollback, key loss/corruption and no optimistic UI publication; API26 passed all four and API37 passed sixteen storage/finance/CRUD/capture checks.
+
+A five-pair, alternating-order benchmark on API37 ARM64/16 KiB measured the current binary's two data paths for 10,000 expenses and zero receipts. Each pair used the same process and an untimed full snapshot oracle. It measures storage and UI-state construction, not rendered frames or user-perceived completion.
+
+| Same-binary path | Median | Range |
+| --- | ---: | ---: |
+| Save and use returned committed state | 1,074.51 ms | 1,066.18–1,172.12 ms |
+| Save and replay redundant expense/receipt reads | 2,065.09 ms | 2,058.05–2,086.37 ms |
+
+The measured median difference is 47.97%. This is not a clean original-binary versus new-binary comparison: earlier separate samples were confounded by overlapping builds/emulators and are retained as inconclusive evidence. The paired run began after agent build tasks finished and the temporary API26 emulator stopped; normal host processes and idle simulators remained. It is a debug emulator sample, not physical p95, receipt-capacity, 50k or peak-memory acceptance. The approximately one-second remaining full-validation cost motivates the separate storage/capacity phase.
+
+Raw samples, source hashes, commands, failed-attempt caveats and exact benchmark scope are in [mutation provenance](../../apps/android/evidence/mutation-performance/provenance.json) and [paired samples](../../apps/android/evidence/mutation-performance/paired-api37.json).
