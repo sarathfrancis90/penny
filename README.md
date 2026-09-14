@@ -13,7 +13,7 @@ Penny is moving to separate native iOS and Android apps with local financial dat
 | Existing standalone API | [apps/api](apps/api) | Supports existing clients during migration |
 | Web application | `src/`, `public/` | Retired from feature development; compatibility dependencies retained |
 
-Start agent work with [AGENTS.md](AGENTS.md). New native work must not depend on Firebase, Fastify, Gemini cloud, or the web application for ordinary use. Backup/restore requires optional cloud access; model availability depends on device support. See the plan for the exact offline, recovery, migration and release gates.
+Start agent work with [AGENTS.md](AGENTS.md). New native work must not depend on Firebase, Fastify, Gemini cloud, or the web application for ordinary use. Encrypted file backup and restore work locally; private cloud backup requires optional provider access. Model availability depends on device support. See the plan for the exact offline, recovery, migration and release gates.
 
 ## Local native development
 

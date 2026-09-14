@@ -24,19 +24,39 @@ Current product limits remain **10,000 expenses, 100 receipts, 8 MiB aggregate r
 
 ## Latest hosted and local checkpoints
 
-At source commit `6cdf3044da564c3e8f69a3ec96ea737a90367214`, all hosted native jobs passed in [run 34792285794](https://github.com/sarathfrancis90/penny/actions/runs/34792285794):
+At source commit `e3d6dc53e224357553795083bae45b222548298e`, all hosted native jobs passed in [run 34797361200](https://github.com/sarathfrancis90/penny/actions/runs/34797361200):
 
 - iOS simulator: **64/64**, 55 unit and nine UI methods, zero failures/skips.
 - Android API26 and API37/16 KiB: **33/39 on each runtime**, zero failures and six explicit opt-in/process skips. Both separate UI-created expense force-stop/relaunch phases passed under different processes.
-- Shared native contract, Android compilation/JVM/lint/APK and native aggregate passed.
+- Shared native contract/reference checks, native library builds, Android compilation/JVM/lint/APK and native aggregate passed.
 
-[The compact machine report](evidence/hosted-native-6cdf304.json) is extracted from that run's result bundle, JUnit XML and process logs. Six skips are the two opt-in performance methods, TLS probe, 10k external-process method and two separately executed CRUD process phases. This checkpoint does not cover the later crypto tooling/prototypes.
+[The compact machine report](evidence/hosted-native-e3d6dc5.json) is extracted from that run's result bundle, fresh JUnit XML and process logs. Six skips are the two opt-in performance methods, TLS probe, 10k external-process method and two separately executed CRUD process phases. This checkpoint does not include the later, uncommitted detached receipt foundation. Retained Flutter iOS and the overall required gate remain pending at this recorded checkpoint.
 
-Every listed hosted check and both aggregate gates passed on that revision, including security, OSV, SAST, API, Firebase rules, backend, documentation, Flutter analyzer/unit, retained Android, retained Flutter iOS integration and its unsigned release build. On the later crypto prototype commit `3414197`, authenticated source/reference checks and both native library build steps passed. The native Android API37 job failed in the camera-denial test's composite save/snackbar wait; API26 passed; iOS passed 63/64, failing only the five-second system photo-grid readiness assertion. The native aggregate failed. The Android test correction passed locally on API26 and API37, including API37 with 60-second accessibility timeouts. The iOS correction passed the exact real Photos attach/save/relaunch/original/remove journey locally, 1/1 with zero skips. Fresh hosted acceptance is required for both. See [Android failure and regression](evidence/capture-dismiss-regression.json), [iOS readiness proof](evidence/ios-photo-picker-readiness.json), and [successful hosted crypto source/build evidence](evidence/hosted-crypto-3414197.json). The earlier Flutter dashboard fixture failed because June expenses were hidden by the current-month filter; the scoped fixture correction passed both affected scenarios locally and all 290 pre-push Flutter tests. No legacy application behavior changed for that correction.
+The prior `6cdf304` revision passed every listed hosted check and both aggregate gates, including retained Flutter iOS integration and its unsigned release build; [its native report](evidence/hosted-native-6cdf304.json) remains historical evidence. On `3414197`, authenticated source/reference checks and both native library builds passed, but API37 failed a composite save/snackbar wait and iOS failed its initial five-second Photos-grid readiness assertion. The fixes passed focused local tests and the full native `e3d6dc5` run above. See [Android failure and regression](evidence/capture-dismiss-regression.json), [iOS local readiness proof](evidence/ios-photo-picker-readiness.json), and [hosted crypto source/build evidence](evidence/hosted-crypto-3414197.json). The earlier retained Flutter dashboard fixture correction preserves application behavior and passed both affected local scenarios and all 290 pre-push Flutter tests.
 
 Android expense save/delete now returns validated state after a successful commit, avoiding a redundant full-vault read. Local build/JVM/lint, 16 API37 tests and four API26 regressions passed. Five alternating pairs in one debug API37/16 KiB process measured 1.07 s median with returned state versus 2.07 s with replayed reads for 10k expenses. This is the save/state data path, not physical p95 or an original-binary comparison. [PERFORMANCE.md](PERFORMANCE.md) preserves workload and measurement limits.
 
 ## Streamed backup work in progress
+
+The detached encrypted receipt foundation now passes the shared public golden
+and 35 negative cases, plus native ownership/cleanup/inventory/capacity tests:
+**9/9 iOS simulator methods** and **7/7 Android groups on each API26/37**. iOS
+uses an explicit compile-time simulator filesystem implementation; device builds
+retain atomic class-A creation and actual descriptor checks with no runtime
+fallback. A path-based directory metadata race found in review was removed;
+the primitive requires an already backup-excluded private parent. The original
+iOS EPERM failure remains historical evidence. The final Swift source passes
+simulator tests; the preceding checkpoint also compiled for iPhoneOS, which is
+not a physical protection test. See [iOS](../../apps/ios/evidence/local-receipt-foundation.md),
+[Android](../../apps/android/evidence/local-receipt-foundation.md) and the
+[independent positive vector](evidence/local-receipt-independent.json).
+
+This foundation alone has no live storage callers or crash recovery. The next
+implementation now integrates both native stores with durable detached receipts,
+inactive preparation, guarded atomic activation and retained predecessors under
+[DURABLE_STORAGE.md](DURABLE_STORAGE.md). Shared all-domain input files and 14
+lifecycle requirements are available; their existence is not passing native
+transaction evidence. Portable v1–v3 formats and capacity remain unchanged.
 
 The [capacity decision](CAPACITY_V4_DECISION.md) selects upstream libsodium secretstream with a separate HKDF-derived key. Its authenticated source archive/tree pin, independent signature verifier, license and out-of-tree Apple/Android builders are implemented in `packages/offline-crypto/`. Actual ARM64 iPhoneOS/simulator builds and Swift link probes passed; all four Android ABI static builds, ELF checks and CMake consumer links passed with 16 KiB alignment. Source/configuration/path/header/target rejection checks passed. Deterministic source/signature tests join the normal offline gate, which passed 74 Node tests and 27 Python test groups plus static boundaries at the frame checkpoint; the logical additions below bring the Node total to 82.
 
@@ -61,5 +81,7 @@ The original checkout already contained API tests/routes/services, Firestore ind
 The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offline-review`, branch `codex/penny-offline-native` from `bcdd69d`. Explicit owned-path synchronization excludes the pre-existing API/Flutter source changes. Review changes to the retained mobile tree are limited to Ruby dependency maintenance and the date-sensitive integration fixture. Logs, result bundles, source pins and earlier failing evidence are retained under ignored `artifacts/offline/` and native build directories; portable public fixtures and compact reports are checked in.
 
 ## Token accounting
+
+On the 2026-09-13 continuation, the account usage tool reported **50% of the weekly allowance remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **10,401,224 aggregate tokens and 25,791 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

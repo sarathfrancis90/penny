@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1240
+- Total source-visible files: 1264
 
 | Path | Area |
 |---|---|
@@ -74,6 +74,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationPerformanceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/FinanceFlowTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/NetworkBoundaryTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/OfflineFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/PerformanceDeviceTest.kt` | native-android |
@@ -100,6 +101,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/main/java/ca/penny/offline/FinanceModels.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/FinanceScreen.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/LocalIntelligence.kt` | native-android |
+| `apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/MainActivity.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/PennyApp.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/PennyTheme.kt` | native-android |
@@ -147,6 +149,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/interoperability/android-runtime-v3.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/ios-produced-v2.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/ios-runtime-v3.pennybackup` | native-android |
+| `apps/android/evidence/local-receipt-foundation.json` | native-android |
+| `apps/android/evidence/local-receipt-foundation.md` | native-android |
 | `apps/android/evidence/mutation-performance/after-api37.json` | native-android |
 | `apps/android/evidence/mutation-performance/before-api37.json` | native-android |
 | `apps/android/evidence/mutation-performance/paired-api37.json` | native-android |
@@ -256,6 +260,9 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOffline/FinanceView.swift` | native-ios |
 | `apps/ios/PennyOffline/Info.plist` | native-ios |
 | `apps/ios/PennyOffline/LocalAssistant.swift` | native-ios |
+| `apps/ios/PennyOffline/LocalReceiptBlob.swift` | native-ios |
+| `apps/ios/PennyOffline/LocalReceiptFileProtection.c` | native-ios |
+| `apps/ios/PennyOffline/LocalReceiptFileProtection.h` | native-ios |
 | `apps/ios/PennyOffline/LocalVaultFrame.swift` | native-ios |
 | `apps/ios/PennyOffline/PNGIntegrity.swift` | native-ios |
 | `apps/ios/PennyOffline/PennyColors.swift` | native-ios |
@@ -279,6 +286,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineTests/CaptureTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/CloudTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/FinanceTests.swift` | native-ios |
+| `apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/VaultTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CaptureFlowTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CloudFlowTests.swift` | native-ios |
@@ -286,6 +294,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineUITests/FinanceFlowTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/VisualFlowTests.swift` | native-ios |
 | `apps/ios/README.md` | native-ios |
+| `apps/ios/evidence/local-receipt-foundation.json` | native-ios |
+| `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
 | `apps/ios/project.yml` | native-ios |
 | `assets/offline/README.md` | repo |
 | `assets/offline/penny-offline-foreground.svg` | repo |
@@ -376,7 +386,9 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/CAPTURE.md` | docs |
 | `docs/offline/CLOUD_BACKUP.md` | docs |
 | `docs/offline/COMPATIBILITY_SECURITY.md` | docs |
+| `docs/offline/DURABLE_STORAGE.md` | docs |
 | `docs/offline/FINANCE_CONTRACT.md` | docs |
+| `docs/offline/LOCAL_RECEIPT_CONTRACT.md` | docs |
 | `docs/offline/MIGRATION.md` | docs |
 | `docs/offline/NATIVE_PACKAGING.md` | docs |
 | `docs/offline/PERFORMANCE.md` | docs |
@@ -397,6 +409,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
+| `docs/offline/evidence/hosted-native-e3d6dc5.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
 | `docs/offline/evidence/ios-accessibility-disposition.md` | docs |
 | `docs/offline/evidence/ios-accessibility-recheck.json` | docs |
@@ -419,6 +432,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/ios-visible-a11y/report-segment-4.png` | docs |
 | `docs/offline/evidence/ios-visible-a11y/report-segment-5.png` | docs |
 | `docs/offline/evidence/ios-visible-a11y/visible-capacity.png` | docs |
+| `docs/offline/evidence/local-receipt-independent.json` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
 | `docs/superpowers/plans/2026-04-17-observability-foundation.md` | docs |
 | `docs/testing/DEFAULT_GROUP_VERIFICATION.md` | docs |
@@ -777,6 +791,12 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/fixtures/golden-vector-v2.json` | offline-contract |
 | `packages/offline-contract/fixtures/golden-vector-v3.json` | offline-contract |
 | `packages/offline-contract/fixtures/golden-vector.json` | offline-contract |
+| `packages/offline-contract/fixtures/local-generation-v1/lifecycle.json` | offline-contract |
+| `packages/offline-contract/fixtures/local-generation-v1/previous.json` | offline-contract |
+| `packages/offline-contract/fixtures/local-generation-v1/replacement.json` | offline-contract |
+| `packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json` | offline-contract |
+| `packages/offline-contract/fixtures/local-receipt-v1/receipt.pennyreceipt` | offline-contract |
+| `packages/offline-contract/fixtures/local-receipt-v1/receipt.png` | offline-contract |
 | `packages/offline-contract/fixtures/native-exports/android-cloud-v1.pennybackup` | offline-contract |
 | `packages/offline-contract/fixtures/native-exports/android-cloud-v1.pennymanifest` | offline-contract |
 | `packages/offline-contract/fixtures/native-exports/android-v2.pennybackup` | offline-contract |
@@ -811,6 +831,10 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/generate-finance-fixtures.mjs` | offline-contract |
 | `packages/offline-contract/generate-fixtures.mjs` | offline-contract |
 | `packages/offline-contract/generate-png-fixtures.mjs` | offline-contract |
+| `packages/offline-contract/local-generation.test.mjs` | offline-contract |
+| `packages/offline-contract/local-receipt-fixtures.mjs` | offline-contract |
+| `packages/offline-contract/local-receipt.mjs` | offline-contract |
+| `packages/offline-contract/local-receipt.test.mjs` | offline-contract |
 | `packages/offline-contract/package.json` | offline-contract |
 | `packages/offline-contract/png-fixtures.test.mjs` | offline-contract |
 | `packages/offline-contract/receipt-parser.mjs` | offline-contract |

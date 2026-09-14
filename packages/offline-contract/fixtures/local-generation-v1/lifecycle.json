@@ -1,0 +1,104 @@
+{
+  "format": "penny-local-generation-lifecycle-v1",
+  "scope": "Shared data and required native lifecycle outcomes; this file does not simulate or prove transactions",
+  "files": {
+    "previous.json": {
+      "sha256": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+      "expenseCount": 3,
+      "expenseTotalMinor": 15000,
+      "attachmentCount": 1
+    },
+    "replacement.json": {
+      "sha256": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+      "expenseCount": 4,
+      "expenseTotalMinor": 16350,
+      "attachmentCount": 1
+    }
+  },
+  "scenarios": [
+    {
+      "id": "prepare_only",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "Preparation leaves the active ledger and its key unchanged."
+    },
+    {
+      "id": "cancel_before_publish",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "Cancel or preparation failure discards only the owned candidate."
+    },
+    {
+      "id": "stale_revision",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "A second connection edit after preparation prevents stale installation."
+    },
+    {
+      "id": "stale_incarnation",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "Restore/recreation invalidates an earlier prepared candidate even if revision repeats."
+    },
+    {
+      "id": "candidate_tamper",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "Changed encrypted rows, descriptors or receipt bytes reject before publication."
+    },
+    {
+      "id": "crash_before_publish",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "Restart before the pointer transaction exposes the previous complete ledger."
+    },
+    {
+      "id": "crash_after_publish_valid",
+      "visibleAfterRecovery": "new",
+      "previousRetention": "old",
+      "requirement": "A pending valid new generation is authenticated on restart before it is exposed."
+    },
+    {
+      "id": "crash_after_publish_invalid",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "A pending invalid new generation may recover its authenticated recorded predecessor."
+    },
+    {
+      "id": "crash_after_verified",
+      "visibleAfterRecovery": "new",
+      "previousRetention": "old",
+      "requirement": "A verified new generation remains active after restart."
+    },
+    {
+      "id": "established_corruption",
+      "visibleAfterRecovery": "locked",
+      "previousRetention": "old",
+      "requirement": "Corruption without a pending transition locks the vault; it does not silently select old history."
+    },
+    {
+      "id": "pinned_previous",
+      "visibleAfterRecovery": "new",
+      "previousRetention": "old",
+      "requirement": "An exporter lease retains old receipt files while the replacement is active."
+    },
+    {
+      "id": "foreign_cleanup",
+      "visibleAfterRecovery": "new",
+      "previousRetention": "old",
+      "requirement": "Candidate or garbage cleanup preserves foreign files and replacement names."
+    },
+    {
+      "id": "missing_device_key",
+      "visibleAfterRecovery": "locked",
+      "previousRetention": "unavailable",
+      "requirement": "Missing platform key must not initialize an empty ledger over existing data."
+    },
+    {
+      "id": "legacy_migration",
+      "visibleAfterRecovery": "old",
+      "previousRetention": "old",
+      "requirement": "Migrating local storage alone preserves every domain, identifier, amount and receipt byte."
+    }
+  ]
+}

@@ -1,0 +1,178 @@
+{
+  "sourceCommit": "e3d6dc53e224357553795083bae45b222548298e",
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34797361200",
+  "scope": "Hosted native checkpoint: fresh iOS result-bundle summary, Android result XML and separate process logs. Retained Flutter iOS and overall required gate remain separate. This source does not include the new detached receipt foundation.",
+  "android": [
+    {
+      "runtime": "26",
+      "suite": {
+        "tests": "39",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "6",
+        "time": "94.276",
+        "timestamp": "2026-09-14T01:59:34",
+        "hostname": "localhost"
+      },
+      "discovered": 39,
+      "passed": 33,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        }
+      ],
+      "cameraDenialTest": "passed",
+      "processProof": {
+        "process-create.log": {
+          "sha256": "41c9e491361e7463103b65ae253da2a3ea4c0f91c52e8f3fbd458f58c82efe1e",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-verify.log": {
+          "sha256": "03246704469e5f44b3d1525dc0d52c864d60cda03276a8c6e7444c8b605990da",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-restart.log": {
+          "sha256": "918db546b470267aa68cad0e4471f6f52dbf97c63f8d8203db0fb83ed0a70a50",
+          "proof": [
+            "Process before force-stop: 6268",
+            "New process after restart: 6315",
+            "PASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+          ]
+        }
+      },
+      "xmlSha256": "0ecadbccca6ca9463625855c256db2e898199cfd3f0b1b7c758057f9ba320f69"
+    },
+    {
+      "runtime": "37.0",
+      "suite": {
+        "tests": "39",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "6",
+        "time": "136.256",
+        "timestamp": "2026-09-14T02:02:00",
+        "hostname": "localhost"
+      },
+      "discovered": 39,
+      "passed": 33,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        }
+      ],
+      "cameraDenialTest": "passed",
+      "processProof": {
+        "process-create.log": {
+          "sha256": "c8d94c47ae1e44014e183be29a8f53487b75e38d5bc3c3251ecdb6115c679211",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-verify.log": {
+          "sha256": "4ccdc29df4da0dfa39416fcf3d30e5a843e8459931af835e2d206d5d63a1c7a5",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-restart.log": {
+          "sha256": "08a88bd6cad8241ce6005ebf74415a2d864a7cb96d73c54217951bfb9c6b0175",
+          "proof": [
+            "Process before force-stop: 7111",
+            "New process after restart: 7162",
+            "PASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+          ]
+        }
+      },
+      "xmlSha256": "e6896fc0dfe26de944c26e285c0e5ed4d32b1e69cc474f2c748c23dcb786d629"
+    }
+  ],
+  "ios": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+          "deviceName": "iPhone 17 Pro",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 64,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789351932.47,
+    "passedTests": 64,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789351095.344,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "62% of duration",
+        "text": "2 longest test runs with outlier durations exceeding 4.98s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 64
+  },
+  "nativeGate": "success"
+}

@@ -26,6 +26,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ca.penny.offline.dev
+        SWIFT_OBJC_BRIDGING_HEADER: PennyOffline/LocalReceiptFileProtection.h
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_NSCameraUsageDescription: Capture a receipt on this device for your encrypted expense vault. Penny does not save camera captures to your photo library.
         INFOPLIST_KEY_UIFileSharingEnabled: YES

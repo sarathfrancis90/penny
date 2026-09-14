@@ -18,5 +18,8 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 `ios-visible-a11y/diagnostic.json` closes the narrow full-report scrolling evidence gap at system AX5 with three overlapping captures. Its separate fully visible contrast diagnostic still fails on three other elements and does not clear the complete unfiltered audit. All original settings and normal demo identities are preserved.
 
-- [Photos picker readiness regression](ios-photo-picker-readiness.json): exact affected receipt journey passed locally after guarded system-image readiness; hosted confirmation remains pending.
+- [Photos picker readiness regression](ios-photo-picker-readiness.json): exact affected receipt journey passed locally after guarded system-image readiness; the e3d6dc5 native hosted run also passed.
 - [Hosted crypto source and build checkpoint](hosted-crypto-3414197.json): authenticated source/reference and both library builds passed; the same revision had two native UI failures and a failed aggregate.
+
+- [Hosted native e3d6dc5 checkpoint](hosted-native-e3d6dc5.json): iOS64/64, both Android33/39 with six explicit skips and separate process recovery; native aggregate passed. Retained Flutter iOS and overall required gate are separate.
+- [Independent local receipt vector](local-receipt-independent.json): exact key derivation, AAD and ciphertext independently reproduced with Python standard HMAC and cryptography AESGCM. Native file lifecycle evidence remains in the platform reports.

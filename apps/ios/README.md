@@ -98,6 +98,7 @@ The device-only configuration branch also compiles in an unsigned generic iPhone
 
 ## Boundaries before release
 
+- The detached receipt foundation in `LocalReceiptBlob.swift` has no live store callers. Its compile-time simulator implementation exposes `simulatedFilesystem` and exercises the same crypto, exclusive descriptor-relative files, ownership checks and lifecycle without claiming Apple data protection. Device builds require class-A protected creation and real descriptor readback on create/reopen; there is no runtime fallback. Physical-device protection and live-store activation remain gates. See [foundation evidence](evidence/local-receipt-foundation.md).
 - Fault injection is not a physical power-loss or real disk-full test. Simulator relaunch proves normal persistence, not arbitrary process death during a write. The encrypted rollback file is retained, but a dedicated rollback recovery UI is not implemented.
 - Recovery-key re-entry, Keychain readback, protected export staging, destination verification and no-overwrite behavior have native tests. Physical lock-state enforcement is unverified: the simulator does not expose NSFileProtectionKey metadata, and the test records that limitation while requiring complete protection on device builds. Recovery drills across real devices, key rotation, reminders and external provider failure modes remain release work.
 

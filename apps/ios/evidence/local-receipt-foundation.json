@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "scope": "unactivated local receipt generation foundation; no live storage callers",
+  "protectionModes": {
+    "simulator": "compile-time simulatedFilesystem; no class-A claim",
+    "device": "compile-time protected creation plus real descriptor class readback; no runtime fallback"
+  },
+  "toolchain": "Xcode 26.6 (17F113), Swift 6.3.3, SDK 26.5",
+  "runtime": {
+    "architecture": "arm64",
+    "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "deviceName": "Penny A11y System Sizes",
+    "modelName": "iPhone 16e",
+    "osBuildNumber": "23E254a",
+    "osVersion": "26.4.1",
+    "platform": "iOS Simulator"
+  },
+  "result": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "sharedNegativeCases": 35,
+    "deviceSdkBuild": "Tests05 checkpoint passed unsigned generic iOS Release; changed Swift parent-read precondition not rebuilt for device",
+    "deviceObjectRequires": "_openat_dprotected_np"
+  },
+  "commands": [
+    [
+      "/usr/bin/xcrun",
+      "simctl",
+      "boot",
+      "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+    ],
+    [
+      "/usr/bin/xcrun",
+      "simctl",
+      "bootstatus",
+      "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+      "-b"
+    ],
+    [
+      "/usr/bin/xcrun",
+      "xcodebuild",
+      "test",
+      "-project",
+      "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+      "-scheme",
+      "PennyOffline",
+      "-destination",
+      "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+      "-parallel-testing-enabled",
+      "NO",
+      "-derivedDataPath",
+      "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/local-receipt-foundation/DerivedData",
+      "-resultBundlePath",
+      "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/local-receipt-foundation/Tests06.xcresult",
+      "-only-testing:PennyOfflineTests/LocalReceiptBlobTests",
+      "CODE_SIGN_IDENTITY=-",
+      "CODE_SIGNING_ALLOWED=YES"
+    ],
+    [
+      "/usr/bin/xcrun",
+      "simctl",
+      "shutdown",
+      "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+    ]
+  ],
+  "sourceSha256": {
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "459ec74ec7cc293d96108ca11dfee7bf168a28f4c9d1e5eeeb669e04a2ff12da",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+    "apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift": "b28a6b84d0e206175a318d0e8e1b88fa25a5b47e3aa12732326c0d4dfea8dd47",
+    "apps/ios/project.yml": "5193917c153ce576da0f55ba99c654f7bdc5ef7f43c733055bd589014f3f9868",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "9a9ce9a324b5edb8d72ea6b0c04fbb62988d89dfc3c0902847f3424f96b24f0c",
+    "packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598"
+  },
+  "evidenceSha256": {
+    "xcodebuild05.log": "c5e867d76cbb250955a566622422a6ad411e452a79edb2ebfe824840e56599e3",
+    "summary05.json": "0329d26a7c0d07569413b07531dc519e0af38d80291a7612b0c13b1ed379c426",
+    "device-build.log": "a0ffe94f09afafdb93f8ce4615129934c82ee136821c1103971f42f1cb36c986",
+    "device-protection-symbols.txt": "438321ba61e16a1891ab268e682225e0886266dc60edfa7997a6cfee5c379944",
+    "xcodebuild06.log": "8c45725d09fb669ba9137a3f01aeb05671938f7f9bdfd07e46eb2ff8a738759a",
+    "summary06.json": "319dbd9a734272b14242eb2b3ec84a82d236387f1b67df8e1475eae53df7cbee"
+  },
+  "localEvidence": "apps/ios/.build/local-receipt-foundation/Tests06.xcresult",
+  "historicalFailure": {
+    "bundle": "apps/ios/.build/local-receipt-foundation/Tests03.xcresult",
+    "passed": 2,
+    "failed": 7,
+    "skipped": 0,
+    "cause": "direct class-A protected creation returned EPERM on simulator; preserved without rewriting"
+  },
+  "limits": [
+    "No physical device data-protection or lock-state proof.",
+    "35-case JSON descriptor metadata rejection includes a test-only adapter, not a production serialized metadata parser.",
+    "Checkpoint injections follow real write/sync/close operations; not real disk-full, power-loss or kernel close failure.",
+    "An actual fstat failure leaves an unidentified file in the private generation and reports cleanup failure; it never deletes an unverified name.",
+    "No authenticated full-candidate metadata, activation, migration, crash recovery, durable retention, GC or capacity increase."
+  ],
+  "parentPrecondition": "Private, already backup-excluded trusted parent, identity checked before/after resource read; child exclusion is inherited; group never mutates pathname attributes"
+}

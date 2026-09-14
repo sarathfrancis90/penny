@@ -1,0 +1,708 @@
+{
+  "format": "penny-local-receipt-fixtures-v1",
+  "scope": "Local codec only; native decode and lifecycle require native proof",
+  "positives": [
+    {
+      "name": "public-png",
+      "file": "receipt.pennyreceipt",
+      "plaintextFile": "receipt.png",
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "nonceHex": "000102030405060708090a0b",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "derivedKeyHex": "bf23788a562d82ba28aab646f8c341c70dd8943238b3dfae385ef8049a813801",
+      "aadHex": "50454e4e592d4f46464c494e452d4c4f43414c2d524543454950543a3100504e595243503031333333333333433383333333333333335555555555554555855555555555555544444444444444448444444444444444111111111111411181111111111111110100000000000000464ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+      "envelopeBytes": 106,
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    }
+  ],
+  "negatives": [
+    {
+      "name": "substitute-vaultId",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "substitute-generationId",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "substitute-id",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "substitute-expenseId",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "substitute-media",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/jpeg",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "substitute-length",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 71,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "substitute-hash",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "wrong-root",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "short-root",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "tamper-magic",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "514e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "ea964b1f80ee918b9ad231a276f3c312a2a1cb9ec2023fd230eae9e7cb69e2b2"
+    },
+    {
+      "name": "tamper-nonce",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031010102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "4483c8cd8d9bb09ad1e40a49e506196e21be8ce41e0a64340015598bda034cac"
+    },
+    {
+      "name": "tamper-ciphertext",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0beadfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "e47896b72aeae1fa07d1f13e6b71c4bd7fa2d11f315f428c6770d96f4f622800"
+    },
+    {
+      "name": "tamper-tag",
+      "scope": "authentication",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175e",
+      "envelopeSha256": "cc134a2bfc42869f3f9999ea3edbfe8d391965d6c42be1ba6ea08cdd6eb7987c"
+    },
+    {
+      "name": "truncate-header",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a",
+      "envelopeSha256": "be0753bb353d09ff9a7c018acb740e434f7237a067770a26be46e61f7ad7eb93"
+    },
+    {
+      "name": "truncate-tag",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f217",
+      "envelopeSha256": "1f546a72f7eddda873480176773960c8960ff4651e6d1940f0036f9ee9aa7e81"
+    },
+    {
+      "name": "trailing-byte",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f00",
+      "envelopeSha256": "62b596a8b53fa02e3933432e84be28e2a0c86cf972aa2c350aef8c5af952b38c"
+    },
+    {
+      "name": "empty-envelope",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "",
+      "envelopeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "uppercase-uuid",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "path-uuid",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "../receipt",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "short-uuid",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "3333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "zero-length",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 0,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "negative-length",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": -1,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "fraction-length",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 1.5,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "boolean-length",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": true,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "string-length",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": "70",
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "oversize-length",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 2097153,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "unknown-media",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "application/octet-stream",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "uppercase-hash",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4FF6AB670A58C14270E034E2090D9A432CAA263A14E0A25785386B0C12F880B5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "short-hash",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "00"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "unknown-field",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+        "path": "/tmp/receipt"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "missing-field",
+      "scope": "metadata",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c42c7e908b79377047b45d07908f2175f",
+      "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623"
+    },
+    {
+      "name": "authenticated-false-hash",
+      "scope": "content",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5ccfe90401178a06161e299237cdaec18c",
+      "envelopeSha256": "127ffcefaba3d7a64827e2bacf8af762f308fd776997e49ac0fe0e49f9ebc920"
+    },
+    {
+      "name": "authenticated-false-media",
+      "scope": "image-structure",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/jpeg",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce5c12114c3d1bcd19f10c449d6bd5973f3a",
+      "envelopeSha256": "934113ce9867d14c148630c82959d19c88b5a83d6ddf21f3ae8e83b3fd7c589f"
+    },
+    {
+      "name": "authenticated-false-length",
+      "scope": "envelope",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0bebdfad79ee7d5b0d80311e81b3661cc687521fc0de4c384805379e13773f6fcb07ec0cf8484f9e498a1c3fa010cc6ad9df0d86fa1e782171d9cb4b521cace5dabf947050ce576572237b9da87f3f4b2c6ec7115beb",
+      "envelopeSha256": "01a89b6eea354bac0e29d63cd52453efe61fe673c729bc93453860063587adea"
+    },
+    {
+      "name": "authenticated-non-image",
+      "scope": "image-structure",
+      "expected": "reject",
+      "descriptor": {
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "generationId": "55555555-5555-4555-8555-555555555555",
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 70,
+        "sha256": "82fcfd5215175da9e65ca7c4fb927a1fb0e61f09d54987c368e8e16ebd9c2969"
+      },
+      "rootHex": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+      "envelopeHex": "504e595243503031000102030405060708090a0b628fe33ee377410780311e8cfa2e589487521fc1de4c38490d319e1377207a0f8eec0cf84506da08de64a3c3e803aa29c00d83fa1f87a8e8e4d64b521cacac9ff1d0de12aede24472623ae075290c936651db012f40f",
+      "envelopeSha256": "ef88079a8a234818c32e9f60c6a03e828cae8261d6c8ab1c63fc25dde0762b86"
+    }
+  ],
+  "lifecycle": [
+    {
+      "name": "cross-generation",
+      "steps": [
+        "open A",
+        "write descriptor bound to B"
+      ],
+      "expected": "reject before admission; discard only A-owned files"
+    },
+    {
+      "name": "duplicate-id",
+      "steps": [
+        "open",
+        "write receipt",
+        "write same ID with same or changed descriptor"
+      ],
+      "expected": "reject; never replace first file"
+    },
+    {
+      "name": "count-bound",
+      "steps": [
+        "open",
+        "write 100 distinct valid receipts",
+        "write 101st"
+      ],
+      "expected": "100 admitted; 101st rejected without file admission"
+    },
+    {
+      "name": "byte-bound",
+      "steps": [
+        "open",
+        "write valid receipts totalling 8388608 bytes",
+        "write one more receipt"
+      ],
+      "expected": "exact bound accepted; extra receipt rejected without admission"
+    },
+    {
+      "name": "write-failure",
+      "steps": [
+        "open",
+        "inject write/sync/close/reopen or cancellation failure"
+      ],
+      "expected": "no successful handle; no subsequent operation reuse; owned ciphertext cleaned or cleanup failure surfaced"
+    },
+    {
+      "name": "seal-tamper",
+      "steps": [
+        "open",
+        "write valid receipt",
+        "change/remove/add owned file before seal",
+        "seal"
+      ],
+      "expected": "reject; no generation returned"
+    },
+    {
+      "name": "seal-transfer",
+      "steps": [
+        "open",
+        "write",
+        "seal",
+        "operation discard",
+        "read generation",
+        "write or seal again"
+      ],
+      "expected": "generation remains readable; old operation refuses writes/second seal; generation owns cleanup"
+    },
+    {
+      "name": "discard-terminal",
+      "steps": [
+        "open",
+        "write",
+        "discard",
+        "write or seal"
+      ],
+      "expected": "owned files removed; reuse rejected"
+    },
+    {
+      "name": "foreign-path",
+      "steps": [
+        "precreate foreign file/directory or symlink collision",
+        "attempt create/write/read/discard"
+      ],
+      "expected": "reject unsafe adoption; foreign sentinel unchanged; no plaintext temporary file"
+    }
+  ]
+}
