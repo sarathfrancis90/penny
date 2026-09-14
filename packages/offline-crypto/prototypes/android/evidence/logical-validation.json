@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-09-14T01:38:53.245277+00:00",
+  "status": "passed",
+  "scope": "Experimental incremental logical admission with required isolated sink; no concrete candidate storage or restore commit",
+  "source": {
+    ".gitignore": "5eee55be272bc3d0ba63d575986bdb82dc599ac8d4c77b8fdd2b082d59af24d8",
+    "LOGICAL.md": "f42633bed31badb910dfe2189a7683fc21371c65b15e33e9dac56bab6e49cf44",
+    "README.md": "c9ec564cc0d8a760187cb4a9ffff2bf4b87c50579fff89bb99936dd56ac6914c",
+    "app/build.gradle.kts": "905c5bd1d8430f7e297f2508e5f95ddb1e5a02805d3d7bb3ded5f99ea9d8abfa",
+    "app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt": "7352484a4a7808b518124f7bd78084fe61d05d89543cef941455840c2a01deaa",
+    "app/src/androidTest/java/ca/penny/v4frameprobe/LogicalCodecDeviceTest.kt": "4c5f3fd7209aec1572043f6e3de20298b0b534f581b3dd431d9396f891d74af3",
+    "app/src/main/AndroidManifest.xml": "9c94869b6a2724ca7d172b639b0345b6cb92ec351d71ba28373fa44d9da9a46f",
+    "app/src/main/cpp/CMakeLists.txt": "6005b997e6753060519490e5ec0ff2b9e1a15ab4acefc81e04d22edab6731e97",
+    "app/src/main/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad",
+    "app/src/main/java/ca/penny/offline/BackupExporter.kt": "e9ee958edb860e08c85f6aacd516beb50134622aaa3fb1f2b36adb802f8aa835",
+    "app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "0e009906583624fdb43cd65a7be4213591b51cda6cee4cd01e1145fb23d02513",
+    "app/src/main/java/ca/penny/v4frameprobe/LogicalCodec.kt": "09ab9dc63a2d9dd70feab2796b36221226a41538b567febc154e1a480c5b70ca",
+    "app/src/main/res/xml/data_extraction_rules.xml": "eda9dddce1e895de1efd716fe75e244187bf8f91a3bb7444c6ea1731e51c74a8",
+    "build.gradle.kts": "ec4ec12f8860565b794fe437a684f461bfd6cc0e98a5dde85d9e0984a9a053ef",
+    "gradle.properties": "85dd8e5a79fd59ed16dc385b8d3e58182161c8d6595fc1908f1d586f98341b54",
+    "gradlew": "909215fcf5013e8644278d072c8bbf4697ffac5d88ad3245646dabc9dfb85233",
+    "settings.gradle.kts": "76e48fdf5808d9cc8f1d451710b462b300a75b4045d0d9ff37ac3e21cdf8f51b"
+  },
+  "unchangedNativeValidators": {
+    "apps/android/app/src/main/java/ca/penny/offline/Categories.kt": "25b6defb9197cd81b2a41250c763ebf685b027499bd07cee2e3f439c3772f00f",
+    "apps/android/app/src/main/java/ca/penny/offline/Expense.kt": "fc6d6f8ef1fd23027ffd2df31842b48098c216e7480b345cf8baab225c162f77",
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceModels.kt": "c2b6f24beee88f7fd77eb418c1e6def5d30708200f857706944d08ecd9d1e08a",
+    "apps/android/app/src/main/java/ca/penny/offline/StrictJson.kt": "0b61d55be110cb588d9dd84db682edaa46f8ce183d377b5d6d758e19d97d31a4",
+    "apps/android/app/src/main/java/ca/penny/offline/Attachment.kt": "55b1f095ee2ced7fa73e2ba7e977fd125708b637e4f21115091f497b03d5508b",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptImage.kt": "977bd205b8e6f7da26101f3f63029975e12f49c260828348e3a95dbd18cf9b27"
+  },
+  "fixtures": {
+    "manifestSha256": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32",
+    "accepted": 10,
+    "rejected": 60,
+    "maximumPositiveExpenses": 10001
+  },
+  "runs": {
+    "26": {
+      "status": "passed",
+      "logicalGroups": 4,
+      "acceptedStreams": 10,
+      "rejectedStreams": 60,
+      "log": ".build/logical-final-api26.log",
+      "logSha256": "c59c423a617bb9f4d627691b24385f137935370bc845f56f34b4367f563ebed4",
+      "apkSha256": "37b2368bdce27a7b95b856d7677ad5eea7d2a90923b5c9d4c5342075831b3636",
+      "testApkSha256": "9564f27a4db3b6c43c368d75b3abf10560ffee35eff23f6ebe2b59a28abd0367",
+      "command": [
+        "adb",
+        "-s",
+        "emulator-5562",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-r",
+        "-e",
+        "class",
+        "ca.penny.v4frameprobe.LogicalCodecDeviceTest",
+        "ca.penny.v4frameprobe.test/androidx.test.runner.AndroidJUnitRunner"
+      ]
+    },
+    "37": {
+      "status": "passed",
+      "logicalGroups": 4,
+      "acceptedStreams": 10,
+      "rejectedStreams": 60,
+      "log": ".build/logical-final-api37.log",
+      "logSha256": "eba201c29ac7635f043f6ece1f967d2b4e10a0b99e8fb7675b07d2a6f2a03c9e",
+      "apkSha256": "37b2368bdce27a7b95b856d7677ad5eea7d2a90923b5c9d4c5342075831b3636",
+      "testApkSha256": "9564f27a4db3b6c43c368d75b3abf10560ffee35eff23f6ebe2b59a28abd0367",
+      "command": [
+        "adb",
+        "-s",
+        "emulator-5560",
+        "shell",
+        "am",
+        "instrument",
+        "-w",
+        "-r",
+        "-e",
+        "class",
+        "ca.penny.v4frameprobe.LogicalCodecDeviceTest",
+        "ca.penny.v4frameprobe.test/androidx.test.runner.AndroidJUnitRunner"
+      ]
+    }
+  },
+  "frameRegression": {
+    "status": "passed",
+    "api37FullGroups": 16,
+    "api37Log": ".build/logical-all-api37.log",
+    "api37LogSha256": "0c6bb205c9da1248766feca41480974a0e0b88d33052dd5e845c9df0f3f10399",
+    "api37RunHashes": {
+      "app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "0e009906583624fdb43cd65a7be4213591b51cda6cee4cd01e1145fb23d02513",
+      "app/src/main/java/ca/penny/v4frameprobe/LogicalCodec.kt": "10963916dbe8d2e2298a4d51a93dd8f2c0e5d1cb2faf9728da2ad01330f65f8f",
+      "app/src/androidTest/java/ca/penny/v4frameprobe/LogicalCodecDeviceTest.kt": "726c9328fc40b771f0f82669621b28b295dc6ce6b26bb89065caf2661f81d786",
+      "app/build/outputs/apk/debug/app-debug.apk": "98a6d37724f6b746cfdae3610c64b305d369a137d215de3ed08829d144d6c9c9",
+      "app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "ae8303d9691d80a2f7982bc30c017add0bccc55f387fd8915c20ee22d0d9fe83"
+    },
+    "api26FullGroups": 16,
+    "api26Log": ".build/logical-v2-api26-full.log",
+    "api26LogSha256": "4afcb0e6f56c130e89fe4e9f8bfc2bbfec9b9e061099503d0a907c8dbacd28e3",
+    "note": "Full runs preceded summary immutability/stream-digest final refinements. FrameCodec hook code is byte-identical; final logical-focused runs above use the current APK. API26 full-run APK hash was not separately captured."
+  },
+  "build": {
+    "log": ".build/logical-final-build.log",
+    "logSha256": "eaf98f55113843b1134b9c0efe4c8894fbddbc8e784fb4472053e9931fa5b91e",
+    "command": [
+      "./gradlew",
+      "-PpennySodiumOutput=/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/crypto-android-build-validation/build-all-abis",
+      "-PpennyNegativeFixtures=/Users/sarathfrancis/work/git/Personal/penny/packages/offline-crypto/prototypes/reference/.build/negative-files",
+      "-PpennyPeerFixtures=/Users/sarathfrancis/work/git/Personal/penny/packages/offline-crypto/prototypes/apple/.build/validation-01/native-exports",
+      "-PpennyLogicalFixtures=/Users/sarathfrancis/work/git/Personal/penny/packages/offline-crypto/prototypes/reference/.build/logical-fixtures-v2",
+      ":app:assembleDebug",
+      ":app:assembleDebugAndroidTest",
+      ":app:lintDebug"
+    ],
+    "environment": {
+      "ANDROID_HOME": "/Users/sarathfrancis/Library/Android/sdk"
+    },
+    "lintErrors": 0,
+    "lintWarnings": [
+      "MissingApplicationIcon: no-activity probe"
+    ]
+  },
+  "limits": [
+    "Sink is a required abstract uncommitted staging contract; tests use a nonpersistent sink.",
+    "No encrypted generation durability, process-death cleanup, disk-full, preview/account/revision binding, atomic install or rollback implementation.",
+    "No production app, schema, cloud, legacy dispatch or current app capacity change.",
+    "Receipt full-decode implementation reused unchanged; this slice adds a valid native receipt decode and shared malformed logical fixtures, not a new full decoder corruption corpus.",
+    "No 50000-expense/5000-receipt memory or performance qualification; bounded indexes scale to declared profile limits.",
+    "Ordinary managed memory lifetimes and cooperative stream cancellation limits remain."
+  ]
+}

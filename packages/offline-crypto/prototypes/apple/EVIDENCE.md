@@ -107,8 +107,8 @@ The runtime codec source remains identical to the passing earlier snapshot.
 ## Remaining gates
 
 This is not production adoption or a format-freeze approval. Pending work
-includes the logical record parser, JSON/type/order/count/ownership/image and
-aggregate profile validation, encrypted candidate storage, pinned generations,
+includes production adoption/validation of the separate logical experiment
+documented in `LOGICAL.md`, encrypted candidate storage, pinned generations,
 atomic restore/rollback with state guards, legacy dispatch integration, cloud
 transport, and app lifecycle/background integration. No physical-device run,
 full 640 MiB/640-frame boundary run, peak RSS measurement, disk exhaustion,

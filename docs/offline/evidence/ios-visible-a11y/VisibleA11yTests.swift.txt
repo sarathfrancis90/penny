@@ -1,0 +1,62 @@
+import XCTest
+
+@MainActor final class VisibleA11yTests: XCTestCase {
+    private func capture(_ name: String, _ element: XCUIElement) {
+        print("VISIBLE_A11Y_GEOMETRY", name, element.debugDescription)
+        let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        shot.name = name; shot.lifetime = .keepAlways; add(shot)
+    }
+    private func drag(_ app: XCUIApplication, up: Bool) {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: up ? 0.7 : 0.4))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: up ? 0.4 : 0.7)))
+    }
+    func testAX5ReportEntireExplanationCanBeScrolled() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting", "--reset-vault"]; app.launch()
+        app.buttons["Reports"].firstMatch.tap()
+        let label = "Savings contributions are internal allocations and are not subtracted again. Planned income and unposted templates are excluded."
+        let element = app.staticTexts[label]
+        var intervals: [(CGFloat, CGFloat)] = []
+        for index in 0..<18 {
+            if !element.exists { drag(app, up: true); continue }
+            let frame = element.frame
+            let top = app.navigationBars.firstMatch.frame.maxY + 4
+            let bottom = app.tabBars.firstMatch.frame.minY - 4
+            let start = max(0, top - frame.minY)
+            let end = min(frame.height, bottom - frame.minY)
+            if start < end {
+                intervals.append((start, end)); capture("AX5 report segment \(index)", element)
+                print("VISIBLE_A11Y_INTERVAL", start, end, frame.height)
+            }
+            if let last = intervals.last, last.1 >= frame.height { break }
+            drag(app, up: true)
+        }
+        XCTAssertFalse(intervals.isEmpty)
+        XCTAssertTrue(element.exists)
+        var covered: CGFloat = 0
+        for segment in intervals.sorted(by: { $0.0 < $1.0 }) {
+            XCTAssertLessThanOrEqual(segment.0, covered + 1, "Gap in observed report text")
+            covered = max(covered, segment.1)
+        }
+        XCTAssertGreaterThanOrEqual(covered, element.frame.height - 1)
+    }
+    func testVisibleCapacityContrastUnfiltered() throws {
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting", "--reset-vault"]; app.launch()
+        app.buttons["Vault"].firstMatch.tap()
+        let heading = app.staticTexts["Vault capacity"]
+        for _ in 0..<18 {
+            let frame = heading.exists ? heading.frame : .zero
+            let top = app.navigationBars.firstMatch.frame.maxY + 4
+            let bottom = app.tabBars.firstMatch.frame.minY - 4
+            if !frame.isEmpty, frame.minY >= top, frame.maxY <= bottom { break }
+            drag(app, up: frame.isEmpty || frame.maxY > bottom)
+        }
+        XCTAssertTrue(heading.exists)
+        XCTAssertGreaterThanOrEqual(heading.frame.minY, app.navigationBars.firstMatch.frame.maxY + 4)
+        XCTAssertLessThanOrEqual(heading.frame.maxY, app.tabBars.firstMatch.frame.minY - 4)
+        capture("Fully visible capacity before contrast audit", heading)
+        try app.performAccessibilityAudit(for: .contrast) { issue in
+            print("VISIBLE_A11Y_CONTRAST", issue.compactDescription, issue.detailedDescription, issue.element?.debugDescription ?? "No element")
+            return false
+        }
+    }
+}

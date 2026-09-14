@@ -1,0 +1,129 @@
+{
+  "scope": "Narrow local light-portrait layout evidence; not a passing full accessibility audit",
+  "device": {
+    "udid": "26AD2A3C-7332-4785-A482-D7E216EDAE7B",
+    "model": "iPhone 16e",
+    "runtime": "iOS26.4.1",
+    "osBuild": "23E254a",
+    "points": [
+      390,
+      844
+    ],
+    "originalBootState": "Booted"
+  },
+  "applicationId": "ca.penny.offline.visible-a11y",
+  "sourceCommitEquivalent": "341419768ad911ef9c9ce6853d5262abf5fa3662 apps/ios/PennyOffline unchanged",
+  "sourceHashes": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "3f6b1c94de847c916f3f0267481f1657a8c6231ac93d940f44400ecd29641ff8",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "ee941d091ae6c84d390b44d15fed7dfa1926726e9a6730b6ee25e0b3d7162e4f",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/VaultStore.swift": "ddabc5d8593795546af4d3f0fc368de5b3631486bf1d166ee273698fad5344a4",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2"
+  },
+  "originalContentSize": "large",
+  "restoredContentSize": "large",
+  "results": {
+    "ax5-report": {
+      "result": "Failed",
+      "passedTests": 0,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "totalTestCount": 1,
+      "logSha256": "8341ea71c8fc1f20455e072795bf3629e84c4357c04ef582ed7d403305ad8bbe"
+    },
+    "ax5-report-corrected": {
+      "result": "Passed",
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "totalTestCount": 1,
+      "logSha256": "4f3537a50abafffac21966c9fd1a05b1a474f957f3aeec73601d4c8eeb5f6fc5"
+    },
+    "visible-contrast": {
+      "result": "Failed",
+      "passedTests": 0,
+      "failedTests": 1,
+      "skippedTests": 0,
+      "totalTestCount": 1,
+      "logSha256": "c3b7fbda1b2798ce27923b0eafd572aa731a0092d5db63f4bc48b12993a5d853"
+    }
+  },
+  "reportVisibleIntervalsInElementPoints": [
+    [
+      0.0,
+      235.0,
+      713.3333333333335
+    ],
+    [
+      0.0,
+      635.3333333333333,
+      713.3333333333334
+    ],
+    [
+      411.0,
+      713.3333333333334,
+      713.3333333333334
+    ]
+  ],
+  "reportFullLabelHeightPoints": 713.3333333333334,
+  "contrastFindings": [
+    "VISIBLE_A11Y_CONTRAST Contrast failed Contrast failed for SwiftUI.AccessibilityNode Attributes: StaticText, 0x117145b80, {{16.0, -42.0}, {358.0, 160.3}}, label: 'Choose a folder in Files for a new encrypted backup. Existing backup files are never overwritten. iCloud Drive can be used when available. Keep the recovery key separately; you need it on a new device.'",
+    "VISIBLE_A11Y_CONTRAST Contrast failed Contrast failed for SwiftUI.AccessibilityNode Attributes: StaticText, 0x11713d900, {{16.0, 783.0}, {358.0, 160.3}}, label: 'Each receipt can use up to 2 MiB. Encrypted files can use up to 20 MiB, including financial text and receipts. If a limit is reached, the current vault is preserved; nothing is removed automatically.'",
+    "VISIBLE_A11Y_CONTRAST Contrast failed Contrast failed for SwiftUI.AccessibilityNode Attributes: StaticText, 0x11787b200, {{32.0, 746.8}, {157.7, 20.3}}, label: 'Finance record limits'"
+  ],
+  "captures": [
+    {
+      "label": "AX5 report segment 5",
+      "file": "report-segment-5.png",
+      "sha256": "82315386a22672a0ad2a6ecfee598265e8e8dbce4e2b12726353aa69b715dd06"
+    },
+    {
+      "label": "AX5 report segment 4",
+      "file": "report-segment-4.png",
+      "sha256": "5c72e95a6377453cd786f2bd7b52587fcc67666c84ae067c73b1aad1637deb34"
+    },
+    {
+      "label": "AX5 report segment 3",
+      "file": "report-segment-3.png",
+      "sha256": "801ddbcebc80ba4cb3602d823b182f3fbfc00a7a6ff42c78c467d1e401591634"
+    },
+    {
+      "label": "Fully visible capacity before contrast audit",
+      "file": "visible-capacity.png",
+      "sha256": "e0c036dae7d039b533d7d7dee18bc291a0aa1cf6f6c53c8a4d863ecca2629c52"
+    }
+  ],
+  "disposition": [
+    "Corrected AX5 scrolling test passes and three overlapping captures show full report explanation. Initial test failed because offscreen SwiftUI rows were not exposed until scrolled; no application code changed.",
+    "Vault capacity is fully visible at y430.7..471.0 and is not flagged in this contrast-only unfiltered audit. The audit fails on three other elements partly outside the unobscured viewport; these failures are retained without filtering.",
+    "This does not clear original 13 unfiltered findings, prove quantitative contrast ratios, dark-mode acceptance or physical VoiceOver."
+  ],
+  "localArtifacts": "apps/ios/.build/VisibleA11y",
+  "testSourceSha256": "45b2e8f7da72e485b4e60c292555f25a4f4436c7f9bc16b49c6aeabccafd3bf7"
+}

@@ -3,6 +3,7 @@ package ca.penny.offline
 import android.accessibilityservice.AccessibilityService
 import android.content.pm.PackageManager
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.test.espresso.IdlingPolicies
@@ -44,13 +45,22 @@ class CaptureFlowTest {
         compose.onNodeWithTag("save-expense").performClick()
         lateinit var vm:PennyViewModel
         compose.activityRule.scenario.onActivity {vm=androidx.lifecycle.ViewModelProvider(it)[PennyViewModel::class.java]}
-        // The merchant still matches the closing editor until the durable save
-        // finishes. Wait for its dismissal and the covering save snackbar first.
+        // The merchant also matches the closing editor. Require committed state
+        // and editor dismissal before finding the saved row. Snackbar lifetime
+        // follows accessibility preferences and is not a persistence deadline.
         compose.waitUntil(10_000) {
-            !vm.state.value.busy && vm.state.value.message==null &&
-                compose.onAllNodesWithTag("expense-editor").fetchSemanticsNodes().isEmpty() &&
-                compose.onAllNodesWithText(merchant,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()
+            !vm.state.value.busy && vm.state.value.expenses.any { it.merchant==merchant && it.amountMinor==789L } &&
+                compose.onAllNodesWithTag("expense-editor").fetchSemanticsNodes().isEmpty()
         }
+        // Use the snackbar's real accessibility dismiss action; never mutate
+        // ViewModel state or increase the timeout to wait out transient chrome.
+        val savedSnackbar=SemanticsMatcher.keyIsDefined(SemanticsActions.Dismiss) and
+            (hasText("Saved on this device") or hasAnyDescendant(hasText("Saved on this device")))
+        if(compose.onAllNodes(savedSnackbar,useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()) {
+            compose.onNode(savedSnackbar,useUnmergedTree=true).performSemanticsAction(SemanticsActions.Dismiss) { it() }
+        }
+        compose.waitUntil(10_000) { compose.onAllNodes(savedSnackbar,useUnmergedTree=true).fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText(merchant,useUnmergedTree=true).performScrollTo().assertIsDisplayed()
         compose.onNodeWithText(merchant,useUnmergedTree=true).performClick()
         compose.waitUntil(10_000) {compose.onAllNodesWithTag("amount").fetchSemanticsNodes().isNotEmpty()}
         compose.onNodeWithTag("amount").assertTextContains("7.89")

@@ -1,0 +1,1539 @@
+{
+  "schemaVersion": 1,
+  "scope": "PUBLIC unencrypted logical streams; no authentication/restore; native full image decode required separately",
+  "positives": [
+    {
+      "name": "empty",
+      "recipe": {
+        "op": "base",
+        "base": "empty"
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "empty.pennylogical",
+      "plaintextBytes": 716,
+      "plaintextSha256": "cdbf0e10ed818732c486bf9e3e1d756961fe4f518e6391f3353755fa8e7b403f",
+      "frameSizes": [
+        716
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "22222222-2222-4222-8222-222222222222",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "counts": {
+          "budgets": 0,
+          "incomeSources": 0,
+          "incomeEntries": 0,
+          "savingsGoals": 0,
+          "savingsEntries": 0,
+          "recurringExpenses": 0,
+          "expenses": 0,
+          "attachments": 0
+        },
+        "recordCount": 2,
+        "plaintextBytes": 716,
+        "nonReceiptBytes": 0,
+        "policyMetadataBytes": 716,
+        "receiptBytes": 0,
+        "frames": 1
+      }
+    },
+    {
+      "name": "one-receipt",
+      "recipe": {
+        "op": "base",
+        "base": "receipt"
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "one-receipt.pennylogical",
+      "plaintextBytes": 1410,
+      "plaintextSha256": "c55d7c989df37181ee5ef75217b857c2a62ca3aefc7d768bd445681d72000965",
+      "frameSizes": [
+        1410
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "22222222-2222-4222-8222-222222222222",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T00:00:00.000Z",
+        "counts": {
+          "budgets": 0,
+          "incomeSources": 0,
+          "incomeEntries": 0,
+          "savingsGoals": 0,
+          "savingsEntries": 0,
+          "recurringExpenses": 0,
+          "expenses": 1,
+          "attachments": 1
+        },
+        "recordCount": 5,
+        "plaintextBytes": 1410,
+        "nonReceiptBytes": 618,
+        "policyMetadataBytes": 1340,
+        "receiptBytes": 70,
+        "frames": 1
+      }
+    },
+    {
+      "name": "finance",
+      "recipe": {
+        "op": "base",
+        "base": "finance"
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "finance.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "de991787db721b62abc5e556fb7b4371a52fa8166e11e4e964be6b131ec3b6b5",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 2,
+          "incomeSources": 1,
+          "incomeEntries": 1,
+          "savingsGoals": 1,
+          "savingsEntries": 1,
+          "recurringExpenses": 1,
+          "expenses": 3,
+          "attachments": 1
+        },
+        "recordCount": 14,
+        "plaintextBytes": 4767,
+        "nonReceiptBytes": 3972,
+        "policyMetadataBytes": 4697,
+        "receiptBytes": 70,
+        "frames": 1
+      }
+    },
+    {
+      "name": "split-domain-header",
+      "recipe": {
+        "op": "split",
+        "boundary": "domain-header"
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "split-domain-header.pennylogical",
+      "plaintextBytes": 1049325,
+      "plaintextSha256": "bad0e0785d471becb7feb67ce2c5effdb233e03df0946e14eb941dbc0d8f15e5",
+      "frameSizes": [
+        1048576,
+        749
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 0,
+          "incomeSources": 0,
+          "incomeEntries": 0,
+          "savingsGoals": 0,
+          "savingsEntries": 0,
+          "recurringExpenses": 0,
+          "expenses": 17,
+          "attachments": 0
+        },
+        "recordCount": 19,
+        "plaintextBytes": 1049325,
+        "nonReceiptBytes": 1048594,
+        "policyMetadataBytes": 1049325,
+        "receiptBytes": 0,
+        "frames": 2
+      }
+    },
+    {
+      "name": "split-end-header",
+      "recipe": {
+        "op": "split",
+        "boundary": "end-header"
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "split-end-header.pennylogical",
+      "plaintextBytes": 1048923,
+      "plaintextSha256": "7d8cd212bfb36092e6c1389d51250932075f44f00ab0583cd5433696bd125f4d",
+      "frameSizes": [
+        1048576,
+        347
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 0,
+          "incomeSources": 0,
+          "incomeEntries": 0,
+          "savingsGoals": 0,
+          "savingsEntries": 0,
+          "recurringExpenses": 0,
+          "expenses": 17,
+          "attachments": 0
+        },
+        "recordCount": 19,
+        "plaintextBytes": 1048923,
+        "nonReceiptBytes": 1048192,
+        "policyMetadataBytes": 1048923,
+        "receiptBytes": 0,
+        "frames": 2
+      }
+    },
+    {
+      "name": "split-end-payload",
+      "recipe": {
+        "op": "split",
+        "boundary": "end-payload"
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "split-end-payload.pennylogical",
+      "plaintextBytes": 1048907,
+      "plaintextSha256": "e8cb08aa39a034f38c3e73ba7a139e1c162fd7fa2c98421b37031fc085f6910c",
+      "frameSizes": [
+        1048576,
+        331
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 0,
+          "incomeSources": 0,
+          "incomeEntries": 0,
+          "savingsGoals": 0,
+          "savingsEntries": 0,
+          "recurringExpenses": 0,
+          "expenses": 17,
+          "attachments": 0
+        },
+        "recordCount": 19,
+        "plaintextBytes": 1048907,
+        "nonReceiptBytes": 1048176,
+        "policyMetadataBytes": 1048907,
+        "receiptBytes": 0,
+        "frames": 2
+      }
+    },
+    {
+      "name": "beyond-legacy-count",
+      "recipe": {
+        "op": "many-expenses",
+        "amount": 1
+      },
+      "layer": "semantic",
+      "expected": "accept",
+      "file": "beyond-legacy-count.pennylogical",
+      "plaintextBytes": 3991139,
+      "plaintextSha256": "e4e759f4581e09cce7ffa470ee6ca2ad87762e3d7b00c912f8bac567cfda2b1f",
+      "frameSizes": [
+        1048576,
+        1048576,
+        1048576,
+        845411
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 0,
+          "incomeSources": 0,
+          "incomeEntries": 0,
+          "savingsGoals": 0,
+          "savingsEntries": 0,
+          "recurringExpenses": 0,
+          "expenses": 10001,
+          "attachments": 0
+        },
+        "recordCount": 10003,
+        "plaintextBytes": 3991139,
+        "nonReceiptBytes": 3990399,
+        "policyMetadataBytes": 3991139,
+        "receiptBytes": 0,
+        "frames": 4
+      }
+    },
+    {
+      "name": "exact-integer-forms",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 2,
+        "hex": "7b226964223a2264646464646464642d646464642d346464642d386464642d646464646464646464646464222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226d6f6e7468223a22323032362d3031222c226c696d69744d696e6f72223a3165302c22726f6c6c6f766572223a747275652c22616c6572745468726573686f6c64427073223a312e302c226e6f74696669636174696f6e73456e61626c6564223a747275652c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a227d"
+      },
+      "layer": "structural",
+      "expected": "accept",
+      "file": "exact-integer-forms.pennylogical",
+      "plaintextBytes": 4764,
+      "plaintextSha256": "72303cf771b1bbac8a4558eea893c6b27430ea6610e1fde6ebefae828d0e705d",
+      "frameSizes": [
+        4764
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 2,
+          "incomeSources": 1,
+          "incomeEntries": 1,
+          "savingsGoals": 1,
+          "savingsEntries": 1,
+          "recurringExpenses": 1,
+          "expenses": 3,
+          "attachments": 1
+        },
+        "recordCount": 14,
+        "plaintextBytes": 4764,
+        "nonReceiptBytes": 3969,
+        "policyMetadataBytes": 4694,
+        "receiptBytes": 70,
+        "frames": 1
+      }
+    },
+    {
+      "name": "negative-zero",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 2,
+        "hex": "7b226964223a2264646464646464642d646464642d346464642d386464642d646464646464646464646464222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226d6f6e7468223a22323032362d3031222c226c696d69744d696e6f72223a2d302c22726f6c6c6f766572223a747275652c22616c6572745468726573686f6c64427073223a353030302c226e6f74696669636174696f6e73456e61626c6564223a747275652c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a227d"
+      },
+      "layer": "structural",
+      "expected": "accept",
+      "file": "negative-zero.pennylogical",
+      "plaintextBytes": 4764,
+      "plaintextSha256": "9d224c0dd9b5dab7bb941ec3619ebaab32c482d8943538ae2216a3196ac78eaa",
+      "frameSizes": [
+        4764
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 2,
+          "incomeSources": 1,
+          "incomeEntries": 1,
+          "savingsGoals": 1,
+          "savingsEntries": 1,
+          "recurringExpenses": 1,
+          "expenses": 3,
+          "attachments": 1
+        },
+        "recordCount": 14,
+        "plaintextBytes": 4764,
+        "nonReceiptBytes": 3969,
+        "policyMetadataBytes": 4694,
+        "receiptBytes": 70,
+        "frames": 1
+      }
+    },
+    {
+      "name": "zero-huge-exponents",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 2,
+        "hex": "7b226964223a2264646464646464642d646464642d346464642d386464642d646464646464646464646464222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226d6f6e7468223a22323032362d3031222c226c696d69744d696e6f72223a306539393939393939393939393939393939393939392c22726f6c6c6f766572223a747275652c22616c6572745468726573686f6c64427073223a30652d39393939393939393939393939393939393939392c226e6f74696669636174696f6e73456e61626c6564223a747275652c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a227d"
+      },
+      "layer": "structural",
+      "expected": "accept",
+      "file": "zero-huge-exponents.pennylogical",
+      "plaintextBytes": 4803,
+      "plaintextSha256": "3efa6d02bc1d10e52516c6d819f8182f8f646c766e6d518f282b0131d8544250",
+      "frameSizes": [
+        4803
+      ],
+      "finalFrame": true,
+      "summary": {
+        "scope": "logical syntax/schema3 semantics/transcript; image structure only; no crypto/native decode/restore",
+        "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "vaultId": "33333333-3333-4333-8333-333333333333",
+        "createdAt": "2026-09-13T12:01:00.000Z",
+        "counts": {
+          "budgets": 2,
+          "incomeSources": 1,
+          "incomeEntries": 1,
+          "savingsGoals": 1,
+          "savingsEntries": 1,
+          "recurringExpenses": 1,
+          "expenses": 3,
+          "attachments": 1
+        },
+        "recordCount": 14,
+        "plaintextBytes": 4803,
+        "nonReceiptBytes": 4008,
+        "policyMetadataBytes": 4733,
+        "receiptBytes": 70,
+        "frames": 1
+      }
+    }
+  ],
+  "negatives": [
+    {
+      "name": "tiny-fraction",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 2,
+        "hex": "7b226964223a2264646464646464642d646464642d346464642d386464642d646464646464646464646464222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226d6f6e7468223a22323032362d3031222c226c696d69744d696e6f72223a31652d31303030302c22726f6c6c6f766572223a747275652c22616c6572745468726573686f6c64427073223a353030302c226e6f74696669636174696f6e73456e61626c6564223a747275652c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a227d"
+      },
+      "expected": "reject",
+      "file": "tiny-fraction.pennylogical",
+      "plaintextBytes": 4770,
+      "plaintextSha256": "62f21d292718f68a8437db001a23ca3df1beb82ef545ef21328fbca214c520ea",
+      "frameSizes": [
+        4770
+      ],
+      "finalFrame": true,
+      "expectedError": "inexact_integer"
+    },
+    {
+      "name": "rounded-integer",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 2,
+        "hex": "7b226964223a2264646464646464642d646464642d346464642d386464642d646464646464646464646464222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226d6f6e7468223a22323032362d3031222c226c696d69744d696e6f72223a312e303030303030303030303030303030312c22726f6c6c6f766572223a747275652c22616c6572745468726573686f6c64427073223a353030302c226e6f74696669636174696f6e73456e61626c6564223a747275652c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a227d"
+      },
+      "expected": "reject",
+      "file": "rounded-integer.pennylogical",
+      "plaintextBytes": 4780,
+      "plaintextSha256": "4edd8e2fe841a746d0674291b7feb795812f9739c5f7aa4489a6fa5b2b5875b9",
+      "frameSizes": [
+        4780
+      ],
+      "finalFrame": true,
+      "expectedError": "inexact_integer"
+    },
+    {
+      "name": "missing-begin",
+      "layer": "structural",
+      "recipe": {
+        "op": "header",
+        "kind": 11,
+        "length": "1"
+      },
+      "expected": "reject",
+      "file": "missing-begin.pennylogical",
+      "plaintextBytes": 9,
+      "plaintextSha256": "5da6167d05be33dbb43693abd0f52913b94bc7ec012c693900ce33561d5687b4",
+      "frameSizes": [
+        9
+      ],
+      "finalFrame": true,
+      "expectedError": "begin_required"
+    },
+    {
+      "name": "unknown-kind",
+      "layer": "structural",
+      "recipe": {
+        "op": "header",
+        "kind": 12,
+        "length": "1"
+      },
+      "expected": "reject",
+      "file": "unknown-kind.pennylogical",
+      "plaintextBytes": 9,
+      "plaintextSha256": "68173a8cfde41f88f7a5f28e45debb5e99b91dd5c242a738f3583cce39a12c6c",
+      "frameSizes": [
+        9
+      ],
+      "finalFrame": true,
+      "expectedError": "record_kind"
+    },
+    {
+      "name": "oversized-json-declaration",
+      "layer": "structural",
+      "recipe": {
+        "op": "header",
+        "kind": 1,
+        "length": "65537"
+      },
+      "expected": "reject",
+      "file": "oversized-json-declaration.pennylogical",
+      "plaintextBytes": 9,
+      "plaintextSha256": "6b7d263ff89512b0a4f9cff9caa4f8fb859ec6389c2e6bbe971513d0f4dc2ad1",
+      "frameSizes": [
+        9
+      ],
+      "finalFrame": true,
+      "expectedError": "record_length"
+    },
+    {
+      "name": "unsigned-record-length",
+      "layer": "structural",
+      "recipe": {
+        "op": "header",
+        "kind": 1,
+        "length": "18446744073709551615"
+      },
+      "expected": "reject",
+      "file": "unsigned-record-length.pennylogical",
+      "plaintextBytes": 9,
+      "plaintextSha256": "1272f520cf7ca5cf117a0b5a3116518371bf20fb7fac043ac1be568b8c55b96c",
+      "frameSizes": [
+        9
+      ],
+      "finalFrame": true,
+      "expectedError": "record_length"
+    },
+    {
+      "name": "truncated-record-header",
+      "layer": "structural",
+      "recipe": {
+        "op": "truncate",
+        "base": "empty",
+        "bytes": 8
+      },
+      "expected": "reject",
+      "file": "truncated-record-header.pennylogical",
+      "plaintextBytes": 8,
+      "plaintextSha256": "1f236747fbd2a228d4db7e6e50f2e3d415fb21c505e3b1a8b41780b1b5bc9314",
+      "frameSizes": [
+        8
+      ],
+      "finalFrame": true,
+      "expectedError": "incomplete_logical"
+    },
+    {
+      "name": "truncated-end",
+      "layer": "structural",
+      "recipe": {
+        "op": "truncate",
+        "base": "finance"
+      },
+      "expected": "reject",
+      "file": "truncated-end.pennylogical",
+      "plaintextBytes": 4766,
+      "plaintextSha256": "46fd2c9c1c2db2809529957b918643253c0adeac4616496b4be5b44e66b89575",
+      "frameSizes": [
+        4766
+      ],
+      "finalFrame": true,
+      "expectedError": "incomplete_logical"
+    },
+    {
+      "name": "trailing-whitespace",
+      "layer": "structural",
+      "recipe": {
+        "op": "append",
+        "base": "empty",
+        "hex": "20"
+      },
+      "expected": "reject",
+      "file": "trailing-whitespace.pennylogical",
+      "plaintextBytes": 717,
+      "plaintextSha256": "cb86611d8093910eff736383a5afa6fe99ee47e839aa63edd6f3d285d21ebc9c",
+      "frameSizes": [
+        717
+      ],
+      "finalFrame": true,
+      "expectedError": "after_end"
+    },
+    {
+      "name": "end-in-message",
+      "layer": "structural",
+      "recipe": {
+        "op": "end-message"
+      },
+      "expected": "reject",
+      "finalFrame": false,
+      "file": "end-in-message.pennylogical",
+      "plaintextBytes": 1048576,
+      "plaintextSha256": "c2f58b570f4b2400a1c56bcfc56cc37557d0e02d4b15f5254aa0cd5962ecc722",
+      "frameSizes": [
+        1048576
+      ],
+      "expectedError": "end_not_final"
+    },
+    {
+      "name": "wrong-profile",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "capacityProfile": "B"
+        }
+      },
+      "expected": "reject",
+      "file": "wrong-profile.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "0dcf872ddaaca8e642d82a3cf14f454210cf4b4bcb47312d4a0dafc5c96ea1bc",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "unsupported_profile"
+    },
+    {
+      "name": "wrong-schema",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "schemaVersion": 3
+        }
+      },
+      "expected": "reject",
+      "file": "wrong-schema.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "8810790d8b98117bf5053831791be72b933461bb9d1d699cc921c95c20c147dd",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "unsupported_profile"
+    },
+    {
+      "name": "unknown-begin-field",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "extra": 0
+        }
+      },
+      "expected": "reject",
+      "file": "unknown-begin-field.pennylogical",
+      "plaintextBytes": 4777,
+      "plaintextSha256": "601d31275861e88cf50f6306d97cd2fc4df68dc557170213bc1912b72375daa6",
+      "frameSizes": [
+        4777
+      ],
+      "finalFrame": true,
+      "expectedError": "unknown_or_missing_field"
+    },
+    {
+      "name": "boolean-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "receiptBytes": false
+        }
+      },
+      "expected": "reject",
+      "file": "boolean-count.pennylogical",
+      "plaintextBytes": 4770,
+      "plaintextSha256": "52cab80e0c5b61d0a0d460f29d3c46f8f1b9a4d5ee9fd5381fa230e9e3fa57b4",
+      "frameSizes": [
+        4770
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "string-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "receiptBytes": "70"
+        }
+      },
+      "expected": "reject",
+      "file": "string-count.pennylogical",
+      "plaintextBytes": 4769,
+      "plaintextSha256": "0a71fd4a71839d1f288c318ceb8f90b976c65bba43c17954446f512f9bc12d32",
+      "frameSizes": [
+        4769
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "negative-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "receiptBytes": -1
+        }
+      },
+      "expected": "reject",
+      "file": "negative-count.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "3275e9358536f26127d6e5e6200c7b229263da73aad58e88370c8ffc7e1fabfa",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "over-receipt-budget",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "receiptBytes": 536870913
+        }
+      },
+      "expected": "reject",
+      "file": "over-receipt-budget.pennylogical",
+      "plaintextBytes": 4774,
+      "plaintextSha256": "be9b1ed8945aa50caa28a265d0d4bfd8d4a38c7e1e3fd3a245a4104a40fbbe34",
+      "frameSizes": [
+        4774
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "over-metadata-budget",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "nonReceiptBytes": 134217729
+        }
+      },
+      "expected": "reject",
+      "file": "over-metadata-budget.pennylogical",
+      "plaintextBytes": 4772,
+      "plaintextSha256": "f1ac1c0a8c7afc9231c4573c923b223cd7b5f5da4aac61beeab773b048c557ee",
+      "frameSizes": [
+        4772
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "under-body-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "nonReceiptBytes": 0
+        }
+      },
+      "expected": "reject",
+      "file": "under-body-count.pennylogical",
+      "plaintextBytes": 4764,
+      "plaintextSha256": "c686a04f99b750054660226583498117b16b9e79049c4d345026456244eb56da",
+      "frameSizes": [
+        4764
+      ],
+      "finalFrame": true,
+      "expectedError": "body_bytes"
+    },
+    {
+      "name": "under-receipt-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "receiptBytes": 0
+        }
+      },
+      "expected": "reject",
+      "file": "under-receipt-count.pennylogical",
+      "plaintextBytes": 4766,
+      "plaintextSha256": "6d4d3a807f0e7e344641a233c1771a438eb3b30d693b8208a35ef98c5ef7343d",
+      "frameSizes": [
+        4766
+      ],
+      "finalFrame": true,
+      "expectedError": "receipt_total"
+    },
+    {
+      "name": "over-expense-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "counts": {
+            "budgets": 0,
+            "incomeSources": 0,
+            "incomeEntries": 0,
+            "savingsGoals": 0,
+            "savingsEntries": 0,
+            "recurringExpenses": 0,
+            "expenses": 50001,
+            "attachments": 0
+          }
+        }
+      },
+      "expected": "reject",
+      "file": "over-expense-count.pennylogical",
+      "plaintextBytes": 4771,
+      "plaintextSha256": "419d679d1ddd6ef7639e6ff25807227d2fd4127c090f95b02fdd3cba68283210",
+      "frameSizes": [
+        4771
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "missing-count-key",
+      "layer": "structural",
+      "recipe": {
+        "op": "begin",
+        "patch": {
+          "counts": {
+            "expenses": 0
+          }
+        }
+      },
+      "expected": "reject",
+      "file": "missing-count-key.pennylogical",
+      "plaintextBytes": 4645,
+      "plaintextSha256": "170a089e6f673c885cea9043fffcbd720dd00778bde6dddaead98bb91101dccb",
+      "frameSizes": [
+        4645
+      ],
+      "finalFrame": true,
+      "expectedError": "unknown_or_missing_field"
+    },
+    {
+      "name": "end-snapshot",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "snapshotId": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "expected": "reject",
+      "file": "end-snapshot.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "290cb02755237d4f238823a6fc7f2cbcfe490d68dd8c0aea11180cf7f0d3b85d",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "snapshot_mismatch"
+    },
+    {
+      "name": "end-counts",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "counts": {
+            "budgets": 0,
+            "incomeSources": 0,
+            "incomeEntries": 0,
+            "savingsGoals": 0,
+            "savingsEntries": 0,
+            "recurringExpenses": 0,
+            "expenses": 0,
+            "attachments": 0
+          }
+        }
+      },
+      "expected": "reject",
+      "file": "end-counts.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "6c51edab447410df00166d8f9a62473d71a2a4adb4ab4311e900089867676d66",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "count_mismatch"
+    },
+    {
+      "name": "end-receipt-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "receiptBytes": 0
+        }
+      },
+      "expected": "reject",
+      "file": "end-receipt-count.pennylogical",
+      "plaintextBytes": 4766,
+      "plaintextSha256": "ac881326f9b0a37191a8f97b546d0077147ad9596e954321604c7ad9c5fd6fcf",
+      "frameSizes": [
+        4766
+      ],
+      "finalFrame": true,
+      "expectedError": "receipt_total"
+    },
+    {
+      "name": "end-body-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "nonReceiptBytes": 0
+        }
+      },
+      "expected": "reject",
+      "file": "end-body-count.pennylogical",
+      "plaintextBytes": 4764,
+      "plaintextSha256": "eaf26ab2a7a5671f47c26570457072fb38301f4ca883d672c1ed932bc2895ec5",
+      "frameSizes": [
+        4764
+      ],
+      "finalFrame": true,
+      "expectedError": "body_bytes"
+    },
+    {
+      "name": "end-record-count",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "recordCount": 0
+        }
+      },
+      "expected": "reject",
+      "file": "end-record-count.pennylogical",
+      "plaintextBytes": 4766,
+      "plaintextSha256": "9eec184c778ddc2cd40557dcad69256354d7f00caf08956b664e5286aa2639e6",
+      "frameSizes": [
+        4766
+      ],
+      "finalFrame": true,
+      "expectedError": "record_count"
+    },
+    {
+      "name": "end-transcript",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "streamSha256": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      },
+      "expected": "reject",
+      "file": "end-transcript.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "c93ac26d16217bb8e2b6950ec65dfc55646d802c9888371fb73c1912f5157df4",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "transcript"
+    },
+    {
+      "name": "end-extra-field",
+      "layer": "structural",
+      "recipe": {
+        "op": "end",
+        "patch": {
+          "extra": 0
+        }
+      },
+      "expected": "reject",
+      "file": "end-extra-field.pennylogical",
+      "plaintextBytes": 4777,
+      "plaintextSha256": "c4e3d37c3bfa671ff0cbb3512f47654f1737018e7fd82e9770a8f811501f3b00",
+      "frameSizes": [
+        4777
+      ],
+      "finalFrame": true,
+      "expectedError": "unknown_or_missing_field"
+    },
+    {
+      "name": "domain-order",
+      "layer": "structural",
+      "recipe": {
+        "op": "swap",
+        "a": 0,
+        "b": 2
+      },
+      "expected": "reject",
+      "file": "domain-order.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "8278d6290a04679317a4228f01c14902eb79e4e9f6d8326fd1941e37ba349f25",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "record_order"
+    },
+    {
+      "name": "id-order",
+      "layer": "structural",
+      "recipe": {
+        "op": "swap",
+        "a": 0,
+        "b": 1
+      },
+      "expected": "reject",
+      "file": "id-order.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "6dcae0f9e16e961e6775a1a35757abe9a2ff52922bd9b0227178af260fa08096",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "id_order"
+    },
+    {
+      "name": "duplicate-domain-id",
+      "layer": "structural",
+      "recipe": {
+        "op": "duplicate",
+        "kind": 2
+      },
+      "expected": "reject",
+      "file": "duplicate-domain-id.pennylogical",
+      "plaintextBytes": 5042,
+      "plaintextSha256": "d11f552d929fe6409792f0ab51c5794cead6295592b75dd6640750d63853ac9c",
+      "frameSizes": [
+        5042
+      ],
+      "finalFrame": true,
+      "expectedError": "id_order"
+    },
+    {
+      "name": "dangling-descriptor",
+      "layer": "structural",
+      "recipe": {
+        "op": "remove",
+        "kind": 10
+      },
+      "expected": "reject",
+      "file": "dangling-descriptor.pennylogical",
+      "plaintextBytes": 4686,
+      "plaintextSha256": "0ce6d2cabdcea5dfde35cc9226a844dd44147ed8892e9c2380767c88786370af",
+      "frameSizes": [
+        4686
+      ],
+      "finalFrame": true,
+      "expectedError": "receipt_pair_required"
+    },
+    {
+      "name": "unpaired-raw",
+      "layer": "structural",
+      "recipe": {
+        "op": "remove",
+        "kind": 9
+      },
+      "expected": "reject",
+      "file": "unpaired-raw.pennylogical",
+      "plaintextBytes": 4547,
+      "plaintextSha256": "e476e495b046cc5ddf1cb8903eb4dcbf507e3c522ce24f558b7b5ad16f0548cd",
+      "frameSizes": [
+        4547
+      ],
+      "finalFrame": true,
+      "expectedError": "record_order"
+    },
+    {
+      "name": "receipt-length",
+      "layer": "structural",
+      "recipe": {
+        "op": "set",
+        "kind": 9,
+        "patch": {
+          "byteCount": 71
+        }
+      },
+      "expected": "reject",
+      "file": "receipt-length.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "a34dee24889ce11829ca807d1d796f94d1a68fd9a98748233a238f4131580e88",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "receipt_length"
+    },
+    {
+      "name": "receipt-digest",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-flip",
+        "offset": 40
+      },
+      "expected": "reject",
+      "file": "receipt-digest.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "4f7400d856df986d3bc8cb99934c09226d90b410adfc96cf6e585d5d8b04b3cd",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "attachment_digest"
+    },
+    {
+      "name": "orphan-receipt",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 9,
+        "patch": {
+          "expenseId": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "expected": "reject",
+      "file": "orphan-receipt.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "25122b4821bfd0eeaac382ab8a9036e22a2c157fd6c4bdd2314cc74af4920437",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "orphan_attachment"
+    },
+    {
+      "name": "receipt-path",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 9,
+        "patch": {
+          "path": "../x"
+        }
+      },
+      "expected": "reject",
+      "file": "receipt-path.pennylogical",
+      "plaintextBytes": 4781,
+      "plaintextSha256": "fd7decba07775272c05f27fcb6c0df2c1592f3b4442f3e8f373b40fbd77a89d6",
+      "frameSizes": [
+        4781
+      ],
+      "finalFrame": true,
+      "expectedError": "unknown_or_missing_field"
+    },
+    {
+      "name": "orphan-income",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 4,
+        "patch": {
+          "sourceId": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "expected": "reject",
+      "file": "orphan-income.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "2d50e4d7c7668ec38106e3671cd4e751b313c485b48e46a220ee129d46bde986",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "orphan_income"
+    },
+    {
+      "name": "orphan-savings",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 6,
+        "patch": {
+          "goalId": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "expected": "reject",
+      "file": "orphan-savings.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "7d8fc80f49a58c1c8267c27fb0941c3a1df02508d0969ff438ff8e9c45e8ad5a",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "orphan_savings"
+    },
+    {
+      "name": "orphan-recurring",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 8,
+        "patch": {
+          "recurringTemplateId": "00000000-0000-0000-0000-000000000000",
+          "recurringOccurrenceDate": "2026-02-28"
+        }
+      },
+      "expected": "reject",
+      "file": "orphan-recurring.pennylogical",
+      "plaintextBytes": 4809,
+      "plaintextSha256": "2ace5354967065338010fdd31d543474e84ccef3b937b78d25ccb2761722fe9a",
+      "frameSizes": [
+        4809
+      ],
+      "finalFrame": true,
+      "expectedError": "orphan_recurring_expense"
+    },
+    {
+      "name": "linked-null",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 8,
+        "patch": {
+          "recurringTemplateId": "00000000-0000-0000-0000-000000000000"
+        }
+      },
+      "expected": "reject",
+      "file": "linked-null.pennylogical",
+      "plaintextBytes": 4801,
+      "plaintextSha256": "9ef54e41622f3c8e0a3999dd9885a45d67fb54f75284a103a3dcbd573c4bad08",
+      "frameSizes": [
+        4801
+      ],
+      "finalFrame": true,
+      "expectedError": "incomplete_occurrence"
+    },
+    {
+      "name": "expense-money",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 8,
+        "patch": {
+          "amountMinor": 100000000000
+        }
+      },
+      "expected": "reject",
+      "file": "expense-money.pennylogical",
+      "plaintextBytes": 4775,
+      "plaintextSha256": "64ea79b990374ce90729d082b81929128716e6b64f490b157b31711ef45df37d",
+      "frameSizes": [
+        4775
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_money"
+    },
+    {
+      "name": "expense-date",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 8,
+        "patch": {
+          "expenseDate": "2026-02-30"
+        }
+      },
+      "expected": "reject",
+      "file": "expense-date.pennylogical",
+      "plaintextBytes": 4767,
+      "plaintextSha256": "1ec6f07fed00537d6d94bb11db02395d51958e6d96e3e2d48f9ab67f5eef2693",
+      "frameSizes": [
+        4767
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_date"
+    },
+    {
+      "name": "unknown-expense",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 8,
+        "patch": {
+          "extra": 0
+        }
+      },
+      "expected": "reject",
+      "file": "unknown-expense.pennylogical",
+      "plaintextBytes": 4777,
+      "plaintextSha256": "96e59ef0980d234f479911d15cc175c1c7923a6b4ca98a0efd0d2e39ee528b9c",
+      "frameSizes": [
+        4777
+      ],
+      "finalFrame": true,
+      "expectedError": "unknown_or_missing_field"
+    },
+    {
+      "name": "income-boolean",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 3,
+        "patch": {
+          "taxable": 1
+        }
+      },
+      "expected": "reject",
+      "file": "income-boolean.pennylogical",
+      "plaintextBytes": 4764,
+      "plaintextSha256": "b6fbda547c8fb482e494a3023d2dc36252a724073db5afe57722c8fa92cbfdd8",
+      "frameSizes": [
+        4764
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_boolean"
+    },
+    {
+      "name": "invalid-schedule",
+      "layer": "semantic",
+      "recipe": {
+        "op": "set",
+        "kind": 3,
+        "patch": {
+          "schedule": {
+            "frequency": "weekly",
+            "startDate": "2026-01-01",
+            "endDate": null,
+            "dayOfMonth": 2
+          }
+        }
+      },
+      "expected": "reject",
+      "file": "invalid-schedule.pennylogical",
+      "plaintextBytes": 4765,
+      "plaintextSha256": "f1f17dffb9cb9737549a90613e3280c57a722571a5534eb4933ef2b2de7c11ae",
+      "frameSizes": [
+        4765
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_schedule_day"
+    },
+    {
+      "name": "expense-aggregate-overflow",
+      "layer": "semantic",
+      "recipe": {
+        "op": "many-expenses",
+        "amount": 99999999999
+      },
+      "expected": "reject",
+      "file": "expense-aggregate-overflow.pennylogical",
+      "plaintextBytes": 4091149,
+      "plaintextSha256": "d32431b4effb00fe6246d254a1e8fe804b1c881b026900dc909c3c21003896fa",
+      "frameSizes": [
+        1048576,
+        1048576,
+        1048576,
+        945421
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_integer"
+    },
+    {
+      "name": "duplicate-expense-occurrence",
+      "layer": "semantic",
+      "recipe": {
+        "op": "duplicate-expense-occurrence"
+      },
+      "expected": "reject",
+      "file": "duplicate-expense-occurrence.pennylogical",
+      "plaintextBytes": 4851,
+      "plaintextSha256": "9dd652753492e5de00e057caab992b075117af3722633cf59b945a79041fb98a",
+      "frameSizes": [
+        4851
+      ],
+      "finalFrame": true,
+      "expectedError": "duplicate_expense_occurrence"
+    },
+    {
+      "name": "duplicate-budget-period",
+      "layer": "semantic",
+      "recipe": {
+        "op": "duplicate",
+        "kind": 2,
+        "newId": "dddddddd-dddd-4ddd-8ddd-ddddddddddde"
+      },
+      "expected": "reject",
+      "file": "duplicate-budget-period.pennylogical",
+      "plaintextBytes": 5042,
+      "plaintextSha256": "dee439b9b25a29e4f42e070573545bc9697e2708623395bb947cfc4eeb1c6caf",
+      "frameSizes": [
+        5042
+      ],
+      "finalFrame": true,
+      "expectedError": "duplicate_budget_period"
+    },
+    {
+      "name": "duplicate-income-occurrence",
+      "layer": "semantic",
+      "recipe": {
+        "op": "duplicate",
+        "kind": 4,
+        "newId": "77777777-7777-4777-8777-777777777778"
+      },
+      "expected": "reject",
+      "file": "duplicate-income-occurrence.pennylogical",
+      "plaintextBytes": 5077,
+      "plaintextSha256": "073a7e1417fa445677b88e14eb1a74b374b76f006f1555a7e8624daf773642f6",
+      "frameSizes": [
+        5077
+      ],
+      "finalFrame": true,
+      "expectedError": "duplicate_income_occurrence"
+    },
+    {
+      "name": "duplicate-key",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a363030302c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a224f726967696e616c207365706172617465206e6f7465222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "duplicate-key.pennylogical",
+      "plaintextBytes": 4811,
+      "plaintextSha256": "f00c78b540fda5c7abc84f16786a407f7ddac3b701c039a40e4d47c61ebab14c",
+      "frameSizes": [
+        4811
+      ],
+      "finalFrame": true,
+      "expectedError": "duplicate_json_member"
+    },
+    {
+      "name": "escaped-equivalent-key",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b225c753030363964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a363030302c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a224f726967696e616c207365706172617465206e6f7465222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "escaped-equivalent-key.pennylogical",
+      "plaintextBytes": 4816,
+      "plaintextSha256": "3286d129b4ecab216f1b9db871eb0ea00841601354c704c66fba34134f6feea5",
+      "frameSizes": [
+        4816
+      ],
+      "finalFrame": true,
+      "expectedError": "duplicate_json_member"
+    },
+    {
+      "name": "fraction-rounded",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a363030302e303030303030303030303030303030312c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a224f726967696e616c207365706172617465206e6f7465222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "fraction-rounded.pennylogical",
+      "plaintextBytes": 4784,
+      "plaintextSha256": "c3c1f45fa1b6a26a4e67e41af77bcc15143799bcefd44b3369c50fd99c88e2b1",
+      "frameSizes": [
+        4784
+      ],
+      "finalFrame": true,
+      "expectedError": "inexact_integer"
+    },
+    {
+      "name": "overflow-exponent",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a3165393939392c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a224f726967696e616c207365706172617465206e6f7465222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "overflow-exponent.pennylogical",
+      "plaintextBytes": 4769,
+      "plaintextSha256": "6106cf684cc0bc2b2de2e9a141ae1dbcb5dfadf8b88bd47b7c9a180913133a09",
+      "frameSizes": [
+        4769
+      ],
+      "finalFrame": true,
+      "expectedError": "inexact_integer"
+    },
+    {
+      "name": "invalid-number",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a30363030302c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a224f726967696e616c207365706172617465206e6f7465222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "invalid-number.pennylogical",
+      "plaintextBytes": 4768,
+      "plaintextSha256": "acdfd13940111aefcdae6adceb7c02e504d832ab3e7cd93f38f60243b8759237",
+      "frameSizes": [
+        4768
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_json"
+    },
+    {
+      "name": "unpaired-scalar",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a363030302c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a225c7564383030222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "unpaired-scalar.pennylogical",
+      "plaintextBytes": 4751,
+      "plaintextSha256": "a07cb65a216944a99939aebf8ad2f4660b182b49953bd9ef1e3f697fd5d86242",
+      "frameSizes": [
+        4751
+      ],
+      "finalFrame": true,
+      "expectedError": "invalid_unicode"
+    },
+    {
+      "name": "excess-depth",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b2278223a5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b5b305d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d7d"
+      },
+      "expected": "reject",
+      "file": "excess-depth.pennylogical",
+      "plaintextBytes": 4447,
+      "plaintextSha256": "bd6241881725b3b41ba169ce1b77110d385e207b75f3f019eb253abc14866ca6",
+      "frameSizes": [
+        4447
+      ],
+      "finalFrame": true,
+      "expectedError": "json_depth"
+    },
+    {
+      "name": "json-bom",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "efbbbf7b226964223a2231313131313131312d313131312d343131312d383131312d313131313131313131313131222c226d65726368616e74223a22436166c3a920546f726f6e746f20e29895222c22616d6f756e744d696e6f72223a363030302c2263757272656e6379436f6465223a22434144222c22657870656e736544617465223a22323032362d30312d3130222c2263617465676f7279223a224d65616c7320616e6420656e7465727461696e6d656e74222c226e6f7465223a224f726967696e616c207365706172617465206e6f7465222c22637265617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c22757064617465644174223a22323032362d30392d31335431323a30303a30302e3030305a222c226465736372697074696f6e223a224f726967696e616c20657870656e7365206465736372697074696f6e222c22726563757272696e6754656d706c6174654964223a6e756c6c2c22726563757272696e674f6363757272656e636544617465223a6e756c6c7d"
+      },
+      "expected": "reject",
+      "file": "json-bom.pennylogical",
+      "plaintextBytes": 4770,
+      "plaintextSha256": "446d913eacc58c6d00cb1c5820c4d20d92988ffb937b71db1036623e57e498a5",
+      "frameSizes": [
+        4770
+      ],
+      "finalFrame": true,
+      "expectedError": "json_bom"
+    },
+    {
+      "name": "invalid-utf8",
+      "layer": "structural",
+      "recipe": {
+        "op": "raw-json",
+        "kind": 8,
+        "hex": "7b22ff223a307d"
+      },
+      "expected": "reject",
+      "file": "invalid-utf8.pennylogical",
+      "plaintextBytes": 4381,
+      "plaintextSha256": "1b7cdafc42281ef90679e01d2727ab5dfa7058b652c97b9ad8d97530e9fa2177",
+      "frameSizes": [
+        4381
+      ],
+      "finalFrame": true,
+      "expectedError": "The encoded data was not valid for encoding utf-8"
+    }
+  ]
+}

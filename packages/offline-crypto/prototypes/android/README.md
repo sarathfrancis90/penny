@@ -1,8 +1,9 @@
 # Experimental Android v4 frame codec
 
-This isolated Kotlin/JNI probe implements only the authenticated frame layer of
-[`BACKUP_V4_CONTRACT.md`](../../../../docs/offline/BACKUP_V4_CONTRACT.md). It does
-not implement record parsing, ledger validation, a restore candidate, cloud
+This isolated Kotlin/JNI probe implements the authenticated frame layer of
+[`BACKUP_V4_CONTRACT.md`](../../../../docs/offline/BACKUP_V4_CONTRACT.md). It
+also has an incremental logical parser with a mandatory isolated validation sink,
+described in [LOGICAL.md](LOGICAL.md). It has no production restore candidate, cloud
 transport, recovery-key UI, or legacy dispatch. A successful frame decode cannot
 authorize a restore. The production apps, portable schemas and current limits
 remain unchanged; the draft format is not frozen or enabled.
@@ -68,10 +69,12 @@ export ANDROID_HOME="$HOME/Library/Android/sdk"
 export PENNY_SODIUM_BUILD="$PWD/artifacts/offline/crypto-android-build-validation/build-all-abis"
 export PENNY_FRAME_NEGATIVES="$PWD/packages/offline-crypto/prototypes/reference/.build/negative-files"
 export PENNY_SWIFT_EXPORTS="$PWD/packages/offline-crypto/prototypes/apple/.build/validation-01/native-exports"
+export PENNY_LOGICAL_FIXTURES="$PWD/packages/offline-crypto/prototypes/reference/.build/logical-fixtures-v2"
 cd packages/offline-crypto/prototypes/android
 ./gradlew -PpennySodiumOutput="$PENNY_SODIUM_BUILD" \
   -PpennyNegativeFixtures="$PENNY_FRAME_NEGATIVES" \
   -PpennyPeerFixtures="$PENNY_SWIFT_EXPORTS" \
+  -PpennyLogicalFixtures="$PENNY_LOGICAL_FIXTURES" \
   :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug
 ```
 
@@ -85,7 +88,7 @@ explicit serial; never clear the normal Penny application:
   ca.penny.v4frameprobe.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-Require `OK (12 tests)` with no failures; the shell exit status alone is not a
+Require `OK (16 tests)` with no failures; the shell exit status alone is not a
 test result. For only the opposite-native import, add
 `-e class ca.penny.v4frameprobe.FrameCodecDeviceTest#readsExactSwiftNativeExportsOnAndroidRuntime`;
 that focused run requires `OK (1 test)`.
@@ -101,13 +104,14 @@ on every run; do not compare it to a previous run's hash.
 
 ## Verification scope
 
-Local qualification passed on arm64 API 26 (4 KiB pages, 12/12 groups) and API 37
+Initial frame qualification passed on arm64 API 26 (4 KiB pages, 12/12 groups) and API 37
 (16 KiB pages, 11/11 groups plus the new focused Swift import, 1/1). Both Android
 export sets passed the independent Python/libsodium reader; Swift XCTest also
 decoded the exact API 37 outputs. The APK passed four ABI ELF checks and
 `zipalign -c -P 16 -v 4`. Build/lint passed with zero errors and one icon warning
 for this activity-free probe. Exact source/APK/fixture hashes, commands, counts
-and evidence paths are recorded in [`evidence/validation.json`](evidence/validation.json).
+and evidence paths for that historical frame slice are recorded in [`evidence/validation.json`](evidence/validation.json).
+Current logical composition evidence is separate in [`evidence/logical-validation.json`](evidence/logical-validation.json).
 
 The device suite checks four independently produced positives and 28 malformed
 fixtures, exact Swift-native imports, native exports and local round trips,

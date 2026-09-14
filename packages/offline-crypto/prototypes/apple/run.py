@@ -76,6 +76,7 @@ def main():
     parser.add_argument("--simulator", required=True, help="UUID of an explicitly owned shutdown simulator")
     parser.add_argument("--preflight-only", action="store_true", help="Verify local inputs and idle simulator without creating output or booting")
     parser.add_argument("--native-manifest", help="Optional Android native fixture manifest; runs only the focused interchange XCTest")
+    parser.add_argument("--logical-fixtures", help="Materialized logical corpus; runs only the logical gate XCTest")
     args = parser.parse_args()
     build, negatives, output = map(safe_path, [args.apple_build, args.negative_fixtures, args.output])
     if not output.is_relative_to(HERE / ".build") or output.exists():
@@ -105,6 +106,21 @@ def main():
     files += fixtures(negatives / "negative-manifest.json", "cases")
     native_manifest = safe_path(args.native_manifest) if args.native_manifest else None
     native_files = fixtures(native_manifest, "positives") if native_manifest else []
+    logical_directory = safe_path(args.logical_fixtures) if args.logical_fixtures else None
+    logical_files = []
+    if logical_directory:
+        if native_manifest:
+            raise ValueError("select one focused validation mode")
+        logical_manifest = logical_directory / "fixture-manifest.json"
+        logical = json.loads(logical_manifest.read_text())
+        for item in logical["positives"] + logical["negatives"]:
+            name = item["file"]
+            if not re.fullmatch(r"[a-z0-9-]+\.pennylogical", name):
+                raise ValueError("invalid logical fixture filename")
+            path = logical_directory / name
+            if path.is_symlink() or path.stat().st_size != item["plaintextBytes"] or digest(path) != item["plaintextSha256"]:
+                raise ValueError("logical fixture size/hash mismatch")
+            logical_files.append(path)
     devices = json.loads(run(["/usr/bin/xcrun", "simctl", "list", "devices", "--json"]))["devices"]
     device = next((d for group in devices.values() for d in group if d["udid"] == args.simulator), None)
     if not device or not device["isAvailable"] or device["state"] != "Shutdown":
@@ -117,6 +133,10 @@ def main():
         shutil.copytree(HERE / folder, output / folder)
     if native_manifest:
         shutil.copy2(HERE / "InterchangeTests/V4NativeInterchangeTests.swift", output / "Tests/V4NativeInterchangeTests.swift")
+    if logical_directory:
+        for folder in ("LogicalSources", "LogicalSupport"):
+            shutil.copytree(HERE / folder, output / "Sources" / folder)
+        shutil.copy2(HERE / "LogicalTests/V4LogicalTests.swift", output / "Tests/V4LogicalTests.swift")
     (output / "Fixtures").mkdir()
     for path in files:
         shutil.copy2(path, output / "Fixtures" / path.name)
@@ -125,6 +145,10 @@ def main():
         for path in native_files[1:]:
             shutil.copy2(path, native_output / path.name)
         shutil.copy2(native_manifest, native_output / "native-manifest.json")
+    if logical_directory:
+        logical_output = output / "Fixtures/Logical"; logical_output.mkdir()
+        for path in [logical_manifest, *logical_files]:
+            shutil.copy2(path, logical_output / path.name)
     spec = {"name": "PennyV4FramePrototype", "options": {"deploymentTarget": {"iOS": "26.0"}},
             "settings": {"SWIFT_VERSION": "5.0", "GENERATE_INFOPLIST_FILE": True,
                          "HEADER_SEARCH_PATHS": str(install / "include"), "SWIFT_INCLUDE_PATHS": str(install / "include"),
@@ -157,6 +181,8 @@ def main():
                 "-resultBundlePath", str(result)]
         if native_manifest:
             test_command += ["-only-testing:PennyV4FramePrototypeTests/V4NativeInterchangeTests"]
+        if logical_directory:
+            test_command += ["-only-testing:PennyV4FramePrototypeTests/V4LogicalTests"]
         record(test_command, "xcodebuild.log")
         record(["/usr/bin/xcrun", "xcresulttool", "get", "test-results", "summary", "--path", str(result)], "test-summary.json")
         record(["/usr/bin/xcrun", "xcresulttool", "export", "attachments", "--path", str(result),
@@ -168,7 +194,8 @@ def main():
             "device": device, "sourcePin": verified, "appleBuildReportSha256": digest(build / "build-report.json"),
             "librarySha256": digest(install / "lib/libsodium.a"),
             "nativeManifestSha256": digest(native_manifest) if native_manifest else None,
-            "sourceHashes": {str(p.relative_to(output)): digest(p) for folder in ("Sources", "Tests") for p in (output / folder).glob("*.swift")}}, indent=2) + "\n")
+            "logicalManifestSha256": digest(logical_manifest) if logical_directory else None,
+            "sourceHashes": {str(p.relative_to(output)): digest(p) for folder in ("Sources", "Tests") for p in (output / folder).rglob("*.swift")}}, indent=2) + "\n")
     print(output / "test-summary.json")
 
 

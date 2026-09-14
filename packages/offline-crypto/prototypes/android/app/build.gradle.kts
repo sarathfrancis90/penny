@@ -14,6 +14,9 @@ require(File(negativeFixtures).isAbsolute && file("$negativeFixtures/negative-ma
 val peerFixtures=providers.gradleProperty("pennyPeerFixtures").orNull
     ?: error("Supply -PpennyPeerFixtures=/absolute/Swift/native-exports for opposite-native tests")
 require(File(peerFixtures).isAbsolute && file("$peerFixtures/native-fixture-manifest.json").isFile)
+val logicalFixtures=providers.gradleProperty("pennyLogicalFixtures").orNull
+    ?: error("Supply -PpennyLogicalFixtures=/absolute/materialized/logical-fixtures")
+require(File(logicalFixtures).isAbsolute && file("$logicalFixtures/fixture-manifest.json").isFile)
 abstract class NegativeFixtureAssets : DefaultTask() {
     @get:InputDirectory abstract val sourceDirectory: DirectoryProperty
     @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
@@ -28,6 +31,31 @@ abstract class NegativeFixtureAssets : DefaultTask() {
 val prepareNegativeAssets by tasks.registering(NegativeFixtureAssets::class) {
     sourceDirectory.set(file(negativeFixtures))
     outputDirectory.set(layout.buildDirectory.dir("negative-fixture-assets"))
+}
+abstract class LegacyValidatorSources : DefaultTask() {
+    @get:InputDirectory abstract val sourceDirectory: DirectoryProperty
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+    @TaskAction fun prepare() {
+        project.sync {
+            from(sourceDirectory) { include("Categories.kt", "Expense.kt", "FinanceModels.kt", "StrictJson.kt", "Attachment.kt", "ReceiptImage.kt") }
+            into(outputDirectory)
+        }
+    }
+}
+val legacyValidators by tasks.registering(LegacyValidatorSources::class) {
+    sourceDirectory.set(file("../../../../../apps/android/app/src/main/java/ca/penny/offline"))
+    outputDirectory.set(layout.buildDirectory.dir("legacy-validator-sources"))
+}
+abstract class LogicalFixtureAssets : DefaultTask() {
+    @get:InputDirectory abstract val sourceDirectory: DirectoryProperty
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+    @TaskAction fun prepare() {
+        project.sync { from(sourceDirectory) { into("logical"); include("fixture-manifest.json", "*.pennylogical") }; into(outputDirectory) }
+    }
+}
+val logicalAssets by tasks.registering(LogicalFixtureAssets::class) {
+    sourceDirectory.set(file(logicalFixtures))
+    outputDirectory.set(layout.buildDirectory.dir("logical-fixture-assets"))
 }
 android {
     namespace="ca.penny.v4frameprobe"
@@ -47,6 +75,8 @@ android {
 }
 androidComponents.onVariants(androidComponents.selector().withBuildType("debug")) { variant ->
     variant.androidTest?.sources?.assets?.addGeneratedSourceDirectory(prepareNegativeAssets) { it.outputDirectory }
+    variant.androidTest?.sources?.assets?.addGeneratedSourceDirectory(logicalAssets) { it.outputDirectory }
+    variant.sources.java?.addGeneratedSourceDirectory(legacyValidators) { it.outputDirectory }
 }
 dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.3.0")

@@ -78,6 +78,9 @@ different on each run because salt and stream header are random. Only the public
 fixture key `pny1-` followed by `07` repeated 32 times is used in these tests.
 
 See `EVIDENCE.md` for the completed simulator gate and outstanding boundaries.
+The separate experimental incremental logical parser and mandatory native
+validation sink are documented in `LOGICAL.md`; their tests run only with
+`--logical-fixtures` and do not change the frame-only API's success meaning.
 
 For the focused Android-to-Swift runtime check, add
 `--native-manifest packages/offline-crypto/prototypes/android/.build/validation-api37-01/native-exports/native-manifest.json`

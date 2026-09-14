@@ -54,7 +54,18 @@ import XCTest
         let picker = app.buttons["Attach receipt photo"]
         XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
         let photo = app.images.matching(identifier: "PXGGridLayout-Info").firstMatch
-        XCTAssertTrue(photo.waitForExistence(timeout: 5), app.debugDescription)
+        // The remote Photos picker can populate its seeded grid after the app
+        // has become idle on hosted simulators. Wait for the actual system image.
+        guard photo.waitForExistence(timeout: 30) else {
+            XCTFail("The system Photos picker did not expose its seeded image within 30 seconds.\n\(app.debugDescription)")
+            return
+        }
+        let frame = photo.frame
+        guard !frame.isEmpty, frame.width.isFinite, frame.height.isFinite,
+              app.frame.contains(CGPoint(x: frame.midX, y: frame.midY)) else {
+            XCTFail("The system Photos image has no visible coordinate target.\n\(app.debugDescription)")
+            return
+        }
         // The system photo grid exposes its image frame but reports no AX hit
         // point on iOS 26. Tap the observed image center within the real picker.
         photo.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()

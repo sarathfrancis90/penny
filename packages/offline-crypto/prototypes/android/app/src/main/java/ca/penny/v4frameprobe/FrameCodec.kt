@@ -47,6 +47,9 @@ class FrameCancellation {
 
 data class FrameStats(val frames: Long, val plaintextBytes: Long, val wireBytes: Long)
 
+/** Internal parser composition: called only after full frame authentication and delivery. */
+internal interface AuthenticatedFrameBoundary { fun frameEnded(final: Boolean) }
+
 /**
  * Frame authentication only, NOT a complete backup/record validator or restore API.
  * Owns/closes both streams on return or failure. Authenticated early frames may be
@@ -165,6 +168,7 @@ object FrameCodec {
                     need(tag == 3 || count == CHUNK, "MESSAGE must be a full chunk")
                     // Complete-frame authentication and tag validation happened before plaintext release.
                     write(output, plain, count, cancellation)
+                    (output as? AuthenticatedFrameBoundary)?.frameEnded(tag == 3)
                     plain.fill(0); sequence++
                     if (tag == 3) {
                         need(readOne(input, cancellation) < 0, "Trailing bytes after FINAL")

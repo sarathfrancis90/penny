@@ -55,7 +55,7 @@ export default [
   },
   {
     // Node CLI scripts use Node globals (require, process, __dirname, etc.).
-    files: ["scripts/**/*.js", "scripts/**/*.mjs", "scripts/**/*.cjs", "packages/offline-contract/*.mjs", "packages/offline-crypto/*.mjs"],
+    files: ["scripts/**/*.js", "scripts/**/*.mjs", "scripts/**/*.cjs", "packages/offline-contract/*.mjs", "packages/offline-crypto/*.mjs", "packages/offline-crypto/prototypes/reference/*.mjs"],
     languageOptions: {
       globals: { ...globals.node },
     },

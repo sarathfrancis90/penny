@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1203
+- Total source-visible files: 1240
 
 | Path | Area |
 |---|---|
@@ -392,7 +392,9 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-api26-summary.json` | docs |
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
+| `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
+| `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
@@ -406,9 +408,17 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/ios-p6-functional-summary.json` | docs |
 | `docs/offline/evidence/ios-p6-performance.json` | docs |
 | `docs/offline/evidence/ios-p6-privacy-build-audit.json` | docs |
+| `docs/offline/evidence/ios-photo-picker-readiness.json` | docs |
 | `docs/offline/evidence/ios-png-accepted-summary.json` | docs |
 | `docs/offline/evidence/ios-png-corpus-summary.json` | docs |
 | `docs/offline/evidence/ios-system-type-diagnostic.json` | docs |
+| `docs/offline/evidence/ios-visible-a11y/VisibleA11yTests.swift.txt` | docs |
+| `docs/offline/evidence/ios-visible-a11y/contrast-findings.txt` | docs |
+| `docs/offline/evidence/ios-visible-a11y/diagnostic.json` | docs |
+| `docs/offline/evidence/ios-visible-a11y/report-segment-3.png` | docs |
+| `docs/offline/evidence/ios-visible-a11y/report-segment-4.png` | docs |
+| `docs/offline/evidence/ios-visible-a11y/report-segment-5.png` | docs |
+| `docs/offline/evidence/ios-visible-a11y/visible-capacity.png` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
 | `docs/superpowers/plans/2026-04-17-observability-foundation.md` | docs |
 | `docs/testing/DEFAULT_GROUP_VERIFICATION.md` | docs |
@@ -792,6 +802,11 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/fixtures/v4-frames/full-final.pennyframe` | offline-contract |
 | `packages/offline-contract/fixtures/v4-frames/multi-frame.pennyframe` | offline-contract |
 | `packages/offline-contract/fixtures/v4-frames/one-receipt.pennyframe` | offline-contract |
+| `packages/offline-contract/fixtures/v4-logical/README.md` | offline-contract |
+| `packages/offline-contract/fixtures/v4-logical/empty.pennylogical` | offline-contract |
+| `packages/offline-contract/fixtures/v4-logical/finance.pennylogical` | offline-contract |
+| `packages/offline-contract/fixtures/v4-logical/fixture-manifest.json` | offline-contract |
+| `packages/offline-contract/fixtures/v4-logical/one-receipt.pennylogical` | offline-contract |
 | `packages/offline-contract/generate-cloud-fixtures.mjs` | offline-contract |
 | `packages/offline-contract/generate-finance-fixtures.mjs` | offline-contract |
 | `packages/offline-contract/generate-fixtures.mjs` | offline-contract |
@@ -819,15 +834,20 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-crypto/libsodium-1.0.22.tar.gz.minisig` | shared-package |
 | `packages/offline-crypto/prepare_source.py` | shared-package |
 | `packages/offline-crypto/prototypes/android/.gitignore` | shared-package |
+| `packages/offline-crypto/prototypes/android/LOGICAL.md` | shared-package |
 | `packages/offline-crypto/prototypes/android/README.md` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/build.gradle.kts` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt` | shared-package |
+| `packages/offline-crypto/prototypes/android/app/src/androidTest/java/ca/penny/v4frameprobe/LogicalCodecDeviceTest.kt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/AndroidManifest.xml` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/cpp/CMakeLists.txt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/cpp/frame_jni.cpp` | shared-package |
+| `packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/offline/BackupExporter.kt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt` | shared-package |
+| `packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/v4frameprobe/LogicalCodec.kt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/res/xml/data_extraction_rules.xml` | shared-package |
 | `packages/offline-crypto/prototypes/android/build.gradle.kts` | shared-package |
+| `packages/offline-crypto/prototypes/android/evidence/logical-validation.json` | shared-package |
 | `packages/offline-crypto/prototypes/android/evidence/validation.json` | shared-package |
 | `packages/offline-crypto/prototypes/android/gradle.properties` | shared-package |
 | `packages/offline-crypto/prototypes/android/gradlew` | shared-package |
@@ -835,6 +855,18 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-crypto/prototypes/apple/.gitignore` | shared-package |
 | `packages/offline-crypto/prototypes/apple/EVIDENCE.md` | shared-package |
 | `packages/offline-crypto/prototypes/apple/InterchangeTests/V4NativeInterchangeTests.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LOGICAL.md` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSources/V4LogicalGate.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSources/V4NativeValidationSink.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/Categories.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/Expense.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/FinanceModels.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/GregorianDay.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/PNGIntegrity.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/ReceiptAttachment.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/V4RecordJSON.swift` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalSupport/source-provenance.json` | shared-package |
+| `packages/offline-crypto/prototypes/apple/LogicalTests/V4LogicalTests.swift` | shared-package |
 | `packages/offline-crypto/prototypes/apple/README.md` | shared-package |
 | `packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift` | shared-package |
 | `packages/offline-crypto/prototypes/apple/Sources/V4FrameFiles.swift` | shared-package |
@@ -847,6 +879,11 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-crypto/prototypes/reference/build_reference.py` | shared-package |
 | `packages/offline-crypto/prototypes/reference/fixtures.py` | shared-package |
 | `packages/offline-crypto/prototypes/reference/frame_oracle.py` | shared-package |
+| `packages/offline-crypto/prototypes/reference/logical_README.md` | shared-package |
+| `packages/offline-crypto/prototypes/reference/logical_evidence.json` | shared-package |
+| `packages/offline-crypto/prototypes/reference/logical_fixtures.mjs` | shared-package |
+| `packages/offline-crypto/prototypes/reference/logical_oracle.mjs` | shared-package |
+| `packages/offline-crypto/prototypes/reference/logical_oracle.test.mjs` | shared-package |
 | `packages/offline-crypto/prototypes/reference/test_oracle.py` | shared-package |
 | `packages/offline-crypto/prototypes/reference/verification-evidence.json` | shared-package |
 | `packages/offline-crypto/source-manifest.json` | shared-package |
