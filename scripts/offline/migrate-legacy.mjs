@@ -22,7 +22,7 @@ export function legacyUUID(accountId, recordId) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-function civilDate(value, timeZone) {
+export function civilDate(value, timeZone) {
   if (validDate(value)) return value;
   ensure(validTimestamp(value), 'invalid_expense_date');
   const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone, calendar: 'gregory', era: 'short', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(value)).map(part => [part.type, part.value]));

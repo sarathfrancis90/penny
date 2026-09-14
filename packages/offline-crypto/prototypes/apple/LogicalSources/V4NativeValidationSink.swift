@@ -14,6 +14,8 @@ final class V4NativeValidationSink: V4LogicalValidationSink {
     private(set) var metadata: V4LogicalBegin?
     var onBegin: (() throws -> Void)?
     var onFinish: (() throws -> Void)?
+    /// Borrowed only after the mandatory native image/hash validation succeeds.
+    var onValidatedReceipt: ((V4ReceiptDescriptor, Data) throws -> Void)?
     func begin(_ metadata: V4LogicalBegin) throws {
         guard lifecycle == .fresh else { throw V4LogicalError.identity }
         lifecycle = .active
@@ -65,6 +67,7 @@ final class V4NativeValidationSink: V4LogicalValidationSink {
     func finishReceipt() throws {
         guard lifecycle == .active, let receipt, bytes.count == receipt.byteCount else { throw V4LogicalError.receipt }
         try autoreleasepool { try ReceiptAttachment(descriptor: receipt, data: bytes).validate() }
+        try onValidatedReceipt?(receipt, bytes)
         receiptCount += 1; bytes.resetBytes(in: 0..<bytes.count); bytes.removeAll(keepingCapacity: true); self.receipt = nil
     }
     func finishLogical(_ summary: V4LogicalSummary) throws {

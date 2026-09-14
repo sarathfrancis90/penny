@@ -264,6 +264,23 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         val envelope=db().rawQuery("SELECT wrappedKey FROM vault_generations WHERE id=?",arrayOf(current.active)).use {check(it.moveToFirst());CloudContract.sha256(it.getBlob(0))}
         return CandidateTarget(current,checkNotNull(get("activeState")),binding(),envelope,metadata)
     }
+    internal interface ReceiptTarget : java.io.Closeable
+    private inner class BoundTarget(val target: CandidateTarget, val namespace: CandidateNamespace) : ReceiptTarget {
+        private val owner=this@VaultGenerations
+        private var open=true
+        fun claim(receiver: VaultGenerations) {
+            check(owner===receiver) {"Target belongs to another receiving store"}
+            check(open) {"Receiving target already consumed"};open=false
+        }
+        override fun close() = synchronized(locks.getOrPut(namespace.path) {Any()}) {
+            if(open) {open=false;namespace.close()}
+        }
+    }
+    internal fun captureReceiptTarget(): ReceiptTarget = locked {
+        val namespace=CandidateNamespace()
+        try {namespace.check();val target=transaction {candidateTarget()};namespace.check();BoundTarget(target,namespace)}
+        catch(error: Throwable) {try {namespace.close()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)};throw error}
+    }
     private inner class CandidateStorage(val id: String, val raw: ByteArray, val snapshot: Snapshot,
         val group: String, val descriptors: List<LocalReceiptBlob.Descriptor>, val operation: RestoreOperation, val target: CandidateTarget, val namespace: CandidateNamespace) {
         var writer: LocalReceiptBlob.Operation? = null
@@ -391,17 +408,29 @@ internal class VaultGenerations(private val context: Context, private val db: ()
     /** Preparation never initializes, repairs or changes current state. The opaque
      * capability can only be installed once by this receiving store. */
     internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<ReceiptDeclaration>,
-        operation: RestoreOperation = RestoreOperation()): ReceiptPreparation = locked {
-        operation.check()
-        val snapshot=frozenMetadata(metadata);val id=Wire.id();val group=Wire.id()
-        val descriptors=receipts.toList().map {LocalReceiptBlob.Descriptor(snapshot.vaultId,group,it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)}
-        requireReceiptCapacity(snapshot,descriptors)
-        val namespace=CandidateNamespace()
-        val target: CandidateTarget
-        val device: SecretKey
+        operation: RestoreOperation = RestoreOperation()): ReceiptPreparation = captureReceiptTarget().use {
+        beginReceiptPreparation(metadata,receipts,operation,it)
+    }
+    internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<ReceiptDeclaration>,
+        operation: RestoreOperation, authority: ReceiptTarget): ReceiptPreparation {
+        check(authority is BoundTarget) {"Unsupported receiving target"}
+        return synchronized(locks.getOrPut(authority.namespace.path) {Any()}) {
+            authority.claim(this)
+            beginBoundPreparation(metadata,receipts,operation,authority)
+        }
+    }
+    private fun beginBoundPreparation(metadata: Snapshot, receipts: List<ReceiptDeclaration>,
+        operation: RestoreOperation, authority: BoundTarget): ReceiptPreparation {
+        val namespace=authority.namespace;val target=authority.target
+        val snapshot: Snapshot;val id=Wire.id();val group=Wire.id()
+        val descriptors: List<LocalReceiptBlob.Descriptor>;val device: SecretKey
         try {
-            namespace.check();target=transaction {candidateTarget()};namespace.check()
-            device=device() // Existing key only. Rejected preview must never repair or provision it.
+            namespace.check();operation.check()
+            snapshot=frozenMetadata(metadata)
+            descriptors=receipts.toList().map {LocalReceiptBlob.Descriptor(snapshot.vaultId,group,it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)}
+            requireReceiptCapacity(snapshot,descriptors)
+            check(transaction {candidateTarget()}==target) {"Receiving vault changed during backup validation"}
+            namespace.check();device=device() // Revalidate original authority; never refresh it or provision a key.
         } catch(error: Throwable) {try {namespace.close()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)};throw error}
         val raw=ByteArray(32).also {SecureRandom().nextBytes(it)}
         val storage=CandidateStorage(id,raw,snapshot,group,descriptors,operation,target,namespace)
@@ -424,7 +453,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             if(descriptors.isNotEmpty()) storage.writer=LocalReceiptBlob.Operation(context,raw,snapshot.vaultId,
                 faults=LocalReceiptBlob.Faults {_,_->operation.check()},generationId=group)
             if(descriptors.isNotEmpty()) namespace.pinReceiptRoot()
-            namespace.check();operation.check();Preparation(storage)
+            namespace.check();operation.check();return Preparation(storage)
         } catch(error: Throwable) {storage.failed(error)}
     }
     private fun receiptFiles(id: String, raw: ByteArray, snapshot: Snapshot, guard: () -> Unit = {}): List<LocalReceiptBlob.Descriptor> {

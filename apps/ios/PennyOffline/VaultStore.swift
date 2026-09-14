@@ -124,18 +124,31 @@ final class VaultStore {
         guard isReady, let key else { throw ExpenseError.lockedVault }
         try commit(next, key: key)
     }
-    /// Internal synchronous local seam; no UI/cloud/v4 caller. Never provisions a key.
-    func beginLocalReceiptReplacement(_ body: VaultSnapshot, receipts: [DurableReceiptDeclaration]) throws -> DurableVaultStorage.Preparation {
+    /// Internal synchronous local seam. Never provisions a device key.
+    func captureLocalReceiptTarget() throws -> DurableVaultStorage.ReceivingBinding {
+        let existing = try existingReplacementKey()
+        return try DurableVaultStorage.ReceivingBinding.capture(directory: file.deletingLastPathComponent(), key: existing,
+            owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
+            source: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
+    }
+    private func existingReplacementKey() throws -> SymmetricKey {
         try Task.checkCancellation()
         guard !isWriting, isReady, let key else { throw ExpenseError.lockedVault }
-        let existing: SymmetricKey
         do {
-            existing = try suppliedKey ?? deviceKeyReader(false)
-            guard existing == key else { throw ExpenseError.missingKey }
+            let existing = try suppliedKey ?? deviceKeyReader(false)
+            guard existing == key else { throw ExpenseError.missingKey }; return existing
         } catch { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription; throw error }
-        return try DurableVaultStorage.Preparation.beginBound(directory: file.deletingLastPathComponent(), key: existing,
-            body: body, receipts: receipts, owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
-            source: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
+    }
+    func beginLocalReceiptReplacement(_ body: VaultSnapshot, receipts: [DurableReceiptDeclaration]) throws -> DurableVaultStorage.Preparation {
+        try beginLocalReceiptReplacement(captureLocalReceiptTarget(), body: body, receipts: receipts)
+    }
+    func beginLocalReceiptReplacement(_ binding: DurableVaultStorage.ReceivingBinding, body: VaultSnapshot,
+                                     receipts: [DurableReceiptDeclaration], cancellation: @escaping () throws -> Void = { try Task.checkCancellation() }) throws -> DurableVaultStorage.Preparation {
+        defer { binding.invalidate(owner: localReceiptOwner) }
+        let existing = try existingReplacementKey()
+        guard binding.matches(owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
+            source: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch)) else { throw CloudFailure.staleRestore }
+        return try binding.begin(body: body, receipts: receipts, owner: localReceiptOwner, key: existing, cancellation: cancellation)
     }
     func installLocalReceiptReplacement(_ candidate: DurableVaultStorage.InactiveCandidate) throws {
         var entered = false

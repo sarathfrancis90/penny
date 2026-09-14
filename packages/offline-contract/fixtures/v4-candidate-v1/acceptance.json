@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "status": "required_unproven",
+  "scope": "Internal two-pass current-cap candidate preparation and guarded local installation; no UI/provider/writer/cap increase.",
+  "references": [
+    {
+      "role": "frames",
+      "path": "../v4-frames/fixture-manifest.json",
+      "sha256": "352874d4ce6374123a489cc3129abdde380be882b19c4ec93618356afa431d1f"
+    },
+    {
+      "role": "logical",
+      "path": "../v4-logical/fixture-manifest.json",
+      "sha256": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32"
+    },
+    {
+      "role": "candidate",
+      "path": "../local-candidate-v1/acceptance.json",
+      "sha256": "a8cb4dd0f9b2c8df095ce64c09e4321a77d144a167a264db99f6cadcad0c9baf"
+    },
+    {
+      "role": "nativeImage",
+      "path": "../png-integrity-corpus.json",
+      "sha256": "e2728df1e7c45b119ca5a70d288de1c3bf7280f2b98c3ee6b7a8476fa17b7e5c"
+    }
+  ],
+  "encryptedPositives": [
+    "empty-ledger",
+    "one-receipt"
+  ],
+  "logicalPositives": [
+    "finance",
+    "split-domain-header",
+    "split-end-header",
+    "split-end-payload"
+  ],
+  "logicalNegatives": [
+    "end-in-message",
+    "end-transcript",
+    "orphan-receipt",
+    "duplicate-key",
+    "escaped-equivalent-key"
+  ],
+  "currentCapNegative": "beyond-legacy-count",
+  "nativeImageCase": "rgba9-plain-invalid_filter",
+  "requiredScenarios": [
+    {
+      "id": "two_pass_install",
+      "trigger": "Use empty-ledger and one-receipt encrypted goldens, plus test-encrypted finance logical positive.",
+      "requiredOutcome": "Before finish current identity is unchanged; both complete passes match; guarded install/new-store reopen preserves all represented fields and exact receipt bytes."
+    },
+    {
+      "id": "split_boundaries",
+      "trigger": "Test-encrypt split-domain-header, split-end-header and split-end-payload preserving declared frameSizes.",
+      "requiredOutcome": "Both passes accept only after real FINAL/EOF; borrowed receipt boundaries do not change bytes."
+    },
+    {
+      "id": "authenticated_rejection",
+      "trigger": "Run frame negatives; test-encrypt logical end-in-message, end-transcript, orphan-receipt, duplicate-key and escaped-equivalent-key.",
+      "requiredOutcome": "Reject in either pass with no candidate or current mutation."
+    },
+    {
+      "id": "native_image_rejection",
+      "trigger": "Replace one-receipt bytes with rgba9-plain-invalid_filter; recompute descriptor, counts, transcript and actual test encryption.",
+      "requiredOutcome": "Native complete image validation rejects despite valid authentication and hashes."
+    },
+    {
+      "id": "current_capacity",
+      "trigger": "Use beyond-legacy-count plus metadata boundary and exact candidate encoded-size boundary cases from existing native tests.",
+      "requiredOutcome": "Reject current app or candidate over-limit cases before candidate transfer; no raised cap or full-snapshot allocation to calculate capacity."
+    },
+    {
+      "id": "target_changed",
+      "trigger": "Edit target during pass 1, between passes or before install; also repeat revision under new incarnation, swap namespace or key.",
+      "requiredOutcome": "Original opaque binding rejects; intervening state survives. No recapture/provisioning; ordinary GC cannot remove pinned candidate bytes."
+    },
+    {
+      "id": "ciphertext_changed",
+      "trigger": "Substitute, mutate, truncate or append to owned input before/during pass 2, including another otherwise valid archive.",
+      "requiredOutcome": "Ownership/digest/count or full authentication rejects; no candidate transfer; preserve unknown replacement."
+    },
+    {
+      "id": "close_cancel_failure",
+      "trigger": "Inject read/close/cancel in acquisition and either pass, including after sink completion; inject preparation finish/write/sync/reopen failure.",
+      "requiredOutcome": "No successful candidate escapes a later failure; owned cleanup preserves current and unknown data."
+    },
+    {
+      "id": "single_use_install",
+      "trigger": "Reuse after finish/discard/failed owner install; try foreign receiver; inject pre/postpublication cancellation and confirmed/uncertain rollback.",
+      "requiredOutcome": "Reuse rejects; foreign receiver cannot consume rightful owner; existing truthful recovery and ownership-transfer rules remain."
+    },
+    {
+      "id": "missing_device_key",
+      "trigger": "Fail existing device-key lookup before pass 1 and again before installation.",
+      "requiredOutcome": "Reject/lock with zero provisioning, empty initialization or existing-key replacement."
+    }
+  ],
+  "evidenceRequirements": [
+    "Record manifest/source/build/runtime hashes, methods, actual outcomes and skipped/not_run reasons for each platform.",
+    "Plain logical fixtures require actual test-only authenticated framing; preserve frameSizes and finalFrame. No fixture existence or inherited reader/candidate result proves this adapter.",
+    "Bind pass summaries to exact ciphertext SHA/count and record successful close/FINAL/EOF before candidate finish.",
+    "No UI/provider/account/new-key onboarding, process-death, larger-capacity or aggregate-memory claim from this internal slice."
+  ]
+}

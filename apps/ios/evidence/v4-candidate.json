@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "scope": "Internal asynchronous two-pass v4 preparation into existing guarded candidate; existing local installation; no UI/provider dispatch",
+  "sourceHashes": {
+    "apps/ios/PennyOffline/V4CandidateRestore.swift": "23e2b1b47122ed1f3fac5e19e44786128227341414efa14ca5d0d4f560d8f366",
+    "apps/ios/PennyOffline/V4CiphertextSnapshot.swift": "adbe8bcadc269713e4bb5d5b74f76bb66e7a54b63919805ec3b9b2657ebc33df",
+    "apps/ios/PennyOffline/V4ReadOnlyAdapter.swift": "ece36b1f69209011ca3daab22b57ffa8233b9a0d2fe004567c05a51e1c052b1f",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "846f648467c792af2b0f4ccddaf74c769fee9917a1e5a9cee3a5c8ce76918998",
+    "apps/ios/PennyOffline/VaultStore.swift": "25eb5ab7852477674b2a41d433a89a68a9e50876f2554eca668a97c5fd448942",
+    "apps/ios/PennyOfflineTests/V4CandidateTests.swift": "ad5ecc4c36f542f5f9a6c825cf0cd4f625672330942673df404318d3f633b8c2",
+    "apps/ios/PennyOfflineTests/V4AppModuleTests.swift": "a5caafdb2fa9a0282f0e735ff3818bcd206ae08b2a27b6fec90e01b8b2a3ad01",
+    "apps/ios/project.yml": "a71b6b9424163a716c9a02a8288b3bc784538b8ceec15491e9fc17db60547d9d",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "f9bc7fecfe41dcd5a6e70446a0d9854ee556c055540b78d6ea0353d24314c5a1",
+    "packages/offline-crypto/apple/module/PennyV4Reader.swift": "327ddd16a3dd00ff288e5b9be044c4965a11a3ada06d2d956dbdd41cec5f174e",
+    "packages/offline-crypto/prototypes/apple/LogicalSources/V4NativeValidationSink.swift": "96a911314dd893273e4d21238a6fcb258d1627a56767a4a0fc6d8d5a2caad8ff",
+    "packages/offline-crypto/prototypes/apple/LogicalSources/V4LogicalGate.swift": "2301f5f22dac28d7f417eac5a1da9b5a88ce43a6f6d8369966f399505ac369be",
+    "packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift": "7cdebf355eeaf2c5be570443adad09c0b6f2d457914a44a7968dc1e61c2a9bca"
+  },
+  "allAppSwiftSources": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "846f648467c792af2b0f4ccddaf74c769fee9917a1e5a9cee3a5c8ce76918998",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/ExpensesView.swift": "f591e9962a8cc864f2cf66c28ed2d1dc04ef613c199db42f9552f1af306cf77a",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceSnapshotValidation.swift": "1033469d088e1f68de4fe2e753c638ee9c0724d71be325f345a749824d9d959a",
+    "apps/ios/PennyOffline/FinanceStore.swift": "a50f18c6071df42aa7f62af0439d7c8263ff9775c8b701240570c477999fecc7",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "a471a19a98826491c079f3c40a029828d14fb9385ce3734d553a94d66ad05889",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/V4CandidateRestore.swift": "23e2b1b47122ed1f3fac5e19e44786128227341414efa14ca5d0d4f560d8f366",
+    "apps/ios/PennyOffline/V4CiphertextSnapshot.swift": "adbe8bcadc269713e4bb5d5b74f76bb66e7a54b63919805ec3b9b2657ebc33df",
+    "apps/ios/PennyOffline/V4ReadOnlyAdapter.swift": "ece36b1f69209011ca3daab22b57ffa8233b9a0d2fe004567c05a51e1c052b1f",
+    "apps/ios/PennyOffline/VaultStore.swift": "25eb5ab7852477674b2a41d433a89a68a9e50876f2554eca668a97c5fd448942",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2"
+  },
+  "products": {
+    "apps/ios/.build/v4-candidate/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "7f7140b01e5d12cc7ffb3e72c84716eeb46aa0bb0b97cc2cc1f4aebefde64aca",
+    "apps/ios/.build/v4-candidate/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib": "a7c0e2499e0aed41da8a48bacae961d63e5c6bf00ecabe4e6d5721c2b7175f39",
+    "apps/ios/.build/v4-candidate/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "679c862f56a1ec8868da7c01eb991dfb7d65e316be28be1aaec4dd71b8d09ece",
+    "apps/ios/.build/v4-candidate/DerivedData/Build/Products/Debug-iphonesimulator/libPennyV4.a": "cc359fe05795d2a911ce3070fb5e0a786b1c7cc250a2af8c02576ec4ed82ef31"
+  },
+  "fixtures": {
+    "packages/offline-contract/fixtures/v4-candidate-v1/acceptance.json": "0400e9c17d29a6f167d4c6dc80192353c0cc7fb35fd60b3535674c1f8f4ac9f6",
+    "packages/offline-contract/fixtures/local-generation-v1/previous.json": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+    "packages/offline-contract/fixtures/local-generation-v1/replacement.json": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+    "packages/offline-contract/fixtures/v4-frames/fixture-manifest.json": "352874d4ce6374123a489cc3129abdde380be882b19c4ec93618356afa431d1f",
+    "packages/offline-contract/fixtures/v4-logical/fixture-manifest.json": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32",
+    "packages/offline-contract/fixtures/png-integrity-corpus.json": "e2728df1e7c45b119ca5a70d288de1c3bf7280f2b98c3ee6b7a8476fa17b7e5c"
+  },
+  "result": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "deviceName": "Penny A11y System Sizes",
+          "modelName": "iPhone 16e",
+          "osBuildNumber": "23E254a",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 7,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789366353.345,
+    "passedTests": 7,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789366342.871,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [],
+    "totalTestCount": 7
+  },
+  "priorCombinedResult": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "deviceName": "Penny A11y System Sizes",
+          "modelName": "iPhone 16e",
+          "osBuildNumber": "23E254a",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 29,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789366250.452,
+    "passedTests": 29,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789366224.935,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "48% of duration",
+        "text": "1 longest test run with outlier durations exceeding 2.72s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 29
+  },
+  "priorCheckpointScope": "29/29: candidate6 + existing preparation/install16 + app module7. Final7/7 adds shared split/cap pipeline and makes capture parent-FD close failure visible; no claim prior binary preserved or full29 rerun.",
+  "ownership": "Original target/root FD captured before input; fresh current key(false)/target check at candidate begin; actor-owned unlinked read-only ciphertext inode<=20MiB,64KiB copy; two complete validation passes compare digest/count/full summary; pass2 receipt callback only after mandatory native validation; actual input/pass/snapshot closes plus cancellation before existing preparation.finish; private locked one-shot transfer owns pending cleanup across actors; install/publication protocol unchanged",
+  "acceptance": {
+    "two_pass_install": "testAllDomainTwoPassInstallAndOneShotFreshReopen",
+    "split_boundaries": "testSharedSplitBoundariesInstallAndCurrentCapacityRejects: three shared1MiB split records",
+    "authenticated_rejection": "testAuthenticatedFramingAndNativeImageRejectionsPreserveVault: wrongkey/truncation/trailing/tamper/pattern",
+    "native_image_rejection": "same test: authenticated descriptor/hash/transcript with invalid-filter PNG; prior app module explicitly asserts native ReceiptError",
+    "current_capacity": "testSharedSplitBoundariesInstallAndCurrentCapacityRejects:10001; app metadata-cap regression also records discarded events in prior29",
+    "target_changed": "testOriginalTargetBindingRejectsEditsBeforeBeginAndBeforeInstall: captured,pass1closed,pass2closed checkpoints",
+    "ciphertext_changed": "testOriginalInputMutationCannotChangePrivateSnapshot: external input path replaced after snapshot copy; exact original install. Private inode has no pathname/writable FD; direct private-inode mutation not_run",
+    "close_cancel_failure": "testInputReadCloseAndLateCancellationCleanup: partial source read failure,source close failure,cancel afterpass1/pass2/snapshotclose; injected checkpoints, not actual syscall close failure",
+    "single_use_install": "testAllDomainTwoPassInstallAndOneShotFreshReopen; existing install lifecycle16 also passed",
+    "missing_device_key": "testMissingDeviceKeyNeverProvisionsOrReplaces: key loss afterpass1, false-only lookup, ciphertext unchanged"
+  },
+  "limitations": [
+    "Device runtime and physical protection not run; iOS simulator native validation only",
+    "No UI or provider attachment, no v4 export route",
+    "Metadata arrays retained at current limits; one receipt raw buffer, no aggregate receipt Base64 graph during preparation; final existing install hydrates Snapshot",
+    "No full matrix or performance/capacity claim",
+    "Asynchronous worker ownership uses a private locked one-shot transfer; durable classes are not globally Sendable"
+  ],
+  "rawResults": [
+    "apps/ios/.build/v4-candidate/Tests01.xcresult",
+    "apps/ios/.build/v4-candidate/Tests02.xcresult"
+  ],
+  "estimatedAgentTokens": 16000
+}

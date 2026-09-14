@@ -44,7 +44,7 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Exported IPA preflight](exported-ipa-preflight.json): bounded exact-container inspection, signing-policy routing and retained-product hash binding; 38 Python groups and a real negative development-payload check. No positive signed distribution claim.
 
-- Inactive preparation: [iOS](../../../apps/ios/evidence/inactive-generation.md) 53-method compatibility checkpoint then 19 final-overlay methods; [Android](../../../apps/android/evidence/receipt-candidate.md) 32/32 per API26/37 and 25 JVM tests. Root checked 132 native source/artifact/report hashes. Original ownership pins and explicit quarantine preserve substitutions. New candidate installation remains unimplemented.
+- Inactive preparation: [iOS](../../../apps/ios/evidence/inactive-generation.md) 53-method compatibility checkpoint then 19 final-overlay methods; [Android](../../../apps/android/evidence/receipt-candidate.md) 32/32 per API26/37 and 25 JVM tests. Root checked 132 native source/artifact/report hashes. Original ownership pins and explicit quarantine preserve substitutions. This earlier checkpoint preceded guarded installation.
 
 - [Inactive candidate and IPA integration](candidate-ipa-integration.json): 119 Node tests, 43 Python groups, paired native focused checks and resolved ownership/header findings, at explicit checkpoints.
 
@@ -54,3 +54,7 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Hosted required5d98016](hosted-required-5d98016.json): all23 checks eventually succeeded on that exact earlier source, including retained Flutter iOS.
 - [iOS v4 app module](../../../apps/ios/evidence/v4-app-module.md) and [Android v4 app reader](../../../apps/android/evidence/v4-app-reader.md): actual app-linked validation at current limits; restore/export integration remains separate.
 - [V4 app-link integration](app-codec-integration.json): bounded app gates, independent metadata-limit correction, fresh authenticated Apple dependency preparation and root provenance checks.
+
+- [Hosted nativeb22b4f6](hosted-native-b22b4f6.json): iOS103/103, both Android68/76 with eight named skips, and separate process phases. Later source is separate.
+- [iOS v4 candidate](../../../apps/ios/evidence/v4-candidate.md) and [Android v4 restore](../../../apps/android/evidence/v4-restore.md): two-pass authenticated input to existing guarded internal installation at current limits.
+- [iOS observed savings](../../../apps/ios/evidence/observed-savings-migration.md) and [Android observed savings](../../../apps/android/evidence/raw-savings.json): exact new shared balance-only migration golden restored/reopened on each runtime.

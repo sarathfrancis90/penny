@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "scope": "Public observed-savings legacy-v3 fixture native decrypt/validate/restore/fresh-store reopen only; not full account/history migration",
+  "result": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "deviceName": "Penny A11y System Sizes",
+          "modelName": "iPhone 16e",
+          "osBuildNumber": "23E254a",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 1,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789366547.423,
+    "passedTests": 1,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789366518.256,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "sourceHashes": {
+    "apps/ios/PennyOfflineTests/ObservedSavingsMigrationTests.swift": "d1d51a842b8713984cdf678947f16238b4950c22fb704bdfa9801c5be8f2d99f",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "e481ce4047424c3dd26fb68ee306a4b28fd7c74a49d901ba7bf7b55c916d7902",
+    "apps/ios/project.yml": "a71b6b9424163a716c9a02a8288b3bc784538b8ceec15491e9fc17db60547d9d"
+  },
+  "runtimeSources": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "846f648467c792af2b0f4ccddaf74c769fee9917a1e5a9cee3a5c8ce76918998",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/ExpensesView.swift": "f591e9962a8cc864f2cf66c28ed2d1dc04ef613c199db42f9552f1af306cf77a",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceSnapshotValidation.swift": "1033469d088e1f68de4fe2e753c638ee9c0724d71be325f345a749824d9d959a",
+    "apps/ios/PennyOffline/FinanceStore.swift": "a50f18c6071df42aa7f62af0439d7c8263ff9775c8b701240570c477999fecc7",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "a471a19a98826491c079f3c40a029828d14fb9385ce3734d553a94d66ad05889",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/V4CandidateRestore.swift": "23e2b1b47122ed1f3fac5e19e44786128227341414efa14ca5d0d4f560d8f366",
+    "apps/ios/PennyOffline/V4CiphertextSnapshot.swift": "adbe8bcadc269713e4bb5d5b74f76bb66e7a54b63919805ec3b9b2657ebc33df",
+    "apps/ios/PennyOffline/V4ReadOnlyAdapter.swift": "ece36b1f69209011ca3daab22b57ffa8233b9a0d2fe004567c05a51e1c052b1f",
+    "apps/ios/PennyOffline/VaultStore.swift": "25eb5ab7852477674b2a41d433a89a68a9e50876f2554eca668a97c5fd448942",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2"
+  },
+  "fixtureHashes": {
+    "fixture-manifest.json": "8f28d8990ebff9adb19972448789bd3ce36df223e0dfbfa5eb978e72744327e4",
+    "positive.pennybackup": "929a4d8134ee264f8b17797174f6d8d1a1bc379b6722f367dcd08a5e72e96e80",
+    "positive.snapshot.json": "c36df8ef1075778b2460de683946378d531b8759c03bab27677f33293743715b"
+  },
+  "products": {
+    "apps/ios/.build/observed-savings-migration/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "a50728dd474e18528cfac8a86bd5068daf3ebd41d629081e3d4772da10653054",
+    "apps/ios/.build/observed-savings-migration/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib": "70551c24f4a19b927f43fbddca53d00219a4af4524aaaedcfc1c6bbbdfa9dff0",
+    "apps/ios/.build/observed-savings-migration/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "d680c4ff5909464e2baeeebdfa43af2f41f071c31011baab5ed5389216e288e7"
+  },
+  "assertions": [
+    "Complete snapshot equality: all arrays/IDs/timestamps/fields",
+    "Exact receipt plaintext bytes after native validation + durable reopen",
+    "3 savings goals; openingMinor0,1234,12500; total13734",
+    "Zero incomeEntries and savingsEntries; report received0"
+  ],
+  "rawResult": "apps/ios/.build/observed-savings-migration/Tests01.xcresult",
+  "limits": [
+    "Prior v4 candidate tests not rerun; their binaries/results preserved in separate directory",
+    "No production runtime edits; new test + generated project registration only",
+    "Simulator proof, no physical device/account migration claim"
+  ],
+  "estimatedAdditionalAgentTokens": 1900
+}

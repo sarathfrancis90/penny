@@ -1,0 +1,242 @@
+{
+  "adapter": "penny-raw-migration-v1",
+  "candidateReady": true,
+  "scope": {
+    "fullAccountMigration": false,
+    "historyCompletenessEstablished": false,
+    "storageSnapshotConsistent": false,
+    "nativeImageDecodeEstablished": false,
+    "liveSourceReauthenticated": false
+  },
+  "sourceSha256": "758315c267d918b079436fb2a529aa1034e39952ae37b002f2afb8ae4c2f9193",
+  "receiptEvidenceSha256": "40665a17688a56443e83dc23d96837a456a4d5ec758ad6b9d9db710fa5f5474a",
+  "project": "penny-public-fixture",
+  "userId": "public-migration-user",
+  "timeZone": "America/Toronto",
+  "sourceCounts": {
+    "expenses": 1,
+    "budgets_personal": 1,
+    "income_sources_personal": 1,
+    "savings_goals_personal": 3,
+    "savings_contributions": 0,
+    "monthly_income_records": 0,
+    "monthly_savings_summary": 0,
+    "budget_allocation_history": 0,
+    "monthly_setup_status": 0,
+    "groupMembers": 0
+  },
+  "issues": [],
+  "readTime": "2026-09-13T12:00:00.000Z",
+  "calculatedAt": "2026-09-13T12:00:00.000Z",
+  "observedSavings": {
+    "mode": "recorded_balance_at_read_time",
+    "readTime": "2026-09-13T12:00:00.000Z",
+    "historyCompletenessEstablished": false,
+    "originalOpeningBalanceEstablished": false,
+    "contributionRowsImported": 0,
+    "derivedDisplayParityEstablished": false,
+    "mappings": [
+      {
+        "sourceId": "goal-normal",
+        "nativeId": "856e9140-da5b-548e-b00d-f5def17a9c46",
+        "observedCurrentMinor": 1234,
+        "nativeOpeningMinor": 1234,
+        "originalRecord": {
+          "userId": "public-migration-user",
+          "name": "Public observed savings",
+          "category": "custom",
+          "targetAmount": 100,
+          "currentAmount": 12.34,
+          "monthlyContribution": 10,
+          "currency": "CAD",
+          "status": "active",
+          "isActive": true,
+          "priority": "medium",
+          "startDate": "2026-01-01T03:00:00.000Z",
+          "targetDate": "2027-01-01",
+          "description": "Recorded balance only; history unknown",
+          "emoji": "💰",
+          "createdAt": "2026-09-13T12:00:00.000Z",
+          "updatedAt": "2026-09-13T12:00:00.000Z",
+          "id": "goal-normal",
+          "progressPercentage": 0,
+          "onTrack": false,
+          "monthsToGoal": 999
+        }
+      },
+      {
+        "sourceId": "goal-over-target",
+        "nativeId": "3c6630ef-3be9-59a1-abc8-6c4c49355765",
+        "observedCurrentMinor": 12500,
+        "nativeOpeningMinor": 12500,
+        "originalRecord": {
+          "userId": "public-migration-user",
+          "name": "Public observed savings",
+          "category": "custom",
+          "targetAmount": 100,
+          "currentAmount": 125,
+          "monthlyContribution": 10,
+          "currency": "CAD",
+          "status": "achieved",
+          "isActive": true,
+          "priority": "medium",
+          "startDate": "2026-01-01T03:00:00.000Z",
+          "targetDate": "2027-01-01",
+          "description": "Recorded balance only; history unknown",
+          "emoji": "💰",
+          "createdAt": "2026-09-13T12:00:00.000Z",
+          "updatedAt": "2026-09-13T12:00:00.000Z",
+          "id": "goal-over-target",
+          "achievedDate": "2026-09-13",
+          "lastContributionAt": "2026-09-13T12:00:00.000Z",
+          "progressPercentage": 125,
+          "onTrack": true,
+          "monthsToGoal": 0
+        }
+      },
+      {
+        "sourceId": "goal-zero",
+        "nativeId": "bc8f5b06-08ec-5ae6-b22f-bc64539505c8",
+        "observedCurrentMinor": 0,
+        "nativeOpeningMinor": 0,
+        "originalRecord": {
+          "userId": "public-migration-user",
+          "name": "Public observed savings",
+          "category": "custom",
+          "targetAmount": 100,
+          "currentAmount": 0,
+          "monthlyContribution": 10,
+          "currency": "CAD",
+          "status": "active",
+          "isActive": true,
+          "priority": "medium",
+          "startDate": "2026-01-01T03:00:00.000Z",
+          "targetDate": "2027-01-01",
+          "description": "Recorded balance only; history unknown",
+          "emoji": "💰",
+          "createdAt": "2026-09-13T12:00:00.000Z",
+          "updatedAt": "2026-09-13T12:00:00.000Z",
+          "id": "goal-zero",
+          "progressPercentage": 0,
+          "onTrack": true,
+          "monthsToGoal": null
+        }
+      }
+    ]
+  },
+  "converter": {
+    "sourceCounts": {
+      "expenses": 1,
+      "budgets": 1,
+      "income": 1,
+      "savings": 0
+    },
+    "importableExpenses": 1,
+    "importedReceipts": 1,
+    "importedTotalMinor": 1234,
+    "importedBudgets": 1,
+    "importedIncomeSources": 1,
+    "importedSavingsGoals": 0,
+    "importedSavingsEntries": 0,
+    "receivedIncomeMinor": 0,
+    "currencyCode": "CAD",
+    "unresolved": 0,
+    "metadataExcluded": [
+      "profile",
+      "preferences",
+      "syncStatus",
+      "localId"
+    ],
+    "sourceConsistency": "file-validated; live source stability not established"
+  },
+  "mappings": [
+    {
+      "domain": "expenses",
+      "document": "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1",
+      "sourceId": "expense-1",
+      "sourceCreateTime": "2026-09-13T12:00:00.000Z",
+      "sourceUpdateTime": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "domain": "budgets_personal",
+      "document": "projects/penny-public-fixture/databases/(default)/documents/budgets_personal/budget-1",
+      "sourceId": "budget-1",
+      "sourceCreateTime": "2026-09-13T12:00:00.000Z",
+      "sourceUpdateTime": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "domain": "income_sources_personal",
+      "document": "projects/penny-public-fixture/databases/(default)/documents/income_sources_personal/income-1",
+      "sourceId": "income-1",
+      "sourceCreateTime": "2026-09-13T12:00:00.000Z",
+      "sourceUpdateTime": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "domain": "savings_goals_personal",
+      "document": "projects/penny-public-fixture/databases/(default)/documents/savings_goals_personal/goal-normal",
+      "sourceId": "goal-normal",
+      "sourceCreateTime": "2026-09-13T12:00:00.000Z",
+      "sourceUpdateTime": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "domain": "savings_goals_personal",
+      "document": "projects/penny-public-fixture/databases/(default)/documents/savings_goals_personal/goal-over-target",
+      "sourceId": "goal-over-target",
+      "sourceCreateTime": "2026-09-13T12:00:00.000Z",
+      "sourceUpdateTime": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "domain": "savings_goals_personal",
+      "document": "projects/penny-public-fixture/databases/(default)/documents/savings_goals_personal/goal-zero",
+      "sourceId": "goal-zero",
+      "sourceCreateTime": "2026-09-13T12:00:00.000Z",
+      "sourceUpdateTime": "2026-09-13T12:00:00.000Z"
+    }
+  ],
+  "converterProvenance": {
+    "formatVersion": 1,
+    "parsedSourceJSONSHA256": "101a7cad22e57dfce301540129b984b340ae2d7f324b5beabfa5218831c5d636",
+    "timeZone": "America/Toronto",
+    "calculatedAt": "2026-09-13T12:00:00.000Z",
+    "mappings": [
+      {
+        "domain": "expenses",
+        "sourceId": "expense-1",
+        "nativeId": "9f650a60-2b06-5129-b7d0-f6d6eca377ee",
+        "originalDates": {
+          "date": "2026-09-12"
+        }
+      },
+      {
+        "domain": "budgets",
+        "sourceId": "budget-1",
+        "nativeId": "cbb60ae9-da83-50b5-a0b3-0051067b4da3",
+        "originalDates": {},
+        "originalDerived": {}
+      },
+      {
+        "domain": "income",
+        "sourceId": "income-1",
+        "nativeId": "37cee099-2def-5872-bc6f-9363089a88b0",
+        "originalDates": {
+          "startDate": "2026-01-15"
+        },
+        "originalDerived": {}
+      }
+    ]
+  },
+  "reconciliation": {
+    "expenseByMonthCategory": {
+      "[\"2026-09\",\"Meals and entertainment\"]": 1234
+    },
+    "budgetByMonthCategory": {
+      "[\"2026-09\",\"Meals and entertainment\"]": 10000
+    },
+    "configuredGrossMinor": 100000,
+    "configuredNetMinor": 80000,
+    "configuredNetUnspecified": 0,
+    "receivedIncomeMinor": 0,
+    "savingsMinor": 13734,
+    "attachmentBytes": 70
+  }
+}

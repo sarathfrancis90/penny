@@ -8,19 +8,42 @@ never overwritten. A candidate is not a complete-account migration.
 
 The adapter handles all ten acquired domains explicitly. `expenses`,
 `budgets_personal` and `income_sources_personal` use the existing validated legacy
-converters. Any record in `savings_goals_personal`, `savings_contributions`,
+converters. `savings_goals_personal` uses the separate observed-balance path below,
+only when `savings_contributions` is empty. Any exported contribution,
 `monthly_income_records`, `monthly_savings_summary`, `budget_allocation_history`,
-`monthly_setup_status` or `groupMembers` blocks backup production and identifies
-the domain/document/reason in the private report. Empty domains still require
-their complete query traces. Records are never dropped to make a candidate pass.
+`monthly_setup_status` or `groupMembers` record blocks backup production and
+identifies its domain/document/reason in the private report. Empty domains still
+require their complete query traces. Records are never dropped to make a candidate pass.
 
-Savings is blocked because exact-owner query exhaustion does not prove historical
-completeness. The retained code permits direct balance changes and separate writes
-for a contribution and its goal balance. This adapter never supplies the legacy
-converter's `savingsHistory.complete:true` assertion. Monthly income contains both
-received-cash details and allocation summaries; monthly savings caches, allocation
-history, setup progress and group membership need separate conversion and
-reconciliation. They cannot become guessed native entries or opening balances.
+### Recorded savings balances
+
+`migrate-observed-savings.mjs` maps `currentAmount` at the export readTime to
+native `openingMinor`, with **zero savings entries**. This is a recorded balance
+baseline at T, not a claim about the original opening balance, the absence of past
+contributions, actual bank cash, or complete history. Retained API writes can alter
+goal balances without contribution rows; the web contribution and goal writes are
+separate. Query exhaustion cannot establish historical completeness.
+
+All known goal fields map to native fields or the private `observedSavings` report.
+It retains each original decoded record, source/native ID, observed cents and native
+baseline cents. The exact source file and document version mappings retain original
+typed evidence. Native IDs use the existing savings namespace; civil dates use the
+explicit source timezone. Required fields, CAD currency, exact cents, dates, category,
+status, flags, priority and final native snapshot/capacity validation remain strict.
+Unknown/group fields and unsupported source shapes block rather than defaulting them.
+
+`progressPercentage`, `monthsToGoal` and `onTrack` are type-checked and preserved as
+source cache values. They are not authoritative financial reconciliation: real writers
+permit progress over 100%, set onTrack at creation and leave stale caches. Native
+computed displays may differ. No `savingsHistory.complete:true` is synthesized, and
+the existing history-based finance converter is unchanged. Source goal count and
+sum(currentAmount in exact cents) must equal native goal count and sum(openingMinor);
+contribution-entry count must remain zero. The report identifies this mode and keeps
+original-opening-balance, derived-display parity and history completeness unestablished.
+
+Monthly income contains allocation summaries without a retained writer proving
+actual payment semantics. Monthly/history/group records remain blockers and cannot
+become guessed cash entries or balances.
 
 ## Command
 
@@ -94,9 +117,9 @@ bytes are never recompressed or modified. Portable validation checks structure;
 **native full image admission remains mandatory before live restore**.
 
 Reconciliation checks source/native expense, budget and configured gross/net totals
-with integer cents and exact record counts. The report includes expenses and budgets
+with integer cents and exact record counts, including observed savings baselines. The report includes expenses and budgets
 by month/category, separate configured income totals and missing-net count, zero
-received income (never inferred from a schedule/lastReceivedAt), receipt bytes,
+received income (never inferred from a schedule/lastReceivedAt), observed savings totals, receipt bytes,
 original document metadata versions, source/native ID mappings, timezone and the
 existing converter's provenance. It binds exact source/acquisition bytes by SHA-256.
 Reports may contain private IDs, dates and cached source metadata; stdout/stderr
@@ -131,3 +154,14 @@ native caps, deterministic fixture freshness, encrypted roundtrip, reconciliatio
 private exclusive output, failure preservation and CLI redaction. Original source
 retention, real deployed acquisition, complete finance/history policy, native
 admission and signed-upgrade replacement remain separate migration gates.
+
+The additional `fixtures/raw-savings-v1/fixture-manifest.json` pins a schema3 encrypted
+candidate with zero, normal and over-target savings balances and deliberately stale
+source display caches. Its generator reuses the existing raw-fixture builder and
+receipt evidence recipe; it records deterministic source, report and snapshot bytes.
+Native acceptance remains a separate runtime gate.
+
+```sh
+node --test scripts/offline/observed-savings.test.mjs
+node packages/offline-contract/fixtures/raw-savings-v1/generate.mjs --verify
+```

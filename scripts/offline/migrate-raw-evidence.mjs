@@ -4,12 +4,13 @@ import { isDeepStrictEqual as equal } from 'node:util';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { collections, limits as rawLimits, privateFile, publishEvidence } from './export-legacy-raw.mjs';
+import { convertObservedSavings } from './migrate-observed-savings.mjs';
 import { prepareLegacyMigration } from './migrate-legacy.mjs';
-import { parseStrictJSON, canonicalBase64, parseAmount, validTimestamp, sealBackup, openBackup, limits as nativeLimits } from '../../packages/offline-contract/contract.mjs';
+import { parseStrictJSON, canonicalBase64, parseAmount, validTimestamp, validateSnapshot, requireExportCapacity, sealBackup, openBackup, limits as nativeLimits } from '../../packages/offline-contract/contract.mjs';
 
 export const limits = Object.freeze({ sourceBytes: 64 * 1024 * 1024, receiptBytes: 32 * 1024 * 1024 });
-const supported = { expenses: 'expenses', budgets_personal: 'budgets', income_sources_personal: 'income' };
-const blockReasons = { savings_goals_personal: 'savings_history_completeness_unestablished', savings_contributions: 'savings_history_completeness_unestablished', monthly_income_records: 'received_income_and_allocations_unrepresented', monthly_savings_summary: 'monthly_savings_reconciliation_unimplemented', budget_allocation_history: 'allocation_history_unrepresented', monthly_setup_status: 'setup_history_unrepresented', groupMembers: 'group_data_unrepresented' };
+const supported = { expenses: 'expenses', budgets_personal: 'budgets', income_sources_personal: 'income', savings_goals_personal: 'savings' };
+const blockReasons = { savings_contributions: 'savings_history_completeness_unestablished', monthly_income_records: 'received_income_and_allocations_unrepresented', monthly_savings_summary: 'monthly_savings_reconciliation_unimplemented', budget_allocation_history: 'allocation_history_unrepresented', monthly_setup_status: 'setup_history_unrepresented', groupMembers: 'group_data_unrepresented' };
 const ensure = (ok, code) => { if (!ok) throw new Error(code); };
 const hash = (bytes, kind = 'sha256', encoding = 'hex') => createHash(kind).update(bytes).digest(encoding);
 const object = v => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -143,7 +144,7 @@ function reconciliation(snapshot) {
   const expenseByMonthCategory = {}, budgetByMonthCategory = {};
   for (const e of snapshot.expenses) { const k = JSON.stringify([e.expenseDate.slice(0, 7), e.category]); expenseByMonthCategory[k] = (expenseByMonthCategory[k] ?? 0) + e.amountMinor; }
   for (const b of snapshot.budgets) budgetByMonthCategory[JSON.stringify([b.month, b.category])] = b.limitMinor;
-  return { expenseByMonthCategory, budgetByMonthCategory, configuredGrossMinor: snapshot.incomeSources.reduce((n, s) => n + s.grossMinor, 0), configuredNetMinor: snapshot.incomeSources.reduce((n, s) => n + (s.netMinor ?? 0), 0), configuredNetUnspecified: snapshot.incomeSources.filter(s => s.netMinor === null).length, receivedIncomeMinor: 0, savingsMinor: 0, attachmentBytes: snapshot.attachments.reduce((n, a) => n + a.byteCount, 0) };
+  return { expenseByMonthCategory, budgetByMonthCategory, configuredGrossMinor: snapshot.incomeSources.reduce((n, s) => n + s.grossMinor, 0), configuredNetMinor: snapshot.incomeSources.reduce((n, s) => n + (s.netMinor ?? 0), 0), configuredNetUnspecified: snapshot.incomeSources.filter(s => s.netMinor === null).length, receivedIncomeMinor: 0, savingsMinor: snapshot.savingsGoals.reduce((n, g) => n + g.openingMinor, 0), attachmentBytes: snapshot.attachments.reduce((n, a) => n + a.byteCount, 0) };
 }
 export function prepareRawMigration({ sourceBytes, receiptBytes, project, userId, bucket, timeZone, now }) {
   const issues = [], report = { adapter: 'penny-raw-migration-v1', candidateReady: false, scope: { fullAccountMigration: false, historyCompletenessEstablished: false, storageSnapshotConsistent: false, nativeImageDecodeEstablished: false, liveSourceReauthenticated: false }, sourceSha256: Buffer.isBuffer(sourceBytes) ? hash(sourceBytes) : null, receiptEvidenceSha256: Buffer.isBuffer(receiptBytes) ? hash(receiptBytes) : null, project, userId, timeZone, sourceCounts: {}, issues };
@@ -164,8 +165,17 @@ export function prepareRawMigration({ sourceBytes, receiptBytes, project, userId
     try { assets = receiptAssets(receiptBytes, source, report.sourceSha256, bucket, docs.expenses); }
     catch (error) { issues.push({ domain: 'receipts', reason: error.message }); }
     if (issues.length) return { ready: false, snapshot: null, report };
-    const n = Math.max(1, ...Object.values(normalized).map(a => Math.ceil(a.length / 100)));
-    const pages = Array.from({ length: n }, (_, i) => ({ requestCursor: i === 0 ? null : `adapter:${i}`, response: { schemaVersion: 1, serverWatermark: report.calculatedAt, hasMore: i < n - 1, nextCursor: i < n - 1 ? `adapter:${i + 1}` : null, records: Object.fromEntries(Object.entries(normalized).map(([k, a]) => [k, a.slice(i * 100, i * 100 + 100)])) } }));
+    let observedSavings;
+    if (normalized.savings.length) {
+      observedSavings = convertObservedSavings(normalized.savings, { userId, timeZone, readTime: source.readTime });
+      issues.push(...observedSavings.issues);
+      report.observedSavings = observedSavings.report;
+      if (issues.length) return { ready: false, snapshot: null, report };
+    }
+    // The history-based converter receives no savings and no history-completeness assertion.
+    const legacyRecords = { ...normalized, savings: [] };
+    const n = Math.max(1, ...Object.values(legacyRecords).map(a => Math.ceil(a.length / 100)));
+    const pages = Array.from({ length: n }, (_, i) => ({ requestCursor: i === 0 ? null : `adapter:${i}`, response: { schemaVersion: 1, serverWatermark: report.calculatedAt, hasMore: i < n - 1, nextCursor: i < n - 1 ? `adapter:${i + 1}` : null, records: Object.fromEntries(Object.entries(legacyRecords).map(([k, a]) => [k, a.slice(i * 100, i * 100 + 100)])) } }));
     // Diagnose business records before supplying assets: the legacy wrapper throws
     // orphan_receipt_asset if a rejected expense leaves its asset unused, hiding
     // the useful underlying record issue. This private validation-only copy is
@@ -178,10 +188,13 @@ export function prepareRawMigration({ sourceBytes, receiptBytes, project, userId
     issues.push(...converted.issues); report.converter = converted.report; report.mappings = mappings; report.converterProvenance = converted.provenance;
     if (!converted.ready) return { ready: false, snapshot: null, report };
     const snapshot = converted.snapshot;
+    if (observedSavings) snapshot.savingsGoals = observedSavings.goals;
+    validateSnapshot(snapshot); requireExportCapacity(Buffer.byteLength(JSON.stringify(snapshot)));
     const sumMoney = values => values.reduce((sum, value) => sum + BigInt(value === 0 ? 0 : parseAmount(value.toString())), 0n);
     const sourceExpenseMinor = sumMoney(normalized.expenses.map(e => e.amount));
     ensure(sourceExpenseMinor === snapshot.expenses.reduce((sum, e) => sum + BigInt(e.amountMinor), 0n) && snapshot.expenses.length === normalized.expenses.length && snapshot.budgets.length === normalized.budgets.length && snapshot.incomeSources.length === normalized.income.length, 'reconciliation_failed');
     ensure(sumMoney(normalized.budgets.map(b => b.monthlyLimit)) === snapshot.budgets.reduce((sum, b) => sum + BigInt(b.limitMinor), 0n) && sumMoney(normalized.income.map(s => s.amount)) === snapshot.incomeSources.reduce((sum, s) => sum + BigInt(s.grossMinor), 0n) && sumMoney(normalized.income.map(s => s.netAmount ?? 0)) === snapshot.incomeSources.reduce((sum, s) => sum + BigInt(s.netMinor ?? 0), 0n), 'finance_reconciliation_failed');
+    ensure(snapshot.savingsGoals.length === normalized.savings.length && snapshot.savingsEntries.length === 0 && sumMoney(normalized.savings.map(g => g.currentAmount)) === snapshot.savingsGoals.reduce((sum, g) => sum + BigInt(g.openingMinor), 0n), 'observed_savings_reconciliation_failed');
     report.reconciliation = reconciliation(snapshot); report.candidateReady = true;
     return { ready: true, snapshot, report };
   } catch (error) { issues.push({ domain: 'source_or_conversion', reason: error.message }); return { ready: false, snapshot: null, report }; }

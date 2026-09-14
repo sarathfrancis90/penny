@@ -81,17 +81,37 @@ The accepted candidate-install checkpoint is pushed as `b22b4f6`, following
 `6d3e22d` (metadata/raw migration) and `c633fb9` (owned candidates/exported IPA).
 Guarded installation captures actual target/key identity, rejects intervening
 edits/restores and reuses the existing publication/recovery protocol. Exact
-AAB and IPA packaging preflights are in place. The latest head has its own
-hosted run; earlier green results do not establish its acceptance.
+AAB and IPA packaging preflights are in place. Its [hosted native run](evidence/hosted-native-b22b4f6.json)
+passed iOS103/103, Android68/76 on each API26/37 (eight named skips), and
+separate process phases. Retained Flutter iOS and the repository aggregate
+remain pending at capture; this result coversb22b4f6 only.
 
-V4 readers now compile into both native apps, sharing the existing codec
-implementations. Focused app tests passed: iOS6/6 plus unsigned device
-compilation, Android4/4 on API26 and API37 plus JVM/build/lint. These internal
-readers validate archives and current limits; they are not connected to
-restore/export/provider actions. See [iOS evidence](../../apps/ios/evidence/v4-app-module.md)
-and [Android evidence](../../apps/android/evidence/v4-app-reader.md).
+The app-link milestone is committed as `ac8b670` (not yet pushed at capture).
+Its [integration report](evidence/app-codec-integration.json) records the actual
+app builds, current-cap correction and authenticated dependency preparation.
 
-Next, the locally achievable work is v4 candidate integration and a logical writer,
+The next local slice now connects v4 input to owned candidates and guarded
+installation internally. Both passes validate the same protected encrypted
+snapshot; target identity is captured before acquisition, and each pass checks
+complete authentication, EOF, native images, byte count and digest. No aggregate
+receipt graph is constructed during preparation. Existing live hydration and
+product limits remain. [Android](../../apps/android/evidence/v4-restore.md)
+passes25 focused tests on each runtime; [iOS](../../apps/ios/evidence/v4-candidate.md)
+passes29 combined methods, then7 candidate methods on the final overlay.
+These are separate runs. UI confirmation, a logical writer and provider transfer
+are not connected to v4 yet.
+
+A separate observed-savings migration extension preserves recorded goal balances
+when exported contribution rows are empty, with original fields/caches retained
+in private provenance. It creates no historical contributions or received cash.
+The shared three-goal encrypted fixture totals13,734 minor units; native
+restore/reopen proof passes1/1 on iOS and1/1 on each Android runtime. See
+[iOS](../../apps/ios/evidence/observed-savings-migration.md),
+[Android](../../apps/android/evidence/raw-savings.json) and
+[the converter contract](../../scripts/offline/MIGRATE_RAW_EVIDENCE.md).
+Six nonempty history/group domains still block this subset conversion.
+
+Next, the locally achievable work is v4 UI restore and logical export,
 incremental storage/reads, file-based provider transfer, measured Profile A
 capacity, complete legacy reconciliation and signed packaging. Real provider
 recovery, physical AI/security/accessibility and store gates remain separate.
@@ -123,8 +143,9 @@ source/fixture/binary/report hashes and reviewed both shared publication helpers
 The three shared installation scenarios now have actual platform mappings.
 [iOS](../../apps/ios/evidence/candidate-install.md) and
 [Android](../../apps/android/evidence/candidate-install.md) preserve exact source
-checkpoints, before/after-publication outcomes and ownership limits. This is an
-internal synchronous seam: v4, provider and UI linkage remain pending. In-process
+checkpoints, before/after-publication outcomes and ownership limits. At that checkpoint it was an
+internal synchronous seam; the newer v4 integration is described above. Provider
+and UI linkage remain pending. In-process
 fault/reopen tests do not establish physical failure or separate-process recovery
 through this new entry point. The combined gate passes119 Node tests and54
 Python groups (zero skips), plus static boundaries,104/105 documentation tests
@@ -157,7 +178,8 @@ preserves bounded current originals using explicit source bindings, unchanged
 before/after metadata and complete checksummed bytes. Its nine new groups plus
 the nine raw exporter groups pass locally and independent review found no
 actionable blocker. A strict raw-format adapter now converts represented expenses, budgets and
-configured income sources, with all seven unsupported domains blocking output.
+configured income sources and, in a separate recorded-balance mode, savings goals
+with no exported contribution rows. All six other nonempty domains block output.
 Root passes28 converter tests and two native fixture methods on iOS and each
 Android API26/37; an authenticated invalid image is rejected before replacement.
 [Converter](evidence/raw-migration-validation.json) and
@@ -242,6 +264,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **34% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the latest 2026-09-14 integration reading reported **26% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **14,626,837 aggregate tokens and 37,936 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

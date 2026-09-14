@@ -1,0 +1,75 @@
+{
+  "scope": "Two-pass internal v4 candidate installation and observed-balance savings migration at existing product caps; no UI/provider/large-capacity/release acceptance",
+  "baseCommit": "ac8b67001bf2b05bfdb1f407e31072b2074403a6",
+  "ios": {
+    "candidateReport": "apps/ios/evidence/v4-candidate.json",
+    "combinedCheckpoint": {
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalCandidateOverlay": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "separateSavings": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "savingsReport": "apps/ios/evidence/observed-savings-migration.json"
+  },
+  "android": {
+    "candidateReport": "apps/android/evidence/v4-restore.json",
+    "eachApi26And37": {
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0
+    },
+    "jvmPassed": 25,
+    "buildAndLint": "passed",
+    "separateSavingsEachApi": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "savingsReport": "apps/android/evidence/raw-savings.json"
+  },
+  "rootVerifiedPinsByReport": {
+    "androidCandidate": 81,
+    "androidSavings": 48,
+    "iosCandidate": 54,
+    "iosSavings": 46
+  },
+  "review": {
+    "android": "Owned input, prior-target capture, double digest/summary equality, guarded preparation/publication reviewed; no actionable remaining finding",
+    "ios": "Private unlinked input, off-main actor work, one-shot transfer, prior-target capture, mandatory validated callbacks and post-cap discard reviewed; no actionable remaining finding",
+    "migration": "Separate recorded-balance conversion, exact final counts/sums/native validation/capacity and original cache provenance reviewed; no fabricated history-completeness assertion"
+  },
+  "limits": [
+    "Native reports preserve earlier/final/test-only overlays separately; no summed unique-test claim",
+    "Test fault injection does not establish physical power loss or OS disk-full/close failure",
+    "Current preparation avoids aggregate receipts; existing live snapshot hydration remains bounded",
+    "Six other nonempty raw domains block; full legacy account/history completeness remains false",
+    "No native store upload or signing/provider/physical-device acceptance"
+  ],
+  "integrationChecks": {
+    "portable": {
+      "nodePassed": 123,
+      "pythonPassed": 62,
+      "skipped": 0
+    },
+    "generatedDocs": {
+      "reviewPassed": 104,
+      "originalPassed": 105,
+      "note": "Original first attempt found four owned codec moves not yet staged; exact removals were staged and full docs:auto rerun passed."
+    },
+    "changedSourceSast": {
+      "scannedPaths": 23,
+      "findings": 0,
+      "errors": 0
+    },
+    "diffCheck": "passed"
+  }
+}

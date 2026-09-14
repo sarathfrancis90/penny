@@ -1,0 +1,74 @@
+{
+  "format": "penny-raw-savings-fixtures-v1",
+  "publicFixtureOnly": true,
+  "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+  "receiptEvidence": {
+    "recipe": "raw-migration-v1/generate.mjs makeReceipts(sourceBytes)",
+    "sha256": "40665a17688a56443e83dc23d96837a456a4d5ec758ad6b9d9db710fa5f5474a"
+  },
+  "scope": {
+    "observedBalanceAtReadTime": "2026-09-13T12:00:00.000Z",
+    "originalOpeningBalanceEstablished": false,
+    "historyCompletenessEstablished": false,
+    "fullAccountMigration": false,
+    "nativeAcceptanceEstablished": false
+  },
+  "files": {
+    "source.json": {
+      "bytes": 30718,
+      "sha256": "758315c267d918b079436fb2a529aa1034e39952ae37b002f2afb8ae4c2f9193"
+    },
+    "report.json": {
+      "bytes": 8099,
+      "sha256": "3543fe8909ca514db6ded758b1e1d66029c58357cf54512b489e609350a30ae2"
+    },
+    "positive.snapshot.json": {
+      "bytes": 4145,
+      "sha256": "c36df8ef1075778b2460de683946378d531b8759c03bab27677f33293743715b"
+    },
+    "positive.pennybackup": {
+      "bytes": 4415,
+      "sha256": "929a4d8134ee264f8b17797174f6d8d1a1bc379b6722f367dcd08a5e72e96e80"
+    }
+  },
+  "expected": {
+    "snapshotId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    "vaultId": "70c9532b-727c-5507-906a-e293bfe8c0b9",
+    "createdAt": "2026-09-13T12:00:00.000Z",
+    "counts": {
+      "expenses": 1,
+      "attachments": 1,
+      "budgets": 1,
+      "incomeSources": 1,
+      "incomeEntries": 0,
+      "savingsGoals": 3,
+      "savingsEntries": 0,
+      "recurringExpenses": 0
+    },
+    "savingsMinor": 13734,
+    "receivedIncomeMinor": 0,
+    "goals": [
+      {
+        "id": "856e9140-da5b-548e-b00d-f5def17a9c46",
+        "openingMinor": 1234,
+        "targetMinor": 10000,
+        "startDate": "2025-12-31"
+      },
+      {
+        "id": "3c6630ef-3be9-59a1-abc8-6c4c49355765",
+        "openingMinor": 12500,
+        "targetMinor": 10000,
+        "startDate": "2025-12-31"
+      },
+      {
+        "id": "bc8f5b06-08ec-5ae6-b22f-bc64539505c8",
+        "openingMinor": 0,
+        "targetMinor": 10000,
+        "startDate": "2025-12-31"
+      }
+    ],
+    "snapshotFile": "positive.snapshot.json",
+    "backupFile": "positive.pennybackup",
+    "nativeExpected": "accept"
+  }
+}

@@ -39,12 +39,16 @@
 		69CD5E278915D744623FBB76 /* CloudKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D63928F747E05013AEC16F /* CloudKitTransport.swift */; };
 		6B116BF2AE6768A1323FB844 /* FinanceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E46C25CD198B4864A458AAF /* FinanceEngine.swift */; };
 		6D3C47803FF7D586910E1BFD /* NativePerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD1994B4A73E90B0D80C4FA /* NativePerformanceTests.swift */; };
+		6ECAA7AC6C75E1DB0D0C623C /* V4CandidateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */; };
+		6FE3D8D1D49172EEAC3C8752 /* ObservedSavingsMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */; };
 		73EF78AE25719F9098AA38F0 /* BackupArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */; };
 		73F5E74FFD0627203285399F /* LocalReceiptFileProtection.c in Sources */ = {isa = PBXBuildFile; fileRef = 851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */; };
+		7A1DEBC869DD7CDE25E9C9CA /* V4CandidateRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */; };
 		7F8B900BA8399D45EA1B2017 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C22B18EDED088A9F987FB /* Expense.swift */; };
 		804B7F402D12960813722249 /* AutomaticBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */; };
 		81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */; };
 		84060300EC023E819FB8ACDC /* PreparedVaultWrite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FE3A1B95BD1D58C5D42093 /* PreparedVaultWrite.swift */; };
+		8A37EB64320F380994D99FC5 /* V4CiphertextSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */; };
 		8D7358F749B6947081A66DFE /* StrictJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE5A6D270ABD680B645296F /* StrictJSON.swift */; };
 		8FF9758ED48B10509A5B0EB3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */; };
 		9D55ED213E0F715D96E20E9A /* CloudFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */; };
@@ -149,6 +153,7 @@
 		2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InactiveGenerationTests.swift; sourceTree = "<group>"; };
 		2E46C25CD198B4864A458AAF /* FinanceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEngine.swift; sourceTree = "<group>"; };
 		3444B6B77A5502EF8550C9A5 /* PennyV4Reader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyV4Reader.swift; sourceTree = "<group>"; };
+		39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CandidateRestore.swift; sourceTree = "<group>"; };
 		39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceTests.swift; sourceTree = "<group>"; };
@@ -162,9 +167,11 @@
 		5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArchive.swift; sourceTree = "<group>"; };
 		60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBackup.swift; sourceTree = "<group>"; };
 		61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptAttachment.swift; sourceTree = "<group>"; };
+		67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CiphertextSnapshot.swift; sourceTree = "<group>"; };
 		6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableStorageTests.swift; sourceTree = "<group>"; };
 		6C2CE221C9BD854F0C3E4D58 /* Categories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Categories.swift; sourceTree = "<group>"; };
 		6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceView.swift; sourceTree = "<group>"; };
+		6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CandidateTests.swift; sourceTree = "<group>"; };
 		723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableVaultStorage.swift; sourceTree = "<group>"; };
 		82EB561A258A5147019AA6C9 /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
 		8416389EE9D9C67FA8EF492D /* VaultStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultStore.swift; sourceTree = "<group>"; };
@@ -182,6 +189,7 @@
 		AAE5A6D270ABD680B645296F /* StrictJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrictJSON.swift; sourceTree = "<group>"; };
 		AD6DF43A1B12D8665202745A /* FinanceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceStore.swift; sourceTree = "<group>"; };
 		B03C8BF31A9ABAD2E31E74BB /* PennyOfflineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyOfflineApp.swift; sourceTree = "<group>"; };
+		B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservedSavingsMigrationTests.swift; sourceTree = "<group>"; };
 		B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNGIntegrity.swift; sourceTree = "<group>"; };
 		BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyColors.swift; sourceTree = "<group>"; };
 		C44F8BF410E5C1D37173711F /* ArchiveWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveWorkerTests.swift; sourceTree = "<group>"; };
@@ -308,6 +316,8 @@
 				5B388EBFEE9BDC225510B444 /* RecoveryExport.swift */,
 				AAE5A6D270ABD680B645296F /* StrictJSON.swift */,
 				D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */,
+				39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */,
+				67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */,
 				F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */,
 				8416389EE9D9C67FA8EF492D /* VaultStore.swift */,
 				82EB561A258A5147019AA6C9 /* VaultView.swift */,
@@ -336,7 +346,9 @@
 				3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */,
 				2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */,
 				1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */,
+				B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */,
 				E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */,
+				6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */,
 				A066CE638380BFBDAC4B47EB /* VaultTests.swift */,
 			);
 			path = PennyOfflineTests;
@@ -710,6 +722,8 @@
 				3C823C976B5FB5D5420E9C47 /* RecoveryExport.swift in Sources */,
 				8D7358F749B6947081A66DFE /* StrictJSON.swift in Sources */,
 				BC50978C550AC6A3A6ADC83C /* UITestCloudTransport.swift in Sources */,
+				7A1DEBC869DD7CDE25E9C9CA /* V4CandidateRestore.swift in Sources */,
+				8A37EB64320F380994D99FC5 /* V4CiphertextSnapshot.swift in Sources */,
 				4CB66CC5B8BE2B207C2EF002 /* V4ReadOnlyAdapter.swift in Sources */,
 				2D766284692897041D4EC0E9 /* VaultStore.swift in Sources */,
 				C1B9BDD6DF308EBB756A2CEF /* VaultView.swift in Sources */,
@@ -775,7 +789,9 @@
 				D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */,
 				A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */,
 				E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */,
+				6FE3D8D1D49172EEAC3C8752 /* ObservedSavingsMigrationTests.swift in Sources */,
 				A0C690887AF00071B71AAA62 /* V4AppModuleTests.swift in Sources */,
+				6ECAA7AC6C75E1DB0D0C623C /* V4CandidateTests.swift in Sources */,
 				B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

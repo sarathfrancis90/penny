@@ -474,6 +474,48 @@ final class DurableVaultStorage {
         } catch { try owned.close(); throw error }
     }
 
+    /// Opaque local authority captured before parsing. Retains the actual root FD;
+    /// never reconstructed from incoming metadata and consumed at candidate begin.
+    final class ReceivingBinding {
+        private let storage: DurableVaultStorage, key: SymmetricKey
+        private let target: LocalReceiptTarget
+        private var consumed = false
+        private init(storage: DurableVaultStorage, key: SymmetricKey, target: LocalReceiptTarget) {
+            self.storage = storage; self.key = key; self.target = target
+        }
+        static func capture(directory: URL, key: SymmetricKey, owner: UUID, digest: String?, storeId: String,
+                            source: LocalVaultMetadata) throws -> ReceivingBinding {
+            guard source.revision < CloudWire.maximumRevision else { throw ExpenseError.invalidSnapshot }
+            let storage = try DurableVaultStorage(directory)
+            let target = LocalReceiptTarget(owner: owner, digest: digest, storeId: storeId, metadata: source)
+            try storage.leased { try storage.verifyTarget(target, key: key); try Task.checkCancellation() }
+            return ReceivingBinding(storage: storage, key: key, target: target)
+        }
+        func matches(owner: UUID, digest: String?, storeId: String, source: LocalVaultMetadata) -> Bool {
+            !consumed && target.owner == owner && target.digest == digest && target.storeId == storeId &&
+                target.metadata.writerId == source.writerId && target.metadata.revision == source.revision && target.metadata.restoreEpoch == source.restoreEpoch
+        }
+        func invalidate(owner: UUID) { if target.owner == owner { consumed = true } }
+        func begin(body: VaultSnapshot, receipts: [DurableReceiptDeclaration], owner: UUID, key: SymmetricKey,
+                   cancellation: @escaping () throws -> Void = { try Task.checkCancellation() }) throws -> Preparation {
+            guard target.owner == owner else { throw CloudFailure.staleRestore }
+            guard !consumed else { throw CloudFailure.staleRestore }; consumed = true
+            guard self.key == key else { throw ExpenseError.missingKey }
+            return try storage.leased {
+                try cancellation(); try storage.verifyTarget(target, key: key)
+                guard body.attachments.isEmpty, receipts.count <= ReceiptAttachment.maximumCount else { throw ExpenseError.invalidSnapshot }
+                try body.validate()
+                _ = try DurableVaultStorage.receiptCapacity(body, receipts: receipts.map { try $0.descriptor(vaultId: body.vaultId, generationId: target.storeId) })
+                let next = LocalVaultMetadata(writerId: target.metadata.writerId, revision: target.metadata.revision + 1, restoreEpoch: UUID().uuidString.lowercased())
+                try next.validate(); try FinanceValidation.uuid(target.storeId)
+                try cancellation(); try storage.checkRoot(); try storage.verifyTarget(target, key: key)
+                let prepared = Preparation(storage: storage, key: key, body: body, declarations: receipts, metadata: next,
+                    storeId: target.storeId, cancellation: cancellation, fault: { _ in }, receiptFault: { _, _ in })
+                prepared.target = target; return prepared
+            }
+        }
+    }
+
     /// Synchronous preparation. The bound entry is installable only by its local owner.
     /// Callers provide an already-owned device key; this type never accesses Keychain.
     final class Preparation {
@@ -485,18 +527,12 @@ final class DurableVaultStorage {
         private var key: SymmetricKey?, active = true
         private var groups: [LocalReceiptGeneration] = [], descriptors: [LocalReceiptDescriptor] = [], pins: [Int32] = []
         private var record: OwnedRecord?
-        private var target: LocalReceiptTarget?
+        fileprivate var target: LocalReceiptTarget?
 
         static func beginBound(directory: URL, key: SymmetricKey, body: VaultSnapshot, receipts: [DurableReceiptDeclaration],
                                owner: UUID, digest: String?, storeId: String, source: LocalVaultMetadata) throws -> Preparation {
-            guard source.revision < CloudWire.maximumRevision else { throw ExpenseError.invalidSnapshot }
-            let target = LocalReceiptTarget(owner: owner, digest: digest, storeId: storeId, metadata: source)
-            let next = LocalVaultMetadata(writerId: source.writerId, revision: source.revision + 1, restoreEpoch: UUID().uuidString.lowercased())
-            let prepared = try begin(directory: directory, key: key, body: body, receipts: receipts, metadata: next, storeId: storeId)
-            do {
-                try prepared.storage.leased { try prepared.storage.verifyTarget(target, key: key); try Task.checkCancellation() }
-                prepared.target = target; return prepared
-            } catch { try prepared.close(); throw error }
+            try ReceivingBinding.capture(directory: directory, key: key, owner: owner, digest: digest, storeId: storeId, source: source)
+                .begin(body: body, receipts: receipts, owner: owner, key: key)
         }
 
         static func begin(directory: URL, key: SymmetricKey?, body: VaultSnapshot, receipts: [DurableReceiptDeclaration],
@@ -514,7 +550,7 @@ final class DurableVaultStorage {
             return Preparation(storage: storage, key: key, body: body, declarations: receipts, metadata: metadata,
                                storeId: storeId, cancellation: cancellation, fault: fault, receiptFault: receiptFault)
         }
-        private init(storage: DurableVaultStorage, key: SymmetricKey, body: VaultSnapshot, declarations: [DurableReceiptDeclaration],
+        fileprivate init(storage: DurableVaultStorage, key: SymmetricKey, body: VaultSnapshot, declarations: [DurableReceiptDeclaration],
                      metadata: LocalVaultMetadata, storeId: String, cancellation: @escaping () throws -> Void,
                      fault: @escaping (Phase) throws -> Void, receiptFault: @escaping LocalReceiptBlobGroup.Fault) {
             self.storage = storage; self.key = key; self.body = body; self.declarations = declarations

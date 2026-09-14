@@ -155,6 +155,9 @@ final class V4AppModuleTests: XCTestCase {
                     return XCTFail("Expected app metadata cap, got \(error)")
                 }
             }
+            let events = RecordingEvents()
+            XCTAssertThrowsError(try V4ReadOnlyAdapter.validate(source: Input(encrypted), recoveryKey: recovery, events: events))
+            XCTAssertTrue(events.discarded); XCTAssertEqual(events.retainedRecords, 0)
         }
     }
     /// Valid receipt-free corpus with exact requested body size, <=10k expenses
@@ -192,6 +195,13 @@ final class V4AppModuleTests: XCTestCase {
         return stream
     }
     private enum Failure: Error { case injected }
+    private final class RecordingEvents: PennyV4Events {
+        var discarded = false, retainedRecords = 0
+        func begin(_ metadata: PennyV4Declaration) throws {}
+        func domain(kind: Int, json: Data) throws { retainedRecords += 1 }
+        func receipt(_ descriptor: PennyV4Receipt, bytes: Data) throws {}
+        func discard() { discarded = true; retainedRecords = 0 }
+    }
     private final class Input: PennyV4Input, V4FrameInput {
         var data: Data, offset = 0, closes = 0, maximumRequested = 0, overread = false
         var onClose: (() throws -> Void)?, onRead: (() throws -> Void)?

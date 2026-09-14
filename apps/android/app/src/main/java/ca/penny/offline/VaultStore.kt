@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase
 import java.io.Closeable
 
 /** Stable app API backed by authenticated local generations and detached receipt files. */
-class VaultStore(context: Context, databaseName: String = "penny-vault.db", alias: String = "penny.offline.vault.v1") : Closeable {
+class VaultStore(private val context: Context, databaseName: String = "penny-vault.db", alias: String = "penny.offline.vault.v1") : Closeable {
     private val legacy = LegacyVaultRows(context,databaseName,alias)
     val writableDatabase: SQLiteDatabase get() = legacy.writableDatabase
     val readableDatabase: SQLiteDatabase get() = legacy.readableDatabase
@@ -22,6 +22,12 @@ class VaultStore(context: Context, databaseName: String = "penny-vault.db", alia
     fun replace(snapshot: Snapshot, expectedRevision: Long? = null, expectedBinding: String? = null, operation: RestoreOperation = RestoreOperation()) = generations.replace(snapshot,expectedRevision,expectedBinding,operation)
     internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<VaultGenerations.ReceiptDeclaration>, operation: RestoreOperation = RestoreOperation()) = generations.beginReceiptPreparation(metadata,receipts,operation)
     internal fun installPrepared(candidate: VaultGenerations.PreparedGeneration) = generations.installPrepared(candidate)
+    internal fun prepareV4(input: java.io.InputStream, root: ByteArray, operation: RestoreOperation = RestoreOperation(),
+        fault: (V4Restore.Point,java.io.File)->Unit = {_,_->}): VaultGenerations.PreparedGeneration = V4Restore.prepare(context,this,input,root,operation,fault)
+    internal fun restoreV4(input: java.io.InputStream, root: ByteArray, operation: RestoreOperation = RestoreOperation(),
+        fault: (V4Restore.Point,java.io.File)->Unit = {_,_->}) {
+        try {prepareV4(input,root,operation,fault).use {installPrepared(it)}} finally {operation.finish()}
+    }
     fun save(expense: Expense, receipts: List<Attachment> = emptyList()): Snapshot = generations.mutate { current ->
         require(receipts.all {it.expenseId==expense.id})
         current.copy(expenses=current.expenses.filterNot {it.id==expense.id}+expense,attachments=current.attachments+receipts)
