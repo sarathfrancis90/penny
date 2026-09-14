@@ -9,6 +9,15 @@ import java.security.MessageDigest
 
 /** Only encrypted bytes touch staging or the chosen destination. Success requires readback. */
 class BackupExporter(private val context: Context) {
+    internal fun export(file: V4Export.VerifiedFile,recovery: String,uri: Uri,operation: RestoreOperation) {
+        RecoveryKeyStore(context).requireConfirmed(recovery)
+        val root=Backup.key(recovery)
+        try {
+            V4ExportDestination.copyAndVerify(file,root,V4ExportDestination.at(context,uri),operation)
+            RecoveryKeyStore(context).requireConfirmed(recovery);operation.check()
+        } finally {root.fill(0)}
+    }
+
     fun export(snapshot: Snapshot, recovery: String, uri: Uri) {
         RecoveryKeyStore(context).requireConfirmed(recovery)
         exportVerified(snapshot,recovery, { data ->

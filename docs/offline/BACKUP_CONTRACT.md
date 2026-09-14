@@ -71,6 +71,10 @@ Both limits apply independently: encoded envelope at most 20 MiB and decrypted s
 
 Backup IDs, counts, amounts, merchants, file names, and receipts remain inside encrypted content. Cloud object names use opaque random IDs. Encryption does not hide file size, backup frequency, or provider account metadata.
 
+## Streamed v4 development path
+
+The native Files paths now use the [v4 development contract](BACKUP_V4_CONTRACT.md) and [app integration](V4_EXPORT_INTEGRATION.md), retaining legacy envelope1/schema1–3 readers. V4 emits authenticated metadata and one raw receipt at a time, then verifies the complete encrypted file before destination copy. The user-held recovery key and explicit restore/replacement ceremony remain required. Current product limits are unchanged; this does not enable Profile A or alter cloud-v1 manifests. Cloud-v1 still uses its existing bounded backup representation until a separately validated v4 transport/manifest change.
+
 ## Recovery and restore UX
 
 1. Enable backup only after explaining that the recovery key is required after device loss and cannot be reset by Penny. Let the user defer backup and continue local use.

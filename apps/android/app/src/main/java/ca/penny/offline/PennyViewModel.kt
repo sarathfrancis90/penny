@@ -12,6 +12,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
+class BackupExportRequest internal constructor(val filename:String)
+
 data class RestorePreviewSummary(val counts: Map<String,Int>, val expenseTotalMinor: Long, val version: Int) {
     companion object {
         fun from(snapshot: Snapshot) = RestorePreviewSummary(mapOf("expenses" to snapshot.expenses.size,"attachments" to snapshot.attachments.size)+snapshot.finance.domains().mapValues {it.value.size},Money.total(snapshot.expenses),3)
@@ -111,9 +113,57 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
         if(error==null) drive.recoveryUpdated()
         withContext(Dispatchers.Main) { done(error) }
     }
-    fun export(uri: Uri, recovery: String) = operation {
-        BackupExporter(getApplication()).export(store.snapshot(),recovery,uri)
-        mutable.value=mutable.value.copy(message="Encrypted file exported and read back successfully. This confirms the file only; it does not confirm a cloud upload. Keep your recovery key separately.")
+    private data class PendingExport(val file:V4Export.VerifiedFile,val recovery:String,val operation:RestoreOperation,val request:BackupExportRequest,var claimed:Boolean=false)
+    private val exportLock=Any()
+    private var exportOperation:RestoreOperation?=null
+    private var pendingExport:PendingExport?=null
+    private fun releaseExport(value:PendingExport?) {if(value!=null) kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {mutex.withLock {runCatching {value.file.close()}}}}
+    fun cancelExport() = cancelExportIf(null)
+    private fun cancelExportIf(expected:RestoreOperation?) {
+        val old=synchronized(exportLock) {if(expected!=null && exportOperation!==expected) return;exportOperation?.cancel();exportOperation=null;val old=pendingExport;pendingExport=null;old}
+        releaseExport(old)
+    }
+    fun prepareExport(recovery:String,done:(BackupExportRequest)->Unit) {
+        if(disposed) return
+        cancelExport();val token=RestoreOperation();synchronized(exportLock) {exportOperation=token}
+        operation(failureMessage="Backup export could not be prepared. Check the recovery key or device storage.") {
+            var owned:V4Export.VerifiedFile?=null
+            val root=Backup.key(recovery)
+            try {
+                RecoveryKeyStore(getApplication()).requireConfirmed(recovery);token.check()
+                val file=store.exportV4(root,token);owned=file
+                val request=BackupExportRequest("Penny-${file.summary.createdAt.take(10)}-${file.summary.snapshotId}.pennybackup")
+                synchronized(exportLock) {check(exportOperation===token);token.check();pendingExport=PendingExport(file,recovery,token,request);owned=null}
+                withContext(Dispatchers.Main) {token.check();done(request)}
+            } catch(error:Exception) {cancelExportIf(token);throw java.io.IOException("Export preparation did not finish",error)}
+            finally {root.fill(0);owned?.close()}
+        }
+    }
+    fun exportPickerDisposed(request:BackupExportRequest) { completeExport(request,null) }
+    /** A result consumes only its exact launch. Stale URI/null results have no effect. */
+    fun completeExport(request:BackupExportRequest,uri:Uri?):Boolean {
+        val prepared=synchronized(exportLock) {
+            val value=pendingExport
+            if(value==null || value.request!==request || value.claimed) return false
+            value.claimed=true
+            // Keep ownership reachable if the coroutine is cancelled before IO dispatch.
+            if(uri==null) {pendingExport=null;value.operation.cancel();exportOperation=null}
+            value
+        }
+        if(uri==null) {releaseExport(prepared);return true}
+        operation(failureMessage="Backup export was not verified. The chosen file may be incomplete; no cloud upload was confirmed.") {
+        try {
+            synchronized(exportLock) {check(pendingExport===prepared);pendingExport=null}
+            prepared.operation.check();BackupExporter(getApplication()).export(prepared.file,prepared.recovery,uri,prepared.operation)
+            prepared.operation.check();prepared.file.close()
+            synchronized(exportLock) {
+                check(exportOperation===prepared.operation) {"Export was cancelled"};exportOperation=null
+                mutable.value=mutable.value.copy(message="Encrypted file exported and read back successfully. This confirms the file only; it does not confirm a cloud upload. Keep your recovery key separately.")
+            }
+        } catch(error:Exception) {throw java.io.IOException("Destination export did not finish",error)}
+        finally {prepared.file.close();synchronized(exportLock) {if(exportOperation===prepared.operation) exportOperation=null}}
+    }
+        return true
     }
     fun preview(uri: Uri, recovery: String) {
         val restore=RestoreOperation()
@@ -195,6 +245,7 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
     }
 
     override fun onCleared() {
+        cancelExport()
         val abandoned=synchronized(restoreLock) {disposed=true;restoreOperation.get()?.cancel();val value=candidate;candidate=null;clearPreview();value}
         drive.cancel();ai.close()
         // A cancelled blocking IO operation still owns its store until its mutex exits.

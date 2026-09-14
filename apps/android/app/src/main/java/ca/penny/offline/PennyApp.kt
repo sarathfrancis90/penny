@@ -44,13 +44,25 @@ import java.time.format.DateTimeFormatter
     var backupKey by remember { mutableStateOf("") }
     var restoreKey by remember { mutableStateOf("") }
     var showBackup by remember { mutableStateOf(false) }
+    var backupDialogGeneration by remember { mutableLongStateOf(0L) }
     var showCamera by remember { mutableStateOf(false) }
     var showOcr by remember { mutableStateOf(false) }
     var showRestore by remember { mutableStateOf(false) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { it?.let(vm::scan) }
-    val saveBackup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-        uri?.let { vm.export(it, backupKey) }; backupKey = ""; showBackup = false
-    }
+    var backupPicker by remember { mutableStateOf<Pair<Long,BackupExportRequest>?>(null) }
+    backupPicker?.let { (generation,request) -> key(request) {
+        // Distinct registry registration per launch; an old ActivityResult cannot
+        // be relabelled with the latest request held in mutable Compose state.
+        val saveBackup=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) {uri->
+            val accepted=vm.completeExport(request,uri)
+            if(accepted && backupPicker?.second===request) {
+                backupPicker=null
+                if(backupDialogGeneration==generation) {backupKey="";showBackup=false}
+            }
+        }
+        DisposableEffect(request) {onDispose {vm.exportPickerDisposed(request)}}
+        LaunchedEffect(request) {saveBackup.launch(request.filename)}
+    }}
     val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { vm.preview(it, restoreKey) }; restoreKey = ""; showRestore = false
     }
@@ -96,7 +108,7 @@ import java.time.format.DateTimeFormatter
                     item { InfoCard("Vault capacity", "${state.expenses.size} of 10,000 expenses · ${state.attachments.size} of 100 receipts\n\n${android.text.format.Formatter.formatShortFileSize(androidx.compose.ui.platform.LocalContext.current,state.attachments.sumOf {it.byteCount})} of 8 MiB receipt storage. Each saved JPEG or PNG can use up to 2 MiB.\n\nThe complete snapshot must fit 15 MiB before encryption and a 20 MiB backup file. Text and finance records also use this space. Export and verify a backup before reaching a limit; Penny will refuse additional records that exceed it.") }
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Button(onClick = { vm.prepareBackup { backupKey = it; showBackup = true } }, enabled = state.ready && !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Create encrypted backup") }
+                            Button(onClick = { val generation=++backupDialogGeneration; vm.prepareBackup { if(backupDialogGeneration==generation) {backupKey = it; showBackup = true} } }, enabled = state.ready && !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Create encrypted backup") }
                             OutlinedButton(onClick = { showRestore = true }, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { Text("Restore a backup") }
                             Text("Until you create a backup, losing this device or uninstalling Penny loses your expenses.", style = MaterialTheme.typography.bodySmall)
                         }
@@ -170,9 +182,18 @@ import java.time.format.DateTimeFormatter
             Text(state.receipt?.sourceText.orEmpty().ifEmpty { "No text was read. The receipt image is still attached." },Modifier.heightIn(max=400.dp).verticalScroll(rememberScrollState()))
         }
     },confirmButton={TextButton(onClick={showOcr=false}) { Text("Done") }})
-    if (showBackup) RecoveryDialog(backupKey,state.busy,onDismiss={showBackup=false;backupKey=""},onConfirm={ expected,entered,result ->
-        vm.confirmBackup(expected,entered) { error -> if(error==null) { backupKey=expected.trim();saveBackup.launch("Penny-${LocalDate.now()}-${Wire.id()}.pennybackup") } else result(error) }
-    })
+    if (showBackup) {
+        val generation=backupDialogGeneration
+        RecoveryDialog(backupKey,state.busy,onDismiss={backupDialogGeneration++;vm.cancelExport();showBackup=false;backupKey=""},onConfirm={ expected,entered,result ->
+            vm.confirmBackup(expected,entered) { error ->
+                if(showBackup && backupDialogGeneration==generation) {
+                    if(error==null) {backupKey=expected.trim();vm.prepareExport(backupKey) {request ->
+                        if(showBackup && backupDialogGeneration==generation) backupPicker=generation to request
+                    }} else result(error)
+                }
+            }
+        })
+    }
     if (showRestore) AlertDialog(properties=androidx.compose.ui.window.DialogProperties(securePolicy=androidx.compose.ui.window.SecureFlagPolicy.SecureOn),onDismissRequest = { showRestore = false; restoreKey = "" }, title = { Text("Open an encrypted backup") }, text = {
         OutlinedTextField(restoreKey, { restoreKey = it }, visualTransformation=androidx.compose.ui.text.input.PasswordVisualTransformation(), label = { Text("Recovery key") }, supportingText = { Text("You will review the backup before replacing any data.") })
     }, confirmButton = { TextButton(onClick = { openBackup.launch(arrayOf("*/*")) }, enabled = runCatching { Backup.key(restoreKey) }.isSuccess) { Text("Choose backup file") } }, dismissButton = { TextButton(onClick = { showRestore = false; restoreKey = "" }) { Text("Cancel") } })

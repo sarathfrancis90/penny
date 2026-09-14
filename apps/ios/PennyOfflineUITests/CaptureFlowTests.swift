@@ -40,17 +40,26 @@ import XCTest
         let save = app.buttons["saveEncryptedBackup"]
         XCTAssertTrue(save.waitForExistence(timeout: 5)); XCTAssertTrue(save.isEnabled); save.tap()
         // Files runs in a remote service; wait for its own navigation surface,
-        // not an arbitrary Cancel elsewhere in the host application's hierarchy.
+        // then select its observed navigation button or host accessibility overlay.
         let filesNavigation = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
         guard filesNavigation.waitForExistence(timeout: 30) else {
             XCTFail("Files folder picker did not become ready"); return
         }
+        // Files can restore a nested folder, whose toolbar offers Open and Back.
+        // Return through actual parent controls until its visible Cancel appears.
         let cancel = filesNavigation.buttons["Cancel"]
+        for _ in 0..<4 {
+            if cancel.exists && cancel.isHittable { break }
+            let back = filesNavigation.buttons["BackButton"]
+            guard back.exists, back.isHittable else { break }
+            back.tap()
+        }
         guard cancel.waitForExistence(timeout: 5), cancel.isHittable else {
             XCTFail("Files folder picker has no hittable Cancel control"); return
         }
         cancel.tap()
         XCTAssertTrue(app.staticTexts["Export cancelled. Your local vault is unchanged."].waitForExistence(timeout: 5))
+        XCTAssertFalse(filesNavigation.exists)
         app.terminate(); app.launchArguments = ["--uitesting"]; app.launch(); app.buttons["Vault"].tap()
         XCTAssertTrue(app.buttons["saveEncryptedBackup"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["saveEncryptedBackup"].isEnabled)
     }

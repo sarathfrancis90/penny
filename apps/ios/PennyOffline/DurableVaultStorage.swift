@@ -362,6 +362,7 @@ final class DurableVaultStorage {
     /// actor. Authentication and receipt pin acquisition happen on the worker.
     final class ExportRequest {
         private let storage: DurableVaultStorage, key: SymmetricKey, target: LocalReceiptTarget
+        private let exportSnapshotId = UUID().uuidString.lowercased(), exportCreatedAt = CivilDate.timestamp()
         private var consumed = false
         init(directory: URL, key: SymmetricKey, owner: UUID, digest: String?, storeId: String, metadata: LocalVaultMetadata) throws {
             storage = try DurableVaultStorage(directory); self.key = key
@@ -374,7 +375,9 @@ final class DurableVaultStorage {
                 guard let wire = try storage.liveBytes(), DurableVaultStorage.digest(wire) == target.digest else { throw CloudFailure.staleRestore }
                 let pointer = try storage.pointer(wire, key: key)
                 guard pointer.journal == nil, pointer.storeId == target.storeId else { throw CloudFailure.staleRestore }
-                let (record, body, _, _) = try storage.exportMetadata(pointer.current, storeId: target.storeId, key: key)
+                let (record, capturedBody, _, _) = try storage.exportMetadata(pointer.current, storeId: target.storeId, key: key)
+                var body = capturedBody
+                body.snapshotId = exportSnapshotId; body.createdAt = exportCreatedAt
                 guard record.metadata.writerId == target.metadata.writerId, record.metadata.revision == target.metadata.revision,
                       record.metadata.restoreEpoch == target.metadata.restoreEpoch else { throw CloudFailure.staleRestore }
                 var pins: [ExportSource.Pin] = []

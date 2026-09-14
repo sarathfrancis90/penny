@@ -36,16 +36,18 @@ class V4ExportDeviceTest {
         val name="v4-platform-${Wire.id()}.db";val alias="penny.test.v4.platform.${Wire.id()}"
         val mode=Os.stat(context.noBackupFilesDir.path).st_mode
         try {VaultStore(context,name,alias).use {store->store.replace(fixture())
-            store.exportV4(root).use {file->val bytes=ByteArrayOutputStream();file.copyTo(bytes);store.restoreV4(ByteArrayInputStream(bytes.toByteArray()),root);compare(fixture(),store.snapshot())}
+            store.exportV4(root).use {file->val bytes=ByteArrayOutputStream();file.copyTo(bytes);store.restoreV4(ByteArrayInputStream(bytes.toByteArray()),root);compare(fixture().copy(snapshotId=store.snapshot().snapshotId,createdAt=store.snapshot().createdAt),store.snapshot())}
             assertEquals(mode,Os.stat(context.noBackupFilesDir.path).st_mode)
             assertEquals(448,Os.stat(File(context.noBackupFilesDir,CiphertextDirectory.NAME).path).st_mode and 511)
         }} finally {context.deleteDatabase(name);KeyStore.getInstance("AndroidKeyStore").apply {load(null);deleteEntry(alias)}}
     }
     @Test fun financeReceiptsEscapingExportReadbackInstallAndReopen()=isolated {store,context,alias,dir->
-        val initial=fixture();val expected=initial.copy(expenses=initial.expenses.map {it.copy(note="Quotes \" \\ newline\n tab\t café 🍁")})
+        val initial=fixture();var expected=initial.copy(expenses=initial.expenses.map {it.copy(note="Quotes \" \\ newline\n tab\t café 🍁")})
         store.replace(expected);val before=state(store)
         store.generations.fault={if(it==VaultGenerations.Point.SNAPSHOT_HYDRATION) error("No aggregate hydration during export")}
         val file=store.exportV4(root)
+        assertNotEquals(expected.snapshotId,file.summary.snapshotId);assertNotEquals(expected.createdAt,file.summary.createdAt)
+        expected=expected.copy(snapshotId=file.summary.snapshotId,createdAt=file.summary.createdAt)
         store.generations.fault={};assertEquals(before,state(store));assertEquals(expected.vaultId,file.source.vaultId)
         val exportDir=File(instrumentation.targetContext.filesDir,"v4-writer-exports").apply {mkdirs()}
         val export=File(exportDir,"android-finance.pennybackup");file.copyTo(export.outputStream())
@@ -93,7 +95,7 @@ class V4ExportDeviceTest {
             }}
             assertTrue(done.await(10,TimeUnit.SECONDS));thread!!.join();failure?.let {throw it}
             val out=ByteArrayOutputStream();file.copyTo(out);file.close()
-            assertTrue(store.all().any {it.note=="after export"});store.restoreV4(ByteArrayInputStream(out.toByteArray()),root);compare(fixture(),store.snapshot())
+            assertTrue(store.all().any {it.note=="after export"});store.restoreV4(ByteArrayInputStream(out.toByteArray()),root);compare(fixture().copy(snapshotId=store.snapshot().snapshotId,createdAt=store.snapshot().createdAt),store.snapshot())
         }
         isolated {store,_,_,dir->
             val before=state(store)
@@ -107,7 +109,7 @@ class V4ExportDeviceTest {
         val base=fixture();val template=base.expenses.first().copy(recurringTemplateId=null,recurringOccurrenceDate=null)
         val rows=(0 until 600).map {template.copy(id="%08x-aaaa-4aaa-8aaa-aaaaaaaaaaaa".format(it),note="é".repeat(1000))}
         val expected=base.copy(expenses=rows,attachments=emptyList());store.replace(expected)
-        store.exportV4(root).use {file->assertTrue(file.byteCount>1048576);val out=ByteArrayOutputStream();file.copyTo(out);store.restoreV4(ByteArrayInputStream(out.toByteArray()),root);compare(expected,store.snapshot())}
+        store.exportV4(root).use {file->assertTrue(file.byteCount>1048576);val out=ByteArrayOutputStream();file.copyTo(out);store.restoreV4(ByteArrayInputStream(out.toByteArray()),root);compare(expected.copy(snapshotId=file.summary.snapshotId,createdAt=file.summary.createdAt),store.snapshot())}
         val before=state(store)
         fails {store.replace(base.copy(expenses=(0..10000).map {template.copy(id="%08x-bbbb-4bbb-8bbb-bbbbbbbbbbbb".format(it))},attachments=emptyList()))}
         assertEquals(before,state(store))

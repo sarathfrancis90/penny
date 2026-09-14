@@ -8,7 +8,8 @@ struct VaultView: View {
     @State private var keyReentry = ""
     @State private var confirmedKey: String?
     @State private var restoreKey = ""
-    @State private var stagedExport: PreparedArchive?
+    @State private var stagedExport: V4VerifiedExport?
+    @State private var stagedExportKey: String?
     @State private var work: Task<Void, Never>?
     @State private var action = VaultActionState()
     private var working: Bool { action.working }
@@ -132,21 +133,24 @@ struct VaultView: View {
     private func cancelWork() {
         clearRestorePreview()
         action.cancel(); work?.cancel(); work = nil
-        if let stagedExport { Task { await ArchiveWorker.shared.cancel(stagedExport) } }
-        stagedExport = nil
+        if let stagedExport { Task { try? await stagedExport.close() } }
+        stagedExport = nil; stagedExportKey = nil
     }
     private func prepareExport() {
         guard let key = confirmedKey else { return }
         cancelWork(); message = nil; error = nil
-        let id = action.begin(), revision = store.revision, snapshot = store.snapshot
+        let id = action.begin()
         work = Task {
             do {
-                let staged = try await ArchiveWorker.shared.prepare(snapshot, key: key)
-                guard action.id == id, !Task.isCancelled else { await ArchiveWorker.shared.cancel(staged); return }
+                try await store.ensurePublicationIdentityAsync()
+                try Task.checkCancellation()
+                let revision = store.revision
+                let staged = try await store.prepareV4Export(recoveryKey: key)
+                guard action.id == id, !Task.isCancelled else { try await staged.close(); return }
                 guard store.revision == revision, try RecoveryKeyStore.load() == key else {
-                    await ArchiveWorker.shared.cancel(staged); throw CloudFailure.staleRestore
+                    try await staged.close(); throw CloudFailure.staleRestore
                 }
-                stagedExport = staged; _ = action.finish(id); exporting = true
+                stagedExport = staged; stagedExportKey = key; _ = action.finish(id); exporting = true
             } catch { if action.id == id { _ = action.finish(id); self.error = error.localizedDescription } }
         }
     }
@@ -163,18 +167,20 @@ struct VaultView: View {
         }
     }
     private func export(to folder: URL) {
-        guard let stagedExport, let id = action.id else { return }
+        guard let stagedExport, let key = stagedExportKey, let id = action.id else { return }
         guard action.resume(id) else { return }
         work = Task {
             do {
-                try await ArchiveWorker.shared.export(stagedExport, to: folder)
-                await ArchiveWorker.shared.cancel(stagedExport)
+                guard try RecoveryKeyStore.load() == key else { throw CloudFailure.staleRestore }
+                _ = try await FilesExportWorker().save(stagedExport, to: folder, recoveryKey: key)
+                try await stagedExport.close()
                 guard action.id == id, !Task.isCancelled else { return }
-                self.stagedExport = nil; _ = action.finish(id)
+                guard try RecoveryKeyStore.load() == key else { throw CloudFailure.staleRestore }
+                self.stagedExport = nil; stagedExportKey = nil; _ = action.finish(id)
                 message = "Encrypted file exported and reopened successfully. Remote backup or iCloud upload completion has not been verified. Keep the matching recovery key separately."
             } catch {
-                await ArchiveWorker.shared.cancel(stagedExport)
-                if action.id == id { self.stagedExport = nil; _ = action.finish(id); self.error = error.localizedDescription }
+                try? await stagedExport.close()
+                if action.id == id { self.stagedExport = nil; stagedExportKey = nil; _ = action.finish(id); self.error = error.localizedDescription }
             }
         }
     }

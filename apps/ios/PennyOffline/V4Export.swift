@@ -59,15 +59,16 @@ actor V4VerifiedExport {
     func close() throws { let held = file; file = nil; try held?.close(); try transfer.close() }
 }
 
-private final class V4ExportFile: PennyV4Output {
+final class V4ExportFile: PennyV4Output {
     private var directory: Int32 = -1, output: Int32 = -1, pin: Int32 = -1
-    private let name = UUID().uuidString.lowercased() + ".pennyv4export"
+    private let name: String
     private var identity = stat(), hash = SHA256(), finished = false
     private let fault: @Sendable (VaultStore.V4OutputPhase) throws -> Void
     private(set) var byteCount = 0, digest = ""
-    init(fault: @escaping @Sendable (VaultStore.V4OutputPhase) throws -> Void) throws {
+    init(destination: URL? = nil, fault: @escaping @Sendable (VaultStore.V4OutputPhase) throws -> Void) throws {
         self.fault = fault
-        directory = Darwin.open(FileManager.default.temporaryDirectory.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        name = destination?.lastPathComponent ?? UUID().uuidString.lowercased() + ".pennyv4export"
+        directory = Darwin.open((destination?.deletingLastPathComponent() ?? FileManager.default.temporaryDirectory).path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
         guard directory >= 0 else { throw LocalReceiptBlobError.file }
         do {
             output = penny_open_receipt_protected_at(directory, name)
@@ -118,6 +119,25 @@ private final class V4ExportFile: PennyV4Output {
             return V4ExportReader(fd: opened, expectedBytes: byteCount, expectedDigest: digest)
         } catch { _ = Darwin.close(opened); throw error }
     }
+    func validateNamespace(_ url: URL) throws {
+        guard url.lastPathComponent == name else { throw LocalReceiptBlobError.replaced }
+        let opened = Darwin.open(url.deletingLastPathComponent().path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard opened >= 0 else { throw LocalReceiptBlobError.file }
+        var held = stat(), current = stat()
+        let matches = fstat(directory, &held) == 0 && fstat(opened, &current) == 0 && held.st_dev == current.st_dev && held.st_ino == current.st_ino
+        guard Darwin.close(opened) == 0, matches else { throw LocalReceiptBlobError.replaced }
+        try validate()
+    }
+    /// Only after destination readback. Failed close leaves an unconfirmed file;
+    /// releasing ownership must never later delete a replacement at this path.
+    func retainDestination() throws {
+        guard finished, output < 0 else { throw LocalReceiptBlobError.closed }
+        try validate(); try Task.checkCancellation()
+        let held = pin, parent = directory; pin = -1; directory = -1
+        var failed = false
+        for fd in [held, parent] where fd >= 0 { if Darwin.close(fd) != 0 { failed = true } }
+        if failed { throw LocalReceiptBlobError.file }
+    }
     func discard() { try? close() }
     func close() throws {
         let writer = output, held = pin, parent = directory
@@ -133,7 +153,7 @@ private final class V4ExportFile: PennyV4Output {
     }
     deinit { try? close() }
 }
-private final class V4ExportReader: PennyV4Input {
+final class V4ExportReader: PennyV4Input {
     private var fd: Int32, hash = SHA256()
     private let expectedBytes: Int, expectedDigest: String
     private var eof = false

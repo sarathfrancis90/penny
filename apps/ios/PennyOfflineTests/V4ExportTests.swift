@@ -24,6 +24,9 @@ import PennyV4
         var expected = try snapshot(); expected.expenses[0].note = "Quoted \"note\", café ☕ / slash\\ and\nnewline"
         try store.replace(expected)
         let export = try await store.prepareV4Export(recoveryKey: recovery), data = try await bytes(export)
+        let summary = await export.summary
+        XCTAssertNotEqual(summary.snapshotId, expected.snapshotId)
+        expected.snapshotId = summary.snapshotId; expected.createdAt = summary.createdAt
         let ciphertextBytes = await export.ciphertextBytes, ciphertextHash = await export.ciphertextSHA256
         XCTAssertEqual(data.count, ciphertextBytes)
         XCTAssertEqual(SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(), ciphertextHash)
@@ -77,7 +80,9 @@ import PennyV4
         })
         let receiver = VaultStore(directory: directory(), key: key)
         let candidate = try await receiver.prepareV4Replacement(source: export.ownedInput().take(), recoveryKey: recovery)
-        try receiver.installLocalReceiptReplacement(candidate); XCTAssertEqual(try encode(receiver.snapshot), try encode(original))
+        try receiver.installLocalReceiptReplacement(candidate)
+        var expected = original; expected.snapshotId = await export.summary.snapshotId; expected.createdAt = await export.summary.createdAt
+        XCTAssertEqual(try encode(receiver.snapshot), try encode(expected))
         try await export.close()
     }
     func testPartialWriteSyncCloseAndCancellationCleanOnlyOwnedOutput() async throws {

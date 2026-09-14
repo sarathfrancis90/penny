@@ -12,6 +12,7 @@
 		0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1237EA66D63CF1A8814D217B /* CaptureTests.swift */; };
 		04944A99EB4CAA278E624E82 /* FinanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8750B4BAD2433AF5B574886 /* FinanceModels.swift */; };
 		08EBAFFF09E743A12A637DF8 /* LocalVaultFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */; };
+		0A872256F1885BAAD7F66B0A /* FilesExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C2AF49B11679121F77D3A1 /* FilesExportTests.swift */; };
 		1739A03C0D97C03ABA005355 /* AccessibilityAuditTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4798055FDD88C040803D578B /* AccessibilityAuditTests.swift */; };
 		1B8C203D5A77E6156CB1AED8 /* FinanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8750B4BAD2433AF5B574886 /* FinanceModels.swift */; };
 		1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DE085B368DC456F5429CC0 /* CloudTests.swift */; };
@@ -67,6 +68,7 @@
 		B384213C765FBBD031FFE791 /* Categories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2CE221C9BD854F0C3E4D58 /* Categories.swift */; };
 		B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A066CE638380BFBDAC4B47EB /* VaultTests.swift */; };
 		B7B0C3F66F4587F28E91C54A /* FilesRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */; };
+		BC133F4DBBC468E07598C279 /* FilesExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4C3032E61AD809183454A3 /* FilesExport.swift */; };
 		BC50978C550AC6A3A6ADC83C /* UITestCloudTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */; };
 		BCB0ECFC002834735B0016C4 /* V4ExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424ACA46C91287CE42FA8607 /* V4ExportTests.swift */; };
 		BCC2653CBDEB3410A35F260F /* PennyColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */; };
@@ -80,6 +82,7 @@
 		D32EF33D48D1D0DAD6A646D8 /* PNGIntegrity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */; };
 		D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */; };
 		DA205FB68306F0DDE453D11B /* FinanceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E46C25CD198B4864A458AAF /* FinanceEngine.swift */; };
+		DA7693FD862FDBD8CEA0A145 /* FilesExportFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4C5AFF0A3EE45BE55D97C5 /* FilesExportFlowTests.swift */; };
 		DA8A85FC14A08149287F22FF /* V4Export.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DE67DCBE934B35385810A5D /* V4Export.swift */; };
 		DF169F25C5DA9400568873DA /* FinanceFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */; };
 		E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */; };
@@ -171,6 +174,7 @@
 		50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEditor.swift; sourceTree = "<group>"; };
 		507B21C459E45BD05AFEC912 /* PennyOfflineUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		53A844A58A9FECB4BB26E17F /* AutomaticBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBackupTests.swift; sourceTree = "<group>"; };
+		53C2AF49B11679121F77D3A1 /* FilesExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesExportTests.swift; sourceTree = "<group>"; };
 		58862F5315DC63E712977D46 /* V4FrameCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4FrameCodec.swift; sourceTree = "<group>"; };
 		5B388EBFEE9BDC225510B444 /* RecoveryExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryExport.swift; sourceTree = "<group>"; };
 		5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCamera.swift; sourceTree = "<group>"; };
@@ -189,6 +193,7 @@
 		93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceSnapshotValidation.swift; sourceTree = "<group>"; };
 		956C0F98A83DB117490C4366 /* libPennyV4.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libPennyV4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9CD1EFF58A75FF36D2C0AC21 /* LocalAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAssistant.swift; sourceTree = "<group>"; };
+		9D4C3032E61AD809183454A3 /* FilesExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesExport.swift; sourceTree = "<group>"; };
 		9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualFlowTests.swift; sourceTree = "<group>"; };
 		9E6F3897D621228F0D8DCCB6 /* ArchiveWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveWorker.swift; sourceTree = "<group>"; };
 		A066CE638380BFBDAC4B47EB /* VaultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultTests.swift; sourceTree = "<group>"; };
@@ -201,6 +206,7 @@
 		B03C8BF31A9ABAD2E31E74BB /* PennyOfflineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyOfflineApp.swift; sourceTree = "<group>"; };
 		B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservedSavingsMigrationTests.swift; sourceTree = "<group>"; };
 		B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNGIntegrity.swift; sourceTree = "<group>"; };
+		BB4C5AFF0A3EE45BE55D97C5 /* FilesExportFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesExportFlowTests.swift; sourceTree = "<group>"; };
 		BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyColors.swift; sourceTree = "<group>"; };
 		C44F8BF410E5C1D37173711F /* ArchiveWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveWorkerTests.swift; sourceTree = "<group>"; };
 		C8359A21263DD7094D573273 /* CloudPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudPublication.swift; sourceTree = "<group>"; };
@@ -265,6 +271,7 @@
 				0C0A15C81F5BEC890A0545F2 /* CaptureFlowTests.swift */,
 				26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */,
 				A945BF33915077F7792709B1 /* ExpenseFlowTests.swift */,
+				BB4C5AFF0A3EE45BE55D97C5 /* FilesExportFlowTests.swift */,
 				DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */,
 				9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */,
 			);
@@ -303,6 +310,7 @@
 				723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */,
 				C96C22B18EDED088A9F987FB /* Expense.swift */,
 				167DD103EA432460F89A98FD /* ExpensesView.swift */,
+				9D4C3032E61AD809183454A3 /* FilesExport.swift */,
 				461E4C025B8D1DDF442064EB /* FilesRestore.swift */,
 				50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */,
 				2E46C25CD198B4864A458AAF /* FinanceEngine.swift */,
@@ -358,6 +366,7 @@
 				1237EA66D63CF1A8814D217B /* CaptureTests.swift */,
 				23DE085B368DC456F5429CC0 /* CloudTests.swift */,
 				6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */,
+				53C2AF49B11679121F77D3A1 /* FilesExportTests.swift */,
 				FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */,
 				3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */,
 				2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */,
@@ -718,6 +727,7 @@
 				81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */,
 				56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */,
 				B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */,
+				BC133F4DBBC468E07598C279 /* FilesExport.swift in Sources */,
 				802A964B84F9A84C30CA3454 /* FilesRestore.swift in Sources */,
 				41B145070CC0D6E47CCF15FF /* FinanceEditor.swift in Sources */,
 				6B116BF2AE6768A1323FB844 /* FinanceEngine.swift in Sources */,
@@ -758,6 +768,7 @@
 				4646820F00FAA391F1E59852 /* CaptureFlowTests.swift in Sources */,
 				9D55ED213E0F715D96E20E9A /* CloudFlowTests.swift in Sources */,
 				2F1D98C785D3DE1821A9FF92 /* ExpenseFlowTests.swift in Sources */,
+				DA7693FD862FDBD8CEA0A145 /* FilesExportFlowTests.swift in Sources */,
 				DF169F25C5DA9400568873DA /* FinanceFlowTests.swift in Sources */,
 				E4BA1BDF7D383FF67EFD341D /* VisualFlowTests.swift in Sources */,
 			);
@@ -808,6 +819,7 @@
 				0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */,
 				1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */,
 				5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */,
+				0A872256F1885BAAD7F66B0A /* FilesExportTests.swift in Sources */,
 				B7B0C3F66F4587F28E91C54A /* FilesRestoreTests.swift in Sources */,
 				D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */,
 				A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */,
@@ -999,10 +1011,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = PennyOffline/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Penny Offline";
-				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a receipt on this device for your encrypted expense vault. Penny does not save camera captures to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIFileSharingEnabled = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -1185,10 +1195,8 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = PennyOffline/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Penny Offline";
-				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a receipt on this device for your encrypted expense vault. Penny does not save camera captures to your photo library.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIFileSharingEnabled = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

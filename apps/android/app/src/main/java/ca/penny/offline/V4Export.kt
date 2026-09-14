@@ -33,7 +33,8 @@ internal object V4Export {
             lateinit var metadata:VaultGenerations.VerifiedMetadata
             store.generations.withVerifiedExportSource {source->
                 operation.check();metadata=source.metadata
-                val logical=LogicalInput(source,operation) {fault(Point.RECEIPT_READ,context.noBackupFilesDir)}
+                val identity=Wire.id() to Wire.now()
+                val logical=LogicalInput(source,operation,identity) {fault(Point.RECEIPT_READ,context.noBackupFilesDir)}
                 logical.use {
                     fault(Point.SOURCE_READY,context.noBackupFilesDir);operation.check()
                     val stats=FrameCodec.encrypt(secret,logical,owned.output())
@@ -59,7 +60,7 @@ internal object V4Export {
         } finally {secret.fill(0)}
     }
     /** Same per-record encoder for counting and emission. Only current payload is retained. */
-    private class LogicalInput(private val source:VaultGenerations.ExportSource,private val operation:RestoreOperation,
+    private class LogicalInput(private val source:VaultGenerations.ExportSource,private val operation:RestoreOperation,private val identity:Pair<String,String>,
         private val receiptRead:()->Unit):InputStream() {
         private data class Record(val kind:Int,val rawSize:Long=0,val encode:()->ByteArray)
         private val records=mutableListOf<Record>()
@@ -86,7 +87,7 @@ internal object V4Export {
                 records+=Record(10,d.byteCount) {source.read(d).also {try {receiptRead();operation.check()} catch(error:Throwable) {it.fill(0);throw error}}}
             }
             records.forEach {record->operation.check();val n=if(record.kind==10) 0 else record.encode().let {try {it.size} finally {it.fill(0)}};nonReceiptBytes=Math.addExact(nonReceiptBytes,9L+n)}
-            begin=json(JSONObject().put("schemaVersion",4).put("capacityProfile","A").put("snapshotId",source.body.snapshotId).put("vaultId",source.body.vaultId).put("createdAt",source.body.createdAt)
+            begin=json(JSONObject().put("schemaVersion",4).put("capacityProfile","A").put("snapshotId",identity.first).put("vaultId",source.body.vaultId).put("createdAt",identity.second)
                 .put("counts",JSONObject(counts as Map<*,*>)).put("receiptBytes",receiptBytes).put("nonReceiptBytes",nonReceiptBytes))
             val endSize=end("0".repeat(64)).let {try {it.size} finally {it.fill(0)}}
             policyBytes=Math.addExact(nonReceiptBytes,18L+begin.size+endSize)
@@ -96,7 +97,7 @@ internal object V4Export {
             require(70+plaintextBytes+frames*33<=Backup.maxEnvelopeBytes) {"Encrypted backup exceeds 20 MiB"}
         }
         private fun json(value:JSONObject)=StrictJson.bytes(value).also {require(it.size in 1..65536) {"Logical JSON record exceeds 64 KiB"}}
-        private fun end(hash:String)=json(JSONObject().put("snapshotId",source.body.snapshotId).put("counts",JSONObject(counts as Map<*,*>))
+        private fun end(hash:String)=json(JSONObject().put("snapshotId",identity.first).put("counts",JSONObject(counts as Map<*,*>))
             .put("receiptBytes",receiptBytes).put("nonReceiptBytes",nonReceiptBytes).put("recordCount",records.size+1L).put("streamSha256",hash))
         private fun next():Boolean {
             payload.fill(0);header.fill(0);offset=0;headerOffset=0;operation.check()
@@ -105,7 +106,7 @@ internal object V4Export {
             when(index) {
                 0->{currentKind=1;payload=begin;begin=byteArrayOf()}
                 records.size+1->{currentKind=11;val hash=transcript.digest().joinToString("") {"%02x".format(it.toInt() and 255)}
-                    payload=end(hash);summary=LogicalSummary(source.body.snapshotId,source.body.vaultId,source.body.createdAt,java.util.Collections.unmodifiableMap(counts.toMap()),receiptBytes,nonReceiptBytes,policyBytes,records.size+1L,hash)}
+                    payload=end(hash);summary=LogicalSummary(identity.first,source.body.vaultId,identity.second,java.util.Collections.unmodifiableMap(counts.toMap()),receiptBytes,nonReceiptBytes,policyBytes,records.size+1L,hash)}
                 else->{val record=records[index-1];currentKind=record.kind;payload=record.encode();if(currentKind==10) check(payload.size.toLong()==record.rawSize)}
             }
             header=ByteArray(9).also {it[0]=currentKind.toByte();FrameCodec.putU64(it,1,payload.size.toLong())};return true

@@ -60,3 +60,7 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [iOS observed savings](../../../apps/ios/evidence/observed-savings-migration.md) and [Android observed savings](../../../apps/android/evidence/raw-savings.json): exact new shared balance-only migration golden restored/reopened on each runtime.
 
 - [Native v4 writer and Files restore](v4-writer-files-integration.json): paired native exports, actual reciprocal install/reopen, controller/worker preview guards and exact current integration checks. Export destination, system picker UI and provider completion remain separate.
+
+- [All required checks at b22b4f6](hosted-required-b22b4f6.json): all23 exact-source checks succeeded, including retained Flutter iOS. Later changes require their own checks.
+
+- [Native Files v4 export integration](v4-files-export-integration.json): current-cap exports, actual local system picker saves, corrected iOS plist keys, Android request binding/disposal and separately pinned passing/failing test overlays. Cloud/physical acceptance remains open.

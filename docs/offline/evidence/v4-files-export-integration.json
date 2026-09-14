@@ -1,0 +1,78 @@
+{
+  "baseCommit": "e7fc1d2aaf629a6c97f597d1ecd901dc9482292c",
+  "scope": "Native Files v4 export at existing caps, real local system picker save and cancellation, fresh export identity, request-bound Android results and corrected built iOS Files configuration.",
+  "ios": {
+    "report": "apps/ios/evidence/v4-files-export.json",
+    "ordinary": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Destination3, writer6, legacy compatibility1, real cancellation1 before explicit plist configuration"
+    },
+    "positiveOverlay": {
+      "passed": 1,
+      "failed": 1,
+      "scope": "Positive save passed; same run cancellation selector failed. Failure retained."
+    },
+    "finalCancellationOverlay": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "configuration": "Both Files keys true in installed build. Positive and final cancellation use the same production dylib; UI binaries differ.",
+    "savedCiphertextSha256": "676653165ba767194969ddd0e36ac3ad3a8acc2bec0eaf35f5c77107889eed1c"
+  },
+  "android": {
+    "baseReport": "apps/android/evidence/v4-files-export.json",
+    "finalBindingReport": "apps/android/evidence/v4-files-export-binding.json",
+    "baseNonUiEachApi": 11,
+    "earlierFinalUiEachApi": 2,
+    "finalBindingEachApi": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Controller6 and actualUI2 on each API26/37"
+    },
+    "jvmPassed": 25,
+    "buildAndLint": "passed",
+    "productionApkSha256": "8cd94cfbdc48ab1f500a6ce5c23ac7326bdc5b449b331b78d58ac18174ec7a55"
+  },
+  "rootChecks": {
+    "sharedNodePassed": 124,
+    "scriptPythonPassed": 57,
+    "cryptoPythonPassed": 5,
+    "skipped": 0,
+    "staticFiles": 89,
+    "categories": 38,
+    "independentReview": "No remaining confirmed P1/P2 after corrections; code-level disposal reviewed, actual recreation not tested.",
+    "documentation": {
+      "reviewPassed": 104,
+      "originalPassed": 105
+    },
+    "changedSourceSast": {
+      "initialScanned": 19,
+      "finalChangedOverlayScanned": 6,
+      "overlap": true,
+      "findings": 0,
+      "errors": 0
+    },
+    "sourceEvidence": "Android final134 source/artifact pins matched; iOS runtime6 plus final project/UI4 and14 completed-UI artifact pins matched. Earlier project/test overlays remain historical.",
+    "diffCheck": "passed"
+  },
+  "corrections": [
+    "Fresh export UUID/time captured once rather than reusing local creation metadata.",
+    "Android recovery-dialog generations suppress late picker launches.",
+    "Opaque request-bound Android result prevents stale URI/null consuming a replacement export; exact unclaimed disposal and queued ownership preserve cleanup.",
+    "iOS explicit plist properties fix the actually missing UIFileSharingEnabled setting.",
+    "Real UI tests follow observed lazy-list, Compose readiness and Files hierarchy; unavailable secure-window screenshots are explicit."
+  ],
+  "limits": [
+    "The successful picker destinations are local providers; no cloud-upload or clean-device recovery claim.",
+    "Actual Activity recreation during an external Android picker was not exercised; exact disposal/queued-claim contracts and normal UI disposal were.",
+    "Process-death resume, physical file protection, full disk and hardware fault behavior remain open.",
+    "Existing ordinary Snapshot paths still hydrate aggregate receipts and all capacity limits remain unchanged.",
+    "Earlier failed runs and differing test overlays are retained; there is no invented combined full-suite run."
+  ],
+  "iosReportSha256": "a0a68bbb5787d7c8ddf0abbf6b43cdefa62dbdfe10368aea6d77e69754503074",
+  "androidBindingReportSha256": "47bdd2bacc81f0400017fcad7355073f4e36b938c73d7fbd88d254584db0c7d6"
+}
