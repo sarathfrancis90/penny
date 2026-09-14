@@ -1,0 +1,51 @@
+{
+  "hostedRun": 34817963139,
+  "hostedCommit": "59877b1ff31b9869edc504f32420667396594a93",
+  "failedJobs": {
+    "API37": 103892713082,
+    "API26": 103892713095
+  },
+  "hostedResult": "Both completed 106 tests with 1 failure and 6 skips. Same sole failure: CaptureFlowTest.recoveryReentryMismatchRefusesExportAndPickerCancellationKeepsVault, External document picker is visible.",
+  "diagnosis": "Source-derived Compose test readiness mismatch: after new asynchronous verified export preparation, request-keyed launcher registration needs recomposition. Old CaptureFlowTest immediately blocked in Thread.sleep/UiAutomation polling. V4FilesExportFlowTest already waits for preparation then Compose idle. No observed production failure.",
+  "change": "Test-only: await ready/settled ViewModel and Compose idle before external picker polling. Verify cancellation cleanup in current v4-ciphertext-v1 against previous inventory instead of obsolete encrypted-exports path.",
+  "validation": {
+    "API37": {
+      "passed": 1,
+      "skipped": 0
+    },
+    "API26": {
+      "passed": 1,
+      "skipped": 0
+    },
+    "build": "pass",
+    "productionApkByteIdenticalToFrozenLiveValidation03": true
+  },
+  "testedScope": "Local focused overlay on current frozen live production APK, not rerun of historical Files59877b1 source. Hosted full-suite result remains failed until a future CI run.",
+  "sourceDelta": {
+    "apps/android/app/src/androidTest/java/ca/penny/offline/CaptureFlowTest.kt": "016b90891647f25e96695224dbf165d7a120b81a6e1908ea072f82c5219f473e"
+  },
+  "appApkSha256": "58beb16f1657d3f499cfe1ec8437040df6797fc6088c397679e9bdf93a88df67",
+  "testApkSha256": "9117172b82618b7ee6fb0eea8aac956a5d5b0f1eb3ba37d70cbbe6b5c90afab6",
+  "artifacts": {
+    "artifacts/offline/files-hosted-59877b1/run.py": "4558ff295defdd2f79dd3fa37659ba01899b703adc64b39e320adae912926613",
+    "artifacts/offline/files-hosted-59877b1/emulator-5562-install-test.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/files-hosted-59877b1/emulator-5560-commands.json": "179f245c72be16927e51c169f8e65af60882cd299ce279f3d02d1a954b9be6ee",
+    "artifacts/offline/files-hosted-59877b1/emulator-5560-focused.log": "9af0f3e37730af4e4b49054662dffedc3dc320e0aa83e1c73ab6d53fef07ff93",
+    "artifacts/offline/files-hosted-59877b1/emulator-5560-install-app.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/files-hosted-59877b1/app.apk": "58beb16f1657d3f499cfe1ec8437040df6797fc6088c397679e9bdf93a88df67",
+    "artifacts/offline/files-hosted-59877b1/emulator-5560-install-test.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/files-hosted-59877b1/emulator-5562-install-app.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/files-hosted-59877b1/api26.log": "ad58a1dcd469fdf6ba154785407418ae4d36bd0b663f9dfb39bc87a565a5a39d",
+    "artifacts/offline/files-hosted-59877b1/test-only.patch": "0c2fb12b5fd7cf539970f99538f58c5c385d4cc481b60f376280e28a2d9c71fd",
+    "artifacts/offline/files-hosted-59877b1/test.apk": "9117172b82618b7ee6fb0eea8aac956a5d5b0f1eb3ba37d70cbbe6b5c90afab6",
+    "artifacts/offline/files-hosted-59877b1/api37.log": "833f7127cda040db694081631a17853fd567af02e1c28a44158d83c30264e733",
+    "artifacts/offline/files-hosted-59877b1/emulator-5562-commands.json": "135ba8c0f6ecf6990814be9fc17cda4da1df7f9cf39a0c8c4d83bf808afb9ad3",
+    "artifacts/offline/files-hosted-59877b1/emulator-5562-focused.log": "acbb28d8070d81377e2b2f88c81c7779f9d2c463afe015b93367f5b12cff3e98",
+    "artifacts/offline/files-hosted-59877b1/build.log": "37d54acbf989fd4f2dc0d8072d41be2e8cfeba8c531afae8437365787bfcc1f2"
+  },
+  "limits": [
+    "No broad suite retry or production mutation. Normal demo untouched; only ca.penny.offline.dev.test installed/force-stopped.",
+    "Frozen live validation03 files preserved unchanged.",
+    "JVM/lint not repeated for test-only readiness change; previous accepted live gate remains separate."
+  ]
+}

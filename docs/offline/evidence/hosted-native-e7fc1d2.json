@@ -1,0 +1,179 @@
+{
+  "commit": "e7fc1d2aaf629a6c97f597d1ecd901dc9482292c",
+  "runId": 34815486375,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34815486375",
+  "conclusion": "success",
+  "scope": "Native writer/Files restore checkpoint only; subsequent Files export and live-state changes are separate.",
+  "jobs": [
+    {
+      "name": "native-offline-android-build",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T06:55:22Z",
+      "completedAt": "2026-09-14T07:02:40Z"
+    },
+    {
+      "name": "native-offline-ios-simulator",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T06:55:27Z",
+      "completedAt": "2026-09-14T07:22:11Z"
+    },
+    {
+      "name": "native-offline-android-api-26",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T06:55:21Z",
+      "completedAt": "2026-09-14T07:05:42Z"
+    },
+    {
+      "name": "native-offline-contract",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T06:55:21Z",
+      "completedAt": "2026-09-14T06:56:20Z"
+    },
+    {
+      "name": "native-offline-android-api-37.0",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T06:55:21Z",
+      "completedAt": "2026-09-14T07:08:26Z"
+    },
+    {
+      "name": "native-offline-gate",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T07:22:14Z",
+      "completedAt": "2026-09-14T07:22:18Z"
+    }
+  ],
+  "ios": {
+    "totalTestCount": 130,
+    "passedTests": 130,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "summarySha256": "8f03c1e7c204ea4deb1dc9fcc2fbe4cd232851a286b05320025c7d1d85797e92",
+    "separateGenerationWrite": {
+      "totalTestCount": 1,
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "summarySha256": "588fd5dc57b1b89788a4d33684465461f512727c2dd6f6be1747179de88df207"
+    },
+    "separateGenerationRead": {
+      "totalTestCount": 1,
+      "passedTests": 1,
+      "failedTests": 0,
+      "skippedTests": 0,
+      "summarySha256": "3bca138f33225ebe98c61a11875f114781c8cb3b61c6eacfc6cb1f3b03a1c265"
+    }
+  },
+  "android": {
+    "26": [
+      {
+        "file": "artifacts/offline/hosted-e7fc1d2-native/android-26/apps/android/app/build/outputs/androidTest-results/connected/debug/TEST-test(AVD) - 8.0.0-_app-.xml",
+        "total": 98,
+        "passed": 90,
+        "skipped": [
+          "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+          "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+          "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+          "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+          "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+          "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+          "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+          "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+        ],
+        "failures": [],
+        "sha256": "0887224bc5d38cb81965ef3861c25b72bc420c84248a026a5479592d7b408675"
+      }
+    ],
+    "37.0": [
+      {
+        "file": "artifacts/offline/hosted-e7fc1d2-native/android-37.0/apps/android/app/build/outputs/androidTest-results/connected/debug/TEST-test(AVD) - 17-_app-.xml",
+        "total": 98,
+        "passed": 90,
+        "skipped": [
+          "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+          "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+          "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+          "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+          "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+          "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+          "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+          "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+        ],
+        "failures": [],
+        "sha256": "e612a93ef154045a6128bb5fb8c36de2e344531ba9ae4ccc7d64c7fa9e7581d5"
+      }
+    ]
+  },
+  "androidSeparateProcessPhases": {
+    "26": {
+      "logs": {
+        "process-create.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "8a35a7aa648de999046bea04fff6fd6e6d9a7697af9b6b1ad2b4afb6dcccb040"
+        },
+        "process-verify.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "d1f87318a445abda0fd0aae480297144c9ce80578e0b1642388812aabe2ca891"
+        },
+        "generation-seedPending.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "a824eec7603dbf6db09d5de5785393074afb531571eaae63f8e169cf87a890eb"
+        },
+        "generation-reopenPending.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "cf2e71bc07ee289304c5c2335c3af80c161ec50ab5ed3c1fe33f112d515e1f54"
+        }
+      },
+      "generation": {
+        "pid": 6525,
+        "seedPid": 6486,
+        "phase": "authenticated-new-generation"
+      }
+    },
+    "37.0": {
+      "logs": {
+        "process-create.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "f227ba4d1b7f1c87568b0a8954579a5cf93e27cd1885ba773ffe0533ae881a15"
+        },
+        "process-verify.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "f8710f59739f247ae83a94a021ea16962d99698796b41b0beea751ffaddf556f"
+        },
+        "generation-seedPending.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "cb6a1958e9c3a4af887acc5f589a480a5b7c7b82710246e534c3300f2457ff40"
+        },
+        "generation-reopenPending.log": {
+          "result": [
+            "OK (1 test)"
+          ],
+          "sha256": "0d791df752527fd3c2a50ee49e5ba82f51e7bc0fbab1110de15406a3701af1aa"
+        }
+      },
+      "generation": {
+        "pid": 7031,
+        "seedPid": 6992,
+        "phase": "authenticated-new-generation"
+      }
+    }
+  },
+  "limits": [
+    "Eight named Android opt-in/process methods skipped in main JUnit; four process methods run separately with passed logs.",
+    "No physical hardware/provider/signing/store acceptance.",
+    "Retained Flutter iOS and all-repository aggregate are separate checks."
+  ]
+}

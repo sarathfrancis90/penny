@@ -33,19 +33,19 @@ import XCTest
     }
     func testV4FilesPreviewRequiresExplicitReplacementAndReopens() async throws {
         let directory = try directory(), store = VaultStore(directory: directory, key: key)
-        try store.replace(original()); let before = try encoded(store.snapshot)
+        try store.replace(original()); let before = try encoded((try store.compatibilitySnapshot()))
         let input = try file(fixture("v4-frames/one-receipt.pennyframe"))
         let preview = try await store.prepareFilesRestore(input, recoveryKey: recovery) {
             // Provider contents may change after its one coordinated acquisition.
             try Data("replaced external input".utf8).write(to: input)
         }
-        XCTAssertEqual(try encoded(store.snapshot), before)
-        XCTAssertEqual(try encoded(VaultStore(directory: directory, key: key).snapshot), before)
+        XCTAssertEqual(try encoded((try store.compatibilitySnapshot())), before)
+        XCTAssertEqual(try encoded((try VaultStore(directory: directory, key: key).compatibilitySnapshot())), before)
         XCTAssertEqual(preview.recordCount, 1); XCTAssertEqual(preview.receiptCount, 1)
         try await preview.replace(in: store)
-        XCTAssertEqual(store.snapshot.expenses.count, 1); XCTAssertEqual(store.snapshot.attachments.count, 1)
-        XCTAssertEqual(try store.snapshot.attachments[0].bytes(), try fixture("receipt.png"))
-        XCTAssertEqual(try encoded(VaultStore(directory: directory, key: key).snapshot), try encoded(store.snapshot))
+        XCTAssertEqual((try store.compatibilitySnapshot()).expenses.count, 1); XCTAssertEqual((try store.compatibilitySnapshot()).attachments.count, 1)
+        XCTAssertEqual(try (try store.compatibilitySnapshot()).attachments[0].bytes(), try fixture("receipt.png"))
+        XCTAssertEqual(try encoded((try VaultStore(directory: directory, key: key).compatibilitySnapshot())), try encoded((try store.compatibilitySnapshot())))
         do { try await preview.replace(in: store); XCTFail("reused confirmation") } catch {}
     }
     func testCancelledPreviewCleansCandidateAndCannotReplace() async throws {
@@ -83,18 +83,18 @@ import XCTest
                 if !editDuringAcquisition { try store.replace(edit) }
                 try await preview.replace(in: store); XCTFail("stale restore installed")
             } catch {}
-            XCTAssertEqual(try encoded(VaultStore(directory: directory, key: key).snapshot), try encoded(edit))
+            XCTAssertEqual(try encoded((try VaultStore(directory: directory, key: key).compatibilitySnapshot())), try encoded(edit))
         }
     }
     func testLegacyFileUsesExistingDecoderAndConfirmation() async throws {
         let directory = try directory(), store = VaultStore(directory: directory, key: key)
-        try store.replace(original()); let before = try encoded(store.snapshot)
+        try store.replace(original()); let before = try encoded((try store.compatibilitySnapshot()))
         let bytes = try fixture("raw-savings-v1/positive.pennybackup")
         let expected = try BackupArchive.restore(bytes, recoveryKey: recovery)
         let preview = try await store.prepareFilesRestore(file(bytes), recoveryKey: recovery)
-        XCTAssertEqual(preview.recordCount, expected.recordCount); XCTAssertEqual(try encoded(store.snapshot), before)
+        XCTAssertEqual(preview.recordCount, expected.recordCount); XCTAssertEqual(try encoded((try store.compatibilitySnapshot())), before)
         try await preview.replace(in: store)
-        XCTAssertEqual(try encoded(VaultStore(directory: directory, key: key).snapshot), try encoded(expected))
+        XCTAssertEqual(try encoded((try VaultStore(directory: directory, key: key).compatibilitySnapshot())), try encoded(expected))
     }
     func testLegacyPreviewSurvivesUnavailableCurrentDeviceKey() async throws {
         let directory = try directory(), missing = Mutex(false), provided = key

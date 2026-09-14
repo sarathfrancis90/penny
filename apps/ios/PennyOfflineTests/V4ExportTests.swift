@@ -33,7 +33,7 @@ import PennyV4
         let receiver = VaultStore(directory: directory(), key: key)
         let candidate = try await receiver.prepareV4Replacement(source: export.ownedInput().take(), recoveryKey: recovery)
         try receiver.installLocalReceiptReplacement(candidate)
-        XCTAssertEqual(try encode(receiver.snapshot), try encode(expected))
+        XCTAssertEqual(try encode((try receiver.compatibilitySnapshot())), try encode(expected))
         let archive = XCTAttachment(data: data, uniformTypeIdentifier: "public.data"); archive.name = "ios-v4-finance.pennybackup"; archive.lifetime = .keepAlways; add(archive)
         let snapshot = XCTAttachment(data: try encode(expected), uniformTypeIdentifier: "public.json"); snapshot.name = "ios-v4-finance.snapshot.json"; snapshot.lifetime = .keepAlways; add(snapshot)
         let manifest: [String: Any] = ["publicFixtureOnly": true, "recoveryKey": recovery, "file": "ios-v4-finance.pennybackup", "snapshotFile": "ios-v4-finance.snapshot.json", "ciphertextBytes": data.count, "ciphertextSha256": ciphertextHash]
@@ -62,10 +62,10 @@ import PennyV4
         let receiver = VaultStore(directory: dir, key: key)
         let candidate = try await receiver.prepareV4Replacement(source: FileInput(archive), recoveryKey: recovery)
         try receiver.installLocalReceiptReplacement(candidate)
-        XCTAssertEqual(try encode(receiver.snapshot), try encode(expected))
+        XCTAssertEqual(try encode((try receiver.compatibilitySnapshot())), try encode(expected))
         let reopened = VaultStore(directory: dir, key: key)
-        XCTAssertEqual(try encode(reopened.snapshot), try encode(expected))
-        XCTAssertEqual(try reopened.snapshot.attachments.map { try $0.bytes() }, try expected.attachments.map { try $0.bytes() })
+        XCTAssertEqual(try encode((try reopened.compatibilitySnapshot())), try encode(expected))
+        XCTAssertEqual(try (try reopened.compatibilitySnapshot()).attachments.map { try $0.bytes() }, try expected.attachments.map { try $0.bytes() })
     }
     func testCapturedReceiptPinsSurviveOrdinaryEditsAndGC() async throws {
         let dir = directory(), store = VaultStore(directory: dir, key: key), original = try snapshot(); try store.replace(original)
@@ -82,7 +82,7 @@ import PennyV4
         let candidate = try await receiver.prepareV4Replacement(source: export.ownedInput().take(), recoveryKey: recovery)
         try receiver.installLocalReceiptReplacement(candidate)
         var expected = original; expected.snapshotId = await export.summary.snapshotId; expected.createdAt = await export.summary.createdAt
-        XCTAssertEqual(try encode(receiver.snapshot), try encode(expected))
+        XCTAssertEqual(try encode((try receiver.compatibilitySnapshot())), try encode(expected))
         try await export.close()
     }
     func testPartialWriteSyncCloseAndCancellationCleanOnlyOwnedOutput() async throws {

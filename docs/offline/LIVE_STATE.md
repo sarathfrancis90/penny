@@ -1,6 +1,6 @@
 # Receipt-free live state
 
-This is the next implementation slice after Files export. It does not change portable formats, private receipt encryption or product capacity. The current `Snapshot` compatibility APIs hydrate all receipt bytes; ordinary open/list/edit paths must stop depending on them before larger capacity is enabled.
+The initial open/list/view-one/metadata-edit slice is implemented after Files export; see [paired evidence](evidence/live-state-integration.json). Remaining compatibility paths are listed in each native report. It does not change portable formats, private receipt encryption or product capacity. The current `Snapshot` compatibility APIs hydrate all receipt bytes; ordinary open/list/edit paths must stop depending on them before larger capacity is enabled.
 
 ## State and ownership
 

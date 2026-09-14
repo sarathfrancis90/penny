@@ -39,7 +39,9 @@ enum DeviceKey {
 
 @MainActor @Observable
 final class VaultStore {
-    private(set) var snapshot = VaultSnapshot()
+    private(set) var liveBody = VaultSnapshot()
+    var snapshot: VaultSnapshot { get throws { try compatibilitySnapshot() } }
+    var receiptDescriptors: [LocalReceiptDescriptor] { receiptReferences }
     private(set) var snapshotBytes = 0
     private(set) var isReady = false
     private(set) var revision = 0
@@ -55,20 +57,22 @@ final class VaultStore {
     private let localReceiptOwner = UUID()
     private var key: SymmetricKey?
     private let suppliedKey: SymmetricKey?
-    private let deviceKeyReader: (Bool) throws -> SymmetricKey
+    private let deviceKeyReader: @Sendable (Bool) throws -> SymmetricKey
+    private let hydrationCheckpoint: (@Sendable () throws -> Void)?
     // Fault injection exercises transaction boundaries without changing crypto.
     enum CommitStage: Sendable { case staged, rollbackSaved, committed, verified, journalCleared }
     private let commitCheckpoint: (@Sendable (CommitStage) throws -> Void)?
 
-    init(directory: URL? = nil, key: SymmetricKey? = nil, deviceKeyReader: @escaping (Bool) throws -> SymmetricKey = { try DeviceKey.load(create: $0) }, commitCheckpoint: (@Sendable (CommitStage) throws -> Void)? = nil) {
+    init(directory: URL? = nil, key: SymmetricKey? = nil, deviceKeyReader: @escaping @Sendable (Bool) throws -> SymmetricKey = { try DeviceKey.load(create: $0) }, commitCheckpoint: (@Sendable (CommitStage) throws -> Void)? = nil, hydrationCheckpoint: (@Sendable () throws -> Void)? = nil) {
         let support = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         file = support.appendingPathComponent("PennyOffline", isDirectory: true).appendingPathComponent("vault-v1.pennyvault")
         suppliedKey = key
         self.deviceKeyReader = deviceKeyReader
         self.commitCheckpoint = commitCheckpoint
+        self.hydrationCheckpoint = hydrationCheckpoint
         load()
     }
-    var expenses: [Expense] { snapshot.expenses.sorted { $0.expenseDate == $1.expenseDate ? $0.createdAt > $1.createdAt : $0.expenseDate > $1.expenseDate } }
+    var expenses: [Expense] { liveBody.expenses.sorted { $0.expenseDate == $1.expenseDate ? $0.createdAt > $1.createdAt : $0.expenseDate > $1.expenseDate } }
     var currentMonthTotal: Int64 {
         let prefix = String(CivilDate.string(Date()).prefix(7))
         return expenses.filter { $0.expenseDate.hasPrefix(prefix) }.reduce(0) { $0 + $1.amountMinor }
@@ -76,7 +80,7 @@ final class VaultStore {
     func load() {
         guard !isWriting else { return }
         do {
-            let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+            let storage = try DurableVaultStorage(file.deletingLastPathComponent(), hydrationCheckpoint: hydrationCheckpoint)
             let localKey = try storage.leased {
                 // Capture the encrypted source even when platform key loading
                 // fails, so explicit verified recovery can guard its replacement.
@@ -85,7 +89,7 @@ final class VaultStore {
             }
             try storage.leased {
                 diskDigest = try storage.liveBytes().map(DurableVaultStorage.digest)
-                if let decoded = try storage.load(key: localKey) { adopt(decoded) }
+                if let decoded = try storage.loadLive(key: localKey, initial: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch), storeId: storeId) { adopt(decoded) }
                 diskDigest = try storage.liveBytes().map(DurableVaultStorage.digest)
             }
             key = localKey
@@ -96,11 +100,54 @@ final class VaultStore {
             errorMessage = (error as? ExpenseError)?.localizedDescription ?? ExpenseError.lockedVault.localizedDescription
         }
     }
-    func save(_ expense: Expense, attachments: [ReceiptAttachment]? = nil) throws { try replace(expenseProposal(expense, attachments: attachments)) }
-    func saveAsync(_ expense: Expense, attachments: [ReceiptAttachment]? = nil) async throws { try await replaceAsync(expenseProposal(expense, attachments: attachments)) }
+    func save(_ expense: Expense, attachments: [ReceiptAttachment]? = nil) throws {
+        if attachments == nil && hasDurableIdentity {
+            _ = try DurableVaultStorage.expenseEditProposal(expense, body: liveBody, receipts: receiptReferences)
+            let request = try liveEditRequest(); isWriting = true; defer { isWriting = false }
+            do { let result = try request.take().run(expense, checkpoint: commitCheckpoint); adopt(result.0); diskDigest = result.1 }
+            catch { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription; throw error }
+        }
+        else { try replace(expenseProposal(expense, attachments: attachments)) }
+    }
+    func saveAsync(_ expense: Expense, attachments: [ReceiptAttachment]? = nil, expectedOriginal: Expense? = nil) async throws {
+        if let expectedOriginal {
+            guard liveBody.expenses.first(where: { $0.id == expense.id }) == expectedOriginal else { throw CloudFailure.staleRestore }
+        }
+        if attachments != nil { try await replaceAsync(expenseProposal(expense, attachments: attachments)); return }
+        _ = try DurableVaultStorage.expenseEditProposal(expense, body: liveBody, receipts: receiptReferences)
+        try await ensurePublicationIdentityAsync()
+        if let expectedOriginal {
+            guard liveBody.expenses.first(where: { $0.id == expense.id }) == expectedOriginal else { throw CloudFailure.staleRestore }
+        }
+        let request = try liveEditRequest(); isWriting = true; defer { isWriting = false }
+        do { let result = try await ArchiveWorker.shared.editExpense(expense, request: request, checkpoint: commitCheckpoint); adopt(result.0); diskDigest = result.1 }
+        catch { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription; throw error }
+    }
+    private func liveEditRequest() throws -> V4Transfer<DurableVaultStorage.LiveEditRequest> {
+        let existing = try existingReplacementKey(), supplied = suppliedKey, reader = deviceKeyReader
+        let request = try DurableVaultStorage.LiveEditRequest(directory: file.deletingLastPathComponent(), key: existing,
+            owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
+            metadata: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch),
+            currentKey: { try supplied ?? reader(false) }, hydrationCheckpoint: hydrationCheckpoint)
+        return V4Transfer(request, cleanup: { _ in })
+    }
+    func compatibilitySnapshot() throws -> VaultSnapshot {
+        let existing = try existingReplacementKey()
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent(), hydrationCheckpoint: hydrationCheckpoint)
+        return try storage.leased {
+            guard try storage.liveBytes().map(DurableVaultStorage.digest) == diskDigest else { throw CloudFailure.staleRestore }
+            if let loaded = try storage.load(key: existing) { return loaded.snapshot }
+            guard !hasDurableIdentity else { throw ExpenseError.lockedVault }; return liveBody
+        }
+    }
+    func openReceipt(_ id: String) async throws -> LiveReceiptImage {
+        let (bytes, owner) = try await ArchiveWorker.shared.readReceipt(id, request: captureV4Export())
+        do { try Task.checkCancellation(); return LiveReceiptImage(id: id, bytes: bytes, owner: owner) }
+        catch { try owner.close(); throw error }
+    }
     private func expenseProposal(_ expense: Expense, attachments: [ReceiptAttachment]?) throws -> VaultSnapshot {
         try expense.validate()
-        var next = snapshot
+        var next = try compatibilitySnapshot()
         if let index = next.expenses.firstIndex(where: { $0.id == expense.id }) { next.expenses[index] = expense }
         else { next.expenses.append(expense) }
         if let attachments {
@@ -110,12 +157,12 @@ final class VaultStore {
         }
         return next
     }
-    func receipts(for expenseId: String) -> [ReceiptAttachment] { snapshot.attachments.filter { $0.expenseId == expenseId } }
+    func receipts(for expenseId: String) throws -> [ReceiptAttachment] { try compatibilitySnapshot().attachments.filter { $0.expenseId == expenseId } }
     func deleteAsync(_ id: String) async throws {
-        var next = snapshot; next.expenses.removeAll { $0.id == id }; next.attachments.removeAll { $0.expenseId == id }; try await replaceAsync(next)
+        var next = try compatibilitySnapshot(); next.expenses.removeAll { $0.id == id }; next.attachments.removeAll { $0.expenseId == id }; try await replaceAsync(next)
     }
     func delete(_ id: String) throws {
-        var next = snapshot
+        var next = try compatibilitySnapshot()
         next.expenses.removeAll { $0.id == id }
         next.attachments.removeAll { $0.expenseId == id }
         try replace(next)
@@ -186,13 +233,13 @@ final class VaultStore {
         isReady = true
         errorMessage = nil
     }
-    func ensurePublicationIdentityAsync() async throws { if !hasDurableIdentity { try await replaceAsync(snapshot) } }
+    func ensurePublicationIdentityAsync() async throws { if !hasDurableIdentity { try await replaceAsync(compatibilitySnapshot()) } }
     func ensurePublicationIdentity() throws {
-        if !hasDurableIdentity { try replace(snapshot) }
+        if !hasDurableIdentity { try replace(compatibilitySnapshot()) }
     }
     /// Each attempt reserves a durable generation before creating remote objects.
     /// Retries after an uncertain server result must never reuse a writer revision.
-    func reservePublicationRevision() throws { try replace(snapshot) }
+    func reservePublicationRevision() throws { try replace(compatibilitySnapshot()) }
     var cloudStateURL: URL { file.deletingLastPathComponent().appendingPathComponent("cloud-state.pennyvault") }
     func sealCloudState(_ data: Data) throws -> Data {
         guard isReady, let key, data.count <= 65_536 else { throw ExpenseError.lockedVault }
@@ -236,7 +283,7 @@ final class VaultStore {
         guard !isWriting, revision == prepared.sourceRevision, writerId == prepared.metadata.writerId,
               restoreEpoch == prepared.sourceRestoreEpoch else { throw CloudFailure.staleRestore }
         guard prepared.sourceStoreId == storeId, prepared.sourceDigest == diskDigest else { throw CloudFailure.staleRestore }
-        let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent(), hydrationCheckpoint: hydrationCheckpoint)
         do {
             try storage.leased {
                 let loaded = try storage.commit(prepared, sourceDigest: prepared.sourceDigest, storeId: storeId, receipts: receiptReferences, checkpoint: commitCheckpoint)
@@ -253,19 +300,32 @@ final class VaultStore {
     }
     func leaseSnapshot() throws -> DurableSnapshotLease {
         guard !isWriting, isReady, let key else { throw ExpenseError.lockedVault }
-        let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent(), hydrationCheckpoint: hydrationCheckpoint)
         return try storage.leased { try storage.pinSnapshot(key: key) }
     }
     @discardableResult func collectReceiptGarbage() throws -> Int {
         guard !isWriting, isReady, let key else { throw ExpenseError.lockedVault }
-        let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent(), hydrationCheckpoint: hydrationCheckpoint)
         return try storage.leased { try storage.collectGarbage(key: key) }
     }
+    private func adopt(_ loaded: DurableLiveLoaded) {
+        liveBody = loaded.body; snapshotBytes = loaded.snapshotBytes; receiptReferences = loaded.receipts
+        writerId = loaded.metadata.writerId; revision = loaded.metadata.revision; restoreEpoch = loaded.metadata.restoreEpoch
+        storeId = loaded.storeId; hasDurableIdentity = true; isReady = true; errorMessage = nil
+    }
     private func adopt(_ loaded: DurableLoaded) {
-        snapshot = loaded.snapshot; snapshotBytes = loaded.snapshotBytes; receiptReferences = loaded.receipts
+        liveBody = loaded.snapshot; liveBody.attachments = []; snapshotBytes = loaded.snapshotBytes; receiptReferences = loaded.receipts
         if let local = loaded.metadata {
             writerId = local.writerId; revision = local.revision; restoreEpoch = local.restoreEpoch; hasDurableIdentity = true
         }
         if let local = loaded.storeId { storeId = local }
     }
+}
+
+@MainActor final class LiveReceiptImage: Identifiable {
+    let id: String
+    private(set) var bytes: Data?
+    private let owner: V4Transfer<DurableVaultStorage.ExportSource>
+    init(id: String, bytes: Data, owner: V4Transfer<DurableVaultStorage.ExportSource>) { self.id = id; self.bytes = bytes; self.owner = owner }
+    func close() throws { bytes = nil; try owner.close() }
 }

@@ -24,13 +24,14 @@ internal class VaultGenerations(private val context: Context, private val db: ()
     companion object {
         private val locks = ConcurrentHashMap<String, Any>()
         private val candidatePins = ConcurrentHashMap<String,MutableSet<String>>()
+        private val receiptReadPins = ConcurrentHashMap<String,MutableMap<Pair<String,String>,Int>>()
         fun create(db: SQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_generations (id TEXT PRIMARY KEY NOT NULL, wrappedKey BLOB NOT NULL, sealedHeader BLOB NOT NULL)")
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_rows (generationId TEXT NOT NULL, domain TEXT NOT NULL, id TEXT NOT NULL, sealed BLOB NOT NULL, PRIMARY KEY(generationId,domain,id))")
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_receipts (id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL, sealed BLOB NOT NULL)")
         }
     }
-    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED, CANDIDATE_INSTALL_READY }
+    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED, CANDIDATE_INSTALL_READY, LIVE_EDIT_READY, LIVE_EDIT_WRITTEN }
     internal var fault: (Point) -> Unit = {}
     private val domains = listOf("expenses", "attachments") + FinanceData.limits.keys
     private fun <T> locked(block: () -> T): T = synchronized(locks.getOrPut(db().path) { Any() }, block)
@@ -131,8 +132,8 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             require(Regex("[0-9a-f]{64}").matches(Wire.string(it,"digest")))
         }
     }
-    private fun setHeader(id: String, raw: ByteArray, snapshot: Snapshot) {
-        val h=JSONObject().put("format",1).put("generationId",id).put("vaultId",snapshot.vaultId).put("snapshotId",snapshot.snapshotId).put("createdAt",snapshot.createdAt).put("digest",digest(snapshot))
+    private fun setHeader(id: String, raw: ByteArray, snapshot: Snapshot, membership: String = digest(snapshot)) {
+        val h=JSONObject().put("format",1).put("generationId",id).put("vaultId",snapshot.vaultId).put("snapshotId",snapshot.snapshotId).put("createdAt",snapshot.createdAt).put("digest",membership)
         check(db().update("vault_generations",ContentValues().apply {put("sealedHeader",seal(h,SecretKeySpec(raw,"AES"),"header:$id"))},"id=?",arrayOf(id))==1)
     }
     private fun read(id: String): Snapshot {
@@ -272,6 +273,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
                 check()
             } catch(error: Throwable) {try {close()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)};throw error}
         }
+        fun identity(): List<Pair<String,Pair<Long,Long>>> = pins.map {(name,fd,_)->android.system.Os.fstat(fd).let {name to (it.st_dev to it.st_ino)}}
         fun pinReceiptRoot() {
             val name=java.io.File(context.noBackupFilesDir,LocalReceiptBlob.ROOT_NAME).absolutePath
             if(pins.none {it.first==name}) pins+=Triple(name,android.system.Os.open(name,
@@ -588,8 +590,9 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         return state()
     }
     private fun collect(current: State) {
-        val protected = setOfNotNull(current.active,current.previous?.id) + candidatePins[db().path].orEmpty()
-        val liveGroups=mutableSetOf<String>()
+        val reads=receiptReadPins[db().path].orEmpty().keys
+        val protected = setOfNotNull(current.active,current.previous?.id) + candidatePins[db().path].orEmpty() + reads.map {it.first}
+        val liveGroups=reads.map {it.second}.toMutableSet()
         protected.forEach {id ->
             val raw=key(id)
             try {db().rawQuery("SELECT id,sealed FROM vault_rows WHERE generationId=? AND domain='attachments'",arrayOf(id)).use {rows ->while(rows.moveToNext()) {
@@ -620,6 +623,84 @@ internal class VaultGenerations(private val context: Context, private val db: ()
                 if(!hasGroups) {db().delete("vault_rows","generationId=?",arrayOf(id));db().delete("vault_generations","id=?",arrayOf(id))}
             }
         }
+    }
+    private data class LiveIdentity(val owner:VaultGenerations,val database:SQLiteDatabase,
+        val namespace:List<Pair<String,Pair<Long,Long>>>,val state:State,val token:String,val envelope:String,val digest:String)
+    private fun envelope(id:String)=db().rawQuery("SELECT wrappedKey FROM vault_generations WHERE id=?",arrayOf(id)).use {check(it.moveToFirst());CloudContract.sha256(it.getBlob(0))}
+    private fun live(namespace:CandidateNamespace):LiveVaultState {
+        namespace.check();val current=state();check(!current.pending);val token=checkNotNull(get("activeState"));val wrapped=envelope(current.active)
+        var result:LiveVaultState?=null
+        readVerified(current.active,capture={body,descriptors,_,metadata ->
+            fun <T> frozen(items:List<T>):List<T> = java.util.Collections.unmodifiableList(ArrayList(items))
+            val f=body.finance
+            result=LiveVaultState(frozen(body.expenses),f.copy(budgets=frozen(f.budgets),incomeSources=frozen(f.incomeSources),incomeEntries=frozen(f.incomeEntries),
+                savingsGoals=frozen(f.savingsGoals),savingsEntries=frozen(f.savingsEntries),recurringExpenses=frozen(f.recurringExpenses)),
+                frozen(descriptors.map {ReceiptInfo(it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)}),
+                LiveIdentity(this,namespace.database,namespace.identity(),current,token,wrapped,metadata.digest))
+        })
+        namespace.check();check(state()==current && get("activeState")==token && envelope(current.active)==wrapped)
+        return checkNotNull(result)
+    }
+    private fun checkLive(source:LiveIdentity,namespace:CandidateNamespace) {
+        namespace.check()
+        check(source.owner===this && source.database===namespace.database && source.namespace==namespace.identity()) {"Displayed vault namespace changed"}
+        check(state()==source.state && get("activeState")==source.token && envelope(source.state.active)==source.envelope) {"Your vault changed. Reopen the expense before editing."}
+        key(source.state.active).fill(0) // Retrieve the current existing Keystore key, never provision it.
+    }
+    internal fun liveState():LiveVaultState = locked {ensure();CandidateNamespace().use {namespace->transaction {live(namespace)}}}
+    /** Existing metadata-only edit transaction. Retained descriptors are read from authenticated storage, never reconstructed from UI. */
+    internal fun editExpense(expected:LiveVaultState,expense:Expense,operation:RestoreOperation):LiveVaultState = locked {
+        val source=expected.source as? LiveIdentity ?: error("Invalid live source")
+        try {CandidateNamespace().use {namespace -> transaction {
+            operation.check();checkLive(source,namespace)
+            var result:LiveVaultState?=null
+            readVerified(source.state.active,capture={body,descriptors,raw,metadata ->
+                check(metadata.digest==source.digest);require(body.expenses.any {it.id==expense.id}) {"Expense no longer exists"}
+                val changed=body.copy(expenses=body.expenses.map {if(it.id==expense.id) expense else it})
+                changed.validate();requireReceiptCapacity(changed,descriptors)
+                val membership=digest(changed.vaultId,changed.expenses,descriptors.map {it.id to receiptMetadata(it)},changed.finance)
+                fault(Point.LIVE_EDIT_READY);operation.check();checkLive(source,namespace)
+                writeRows(source.state.active,raw,rowMap(changed,descriptors));setHeader(source.state.active,raw,changed,membership)
+                setState(source.state.copy(revision=Math.addExact(source.state.revision,1)))
+                fault(Point.LIVE_EDIT_WRITTEN);operation.check()
+                result=live(namespace);operation.check();namespace.check()
+                operation.beginPublication() // Transaction commit owns the outcome after this boundary.
+            })
+            checkNotNull(result)
+        }}} finally {operation.finish()}
+    }
+    internal fun openReceipt(expected:LiveVaultState,id:String,cancel:LocalReceiptBlob.Cancellation):OwnedReceipt = locked {
+        val source=expected.source as? LiveIdentity ?: error("Invalid live source")
+        var result:OwnedReceipt?=null
+        try {CandidateNamespace().use {namespace -> transaction {
+            checkLive(source,namespace);cancel.check()
+            readVerified(source.state.active,capture={body,descriptors,raw,metadata ->
+                check(metadata.digest==source.digest);val selected=descriptors.single {it.id==id}
+                val group=LocalReceiptBlob.reopen(context,raw,body.vaultId,selected.generationId,descriptors.filter {it.generationId==selected.generationId})
+                try {
+                    cancel.check();checkLive(source,namespace)
+                    val path=namespace.path;val pin=source.state.active to selected.generationId
+                    val pins=receiptReadPins.getOrPut(path) {mutableMapOf()};pins[pin]=Math.addExact(pins[pin] ?: 0,1)
+                    result=object:OwnedReceipt {
+                        private var open=true
+                        override fun <T> withBytes(block:(ByteArray)->T):T = synchronized(this) {
+                            check(open);cancel.check();val bytes=group.read(group.handles.single {it.descriptor==selected})
+                            try {cancel.check();val value=block(bytes);cancel.check();value} finally {bytes.fill(0)}
+                        }
+                        override fun close() {synchronized(this) {
+                            if(!open) return;open=false
+                            synchronized(locks.getOrPut(path) {Any()}) {
+                                // Keep GC protection if a real close cannot establish release.
+                                group.release()
+                                val held=checkNotNull(receiptReadPins[path]);val count=checkNotNull(held[pin]);if(count==1) held.remove(pin) else held[pin]=count-1
+                                if(held.isEmpty()) receiptReadPins.remove(path)
+                            }
+                        }}
+                    }
+                } catch(error:Throwable) {try {group.release()} catch(cleanup:Throwable) {error.addSuppressed(cleanup)};throw error}
+            })
+            cancel.check();checkNotNull(result)
+        }}} catch(error:Throwable) {try {result?.close()} catch(cleanup:Throwable) {error.addSuppressed(cleanup)};throw error}
     }
     fun snapshot(): Snapshot = locked {val current=ensure();transaction {read(current.active)}}
     internal fun verifiedMetadata(): VerifiedMetadata = locked {val current=ensure();transaction {readVerified(current.active)}}

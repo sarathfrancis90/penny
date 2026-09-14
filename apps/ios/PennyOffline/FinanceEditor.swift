@@ -62,7 +62,7 @@ struct FinanceEditor: View {
         var b = Budget(), i = IncomeSource(), g = SavingsGoal(), r = RecurringExpense()
         switch target { case .budget(let v): b = v; case .income(let v): i = v; case .goal(let v): g = v; case .recurring(let v): r = v }
         _budget = State(initialValue: b); _income = State(initialValue: i); _goal = State(initialValue: g); _recurring = State(initialValue: r)
-        _inputs = State(initialValue: ["limit": store.snapshot.budgets.contains(where: { $0.id == b.id }) ? Money.input(b.limitMinor) : "", "threshold": Money.input(Int64(b.alertThresholdBps)), "gross": store.snapshot.incomeSources.contains(where: { $0.id == i.id }) ? Money.input(i.grossMinor) : "", "net": i.netMinor.map(Money.input) ?? "", "target": store.snapshot.savingsGoals.contains(where: { $0.id == g.id }) ? Money.input(g.targetMinor) : "", "opening": Money.input(g.openingMinor), "monthly": Money.input(g.monthlyContributionMinor), "recurring": store.snapshot.recurringExpenses.contains(where: { $0.id == r.id }) ? Money.input(r.amountMinor) : ""])
+        _inputs = State(initialValue: ["limit": store.liveBody.budgets.contains(where: { $0.id == b.id }) ? Money.input(b.limitMinor) : "", "threshold": Money.input(Int64(b.alertThresholdBps)), "gross": store.liveBody.incomeSources.contains(where: { $0.id == i.id }) ? Money.input(i.grossMinor) : "", "net": i.netMinor.map(Money.input) ?? "", "target": store.liveBody.savingsGoals.contains(where: { $0.id == g.id }) ? Money.input(g.targetMinor) : "", "opening": Money.input(g.openingMinor), "monthly": Money.input(g.monthlyContributionMinor), "recurring": store.liveBody.recurringExpenses.contains(where: { $0.id == r.id }) ? Money.input(r.amountMinor) : ""])
     }
     private func money(_ label: String, _ key: String) -> some View {
         TextField(label, text: Binding(get: { inputs[key] ?? "" }, set: { inputs[key] = $0 })).keyboardType(.decimalPad).accessibilityIdentifier("financeAmount-" + key)
@@ -188,10 +188,10 @@ struct LedgerEditor: View {
         case .savings(let value): s = value
         case .incomeDue(let id, let date):
             i.sourceId = id; i.occurrenceDate = date
-            if let source = store.snapshot.incomeSources.first(where: { $0.id == id }) { i.amountMinor = source.netMinor ?? source.grossMinor }
+            if let source = store.liveBody.incomeSources.first(where: { $0.id == id }) { i.amountMinor = source.netMinor ?? source.grossMinor }
         }
         _income = State(initialValue: i); _savings = State(initialValue: s)
-        let existing = target.isIncome ? store.snapshot.incomeEntries.contains(where: { $0.id == i.id }) : store.snapshot.savingsEntries.contains(where: { $0.id == s.id })
+        let existing = target.isIncome ? store.liveBody.incomeEntries.contains(where: { $0.id == i.id }) : store.liveBody.savingsEntries.contains(where: { $0.id == s.id })
         let initial: String
         if case .incomeDue = target { initial = i.amountMinor > 0 ? Money.input(i.amountMinor) : "" }
         else { initial = existing ? Money.input(target.isIncome ? i.amountMinor : s.amountMinor) : "" }
@@ -202,7 +202,7 @@ struct LedgerEditor: View {
             Form {
                 Section {
                     if target.isIncome {
-                        Text(store.snapshot.incomeSources.first(where: { $0.id == income.sourceId })?.name ?? "Income")
+                        Text(store.liveBody.incomeSources.first(where: { $0.id == income.sourceId })?.name ?? "Income")
                         CivilTextField(title: "Received date", value: $income.receivedDate)
                         if let occurrence = income.occurrenceDate { LabeledContent("Reviewed occurrence", value: occurrence) }
                         TextField("Actual received amount in CAD", text: $amount).keyboardType(.decimalPad).accessibilityIdentifier("ledgerAmount")

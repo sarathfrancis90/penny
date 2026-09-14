@@ -22,11 +22,13 @@ data class RestorePreviewSummary(val counts: Map<String,Int>, val expenseTotalMi
 
 data class VaultUiState(val expenses: List<Expense> = emptyList(), val ready: Boolean = false, val busy: Boolean = false,
     val message: String? = null, val fatalError: Boolean = false, val nano: NanoState = NanoState.CHECKING, val finance: FinanceData = FinanceData(),
-    val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<Attachment> = emptyList(), val categorySuggestion: String? = null, val restoreSummary: RestorePreviewSummary? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null, val restoreBinding: String? = null)
+    val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<ReceiptInfo> = emptyList(), val categorySuggestion: String? = null, val restoreSummary: RestorePreviewSummary? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null, val restoreBinding: String? = null)
 
 class PennyViewModel(application: Application, private val ai: ReceiptIntelligence, private val store: VaultStore = VaultStore(application), private val restoreInput: (Uri)->java.io.InputStream = {checkNotNull(application.contentResolver.openInputStream(it))}) : AndroidViewModel(application) {
     constructor(application: Application) : this(application,LocalIntelligence())
     private val mutex = Mutex()
+    @Volatile private var live:LiveVaultState?=null
+    internal fun openReceipt(id:String,cancel:LocalReceiptBlob.Cancellation):OwnedReceipt = store.openReceipt(checkNotNull(live),id,cancel)
     private val restoreOperation = java.util.concurrent.atomic.AtomicReference<RestoreOperation?>()
     private val restoreLock=Any()
     private var candidate: VaultGenerations.PreparedGeneration?=null
@@ -56,23 +58,28 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
         }
     } }
     fun clearMessage() { mutable.value = mutable.value.copy(message = null) }
-    private fun refresh(message: String? = null) { val snapshot = store.snapshot(); mutable.value = mutable.value.copy(expenses=snapshot.expenses,attachments=snapshot.attachments,finance=snapshot.finance,ready=true,fatalError=false,message=message) }
+    private fun adopt(value:LiveVaultState,message:String? = null) {live=value;mutable.value=mutable.value.copy(expenses=value.expenses,attachments=value.receipts,finance=value.finance,ready=true,fatalError=false,message=message)}
+    private fun refresh(message: String? = null) = adopt(store.liveState(),message)
     fun saveFinance(record: FinanceRecord, done: ()->Unit) = operation { store.saveFinance(record); refresh("Saved on this device"); withContext(Dispatchers.Main) { done() } }
     fun deleteFinance(record: FinanceRecord, done: ()->Unit) = operation { store.saveFinance(record,true); refresh("Record removed"); withContext(Dispatchers.Main) { done() } }
     fun postRecurring(templateId: String,date: String,done: ()->Unit) = operation { store.postRecurring(templateId,date); refresh("Expense recorded once"); withContext(Dispatchers.Main) { done() } }
     fun postIncome(sourceId: String,date: String,receivedDate: String,amount: Long,note: String,done: ()->Unit) = operation { store.postIncome(sourceId,date,receivedDate,amount,note); refresh("Received income recorded once"); withContext(Dispatchers.Main) { done() } }
     fun exportCsv(uri: Uri) = operation { val data = FinanceMath.csv(store.snapshot()); getApplication<Application>().contentResolver.openOutputStream(uri,"wt").use { output -> checkNotNull(output); output.write(data); output.flush() }; mutable.value=mutable.value.copy(message="Expense CSV saved to your chosen file") }
     fun consumeReceipt() { receiptGeneration.incrementAndGet(); mutable.value = mutable.value.copy(receipt = null, receiptBytes = null, receiptOptimized = false, categorySuggestion = null) }
-    fun save(expense: Expense, done: () -> Unit) = operation {
-        val saved = store.save(expense, mutable.value.receiptBytes?.let { listOf(Attachment.fromBytes(expense.id, it)) } ?: emptyList())
-        mutable.value = mutable.value.copy(expenses = saved.expenses, attachments = saved.attachments, finance = saved.finance, message = "Saved on this device")
+    fun save(expense: Expense, originalFingerprint: String? = null, done: () -> Unit) = operation {
+        val source=checkNotNull(live)
+        require(originalFingerprint==null || source.expenses.singleOrNull {it.id==expense.id}?.let {CloudContract.sha256(StrictJson.bytes(it.json()))}==originalFingerprint) {"The expense changed while this editor was open. Reopen it before saving."}
+        if(mutable.value.receiptBytes==null && source.expenses.any {it.id==expense.id}) {
+            adopt(store.editExpense(source,expense),"Saved on this device")
+        } else {
+            // Explicit compatibility mutation: additions carry their complete receipt bytes.
+            store.save(expense,mutable.value.receiptBytes?.let {listOf(Attachment.fromBytes(expense.id,it))} ?: emptyList())
+            refresh("Saved on this device")
+        }
         withContext(Dispatchers.Main) { done() }
     }
-    fun delete(expense: Expense) = operation {
-        val saved = store.delete(expense.id)
-        mutable.value = mutable.value.copy(expenses = saved.expenses, attachments = saved.attachments, finance = saved.finance, message = "Expense deleted")
-    }
-    fun deleteReceipt(id: String) = operation { store.deleteAttachment(id); mutable.value = mutable.value.copy(attachments = store.attachments(), message = "Receipt removed") }
+    fun delete(expense: Expense) = operation {store.delete(expense.id);refresh("Expense deleted")}
+    fun deleteReceipt(id: String) = operation {store.deleteAttachment(id);refresh("Receipt removed")}
     fun setReceiptLocale(locale: String) {
         require(locale in listOf("en-CA","fr-CA"))
         receiptGeneration.incrementAndGet()

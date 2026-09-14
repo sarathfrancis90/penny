@@ -79,10 +79,20 @@ import XCTest
         XCTAssertTrue(app.images["receiptOriginal"].waitForExistence(timeout: 5))
         let screenshot = XCTAttachment(screenshot: app.screenshot()); screenshot.name = "Retained receipt after relaunch"; screenshot.lifetime = .keepAlways; add(screenshot)
         app.buttons["Done"].tap()
+        app.swipeDown()
+        let merchant = app.textFields["merchantField"]
+        XCTAssertTrue(merchant.waitForExistence(timeout: 5)); merchant.tap()
+        merchant.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: "Receipt Test".count) + "Receipt Metadata Edit")
+        app.buttons["saveExpense"].tap()
+        XCTAssertTrue(app.buttons["expense-Receipt Metadata Edit"].waitForExistence(timeout: 5))
+        app.terminate(); app.launch()
+        app.buttons["expense-Receipt Metadata Edit"].tap(); app.swipeUp()
+        XCTAssertTrue(receipt.waitForExistence(timeout: 5)); receipt.tap()
+        XCTAssertTrue(app.images["receiptOriginal"].waitForExistence(timeout: 5)); app.buttons["Done"].tap()
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'removeReceipt-'")).firstMatch.tap()
         app.buttons["saveExpense"].tap()
         app.terminate(); app.launch()
-        app.buttons["expense-Receipt Test"].tap(); app.swipeUp()
+        app.buttons["expense-Receipt Metadata Edit"].tap(); app.swipeUp()
         XCTAssertFalse(receipt.exists)
     }
 

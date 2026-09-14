@@ -19,14 +19,14 @@ final class ObservedSavingsMigrationTests: XCTestCase {
         try store.restore(imported)
         let reopened = VaultStore(directory: directory, key: key)
         XCTAssertTrue(reopened.isReady)
-        XCTAssertEqual(try encoder.encode(reopened.snapshot), try encoder.encode(expected))
-        XCTAssertEqual(reopened.snapshot.savingsGoals.count, 3)
-        XCTAssertEqual(reopened.snapshot.savingsGoals.map(\.openingMinor).sorted(), [0, 1_234, 12_500])
-        XCTAssertEqual(reopened.snapshot.savingsGoals.reduce(0) { $0 + $1.openingMinor }, 13_734)
-        XCTAssertTrue(reopened.snapshot.incomeEntries.isEmpty)
-        XCTAssertTrue(reopened.snapshot.savingsEntries.isEmpty)
-        XCTAssertEqual(FinanceEngine.report(reopened.snapshot, month: "2026-09").received, 0)
-        XCTAssertEqual(reopened.snapshot.attachments.count, expected.attachments.count)
-        for (actual, source) in zip(reopened.snapshot.attachments, expected.attachments) { XCTAssertEqual(try actual.bytes(), try source.bytes()) }
+        XCTAssertEqual(try encoder.encode((try reopened.compatibilitySnapshot())), try encoder.encode(expected))
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).savingsGoals.count, 3)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).savingsGoals.map(\.openingMinor).sorted(), [0, 1_234, 12_500])
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).savingsGoals.reduce(0) { $0 + $1.openingMinor }, 13_734)
+        XCTAssertTrue((try reopened.compatibilitySnapshot()).incomeEntries.isEmpty)
+        XCTAssertTrue((try reopened.compatibilitySnapshot()).savingsEntries.isEmpty)
+        XCTAssertEqual(FinanceEngine.report((try reopened.compatibilitySnapshot()), month: "2026-09").received, 0)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).attachments.count, expected.attachments.count)
+        for (actual, source) in zip((try reopened.compatibilitySnapshot()).attachments, expected.attachments) { XCTAssertEqual(try actual.bytes(), try source.bytes()) }
     }
 }

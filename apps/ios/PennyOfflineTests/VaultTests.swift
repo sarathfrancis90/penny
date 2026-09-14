@@ -227,21 +227,21 @@ final class VaultTests: XCTestCase {
         XCTAssertNil(encrypted.range(of: bytes))
         XCTAssertNil(encrypted.range(of: Data(receipt.dataBase64.utf8)))
         let reopened = VaultStore(directory: directory, key: key)
-        XCTAssertEqual(reopened.receipts(for: expense.id), [receipt])
+        XCTAssertEqual(try reopened.receipts(for: expense.id), [receipt])
         let backupKey = BackupArchive.newRecoveryKey()
-        let backup = try BackupArchive.export(reopened.snapshot, recoveryKey: backupKey)
+        let backup = try BackupArchive.export((try reopened.compatibilitySnapshot()), recoveryKey: backupKey)
         let verified = try BackupArchive.restore(backup, recoveryKey: backupKey)
         XCTAssertEqual(verified.attachments, [receipt])
         let before = try Data(contentsOf: file)
         XCTAssertThrowsError(try BackupArchive.restore(backup, recoveryKey: BackupArchive.newRecoveryKey()))
         XCTAssertEqual(try Data(contentsOf: file), before)
         try reopened.save(expense, attachments: [])
-        XCTAssertTrue(VaultStore(directory: directory, key: key).snapshot.attachments.isEmpty)
+        XCTAssertTrue((try VaultStore(directory: directory, key: key).compatibilitySnapshot()).attachments.isEmpty)
         try reopened.restore(verified)
-        XCTAssertEqual(try VaultStore(directory: directory, key: key).snapshot.attachments[0].bytes(), bytes)
+        XCTAssertEqual(try (try VaultStore(directory: directory, key: key).compatibilitySnapshot()).attachments[0].bytes(), bytes)
         try reopened.delete(expense.id)
         let deleted = VaultStore(directory: directory, key: key)
-        XCTAssertTrue(deleted.expenses.isEmpty); XCTAssertTrue(deleted.snapshot.attachments.isEmpty)
+        XCTAssertTrue(deleted.expenses.isEmpty); XCTAssertTrue((try deleted.compatibilitySnapshot()).attachments.isEmpty)
     }
     @MainActor func testReceiptDecoderAndCapacityRefusal() throws {
         let owner = UUID().uuidString.lowercased()
@@ -263,15 +263,15 @@ final class VaultTests: XCTestCase {
             let expense = try fixture()
             let receipt = try ReceiptAttachment(data: sharedFile("receipt.png"), expenseId: expense.id)
             try store.save(expense, attachments: [receipt])
-            let original = store.snapshot
+            let original = (try store.compatibilitySnapshot())
             let blocked = VaultStore(directory: directory, key: key, commitCheckpoint: { stage in
                 if stage == failureStage { throw SimulatedFailure.diskFull }
             })
             XCTAssertThrowsError(try blocked.restore(VaultSnapshot()))
-            XCTAssertEqual(blocked.snapshot.attachments, original.attachments)
+            XCTAssertEqual((try blocked.compatibilitySnapshot()).attachments, original.attachments)
             let reopened = VaultStore(directory: directory, key: key)
             XCTAssertEqual(reopened.expenses, original.expenses)
-            XCTAssertEqual(reopened.snapshot.attachments, original.attachments)
+            XCTAssertEqual((try reopened.compatibilitySnapshot()).attachments, original.attachments)
         }
     }
 

@@ -87,7 +87,7 @@ import XCTest
         XCTAssertEqual(reopened.writerId, writer); XCTAssertEqual(reopened.revision, revision); XCTAssertEqual(reopened.restoreEpoch, epoch)
         try reopened.save(Expense(merchant: "Later", amountMinor: 100, expenseDate: "2026-01-01", category: Categories.other))
         XCTAssertEqual(VaultStore(directory: dir, key: deviceKey).revision, revision + 1)
-        try reopened.restore(reopened.snapshot)
+        try reopened.restore((try reopened.compatibilitySnapshot()))
         XCTAssertEqual(reopened.writerId, writer); XCTAssertNotEqual(reopened.restoreEpoch, epoch)
         XCTAssertEqual(VaultStore(directory: dir, key: deviceKey).restoreEpoch, reopened.restoreEpoch)
         let legacy = directory(); defer { try? FileManager.default.removeItem(at: legacy) }
@@ -97,7 +97,7 @@ import XCTest
         let upgraded = VaultStore(directory: legacy, key: deviceKey); XCTAssertTrue(upgraded.isReady)
         try upgraded.ensurePublicationIdentity()
         let again = VaultStore(directory: legacy, key: deviceKey)
-        XCTAssertEqual(again.writerId, upgraded.writerId); XCTAssertEqual(again.snapshot.attachments, upgraded.snapshot.attachments)
+        XCTAssertEqual(again.writerId, upgraded.writerId); XCTAssertEqual((try again.compatibilitySnapshot()).attachments, (try upgraded.compatibilitySnapshot()).attachments)
         enum Failure: Error { case write }
         let failed = VaultStore(directory: dir, key: deviceKey, commitCheckpoint: { if $0 == .committed { throw Failure.write } })
         let previousRevision = failed.revision, previousEpoch = failed.restoreEpoch
@@ -164,7 +164,7 @@ import XCTest
                     guard at == phase else { return }
                     if change == "account" { provider.switchAccount("different-opaque-account"); provider.switchAccount("synthetic-opaque-account-01") }
                     else if change == "cancel" { cloud.cancel() }
-                    else { try! vault.restore(vault.snapshot) }
+                    else { try! vault.restore((try vault.compatibilitySnapshot())) }
                 }
                 await cloud.publish()
                 XCTAssertEqual(try saved(vault), last, "\(phase) \(change)")
@@ -179,14 +179,14 @@ import XCTest
         provider.objects = [manifest.manifestName: try file("cloud-manifest-v1.pennymanifest"), manifest.snapshotName: try file("cloud-snapshot-v1.pennybackup")]
         let wrongKey = BackupArchive.newRecoveryKey()
         let wrong = CloudPublication(vault: vault, provider: provider, keyReader: { wrongKey })
-        await wrong.discover(); XCTAssertTrue(wrong.history.isEmpty); XCTAssertNotNil(wrong.historyWarning); XCTAssertEqual(vault.snapshot.recordCount, 0)
+        await wrong.discover(); XCTAssertTrue(wrong.history.isEmpty); XCTAssertNotNil(wrong.historyWarning); XCTAssertEqual((try vault.compatibilitySnapshot()).recordCount, 0)
         let cloud = CloudPublication(vault: vault, provider: provider, keyReader: { key })
         await cloud.discover(); XCTAssertEqual(cloud.history, [manifest]); XCTAssertFalse(cloud.enabled)
         await cloud.prepareRestore(manifest); let stale = try XCTUnwrap(cloud.preview)
         try vault.save(Expense(merchant: "Keep this edit", amountMinor: 100, expenseDate: "2026-01-01", category: Categories.other))
-        await cloud.confirmRestore(stale); XCTAssertEqual(vault.snapshot.expenses.first?.merchant, "Keep this edit")
+        await cloud.confirmRestore(stale); XCTAssertEqual((try vault.compatibilitySnapshot()).expenses.first?.merchant, "Keep this edit")
         await cloud.prepareRestore(manifest); await cloud.confirmRestore(try XCTUnwrap(cloud.preview))
-        XCTAssertEqual(vault.snapshot.recordCount, 10); XCTAssertFalse(cloud.enabled)
+        XCTAssertEqual((try vault.compatibilitySnapshot()).recordCount, 10); XCTAssertFalse(cloud.enabled)
         XCTAssertEqual(provider.objects.count, 2)
     }
     func testDiscoveryBoundsAndWriterConflictsDoNotChooseLatest() async throws {
@@ -202,7 +202,7 @@ import XCTest
         var secondWriter = first; secondWriter.manifestId = UUID().uuidString.lowercased(); secondWriter.writerId = UUID().uuidString.lowercased()
         for manifest in [first, conflict, secondWriter] { provider.objects[manifest.manifestName] = try CloudWire.seal(manifest, key: key) }
         await cloud.discover(); XCTAssertNil(cloud.error); XCTAssertEqual(cloud.groups.count, 2)
-        XCTAssertTrue(cloud.groups.contains { $0.hasConflict }); XCTAssertNil(cloud.preview); XCTAssertEqual(vault.snapshot.recordCount, 0)
+        XCTAssertTrue(cloud.groups.contains { $0.hasConflict }); XCTAssertNil(cloud.preview); XCTAssertEqual((try vault.compatibilitySnapshot()).recordCount, 0)
     }
     func testCorruptReadbackRotatedKeyAndLocalStatusWriteFailurePreserveLastGood() async throws {
         for phase in ["snapshotDownload", "manifestDownload"] {
@@ -269,7 +269,7 @@ import XCTest
         await cloud.discover(); XCTAssertEqual(cloud.history, [manifest])
         await cloud.prepareRestore(manifest); await cloud.confirmRestore(try XCTUnwrap(cloud.preview))
         XCTAssertNil(cloud.error)
-        let result = VaultStore(directory: dir, key: deviceKey).snapshot
+        let result = (try VaultStore(directory: dir, key: deviceKey).compatibilitySnapshot())
         XCTAssertEqual(result.vaultId, expected.vaultId)
         XCTAssertEqual(result.expenses.sorted { $0.id < $1.id }, expected.expenses.sorted { $0.id < $1.id })
         XCTAssertEqual(result.attachments.sorted { $0.id < $1.id }, expected.attachments.sorted { $0.id < $1.id })

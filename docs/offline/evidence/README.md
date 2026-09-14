@@ -64,3 +64,8 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [All required checks at b22b4f6](hosted-required-b22b4f6.json): all23 exact-source checks succeeded, including retained Flutter iOS. Later changes require their own checks.
 
 - [Native Files v4 export integration](v4-files-export-integration.json): current-cap exports, actual local system picker saves, corrected iOS plist keys, Android request binding/disposal and separately pinned passing/failing test overlays. Cloud/physical acceptance remains open.
+
+- [Hosted native e7fc1d2](hosted-native-e7fc1d2.json): all native jobs passed; iOS130/130, Android90/98 on each runtime with eight named skips, and separate process/recovery phases. Files export is a later checkpoint.
+
+- [Receipt-free live-state integration](live-state-integration.json): paired native open/list/view/edit, retained ciphertext, stale-form protection and explicit complete compatibility paths at unchanged caps. Distinct failing/passing test overlays are preserved.
+- [Android hosted Files readiness correction](../../../apps/android/evidence/files-hosted-readiness.json): historical59877b1 fails one picker-readiness method on each runtime; test-only correction passes locally on both with unchanged live production APK.

@@ -76,7 +76,7 @@ struct CloudBackupView: View {
                 guard let selected = cloud.preview else { return }; run { await cloud.confirmRestore(selected) }
             }
         } message: {
-            Text("This downloaded, authenticated backup contains \(cloud.preview?.snapshot.recordCount ?? 0) financial records and \(cloud.preview?.snapshot.attachments.count ?? 0) receipts. It will replace all \(vault.snapshot.recordCount) local records. Expense total: \(Money.formatted(cloud.preview?.snapshot.expenses.reduce(0, { $0 + $1.amountMinor }) ?? 0)). Back up current data first if needed.")
+            Text("This downloaded, authenticated backup contains \(cloud.preview?.snapshot.recordCount ?? 0) financial records and \(cloud.preview?.snapshot.attachments.count ?? 0) receipts. It will replace all \(vault.liveBody.recordCount) local records. Expense total: \(Money.formatted(cloud.preview?.snapshot.expenses.reduce(0, { $0 + $1.amountMinor }) ?? 0)). Back up current data first if needed.")
         }
         .alert("Enable automatic encrypted backups?", isPresented: $confirmAutomatic) {
             Button("Enable automatic backup") { backup.setAutomatic(true) }

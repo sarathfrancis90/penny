@@ -45,17 +45,17 @@ import XCTest
         let staleRestore = try await vault.prepareWrite(snapshot, restoring: true)
         try await vault.restoreAsync(snapshot)
         XCTAssertThrowsError(try vault.apply(staleRestore))
-        XCTAssertEqual(VaultStore(directory: directory, key: key).snapshot.expenses, snapshot.expenses)
+        XCTAssertEqual((try VaultStore(directory: directory, key: key).compatibilitySnapshot()).expenses, snapshot.expenses)
         let failing = VaultStore(directory: directory, key: key, commitCheckpoint: { stage in if stage == .committed { throw VerifiedBackupExport.Failure.verification } })
         var changed = snapshot; changed.expenses[0].merchant = "Must roll back"
         do { try await failing.replaceAsync(changed); XCTFail("Injected write failure") } catch {}
-        XCTAssertEqual(VaultStore(directory: directory, key: key).snapshot.expenses, snapshot.expenses)
+        XCTAssertEqual((try VaultStore(directory: directory, key: key).compatibilitySnapshot()).expenses, snapshot.expenses)
         var recurring = RecurringExpense(); recurring.merchant = "Once"; recurring.amountMinor = 100
         recurring.schedule.startDate = "2026-01-01"
         try await vault.saveAsync(recurring)
         try await vault.postRecurringAsync(recurring.id, occurrence: "2026-01-01", asOf: "2026-01-01")
         try await vault.postRecurringAsync(recurring.id, occurrence: "2026-01-01", asOf: "2026-01-01")
-        XCTAssertEqual(vault.snapshot.expenses.filter { $0.recurringTemplateId == recurring.id }.count, 1)
+        XCTAssertEqual((try vault.compatibilitySnapshot()).expenses.filter { $0.recurringTemplateId == recurring.id }.count, 1)
     }
     func testCancelledRestoreCompletionCannotClearNewArchiveAction() {
         var state = VaultActionState()
@@ -74,12 +74,12 @@ import XCTest
         let item = try Expense(merchant: "Kept", amountMinor: 100, expenseDate: "2026-01-01", category: Categories.other)
         try vault.save(item)
         let revision = vault.revision, bytes = vault.snapshotBytes
-        var tooMany = vault.snapshot; tooMany.expenses = Array(repeating: item, count: 10_001)
+        var tooMany = (try vault.compatibilitySnapshot()); tooMany.expenses = Array(repeating: item, count: 10_001)
         XCTAssertThrowsError(try vault.replace(tooMany)) { error in
             guard case ExpenseError.recordCapacity("expenses", 10_000) = error else { return XCTFail("Expected specific expense capacity error") }
         }
         let reopened = VaultStore(directory: directory, key: key)
-        XCTAssertEqual(reopened.snapshot.expenses, [item]); XCTAssertEqual(reopened.revision, revision)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).expenses, [item]); XCTAssertEqual(reopened.revision, revision)
         XCTAssertEqual(reopened.snapshotBytes, bytes)
     }
 }

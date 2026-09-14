@@ -132,8 +132,16 @@ Do not flatten description plus notes without preserving both originals; do not 
 | Backup/recovery | User-held recovery key confirmed, no key in backup, cross-platform restore, remote upload completion, account switch and quota handling |
 | AI | Licensed models, supported real-device runs, disabled/download/unavailable states, prompt injection/ambiguous receipt corpus, cancellation/resources |
 | Accessibility/design | VoiceOver/TalkBack, large text, reduced motion/transparency, dark mode, smaller phones/tablets, focus order and touch targets |
-| Performance | Measured 10k/50k expense and receipt corpus; agreed cold-open/save/search/backup latency, peak memory, battery and storage targets |
+| Performance | Qualify the supported 10k-expense /100-receipt /8 MiB aggregate profile: cold-open/save/search/backup latency, peak memory, storage and recovery. Physical battery evidence remains required. The 50k/Profile A target is deferred by the scope decision below. |
 | Upgrade/store | Current listing identity/version verified; same-signature upgrade migration; privacy/support metadata; signed internal builds installed and tested |
 | Retirement | No active imports/deployment/support dependencies on removed web source; legacy mobile support window documented |
 
 No simulator can establish real Foundation Models/Nano performance, hardware-backed key behavior, production cloud account recovery, battery life, or App Store/Play approval. Those claims remain open until directly tested.
+
+## Current-cap release scope decision — 2026-09-14
+
+To prioritize the requested native offline release within the remaining account allowance, qualify the existing supported limits first: 10,000 expenses, 100 receipts, 2 MiB per receipt and 8 MiB aggregate. Profile A (50,000 expenses, 5,000 receipts, 512 MiB raw receipts) and further incremental mutation work are follow-on capacity work. This amends the earlier combined 10k/50k performance gate; it does not count the 50k target as tested or passed.
+
+Frozen cloud manifest v1 with envelope1/schema3 remains a valid optional encrypted backup path within its documented 20 MiB input bound. Its complete Snapshot hydration is explicit and must be qualified at supported limits. File-based cloud v4 is deferred; it is not required to prove real-account current-cap backup/recovery. Files v4 export remains subject to correct in-place recovery when a receiving vault is unreadable or its local key is missing.
+
+This decision does not waive existing-cap performance, data safety, real-provider recovery, legacy reconciliation, accessibility, signing, hardware/privacy or store gates. Native release remains blocked until those required checks pass.

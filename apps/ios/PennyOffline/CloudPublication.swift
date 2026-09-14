@@ -110,7 +110,7 @@ struct CloudHistoryGroup: Identifiable {
     }
     private var bindingMatchesLocal: Bool {
         guard let binding = state.binding, binding.restoreEpoch == vault.restoreEpoch,
-              binding.vaultTag == (try? CloudWire.vaultTag(vault.snapshot.vaultId)),
+              binding.vaultTag == (try? CloudWire.vaultTag(vault.liveBody.vaultId)),
               let key = try? keyReader(), CloudWire.digest(Data(key.utf8)) == binding.keyTag else { return false }
         return true
     }
@@ -168,7 +168,7 @@ struct CloudHistoryGroup: Identifiable {
             let tag = try await account(id, epoch: epoch, restoreEpoch: restore, providerEpoch: providerEpoch, provider: provider)
             try await vault.ensurePublicationIdentityAsync()
             _ = try await account(id, epoch: epoch, restoreEpoch: restore, providerEpoch: providerEpoch, provider: provider, expected: tag)
-            let binding = CloudBinding(provider: provider.provider, accountTag: tag, vaultTag: try CloudWire.vaultTag(vault.snapshot.vaultId), restoreEpoch: vault.restoreEpoch, keyTag: CloudWire.digest(Data(key.utf8)))
+            let binding = CloudBinding(provider: provider.provider, accountTag: tag, vaultTag: try CloudWire.vaultTag(vault.liveBody.vaultId), restoreEpoch: vault.restoreEpoch, keyTag: CloudWire.digest(Data(key.utf8)))
             let next = CloudLocalState(binding: binding, lastGood: state.binding == binding ? state.lastGood : nil, completedAt: state.binding == binding ? state.completedAt : nil, automatic: state.binding == binding ? state.automatic : nil)
             try persist(next); state = next; phase = "Enabled · ready to back up"; finish(id)
         } catch { finish(id, failure: error) }
@@ -189,10 +189,10 @@ struct CloudHistoryGroup: Identifiable {
             // objects count too; never delete prior backups to recover capacity.
             guard existing.manifests.count < 100, existing.total <= 998 else { throw CloudFailure.historyCapacity }
             try await check()
-            try await vault.replaceAsync(vault.snapshot)
+            try await vault.replaceAsync(vault.compatibilitySnapshot())
             try await check()
             let revision = vault.revision, writer = vault.writerId
-            let staged = try await ArchiveWorker.shared.prepare(vault.snapshot, key: key)
+            let staged = try await ArchiveWorker.shared.prepare(vault.compatibilitySnapshot(), key: key)
             defer { Task { await ArchiveWorker.shared.cancel(staged) } }
             try await check()
             let snapshotBytes = staged.bytes, snapshot = staged.snapshot

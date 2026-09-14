@@ -10,9 +10,13 @@ class VaultStore(private val context: Context, databaseName: String = "penny-vau
     val writableDatabase: SQLiteDatabase get() = legacy.writableDatabase
     val readableDatabase: SQLiteDatabase get() = legacy.readableDatabase
     internal val generations = VaultGenerations(context,{writableDatabase},alias,legacy::snapshot,legacy::revision,legacy::incarnation)
-    fun all(): List<Expense> = snapshot().expenses
+    fun all(): List<Expense> = liveState().expenses
     fun attachments(): List<Attachment> = snapshot().attachments
-    fun finance(): FinanceData = snapshot().finance
+    fun finance(): FinanceData = liveState().finance
+    internal fun liveState() = generations.liveState()
+    internal fun editExpense(expected:LiveVaultState,expense:Expense,operation:RestoreOperation = RestoreOperation()) = generations.editExpense(expected,expense,operation)
+    internal fun openReceipt(expected:LiveVaultState,id:String,cancel:LocalReceiptBlob.Cancellation) = generations.openReceipt(expected,id,cancel)
+    /** Explicit aggregate compatibility boundary for legacy export and receipt-changing mutations. */
     fun snapshot(): Snapshot = generations.snapshot()
     fun vaultId(): String = generations.vaultId()
     fun revision(): Long = generations.revision()

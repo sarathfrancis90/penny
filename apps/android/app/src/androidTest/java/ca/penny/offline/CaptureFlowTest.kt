@@ -70,6 +70,11 @@ class CaptureFlowTest {
     }
     @Test fun recoveryReentryMismatchRefusesExportAndPickerCancellationKeepsVault() {
         val instrumentation=InstrumentationRegistry.getInstrumentation()
+        lateinit var model:PennyViewModel
+        compose.activityRule.scenario.onActivity {model=androidx.lifecycle.ViewModelProvider(it)[PennyViewModel::class.java]}
+        compose.waitUntil(15_000) {model.state.value.ready && !model.state.value.busy}
+        val staging=java.io.File(instrumentation.targetContext.noBackupFilesDir,CiphertextDirectory.NAME)
+        val previousFiles=staging.listFiles().orEmpty().map {it.name}.toSet()
         val key=Backup.recoveryKey(); RecoveryKeyStore(instrumentation.targetContext).confirm(key,key)
         compose.onNodeWithText("Your vault",useUnmergedTree=true).performClick()
         compose.onNodeWithTag("vault-list").performScrollToNode(hasText("Create encrypted backup"))
@@ -87,6 +92,8 @@ class CaptureFlowTest {
         assertEquals(key,RecoveryKeyStore(instrumentation.targetContext).load())
         compose.onNodeWithTag("recovery-reentry").performTextReplacement(key)
         compose.onNodeWithText("Verify and choose file",useUnmergedTree=true).performClick()
+        compose.waitUntil(15_000) {!model.state.value.busy}
+        compose.waitForIdle() // Install the request-keyed launcher before external UI polling.
         val end=System.nanoTime()+10_000_000_000
         while(instrumentation.uiAutomation.rootInActiveWindow?.packageName?.toString()?.endsWith(".documentsui")!=true && System.nanoTime()<end) Thread.sleep(50)
         assertTrue("External document picker is visible",instrumentation.uiAutomation.rootInActiveWindow?.packageName?.toString()?.endsWith(".documentsui")==true)
@@ -99,7 +106,7 @@ class CaptureFlowTest {
         }
         compose.waitUntil(10_000) { runCatching { compose.onAllNodesWithText("Create encrypted backup",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }.getOrDefault(false) }
         compose.onNodeWithTag("recovery-reentry").assertDoesNotExist()
-        assertTrue(java.io.File(instrumentation.targetContext.noBackupFilesDir,"encrypted-exports").listFiles().orEmpty().isEmpty())
+        compose.waitUntil(10_000) {staging.listFiles().orEmpty().map {it.name}.toSet()==previousFiles}
     }
     @Test fun zCameraCallbackPreparesInMemoryAndSavesReceipt() {
         val instrumentation=InstrumentationRegistry.getInstrumentation()

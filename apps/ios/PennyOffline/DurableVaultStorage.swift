@@ -25,6 +25,12 @@ struct DurableLoaded: Sendable {
     let snapshotBytes: Int, storeId: String?
     let receipts: [LocalReceiptDescriptor]
 }
+/// Authenticated live metadata. Its body is never a complete portable Snapshot.
+struct DurableLiveLoaded: Sendable {
+    let body: VaultSnapshot, metadata: LocalVaultMetadata
+    let snapshotBytes: Int, storeId: String
+    let receipts: [LocalReceiptDescriptor]
+}
 
 /// Informational verified summary, never a reusable admission or receipt capability.
 struct DurableVerifiedMetadata: Sendable {
@@ -260,7 +266,8 @@ final class DurableVaultStorage {
     private func readVerified(_ ref: DurableReference, storeId: String, key: SymmetricKey,
                               hydration: SnapshotHydration? = nil,
                               localMetadata: ((LocalVaultMetadata) -> Void)? = nil,
-                              receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil) throws -> DurableVerifiedMetadata {
+                              receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil,
+                              live: ((DurableLiveLoaded) -> Void)? = nil) throws -> DurableVerifiedMetadata {
         let (record, snapshot, receiptBytes, snapshotBytes) = try exportMetadata(ref, storeId: storeId, key: key)
         for descriptor in record.receipts {
             try autoreleasepool {
@@ -272,7 +279,28 @@ final class DurableVaultStorage {
         try hydration?.finish(snapshot, record: record, metadata: result)
         localMetadata?(record.metadata)
         record.receipts.forEach { receiptMetadata?($0) }
+        live?(DurableLiveLoaded(body: snapshot, metadata: record.metadata, snapshotBytes: snapshotBytes, storeId: storeId, receipts: record.receipts))
         return result
+    }
+    private func live(_ ref: DurableReference, storeId: String, key: SymmetricKey) throws -> DurableLiveLoaded {
+        var result: DurableLiveLoaded?
+        _ = try readVerified(ref, storeId: storeId, key: key, live: { result = $0 })
+        guard let result else { throw ExpenseError.invalidSnapshot }; return result
+    }
+    func loadLive(key: SymmetricKey, initial: LocalVaultMetadata, storeId: String) throws -> DurableLiveLoaded? {
+        guard var wire = try recoveredWire(key: key) else { return nil }
+        if !wire.starts(with: Self.prefix) {
+            // One-time inline migration must decode the old representation. Only
+            // the detached verified body survives adoption after this operation.
+            let old = try decoded(wire, key: key), metadata = old.metadata ?? initial
+            let prepared = try PreparedVaultWrite.prepare(old.snapshot, key: key, revision: metadata.revision,
+                writerId: metadata.writerId, restoreEpoch: metadata.restoreEpoch, restoring: false,
+                sourceDigest: Self.digest(wire), sourceStoreId: storeId)
+            _ = try commit(prepared, sourceDigest: Self.digest(wire), storeId: storeId, receipts: [], checkpoint: nil)
+            guard let migrated = try liveBytes() else { throw ExpenseError.lockedVault }; wire = migrated
+        }
+        let pointer = try pointer(wire, key: key)
+        return try live(pointer.current, storeId: pointer.storeId, key: key)
     }
     private static func receiptCapacity(_ snapshot: VaultSnapshot, receipts: [LocalReceiptDescriptor]) throws -> (Int, Int) {
         let receiptBytes = receipts.reduce(0, { $0 + $1.byteCount })
@@ -368,7 +396,7 @@ final class DurableVaultStorage {
             storage = try DurableVaultStorage(directory); self.key = key
             target = LocalReceiptTarget(owner: owner, digest: digest, storeId: storeId, metadata: metadata)
         }
-        func open() throws -> ExportSource {
+        func open(receiptId: String? = nil) throws -> ExportSource {
             guard !consumed else { throw LocalReceiptBlobError.closed }; consumed = true
             return try storage.leased {
                 try Task.checkCancellation()
@@ -381,8 +409,10 @@ final class DurableVaultStorage {
                 guard record.metadata.writerId == target.metadata.writerId, record.metadata.revision == target.metadata.revision,
                       record.metadata.restoreEpoch == target.metadata.restoreEpoch else { throw CloudFailure.staleRestore }
                 var pins: [ExportSource.Pin] = []
+                let receipts = record.receipts.filter { receiptId == nil || $0.id == receiptId }
+                guard receiptId == nil || receipts.count == 1 else { throw LocalReceiptBlobError.descriptor }
                 do {
-                    for generation in Set(record.receipts.map(\.generationId)).sorted() {
+                    for generation in Set(receipts.map(\.generationId)).sorted() {
                         let pin = openat(storage.fd, generation, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                         guard pin >= 0 else { throw LocalReceiptBlobError.file }
                         var info = stat()
@@ -394,9 +424,28 @@ final class DurableVaultStorage {
                     }
                     let held = pins; pins = []
                     let source = ExportSource(storage: storage, key: key, body: body,
-                        receipts: record.receipts.sorted { $0.id < $1.id }, pins: held)
+                        receipts: receipts.sorted { $0.id < $1.id }, pins: held)
                     try source.validatePins(); try Task.checkCancellation(); return source
                 } catch { for pin in pins { _ = Darwin.close(pin.fd) }; throw error }
+            }
+        }
+    }
+    final class LiveEditRequest {
+        private let storage: DurableVaultStorage, key: SymmetricKey, target: LocalReceiptTarget
+        private let currentKey: @Sendable () throws -> SymmetricKey
+        private var consumed = false
+        init(directory: URL, key: SymmetricKey, owner: UUID, digest: String?, storeId: String,
+             metadata: LocalVaultMetadata, currentKey: @escaping @Sendable () throws -> SymmetricKey,
+             hydrationCheckpoint: (() throws -> Void)?) throws {
+            storage = try DurableVaultStorage(directory, hydrationCheckpoint: hydrationCheckpoint)
+            self.key = key; self.currentKey = currentKey
+            target = LocalReceiptTarget(owner: owner, digest: digest, storeId: storeId, metadata: metadata)
+        }
+        func run(_ expense: Expense, checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLiveLoaded, String?) {
+            guard !consumed else { throw LocalReceiptBlobError.closed }; consumed = true
+            return try storage.leased {
+                let result = try storage.editExpense(expense, target: target, key: key, checkpoint: checkpoint, currentKey: currentKey)
+                return (result, try storage.liveBytes().map(DurableVaultStorage.digest))
             }
         }
     }
@@ -728,6 +777,7 @@ final class DurableVaultStorage {
                 try storage.verifyTarget(target, key: key); try validateOwnership(); try cancellation()
                 let loaded = try storage.publish(record.reference, key: key, sourceDigest: target.digest, storeId: target.storeId,
                     checkpoint: checkpoint,
+                    finalRead: { try self.storage.hydrate(record.reference, storeId: target.storeId, key: key) },
                     validateOwned: { try self.validateOwnership(); try self.cancellation() },
                     beforePublication: { try validate(target, key); try self.storage.verifyTarget(target, key: key) },
                     finalize: { try self.cancellation(); try self.validateOwnership(); try self.retainCommitted() },
@@ -805,13 +855,44 @@ final class DurableVaultStorage {
         let encrypted = try Self.recordMagic + Self.seal(JSONEncoder().encode(record), key: prepared.key, domain: "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + id)
         let current = DurableReference(id: id, sha256: Self.digest(encrypted)); try write(encrypted, name: current.name)
         return try publish(current, key: prepared.key, sourceDigest: sourceDigest, storeId: storeId, checkpoint: checkpoint,
+                           finalRead: { try self.hydrate(current, storeId: storeId, key: prepared.key) },
                            beforePublication: { for generation in ownedGroups { try generation.retainCommitted() } })
     }
+    static func expenseEditProposal(_ expense: Expense, body original: VaultSnapshot, receipts: [LocalReceiptDescriptor]) throws -> VaultSnapshot {
+        try expense.validate()
+        var body = original
+        if let index = body.expenses.firstIndex(where: { $0.id == expense.id }) { body.expenses[index] = expense }
+        else { body.expenses.append(expense) }
+        try body.validate(); _ = try receiptCapacity(body, receipts: receipts)
+        return body
+    }
+    func editExpense(_ expense: Expense, target: LocalReceiptTarget, key: SymmetricKey,
+                     checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?,
+                     currentKey: () throws -> SymmetricKey) throws -> DurableLiveLoaded {
+        guard try currentKey() == key else { throw ExpenseError.missingKey }
+        try verifyTarget(target, key: key)
+        guard let wire = try liveBytes() else { throw ExpenseError.lockedVault }
+        let pointer = try pointer(wire, key: key)
+        let (old, original, _, _) = try exportMetadata(pointer.current, storeId: target.storeId, key: key)
+        let body = try Self.expenseEditProposal(expense, body: original, receipts: old.receipts)
+        guard old.metadata.revision < CloudWire.maximumRevision else { throw ExpenseError.invalidSnapshot }
+        let metadata = LocalVaultMetadata(writerId: old.metadata.writerId, revision: old.metadata.revision + 1, restoreEpoch: old.metadata.restoreEpoch)
+        let id = UUID().uuidString.lowercased()
+        let record = DurableRecord(version: 1, storeId: target.storeId, generationId: id, metadata: metadata,
+            body: try JSONEncoder().encode(body), receipts: old.receipts)
+        let encrypted = try Self.recordMagic + Self.seal(JSONEncoder().encode(record), key: key,
+            domain: "PENNY-LOCAL-GENERATION:1\0" + target.storeId + "\0" + id)
+        let ref = DurableReference(id: id, sha256: Self.digest(encrypted)); try write(encrypted, name: ref.name)
+        return try publish(ref, key: key, sourceDigest: target.digest, storeId: target.storeId, checkpoint: checkpoint,
+            finalRead: { try self.live(ref, storeId: target.storeId, key: key) },
+            validateOwned: { guard try currentKey() == key else { throw ExpenseError.missingKey } })
+    }
     /// Shared publication protocol for existing Snapshot writes and bound candidates.
-    private func publish(_ current: DurableReference, key: SymmetricKey, sourceDigest: String?, storeId: String,
+    private func publish<T>(_ current: DurableReference, key: SymmetricKey, sourceDigest: String?, storeId: String,
                          checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?,
+                         finalRead: () throws -> T,
                          validateOwned: () throws -> Void = {}, beforePublication: () throws -> Void = {},
-                         finalize: () throws -> Void = {}, uncertain: () throws -> Void = {}) throws -> DurableLoaded {
+                         finalize: () throws -> Void = {}, uncertain: () throws -> Void = {}) throws -> T {
         let previousBytes = try liveBytes()
         guard previousBytes.map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }
         _ = try readVerified(current, storeId: storeId, key: key); try validateOwned(); try checkpoint?(.staged)
@@ -832,7 +913,7 @@ final class DurableVaultStorage {
             try checkpoint?(.committed)
             _ = try readVerified(current, storeId: storeId, key: key); try validateOwned()
             try checkpoint?(.verified)
-            let loaded = try hydrate(current, storeId: storeId, key: key); try validateOwned()
+            let loaded = try finalRead(); try validateOwned()
             try Task.checkCancellation()
             try write(encodePointer(DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: nil), key: key), name: Self.live, replacing: true)
             try checkpoint?(.journalCleared)

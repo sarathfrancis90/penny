@@ -35,8 +35,8 @@ import XCTest
         XCTAssertEqual(probe.value.withLock { $0.closes }, 1)
         XCTAssertFalse(probe.value.withLock { $0.mainRead })
         try store.installLocalReceiptReplacement(candidate)
-        XCTAssertEqual(try encoded(store.snapshot), try encoded(expected))
-        XCTAssertEqual(try encoded(VaultStore(directory: dir, key: key).snapshot), try encoded(expected))
+        XCTAssertEqual(try encoded((try store.compatibilitySnapshot())), try encoded(expected))
+        XCTAssertEqual(try encoded((try VaultStore(directory: dir, key: key).compatibilitySnapshot())), try encoded(expected))
         do { try store.installLocalReceiptReplacement(candidate); XCTFail("candidate reused") } catch {}
     }
     func testAuthenticatedFramingAndNativeImageRejectionsPreserveVault() async throws {
@@ -69,7 +69,7 @@ import XCTest
                 defer { try? candidate.close() }
                 do { try store.installLocalReceiptReplacement(candidate); XCTFail("stale installed") } catch {}
             } catch {}
-            XCTAssertEqual(try encoded(VaultStore(directory: dir, key: key).snapshot), try encoded(expected))
+            XCTAssertEqual(try encoded((try VaultStore(directory: dir, key: key).compatibilitySnapshot())), try encoded(expected))
         }
     }
     func testInputReadCloseAndLateCancellationCleanup() async throws {
@@ -111,7 +111,7 @@ import XCTest
             if phase == .captured { try Data("changed ciphertext".utf8).write(to: sourceURL) }
         })
         try store.installLocalReceiptReplacement(candidate)
-        XCTAssertEqual(try encoded(store.snapshot), try encoded(expected))
+        XCTAssertEqual(try encoded((try store.compatibilitySnapshot())), try encoded(expected))
     }
     func testSharedSplitBoundariesInstallAndCurrentCapacityRejects() async throws {
         let bundle = try XCTUnwrap(Bundle(for: Self.self).resourceURL).appendingPathComponent("V4TestAssets/v4-logical-materialized")
@@ -132,7 +132,7 @@ import XCTest
                 XCTAssertEqual(candidate.summary.snapshotId, expected["snapshotId"] as? String)
                 XCTAssertEqual(candidate.summary.counts, expected["counts"] as? [String: Int])
                 try store.installLocalReceiptReplacement(candidate)
-                XCTAssertEqual(try encoded(store.snapshot), try encoded(VaultStore(directory: dir, key: key).snapshot))
+                XCTAssertEqual(try encoded((try store.compatibilitySnapshot())), try encoded((try VaultStore(directory: dir, key: key).compatibilitySnapshot())))
             }
         }
     }

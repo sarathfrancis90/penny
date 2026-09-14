@@ -135,12 +135,12 @@ final class V4AppModuleTests: XCTestCase {
             return result
         }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        let before = try contents(), snapshot = try encoder.encode(store.snapshot)
+        let before = try contents(), snapshot = try encoder.encode((try store.compatibilitySnapshot()))
         _ = try read(file("fixtures/v4-frames/one-receipt.pennyframe"))
         XCTAssertThrowsError(try read(file("fixtures/v4-frames/one-receipt.pennyframe"), key: "pny1-" + String(repeating: "08", count: 32)))
         XCTAssertEqual(try contents(), before)
-        XCTAssertEqual(try encoder.encode(store.snapshot), snapshot)
-        XCTAssertEqual(try encoder.encode(VaultStore(directory: directory, key: key).snapshot), snapshot)
+        XCTAssertEqual(try encoder.encode((try store.compatibilitySnapshot())), snapshot)
+        XCTAssertEqual(try encoder.encode((try VaultStore(directory: directory, key: key).compatibilitySnapshot())), snapshot)
     }
     func testMetadataCapRejectsDeclaredBodyAndFinalOverheadThroughAppDecode() throws {
         let cap = BackupArchive.maximumExportablePlaintextBytes

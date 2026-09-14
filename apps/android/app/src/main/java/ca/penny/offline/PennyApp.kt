@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.ensureActive
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -37,8 +38,8 @@ import java.time.format.DateTimeFormatter
     var editor by rememberSaveable { mutableStateOf(false) }
     var editId by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by remember { mutableStateOf<Expense?>(null) }
-    var viewingReceipt by remember { mutableStateOf<Attachment?>(null) }
-    var deletingReceipt by remember { mutableStateOf<Attachment?>(null) }
+    var viewingReceipt by remember { mutableStateOf<ReceiptInfo?>(null) }
+    var deletingReceipt by remember { mutableStateOf<ReceiptInfo?>(null) }
     var search by rememberSaveable { mutableStateOf("") }
     // Recovery secrets deliberately do not enter saved instance state.
     var backupKey by remember { mutableStateOf("") }
@@ -159,17 +160,10 @@ import java.time.format.DateTimeFormatter
             }
         }
     }
-    if (editor) ExpenseEditor(state.expenses.firstOrNull { it.id == editId }, state, onDismiss = { editor = false; vm.consumeReceipt() },
-        onSave = { vm.save(it) { editor = false; vm.consumeReceipt() } }, onDelete = { deleting = it }, onSuggest = vm::suggest, onLocale = vm::setReceiptLocale, onCamera = { showCamera = true }, onOcr = { showOcr = true },
+    if (editor) ExpenseEditor(editId,state.expenses.firstOrNull { it.id == editId }, state, onDismiss = { editor = false; vm.consumeReceipt() },
+        onSave = { edited,original -> vm.save(edited,original) { editor = false; vm.consumeReceipt() } }, onDelete = { deleting = it }, onSuggest = vm::suggest, onLocale = vm::setReceiptLocale, onCamera = { showCamera = true }, onOcr = { showOcr = true },
         onAttach = { picker.launch("image/*") }, onViewReceipt = { viewingReceipt = it }, onDeleteReceipt = { deletingReceipt = it })
-    viewingReceipt?.let { attachment ->
-        val bitmap = remember(attachment.id) { runCatching { ReceiptImage.decode(attachment.bytes()) }.getOrNull() }
-        DisposableEffect(bitmap) { onDispose { bitmap?.recycle() } }
-        AlertDialog(onDismissRequest = { viewingReceipt = null }, title = { Text("Saved receipt") }, text = {
-            if (bitmap == null) Text("This receipt could not be opened. The saved data has been preserved.")
-            else Image(bitmap.asImageBitmap(), "Receipt image", Modifier.fillMaxWidth().heightIn(max = 460.dp))
-        }, confirmButton = { TextButton(onClick = { viewingReceipt = null }) { Text("Done") } })
-    }
+    viewingReceipt?.let { attachment -> SavedReceiptDialog(vm,attachment,onDismiss={viewingReceipt=null}) }
     deletingReceipt?.let { attachment -> AlertDialog(onDismissRequest = { deletingReceipt = null }, title = { Text("Remove this receipt?") },
         text = { Text("The expense will stay in your vault. The receipt image will be removed from this device.") },
         confirmButton = { TextButton(onClick = { vm.deleteReceipt(attachment.id); deletingReceipt = null }) { Text("Remove receipt") } },
@@ -209,16 +203,19 @@ import java.time.format.DateTimeFormatter
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable private fun ExpenseEditor(expense: Expense?, state: VaultUiState, onDismiss: () -> Unit, onSave: (Expense) -> Unit, onDelete: (Expense) -> Unit, onSuggest: () -> Unit, onLocale: (String)->Unit, onCamera: ()->Unit, onOcr: ()->Unit,
-    onAttach: () -> Unit, onViewReceipt: (Attachment) -> Unit, onDeleteReceipt: (Attachment) -> Unit) {
+@Composable private fun ExpenseEditor(editId:String?,expense: Expense?, state: VaultUiState, onDismiss: () -> Unit, onSave: (Expense,String?) -> Unit, onDelete: (Expense) -> Unit, onSuggest: () -> Unit, onLocale: (String)->Unit, onCamera: ()->Unit, onOcr: ()->Unit,
+    onAttach: () -> Unit, onViewReceipt: (ReceiptInfo) -> Unit, onDeleteReceipt: (ReceiptInfo) -> Unit) {
     val focus=androidx.compose.ui.platform.LocalFocusManager.current
     val keyboard=androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
-    var merchant by rememberSaveable(expense?.id) { mutableStateOf(expense?.merchant ?: state.receipt?.merchant.orEmpty()) }
-    var amount by rememberSaveable(expense?.id) { mutableStateOf(expense?.let { Money.edit(it.amountMinor) } ?: state.receipt?.amount.orEmpty()) }
-    var date by rememberSaveable(expense?.id) { mutableStateOf(expense?.expenseDate ?: LocalDate.now().toString()) }
-    var category by rememberSaveable(expense?.id) { mutableStateOf(expense?.category ?: Categories.other) }
-    var note by rememberSaveable(expense?.id) { mutableStateOf(expense?.note.orEmpty()) }
-    var description by rememberSaveable(expense?.id) { mutableStateOf(expense?.description.orEmpty()) }
+    // Save only the original complete-record fingerprint with the draft fields.
+    // editId keeps an existing/deleted record distinct from a new expense.
+    val originalFingerprint=rememberSaveable(editId) {expense?.let {CloudContract.sha256(StrictJson.bytes(it.json()))} ?: ""}
+    var merchant by rememberSaveable(editId) { mutableStateOf(expense?.merchant ?: state.receipt?.merchant.orEmpty()) }
+    var amount by rememberSaveable(editId) { mutableStateOf(expense?.let { Money.edit(it.amountMinor) } ?: state.receipt?.amount.orEmpty()) }
+    var date by rememberSaveable(editId) { mutableStateOf(expense?.expenseDate ?: LocalDate.now().toString()) }
+    var category by rememberSaveable(editId) { mutableStateOf(expense?.category ?: Categories.other) }
+    var note by rememberSaveable(editId) { mutableStateOf(expense?.note.orEmpty()) }
+    var description by rememberSaveable(editId) { mutableStateOf(expense?.description.orEmpty()) }
     var categoryOpen by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var lastDraft by remember { mutableStateOf<ReceiptDraft?>(null) }
@@ -269,9 +266,9 @@ import java.time.format.DateTimeFormatter
             item { Button(onClick = {
                 try {
                     val now = Wire.now()
-                    onSave(Expense(id = expense?.id ?: Wire.id(), merchant = Wire.trim(merchant), amountMinor = Money.parse(amount), expenseDate = date,
+                    onSave(Expense(id = editId ?: Wire.id(), merchant = Wire.trim(merchant), amountMinor = Money.parse(amount), expenseDate = date,
                         category = category, note = note, description = description, recurringTemplateId = expense?.recurringTemplateId, recurringOccurrenceDate = expense?.recurringOccurrenceDate,
-                        createdAt = expense?.createdAt ?: now, updatedAt = maxOf(expense?.createdAt ?: now, now)))
+                        createdAt = expense?.createdAt ?: now, updatedAt = maxOf(expense?.createdAt ?: now, now)),if(editId==null) null else originalFingerprint)
                 } catch (e: Exception) { error = e.message ?: "Check the expense details" }
             }, enabled = !state.busy, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("save-expense")) { Text("Save on this device") } }
             if (expense != null) item { TextButton(onClick = { onDelete(expense) }, modifier = Modifier.fillMaxWidth()) { Text("Delete expense", color = MaterialTheme.colorScheme.error) } }
@@ -280,4 +277,34 @@ import java.time.format.DateTimeFormatter
     if (categoryOpen) AlertDialog(onDismissRequest = { categoryOpen = false }, title = { Text("Expense category") }, text = {
         LazyColumn { items(Categories.all) { value -> TextButton(onClick = { category = value; categoryOpen = false }, modifier = Modifier.fillMaxWidth()) { Text(value, Modifier.fillMaxWidth()) } } }
     }, confirmButton = { TextButton(onClick = { categoryOpen = false }) { Text("Done") } })
+}
+
+/** Scope owns the selected image and storage lease, including cancelled IO dispatch. */
+@Composable private fun SavedReceiptDialog(vm:PennyViewModel,receipt:ReceiptInfo,onDismiss:()->Unit) {
+    var bitmap by remember(receipt.id) {mutableStateOf<android.graphics.Bitmap?>(null)}
+    var failed by remember(receipt.id) {mutableStateOf(false)}
+    val cancel=remember(receipt.id) {LocalReceiptBlob.Cancellation()}
+    DisposableEffect(cancel) {onDispose {cancel.cancel()}}
+    LaunchedEffect(receipt.id) {
+        var owned:OwnedReceipt?=null;var decoded:android.graphics.Bitmap?=null
+        try {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO+kotlinx.coroutines.NonCancellable) {
+                owned=vm.openReceipt(receipt.id,cancel)
+                owned!!.withBytes {decoded=ReceiptImage.decode(it)}
+            }
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            cancel.check();bitmap=decoded
+            kotlinx.coroutines.awaitCancellation()
+        } catch(error:kotlinx.coroutines.CancellationException) {throw error}
+        catch(_:Exception) {failed=true}
+        finally {
+            bitmap=null;decoded?.recycle()
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO+kotlinx.coroutines.NonCancellable) {owned?.close()}
+        }
+    }
+    AlertDialog(onDismissRequest=onDismiss,title={Text("Saved receipt")},text={
+        val image=bitmap
+        if(image!=null) Image(image.asImageBitmap(),"Receipt image",Modifier.fillMaxWidth().heightIn(max=460.dp))
+        else Text(if(failed) "This receipt could not be opened. The saved data has been preserved." else "Opening receipt…")
+    },confirmButton={TextButton(onClick=onDismiss) {Text("Done")}})
 }

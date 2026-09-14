@@ -85,16 +85,16 @@ struct FinanceCollection: View {
         guard from <= to else { return [] }
         var result: [DueOccurrence] = []
         if domain == .income {
-            let posted = Set(store.snapshot.incomeEntries.compactMap { entry in entry.occurrenceDate.map { entry.sourceId + "/" + $0 } })
-            for source in store.snapshot.incomeSources where source.isActive {
+            let posted = Set(store.liveBody.incomeEntries.compactMap { entry in entry.occurrenceDate.map { entry.sourceId + "/" + $0 } })
+            for source in store.liveBody.incomeSources where source.isActive {
                 let dates = (try? source.schedule.occurrences(from: from, to: to, enabled: source.isRecurring)) ?? []
                 for date in dates where !posted.contains(source.id + "/" + date) {
                     result.append(DueOccurrence(owner: source.id, date: date, name: source.name, amount: source.netMinor ?? source.grossMinor))
                 }
             }
         } else {
-            let posted = Set(store.snapshot.expenses.compactMap { expense in expense.recurringOccurrenceDate.map { expense.recurringTemplateId! + "/" + $0 } })
-            for template in store.snapshot.recurringExpenses where template.isActive {
+            let posted = Set(store.liveBody.expenses.compactMap { expense in expense.recurringOccurrenceDate.map { expense.recurringTemplateId! + "/" + $0 } })
+            for template in store.liveBody.recurringExpenses where template.isActive {
                 let dates = (try? template.schedule.occurrences(from: from, to: to)) ?? []
                 for date in dates where !posted.contains(template.id + "/" + date) {
                     result.append(DueOccurrence(owner: template.id, date: date, name: template.merchant, amount: template.amountMinor))
@@ -113,7 +113,7 @@ struct FinanceCollection: View {
             switch domain {
             case .budgets:
                 Section("Budgets for \(month)") {
-                    ForEach(FinanceEngine.budgets(store.snapshot, month: month)) { position in
+                    ForEach(FinanceEngine.budgets(store.liveBody, month: month)) { position in
                         Button { edit = .budget(position.budget) } label: {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(position.budget.category).foregroundStyle(.primary)
@@ -125,11 +125,11 @@ struct FinanceCollection: View {
                         }.accessibilityIdentifier("budgetRow-" + position.budget.id)
                         .swipeActions { Button("Delete", role: .destructive) { pendingDelete = { try await store.deleteBudgetAsync(position.id) } } }
                     }
-                    if FinanceEngine.budgets(store.snapshot, month: month).isEmpty { Text("No budget set for this month.").foregroundStyle(Color.pennySecondary) }
+                    if FinanceEngine.budgets(store.liveBody, month: month).isEmpty { Text("No budget set for this month.").foregroundStyle(Color.pennySecondary) }
                 }
             case .income:
                 Section("Income sources") {
-                    ForEach(store.snapshot.incomeSources) { source in
+                    ForEach(store.liveBody.incomeSources) { source in
                         VStack(alignment: .leading, spacing: 8) {
                             Button { edit = .income(source) } label: { Label(source.name + (source.isActive ? "" : " · Inactive"), systemImage: "briefcase") }
                                 .accessibilityIdentifier("incomeSource-" + source.name)
@@ -138,14 +138,14 @@ struct FinanceCollection: View {
                                 .accessibilityIdentifier("recordIncome-" + source.name)
                         }.buttonStyle(.borderless)
                     }
-                    if store.snapshot.incomeSources.isEmpty { Text("Add a source, then record payments actually received.").foregroundStyle(Color.pennySecondary) }
+                    if store.liveBody.incomeSources.isEmpty { Text("Add a source, then record payments actually received.").foregroundStyle(Color.pennySecondary) }
                 }
                 dueSection
                 Section("Received in \(month)") {
-                    ForEach(store.snapshot.incomeEntries.filter { $0.receivedDate.hasPrefix(month + "-") }.sorted { $0.receivedDate > $1.receivedDate }) { entry in
+                    ForEach(store.liveBody.incomeEntries.filter { $0.receivedDate.hasPrefix(month + "-") }.sorted { $0.receivedDate > $1.receivedDate }) { entry in
                         Button { ledger = .income(entry) } label: {
                             VStack(alignment: .leading) {
-                                Text(store.snapshot.incomeSources.first(where: { $0.id == entry.sourceId })?.name ?? "Income")
+                                Text(store.liveBody.incomeSources.first(where: { $0.id == entry.sourceId })?.name ?? "Income")
                                 Text("\(entry.receivedDate) · \(Money.formatted(entry.amountMinor))").font(.caption).foregroundStyle(Color.pennySecondary)
                             }
                         }.accessibilityIdentifier("incomeEntry-" + entry.id)
@@ -154,8 +154,8 @@ struct FinanceCollection: View {
                 }
             case .savings:
                 Section("Your goals") {
-                    ForEach(store.snapshot.savingsGoals) { goal in
-                        let progress = FinanceEngine.savings(store.snapshot, goal: goal)
+                    ForEach(store.liveBody.savingsGoals) { goal in
+                        let progress = FinanceEngine.savings(store.liveBody, goal: goal)
                         VStack(alignment: .leading, spacing: 8) {
                             Button { edit = .goal(goal) } label: { Text(goal.name + (goal.isActive ? "" : " · Inactive")) }.accessibilityIdentifier("savingsGoal-" + goal.name)
                             ProgressView(value: Double(progress.progressBps), total: 10_000).accessibilityLabel("\(progress.progressBps / 100) percent saved")
@@ -164,10 +164,10 @@ struct FinanceCollection: View {
                                 .disabled(!goal.isActive).accessibilityIdentifier("recordSavings-" + goal.name)
                         }.buttonStyle(.borderless)
                     }
-                    if store.snapshot.savingsGoals.isEmpty { Text("Start with a goal and record each real contribution.").foregroundStyle(Color.pennySecondary) }
+                    if store.liveBody.savingsGoals.isEmpty { Text("Start with a goal and record each real contribution.").foregroundStyle(Color.pennySecondary) }
                 }
                 Section("Contribution history") {
-                    ForEach(store.snapshot.savingsEntries.sorted { $0.date > $1.date }) { entry in
+                    ForEach(store.liveBody.savingsEntries.sorted { $0.date > $1.date }) { entry in
                         Button { ledger = .savings(entry) } label: { Text("\(entry.goalName) · \(entry.date) · \(Money.formatted(entry.amountMinor))") }
                             .accessibilityIdentifier("savingsEntry-" + entry.id)
                             .swipeActions { Button("Delete", role: .destructive) { pendingDelete = { try await store.deleteSavingsEntryAsync(entry.id) } } }
@@ -175,7 +175,7 @@ struct FinanceCollection: View {
                 }
             case .recurring:
                 Section("Expense templates") {
-                    ForEach(store.snapshot.recurringExpenses) { template in
+                    ForEach(store.liveBody.recurringExpenses) { template in
                         Button { edit = .recurring(template) } label: {
                             VStack(alignment: .leading) {
                                 Text(template.merchant + (template.isActive ? "" : " · Inactive"))
@@ -183,7 +183,7 @@ struct FinanceCollection: View {
                             }
                         }.accessibilityIdentifier("recurringTemplate-" + template.merchant)
                     }
-                    if store.snapshot.recurringExpenses.isEmpty { Text("Add a template to review recurring dues.").foregroundStyle(Color.pennySecondary) }
+                    if store.liveBody.recurringExpenses.isEmpty { Text("Add a template to review recurring dues.").foregroundStyle(Color.pennySecondary) }
                 }
                 dueSection
             }
@@ -247,7 +247,7 @@ struct ReportsView: View {
             List {
                 Section { MonthControl(month: $month) }
                 if GregorianDay.validMonth(month) {
-                    let report = FinanceEngine.report(store.snapshot, month: month)
+                    let report = FinanceEngine.report(store.liveBody, month: month)
                     PennySection("Actual activity in CAD") {
                         ReportMetric(title: "Received", value: Money.formatted(report.received)).accessibilityIdentifier("reportReceived")
                         ReportMetric(title: "Expenses", value: Money.formatted(report.expenses)).accessibilityIdentifier("reportExpenses")
@@ -265,7 +265,7 @@ struct ReportsView: View {
             }.contentMargins(.bottom, 32, for: .scrollContent).navigationTitle("Reports")
             .alert("Export readable financial data?", isPresented: $confirmingExport) {
                 Button("Cancel", role: .cancel) {}
-                Button("Create readable CSV") { csv = ExpenseCSVDocument(data: FinanceEngine.csv(store.snapshot.expenses)); exporting = true }
+                Button("Create readable CSV") { csv = ExpenseCSVDocument(data: FinanceEngine.csv(store.liveBody.expenses)); exporting = true }
             } message: { Text("CSV contains all expenses, descriptions and notes in readable form. Choose a private destination. Use encrypted backup for recovery of all your data.") }
             .fileExporter(isPresented: $exporting, document: csv, contentType: .commaSeparatedText, defaultFilename: "Penny-expenses.csv") { result in
                 switch result { case .success: status = "CSV exported."; case .failure(let error): status = "CSV was not exported: " + error.localizedDescription }

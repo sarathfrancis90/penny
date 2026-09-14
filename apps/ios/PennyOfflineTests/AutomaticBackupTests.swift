@@ -62,14 +62,14 @@ import XCTest
                     if action == "expiry" { task.expiration?() }
                     else if action == "disable" { coordinator.disableCloud() }
                     else if action == "cancel" { coordinator.cancelByUser() }
-                    else { try! vault.restore(vault.snapshot); coordinator.reconcile() }
+                    else { try! vault.restore((try vault.compatibilitySnapshot())); coordinator.reconcile() }
                     lateExpiry?()
                 }
             }
             scheduler.fire(task); await settle(coordinator)
             for _ in 0..<30 { await Task.yield() } // Allow the cancelled provider's late return.
             XCTAssertEqual(task.completions, [false], action); XCTAssertFalse(coordinator.automaticEnabled)
-            XCTAssertNil(coordinator.scheduledAt); XCTAssertEqual(vault.snapshot.expenses.count, 1)
+            XCTAssertNil(coordinator.scheduledAt); XCTAssertEqual((try vault.compatibilitySnapshot()).expenses.count, 1)
             for (name, bytes) in old { XCTAssertEqual(provider.objects[name], bytes) }
             if action == "expiry" || action == "cancel" { XCTAssertEqual(cloud.lastGood, last) }
         }
@@ -110,7 +110,7 @@ import XCTest
         XCTAssertEqual(blocked.completions, [false]); XCTAssertNotNil(cloud.lastGood); XCTAssertEqual(provider.objects.count, 2)
         provider.hook = nil; provider.switchAccount("another-account"); coordinator.reconcile()
         XCTAssertFalse(coordinator.automaticEnabled); XCTAssertNil(coordinator.scheduledAt)
-        XCTAssertEqual(vault.snapshot.recordCount, 0)
+        XCTAssertEqual((try vault.compatibilitySnapshot()).recordCount, 0)
     }
     func testEarlyWakeAndSchedulerFailureNeverPostOrClaimSuccess() async throws {
         let dir = directory(); defer { try? FileManager.default.removeItem(at: dir) }

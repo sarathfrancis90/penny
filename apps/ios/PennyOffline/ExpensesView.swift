@@ -129,6 +129,9 @@ struct ExpenseEditor: View {
     @State private var showingCamera = false
     @State private var recordID = UUID().uuidString.lowercased()
     @State private var receipts: [ReceiptAttachment] = []
+    @State private var retainedReceipts: [LocalReceiptDescriptor] = []
+    @State private var receiptsChanged = false
+    @State private var viewingOwned: LiveReceiptImage?
     @State private var viewingReceipt: ReceiptAttachment?
     @State private var importingReceipt = false
     @State private var initialized = false
@@ -184,12 +187,31 @@ struct ExpenseEditor: View {
                     TextField("Note (optional)", text: $note, axis: .vertical).lineLimit(2...5)
                 }
                 Section {
+                    ForEach(retainedReceipts, id: \.id) { receipt in
+                        HStack {
+                            Button("View receipt \(retainedReceipts.firstIndex(of: receipt)! + 1)", systemImage: "doc.text.image") {
+                                cancelProcessing(); let token = requestID; busy = true
+                                processing = Task {
+                                    do {
+                                        let opened = try await store.openReceipt(receipt.id)
+                                        guard requestID == token, !Task.isCancelled else { try opened.close(); return }
+                                        viewingOwned = opened
+                                    } catch { if requestID == token { self.error = error.localizedDescription } }
+                                    if requestID == token { busy = false }
+                                }
+                            }.accessibilityIdentifier("viewReceipt-\(receipt.id)")
+                            Spacer()
+                            Button("Remove receipt", systemImage: "trash", role: .destructive) {
+                                retainedReceipts.removeAll { $0.id == receipt.id }; receiptsChanged = true
+                            }.labelStyle(.iconOnly).accessibilityIdentifier("removeReceipt-\(receipt.id)")
+                        }.buttonStyle(.borderless)
+                    }
                     ForEach(receipts) { receipt in
                         HStack {
                             Button("View receipt \(receipts.firstIndex(of: receipt)! + 1)", systemImage: "doc.text.image") { viewingReceipt = receipt }
                                 .accessibilityIdentifier("viewReceipt-\(receipt.id)")
                             Spacer()
-                            Button("Remove receipt", systemImage: "trash", role: .destructive) { receipts.removeAll { $0.id == receipt.id } }
+                            Button("Remove receipt", systemImage: "trash", role: .destructive) { receipts.removeAll { $0.id == receipt.id }; receiptsChanged = true }
                                 .labelStyle(.iconOnly).accessibilityIdentifier("removeReceipt-\(receipt.id)")
                         }.buttonStyle(.borderless)
                     }
@@ -217,13 +239,14 @@ struct ExpenseEditor: View {
                 initialized = true
                 if let expense {
                     recordID = expense.id
-                    receipts = store.receipts(for: expense.id)
+                    retainedReceipts = store.receiptDescriptors.filter { $0.expenseId == expense.id }
                     fields.merchant = expense.merchant; fields.amount = Money.input(expense.amountMinor)
                     if let converted = CivilDate.date(expense.expenseDate) { date = converted }
                     else { preservedCivilDate = expense.expenseDate }
                     fields.category = expense.category; note = expense.note; description = expense.description
                 }
             }
+            .sheet(item: $viewingOwned) { OwnedReceiptViewer(receipt: $0) }
             .sheet(item: $viewingReceipt) { ReceiptViewer(receipt: $0) }
             .sheet(item: $preparedReceipt) { prepared in
                 PreparedReceiptReview(receipt: prepared) { attach(prepared.data) }
@@ -291,10 +314,10 @@ struct ExpenseEditor: View {
     private func attach(_ data: Data) {
         do {
             let receipt = try ReceiptAttachment(data: data, expenseId: recordID)
-            let existing = store.snapshot.attachments.filter { $0.expenseId != recordID }
-            guard existing.count + receipts.count + 1 <= ReceiptAttachment.maximumCount,
-                  (existing + receipts).reduce(0, { $0 + $1.byteCount }) + receipt.byteCount <= ReceiptAttachment.maximumTotalBytes else { throw ReceiptAttachment.ReceiptError.capacity }
-            receipts.append(receipt)
+            let existing = store.receiptDescriptors.filter { $0.expenseId != recordID }
+            guard existing.count + retainedReceipts.count + receipts.count + 1 <= ReceiptAttachment.maximumCount,
+                  (existing + retainedReceipts).reduce(0, { $0 + $1.byteCount }) + receipts.reduce(0, { $0 + $1.byteCount }) + receipt.byteCount <= ReceiptAttachment.maximumTotalBytes else { throw ReceiptAttachment.ReceiptError.capacity }
+            receipts.append(receipt); receiptsChanged = true
             busy = false; error = nil
             if !receiptLocale.isEmpty { recognizeReceipt(data) }
         } catch { busy = false; self.error = error.localizedDescription }
@@ -343,7 +366,11 @@ struct ExpenseEditor: View {
             record.description = description
             record.recurringTemplateId = expense?.recurringTemplateId
             record.recurringOccurrenceDate = expense?.recurringOccurrenceDate
-            try await store.saveAsync(record, attachments: receipts)
+            if receiptsChanged {
+                let kept = Set(retainedReceipts.map(\.id))
+                let existing = try store.receipts(for: recordID).filter { kept.contains($0.id) }
+                try await store.saveAsync(record, attachments: existing + receipts, expectedOriginal: expense)
+            } else { try await store.saveAsync(record, expectedOriginal: expense) }
             dismiss()
         } catch { self.error = error.localizedDescription }
     }
@@ -365,5 +392,21 @@ private struct ReceiptViewer: View {
             .navigationTitle("Receipt")
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }
+    }
+}
+
+private struct OwnedReceiptViewer: View {
+    let receipt: LiveReceiptImage
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                if let bytes = receipt.bytes, let image = UIImage(data: bytes) {
+                    Image(uiImage: image).resizable().scaledToFit().padding()
+                        .accessibilityLabel("Saved receipt image").accessibilityIdentifier("receiptOriginal")
+                }
+            }.navigationTitle("Receipt")
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }.onDisappear { try? receipt.close() }
     }
 }

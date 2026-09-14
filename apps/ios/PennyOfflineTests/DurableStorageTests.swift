@@ -26,15 +26,17 @@ import XCTest
         try FileManager.default.createDirectory(at: old.deletingLastPathComponent(), withIntermediateDirectories: true)
         try VaultCipher.seal(JSONEncoder().encode(previous), key: key).write(to: old)
         let legacyBytes = try Data(contentsOf: old), store = VaultStore(directory: dir, key: key)
-        try equal(store.snapshot, previous)
+        try equal((try store.compatibilitySnapshot()), previous)
+        let migratedBytes = try Data(contentsOf: old)
+        XCTAssertNotEqual(migratedBytes, legacyBytes)
         let prepared = try await store.prepareWrite(replacement, restoring: true)
-        XCTAssertEqual(try Data(contentsOf: old), legacyBytes)
+        XCTAssertEqual(try Data(contentsOf: old), migratedBytes)
         let cancelled = Task { try await store.replaceAsync(replacement) }; cancelled.cancel()
         do { try await cancelled.value; XCTFail("Cancelled preparation") } catch {}
-        XCTAssertEqual(try Data(contentsOf: old), legacyBytes)
+        XCTAssertEqual(try Data(contentsOf: old), migratedBytes)
         try store.replace(previous)
         XCTAssertNotEqual(try Data(contentsOf: old), legacyBytes)
-        try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+        try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         let groups = try files(dir).filter { UUID(uuidString: $0) != nil }
         XCTAssertEqual(groups.count, 1)
         try store.save(previous.expenses[0])
@@ -47,7 +49,7 @@ import XCTest
         let stale = try await first.prepareWrite(replacement, restoring: true)
         let second = VaultStore(directory: dir, key: key); try second.restore(previous)
         XCTAssertThrowsError(try first.apply(stale))
-        try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+        try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         let original = try Data(contentsOf: dir.appendingPathComponent("PennyOffline/vault-v1.pennyvault"))
         let wrongKey = VaultStore(directory: dir, key: SymmetricKey(size: .bits256)); XCTAssertFalse(wrongKey.isReady)
         XCTAssertEqual(try Data(contentsOf: dir.appendingPathComponent("PennyOffline/vault-v1.pennyvault")), original)
@@ -56,7 +58,7 @@ import XCTest
         XCTAssertThrowsError(try missing.save(previous.expenses[0]))
         // Explicit verified recovery is permitted even when the live marker is gone.
         try missing.restore(replacement)
-        try equal(VaultStore(directory: dir, key: key).snapshot, replacement)
+        try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), replacement)
     }
     func testSharedPendingRecoveryAndEstablishedCorruption() throws {
         for stage in [VaultStore.CommitStage.staged, .committed, .verified, .journalCleared] {
@@ -65,7 +67,7 @@ import XCTest
             let interrupted = VaultStore(directory: dir, key: key, commitCheckpoint: { if $0 == stage { throw DurableCrash.interrupted } })
             XCTAssertThrowsError(try interrupted.restore(replacement))
             let reopened = VaultStore(directory: dir, key: key)
-            XCTAssertTrue(reopened.isReady); try equal(reopened.snapshot, stage == .staged ? previous : replacement)
+            XCTAssertTrue(reopened.isReady); try equal((try reopened.compatibilitySnapshot()), stage == .staged ? previous : replacement)
             let live = dir.appendingPathComponent("PennyOffline/vault-v1.pennyvault")
             var bytes = try Data(contentsOf: live); bytes[bytes.count - 1] ^= 1; try bytes.write(to: live)
             XCTAssertFalse(VaultStore(directory: dir, key: key).isReady)
@@ -102,7 +104,7 @@ import XCTest
         XCTAssertEqual(try store.collectReceiptGarbage(), 0); XCTAssertTrue(FileManager.default.fileExists(atPath: old.path))
         try equal(lease.snapshot, previous); try lease.close(); try lease.close()
         XCTAssertEqual(try store.collectReceiptGarbage(), 1); XCTAssertFalse(FileManager.default.fileExists(atPath: old.path))
-        XCTAssertEqual(try Data(contentsOf: unknown), Data([7])); try equal(VaultStore(directory: dir, key: key).snapshot, replacement)
+        XCTAssertEqual(try Data(contentsOf: unknown), Data([7])); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), replacement)
     }
     func testCancelledPublishedTaskRollsBackAndVerifiedRestoreRepairsReceipt() async throws {
         for stage in [VaultStore.CommitStage.committed, .verified] {
@@ -111,7 +113,7 @@ import XCTest
             let store = VaultStore(directory: dir, key: key, commitCheckpoint: { if $0 == stage { withUnsafeCurrentTask { $0?.cancel() } } })
             let operation = Task { try await store.restoreAsync(replacement) }
             do { try await operation.value; XCTFail("Cancelled published task") } catch is CancellationError {} catch { XCTFail("Expected cancellation, got \(error)") }
-            try equal(store.snapshot, previous); try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+            XCTAssertThrowsError(try store.compatibilitySnapshot()); XCTAssertEqual(store.liveBody.expenses, previous.expenses); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         }
         let dir = try directory(), previous = try input("previous")
         let store = VaultStore(directory: dir, key: key); try store.replace(previous)
@@ -120,7 +122,7 @@ import XCTest
         var bytes = try Data(contentsOf: receipt); bytes[bytes.count - 1] ^= 1; try bytes.write(to: receipt)
         XCTAssertFalse(VaultStore(directory: dir, key: key).isReady)
         try await store.restoreAsync(previous)
-        try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+        try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
     }
 
     func testCorruptUnchangedReceiptFailsBeforeStagingAndPreservesPointer() async throws {
@@ -142,7 +144,8 @@ import XCTest
         var edit = previous.expenses[0]; edit.merchant = "Unchanged receipt edit"
         do { try await writing.saveAsync(edit); XCTFail("Corrupt reused receipt accepted") } catch {}
         XCTAssertEqual(try Data(contentsOf: live), pointer)
-        try equal(writing.snapshot, previous)
+        XCTAssertThrowsError(try writing.compatibilitySnapshot())
+        XCTAssertEqual(writing.liveBody.expenses, previous.expenses)
         // The externally damaged predecessor remains locked; no replacement was published.
         XCTAssertFalse(VaultStore(directory: dir, key: key).isReady)
     }
@@ -156,13 +159,13 @@ import XCTest
         })
         XCTAssertFalse(missing.isReady)
         XCTAssertThrowsError(try missing.replace(replacement))
-        try missing.restore(replacement); try equal(VaultStore(directory: dir, key: key).snapshot, replacement)
+        try missing.restore(replacement); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), replacement)
         let recreated = try directory(), initial = VaultStore(directory: recreated, key: key)
         let stale = try await initial.prepareWrite(previous)
         try FileManager.default.removeItem(at: recreated)
         let fresh = VaultStore(directory: recreated, key: key)
         XCTAssertEqual(fresh.revision, stale.sourceRevision)
-        XCTAssertThrowsError(try fresh.apply(stale)); XCTAssertTrue(fresh.snapshot.expenses.isEmpty)
+        XCTAssertThrowsError(try fresh.apply(stale)); XCTAssertTrue((try fresh.compatibilitySnapshot()).expenses.isEmpty)
     }
 
     private func metadataStorage(_ directory: URL) throws -> DurableVaultStorage {
@@ -237,7 +240,7 @@ import XCTest
             let storage = try metadataStorage(dir)
             try assertSummary(storage.verifiedMetadata(key: key), invalidCurrent ? previous : replacement)
             XCTAssertNoThrow(try storage.leased { try storage.collectGarbage(key: key) })
-            try equal(VaultStore(directory: dir, key: key).snapshot, invalidCurrent ? previous : replacement)
+            try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), invalidCurrent ? previous : replacement)
         }
     }
     /// Re-authenticate deliberately invalid local metadata using a public test key.

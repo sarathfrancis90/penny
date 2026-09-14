@@ -13,6 +13,16 @@ struct PreparedArchive: Sendable {
 actor ArchiveWorker {
     static let shared = ArchiveWorker()
     private var exports: [UUID: VerifiedBackupExport] = [:]
+    func editExpense(_ expense: Expense, request: V4Transfer<DurableVaultStorage.LiveEditRequest>, checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLiveLoaded, String?) {
+        try request.take().run(expense, checkpoint: checkpoint)
+    }
+    func readReceipt(_ id: String, request: V4Transfer<DurableVaultStorage.ExportRequest>) throws -> (Data, V4Transfer<DurableVaultStorage.ExportSource>) {
+        let source = try request.take().open(receiptId: id)
+        do {
+            let bytes = try source.receipt(at: 0); try Task.checkCancellation()
+            return (bytes, V4Transfer(source, cleanup: { try $0.close() }))
+        } catch { try source.close(); throw error }
+    }
 
     func prepare(_ snapshot: VaultSnapshot, key: String, directory: URL? = nil) throws -> PreparedArchive {
         try Task.checkCancellation()

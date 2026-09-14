@@ -60,18 +60,18 @@ struct VaultView: View {
                 }
                 Section { NavigationLink("Optional iCloud backup") { CloudBackupView(backup: backup) } }
                 PennySection("Vault capacity") {
-                    LabeledContent("Financial records", value: "\(store.snapshot.recordCount)")
-                    LabeledContent("Expenses", value: "\(store.snapshot.expenses.count) / 10,000")
-                    LabeledContent("Receipts", value: "\(store.snapshot.attachments.count) / 100")
-                    LabeledContent("Receipt storage", value: "\(ByteCountFormatter.string(fromByteCount: Int64(store.snapshot.attachments.reduce(0) { $0 + $1.byteCount }), countStyle: .binary)) / 8 MiB")
+                    LabeledContent("Financial records", value: "\(store.liveBody.recordCount)")
+                    LabeledContent("Expenses", value: "\(store.liveBody.expenses.count) / 10,000")
+                    LabeledContent("Receipts", value: "\(store.receiptDescriptors.count) / 100")
+                    LabeledContent("Receipt storage", value: "\(ByteCountFormatter.string(fromByteCount: Int64(store.receiptDescriptors.reduce(0) { $0 + $1.byteCount }), countStyle: .binary)) / 8 MiB")
                     LabeledContent("Saved data", value: "\(ByteCountFormatter.string(fromByteCount: Int64(store.snapshotBytes), countStyle: .binary)) / 15 MiB")
                     DisclosureGroup {
-                        LabeledContent("Budgets", value: "\(store.snapshot.budgets.count) / 1,200")
-                        LabeledContent("Income sources", value: "\(store.snapshot.incomeSources.count) / 1,000")
-                        LabeledContent("Received entries", value: "\(store.snapshot.incomeEntries.count) / 10,000")
-                        LabeledContent("Savings goals", value: "\(store.snapshot.savingsGoals.count) / 1,000")
-                        LabeledContent("Contributions", value: "\(store.snapshot.savingsEntries.count) / 10,000")
-                        LabeledContent("Recurring templates", value: "\(store.snapshot.recurringExpenses.count) / 1,000").accessibilityIdentifier("capacityRecurring")
+                        LabeledContent("Budgets", value: "\(store.liveBody.budgets.count) / 1,200")
+                        LabeledContent("Income sources", value: "\(store.liveBody.incomeSources.count) / 1,000")
+                        LabeledContent("Received entries", value: "\(store.liveBody.incomeEntries.count) / 10,000")
+                        LabeledContent("Savings goals", value: "\(store.liveBody.savingsGoals.count) / 1,000")
+                        LabeledContent("Contributions", value: "\(store.liveBody.savingsEntries.count) / 10,000")
+                        LabeledContent("Recurring templates", value: "\(store.liveBody.recurringExpenses.count) / 1,000").accessibilityIdentifier("capacityRecurring")
                     } label: { Text("Finance record limits").font(.body).fixedSize(horizontal: false, vertical: true) }
                     Text("Each receipt can use up to 2 MiB. Encrypted files can use up to 20 MiB, including financial text and receipts. If a limit is reached, the current vault is preserved; nothing is removed automatically.").font(.body).fixedSize(horizontal: false, vertical: true).foregroundStyle(Color.pennySecondary)
                 }
@@ -119,7 +119,7 @@ struct VaultView: View {
                     }
                 }
             } message: {
-                Text("This verified backup from \(pendingRestore?.createdAt ?? "") contains \(pendingRestore?.recordCount ?? 0) financial records and \(pendingRestore?.receiptCount ?? 0) receipts. Expense total: \(Money.formatted(pendingRestore?.expenseTotalMinor ?? 0)). It will replace all \(store.snapshot.recordCount) financial records on this device. Save a backup first if you want to keep them.")
+                Text("This verified backup from \(pendingRestore?.createdAt ?? "") contains \(pendingRestore?.recordCount ?? 0) financial records and \(pendingRestore?.receiptCount ?? 0) receipts. Expense total: \(Money.formatted(pendingRestore?.expenseTotalMinor ?? 0)). It will replace all \(store.liveBody.recordCount) financial records on this device. Save a backup first if you want to keep them.")
             }
             .alert("Vault action failed", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
                 Button("OK", role: .cancel) {}

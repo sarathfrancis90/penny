@@ -42,7 +42,8 @@ import org.json.JSONObject
     LaunchedEffect(enteringMonth) {if(!enteringMonth) {focus.clearFocus();keyboard?.hide()}}
     LaunchedEffect(section) { if(section=="Reports") chipScroll.scrollTo(0) }
     val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri -> uri?.let(vm::exportCsv) }
-    val snapshot = remember(state.expenses,state.attachments,state.finance) { Snapshot("00000000-0000-4000-8000-000000000000",state.expenses,attachments=state.attachments,finance=state.finance) }
+    // Report-only input; never supplied to storage or backup replacement.
+    val snapshot = remember(state.expenses,state.finance) { Snapshot("00000000-0000-4000-8000-000000000000",state.expenses,finance=state.finance) }
     val report = remember(snapshot,month) { FinanceMath.report(snapshot,month) }
     val dues = remember(snapshot,month) {
         val first = "$month-01"; val last = minOf(YearMonth.parse(month).atEndOfMonth().toString(),LocalDate.now().toString())

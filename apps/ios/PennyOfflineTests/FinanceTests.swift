@@ -88,34 +88,34 @@ final class FinanceTests: XCTestCase {
         var snapshot = try golden(); snapshot.expenses = []; snapshot.attachments = []
         try store.replace(snapshot)
         let reopened = VaultStore(directory: directory, key: key)
-        XCTAssertTrue(reopened.isReady); XCTAssertEqual(reopened.snapshot.incomeEntries, snapshot.incomeEntries)
-        XCTAssertEqual(reopened.snapshot.savingsGoals, snapshot.savingsGoals)
+        XCTAssertTrue(reopened.isReady); XCTAssertEqual((try reopened.compatibilitySnapshot()).incomeEntries, snapshot.incomeEntries)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).savingsGoals, snapshot.savingsGoals)
         XCTAssertFalse(VaultStore(directory: directory, key: SymmetricKey(size: .bits256)).isReady)
         enum Failure: Error { case diskFull }
         let failed = VaultStore(directory: directory, key: key, commitCheckpoint: { if $0 == .committed { throw Failure.diskFull } })
         XCTAssertThrowsError(try failed.restore(VaultSnapshot()))
         let after = VaultStore(directory: directory, key: key)
-        XCTAssertEqual(after.snapshot.incomeEntries, snapshot.incomeEntries)
-        XCTAssertEqual(after.snapshot.savingsEntries, snapshot.savingsEntries)
-        XCTAssertEqual(after.snapshot.budgets, snapshot.budgets)
+        XCTAssertEqual((try after.compatibilitySnapshot()).incomeEntries, snapshot.incomeEntries)
+        XCTAssertEqual((try after.compatibilitySnapshot()).savingsEntries, snapshot.savingsEntries)
+        XCTAssertEqual((try after.compatibilitySnapshot()).budgets, snapshot.budgets)
     }
     @MainActor func testReviewedOccurrencesAreAtomicAndIdempotent() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let key = SymmetricKey(size: .bits256)
         let store = VaultStore(directory: directory, key: key); try store.replace(golden())
-        let template = store.snapshot.recurringExpenses[0]
+        let template = (try store.compatibilitySnapshot()).recurringExpenses[0]
         let first = try store.postRecurring(template.id, occurrence: "2026-02-28")
         XCTAssertEqual(try store.postRecurring(template.id, occurrence: "2026-02-28").id, first.id)
         XCTAssertThrowsError(try store.postRecurring(template.id, occurrence: "2026-02-27"))
-        let source = store.snapshot.incomeSources[0]
+        let source = (try store.compatibilitySnapshot()).incomeSources[0]
         let received = try store.postIncome(source.id, occurrence: "2026-01-31", receivedDate: "2026-02-01", amountMinor: 91_000)
         XCTAssertEqual(try store.postIncome(source.id, occurrence: "2026-01-31", receivedDate: "2026-02-01", amountMinor: 1).id, received.id)
         let reopened = VaultStore(directory: directory, key: key)
-        XCTAssertEqual(reopened.snapshot.incomeEntries.count, 2); XCTAssertEqual(reopened.snapshot.expenses.count, 4)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).incomeEntries.count, 2); XCTAssertEqual((try reopened.compatibilitySnapshot()).expenses.count, 4)
         var inactive = template; inactive.isActive = false; try reopened.save(inactive)
         XCTAssertThrowsError(try reopened.postRecurring(template.id, occurrence: "2026-03-31"))
-        var missing = reopened.snapshot; missing.recurringExpenses = []
+        var missing = (try reopened.compatibilitySnapshot()); missing.recurringExpenses = []
         XCTAssertThrowsError(try reopened.replace(missing))
     }
     func testV3NativeBackupAllDomainsAndPriorRuntimeCompatibility() throws {
@@ -181,9 +181,9 @@ final class FinanceTests: XCTestCase {
         try store.restore(imported)
         let reopened = VaultStore(directory: directory, key: deviceKey)
         XCTAssertTrue(reopened.isReady)
-        XCTAssertEqual(reopened.snapshot.expenses, expected.expenses); XCTAssertEqual(reopened.snapshot.attachments, expected.attachments)
-        XCTAssertEqual(reopened.snapshot.budgets, expected.budgets); XCTAssertEqual(reopened.snapshot.incomeSources, expected.incomeSources)
-        let report = FinanceEngine.report(reopened.snapshot, month: "2026-09")
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).expenses, expected.expenses); XCTAssertEqual((try reopened.compatibilitySnapshot()).attachments, expected.attachments)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).budgets, expected.budgets); XCTAssertEqual((try reopened.compatibilitySnapshot()).incomeSources, expected.incomeSources)
+        let report = FinanceEngine.report((try reopened.compatibilitySnapshot()), month: "2026-09")
         XCTAssertEqual(report.expenses, 1234); XCTAssertEqual(report.received, 0)
     }
 
@@ -200,8 +200,8 @@ final class FinanceTests: XCTestCase {
         XCTAssertEqual(store.revision, revision)
         let reopened = VaultStore(directory: directory, key: deviceKey)
         XCTAssertTrue(reopened.isReady); XCTAssertEqual(reopened.revision, revision)
-        XCTAssertEqual(reopened.snapshot.expenses, good.expenses); XCTAssertEqual(reopened.snapshot.attachments, good.attachments)
-        XCTAssertEqual(reopened.snapshot.budgets, good.budgets); XCTAssertEqual(reopened.snapshot.incomeSources, good.incomeSources)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).expenses, good.expenses); XCTAssertEqual((try reopened.compatibilitySnapshot()).attachments, good.attachments)
+        XCTAssertEqual((try reopened.compatibilitySnapshot()).budgets, good.budgets); XCTAssertEqual((try reopened.compatibilitySnapshot()).incomeSources, good.incomeSources)
     }
 
 }

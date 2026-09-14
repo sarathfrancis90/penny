@@ -61,10 +61,13 @@ class ReceiptFlowTest {
             compose.onNodeWithText(merchant, useUnmergedTree = true).performClick()
             compose.onNodeWithTag("expense-editor").performScrollToNode(hasText("View receipt"))
             compose.onNodeWithText("View receipt", useUnmergedTree = true).performClick()
+            compose.waitUntil(10_000) {compose.onAllNodesWithContentDescription("Receipt image").fetchSemanticsNodes().isNotEmpty()}
             compose.onNodeWithContentDescription("Receipt image").assertIsDisplayed()
             val screenshot = instrumentation.uiAutomation.takeScreenshot()
-            File(instrumentation.targetContext.filesDir, "receipt-viewer-test.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            screenshot.recycle()
+            if(screenshot!=null) {
+                File(instrumentation.targetContext.filesDir, "receipt-viewer-test.png").outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                screenshot.recycle()
+            }
             compose.onNodeWithText("Done", useUnmergedTree = true).performClick()
             compose.onNodeWithText("Remove receipt", useUnmergedTree = true).performClick()
             compose.onAllNodesWithText("Remove receipt", useUnmergedTree = true).onLast().performClick()

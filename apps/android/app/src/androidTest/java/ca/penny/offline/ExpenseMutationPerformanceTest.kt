@@ -45,8 +45,8 @@ class ExpenseMutationPerformanceTest {
                     val revision=store.revision()
                     val started=SystemClock.elapsedRealtimeNanos()
                     val saved=store.save(changed)
-                    val ui=if(replayRedundantRefresh) VaultUiState(expenses=store.all(),attachments=store.attachments())
-                        else VaultUiState(expenses=saved.expenses,attachments=saved.attachments,finance=saved.finance)
+                    val ui=if(replayRedundantRefresh) VaultUiState(expenses=store.all(),attachments=store.attachments().map {ReceiptInfo(it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)})
+                        else VaultUiState(expenses=saved.expenses,attachments=saved.attachments.map {ReceiptInfo(it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)},finance=saved.finance)
                     val elapsed=(SystemClock.elapsedRealtimeNanos()-started)/1_000_000.0
                     (if(replayRedundantRefresh) redundantRefreshSamples else samples).put(elapsed)
                     assertEquals(revision+1,store.revision()) // Both paths must perform real mutations.

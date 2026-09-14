@@ -45,7 +45,7 @@ import XCTest
     }
     private func assertPreserved(_ dir: URL, pointer: Data, names: Set<String>) throws {
         XCTAssertEqual(try live(dir), pointer); XCTAssertEqual(try inventory(dir), names)
-        try equal(VaultStore(directory: dir, key: key).snapshot, input("previous"))
+        try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), input("previous"))
     }
 
     func testSharedInactiveRoundtripIsolationAndSingleUse() throws {
@@ -177,7 +177,7 @@ import XCTest
         XCTAssertEqual(try candidate.verifiedSummary().vaultId, incoming.vaultId)
         XCTAssertTrue(FileManager.default.fileExists(atPath: root(dir).appendingPathComponent(group).path))
         try candidate.close(); XCTAssertFalse(FileManager.default.fileExists(atPath: root(dir).appendingPathComponent(group).path))
-        XCTAssertEqual(VaultStore(directory: dir, key: key).snapshot.expenses[0].merchant, edit.merchant)
+        XCTAssertEqual((try VaultStore(directory: dir, key: key).compatibilitySnapshot()).expenses[0].merchant, edit.merchant)
     }
     func testForeignMetadataReplacementAndAddedReceiptEntryArePreserved() throws {
         let dir = directory(); try VaultStore(directory: dir, key: key).replace(input("previous"))
@@ -298,11 +298,11 @@ import XCTest
             XCTAssertEqual(try live(dir), pointer); XCTAssertEqual(store.revision, revision)
             try store.installLocalReceiptReplacement(value)
             XCTAssertEqual(store.revision, revision + 1); XCTAssertEqual(store.writerId, writer); XCTAssertNotEqual(store.restoreEpoch, epoch)
-            try equal(store.snapshot, replacement)
+            try equal((try store.compatibilitySnapshot()), replacement)
             try preparation.close(); try value.close()
             XCTAssertThrowsError(try value.verifiedSummary()); XCTAssertThrowsError(try store.installLocalReceiptReplacement(value))
             let reopened = VaultStore(directory: dir, key: key); XCTAssertTrue(reopened.isReady)
-            try equal(reopened.snapshot, replacement); XCTAssertEqual(reopened.revision, revision + 1)
+            try equal((try reopened.compatibilitySnapshot()), replacement); XCTAssertEqual(reopened.revision, revision + 1)
             XCTAssertEqual(reopened.restoreEpoch, store.restoreEpoch)
         }
     }
@@ -333,12 +333,12 @@ import XCTest
                 try FileManager.default.moveItem(at: root(dir), to: moved); try FileManager.default.copyItem(at: moved, to: root(dir))
                 var url = root(dir), flags = URLResourceValues(); flags.isExcludedFromBackup = true; try url.setResourceValues(flags)
             }
-            let expected = VaultStore(directory: dir, key: key).snapshot, pointer = try live(dir)
+            let expected = (try VaultStore(directory: dir, key: key).compatibilitySnapshot()), pointer = try live(dir)
             XCTAssertThrowsError(try destination.installLocalReceiptReplacement(value), variant)
             if variant == "otherOwner" {
                 XCTAssertEqual(try live(dir), pointer); XCTAssertEqual(try value.verifiedSummary().vaultId, replacement.vaultId)
                 try store.installLocalReceiptReplacement(value)
-                try value.close(); try equal(VaultStore(directory: dir, key: key).snapshot, replacement)
+                try value.close(); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), replacement)
                 continue
             }
             if variant == "unbound" {
@@ -347,7 +347,7 @@ import XCTest
             }
             XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); XCTAssertThrowsError(try value.verifiedSummary())
             try value.close(); XCTAssertEqual(try live(dir), pointer)
-            try equal(VaultStore(directory: dir, key: key).snapshot, expected)
+            try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), expected)
         }
     }
     func testBoundInstallChecksExistingKeyBeforeBeginAndBeforePublication() throws {
@@ -377,7 +377,7 @@ import XCTest
                 XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); XCTAssertThrowsError(try value.verifiedSummary())
             }
             XCTAssertEqual(state.withLock { $0.creates }, provisionCount); XCTAssertFalse(store.isReady)
-            XCTAssertEqual(try live(dir), pointer); try equal(VaultStore(directory: dir, key: key).snapshot, input("previous"))
+            XCTAssertEqual(try live(dir), pointer); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), input("previous"))
         }
     }
     func testBoundInstallFailureRollbackAndUncertainRecovery() throws {
@@ -394,7 +394,7 @@ import XCTest
                 let published = crash && [.committed, .verified, .journalCleared].contains(stage)
                 if !published { XCTAssertEqual(try live(dir), pointer) }
                 let reopened = VaultStore(directory: dir, key: key); XCTAssertTrue(reopened.isReady)
-                try equal(reopened.snapshot, published ? replacement : previous)
+                try equal((try reopened.compatibilitySnapshot()), published ? replacement : previous)
             }
         }
     }
@@ -407,7 +407,7 @@ import XCTest
             let task = Task { @MainActor in try store.installLocalReceiptReplacement(value) }
             do { try await task.value; XCTFail("Cancelled install accepted") } catch is CancellationError {} catch { XCTFail("Expected cancellation: \(error)") }
             XCTAssertEqual(try live(dir), pointer); try value.close()
-            XCTAssertThrowsError(try value.verifiedSummary()); try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+            XCTAssertThrowsError(try value.verifiedSummary()); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         }
     }
     func testBoundInstallTamperBeforeAndAfterPublicationPreservesPrevious() throws {
@@ -424,7 +424,7 @@ import XCTest
             })
             let pointer = try live(dir), value = try candidate(replacement, store: store)
             XCTAssertThrowsError(try store.installLocalReceiptReplacement(value)); try value.close()
-            XCTAssertEqual(try live(dir), pointer); try equal(VaultStore(directory: dir, key: key).snapshot, previous)
+            XCTAssertEqual(try live(dir), pointer); try equal((try VaultStore(directory: dir, key: key).compatibilitySnapshot()), previous)
         }
     }
 }

@@ -1,0 +1,66 @@
+{
+  "fixtureVersion": 1,
+  "sourceSnapshot": "../v4-native-writer-v1/android-finance.snapshot.json",
+  "sourceSnapshotSha256": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3",
+  "sourceBackup": "../v4-native-writer-v1/android-finance.pennybackup",
+  "sourceBackupSha256": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+  "publicSyntheticRecoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+  "expenseBefore": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "merchant": "Café Toronto ☕",
+    "amountMinor": 6000,
+    "currencyCode": "CAD",
+    "expenseDate": "2026-01-10",
+    "category": "Meals and entertainment",
+    "note": "Quotes \" \\ newline\n tab\t café 🍁",
+    "createdAt": "2026-09-13T12:00:00.000Z",
+    "updatedAt": "2026-09-13T12:00:00.000Z",
+    "description": "Original expense description",
+    "recurringTemplateId": null,
+    "recurringOccurrenceDate": null
+  },
+  "expenseAfter": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "merchant": "Café Toronto receipt correction",
+    "amountMinor": 6250,
+    "currencyCode": "CAD",
+    "expenseDate": "2026-01-11",
+    "category": "Office expenses",
+    "note": "Locally corrected; original receipt retained.",
+    "createdAt": "2026-09-13T12:00:00.000Z",
+    "updatedAt": "2026-09-14T00:00:00.000Z",
+    "description": "Original expense description",
+    "recurringTemplateId": null,
+    "recurringOccurrenceDate": null
+  },
+  "preservedDomains": [
+    "attachments",
+    "budgets",
+    "incomeSources",
+    "incomeEntries",
+    "savingsGoals",
+    "savingsEntries",
+    "recurringExpenses"
+  ],
+  "expectedExpenseTotalMinor": 15250,
+  "expectedJanuaryExpenseTotalMinor": 6250,
+  "receipt": {
+    "id": "44444444-4444-4444-8444-444444444444",
+    "expenseId": "11111111-1111-4111-8111-111111111111",
+    "mediaType": "image/png",
+    "byteCount": 70,
+    "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+  },
+  "acceptanceIds": [
+    "open-list-without-hydration",
+    "read-one-owned-receipt",
+    "edit-retains-ciphertext",
+    "reopen-exact-state",
+    "stale-source-rejected",
+    "missing-key-corruption-rejected",
+    "prepublication-failure-preserves-state",
+    "pinned-read-survives-edit-gc",
+    "compatibility-preserves-receipts",
+    "resource-measurement-scoped"
+  ]
+}

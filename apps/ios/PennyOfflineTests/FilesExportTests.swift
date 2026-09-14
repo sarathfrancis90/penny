@@ -21,9 +21,9 @@ import XCTest
         return (store, try await store.prepareV4Export(recoveryKey: recovery))
     }
     func testCoordinatedDestinationRestoresExactFreshBackupAndPreservesExistingFile() async throws {
-        let (store, export) = try await prepared(), folder = try directory(), source = try encoded(store.snapshot)
+        let (store, export) = try await prepared(), folder = try directory(), source = try encoded((try store.compatibilitySnapshot()))
         let summary = await export.summary
-        XCTAssertNotEqual(summary.snapshotId, store.snapshot.snapshotId)
+        XCTAssertNotEqual(summary.snapshotId, (try store.compatibilitySnapshot()).snapshotId)
         let destination = try await FilesExportWorker().save(export, to: folder, recoveryKey: recovery)
         let saved = try Data(contentsOf: destination)
         XCTAssertEqual(saved.prefix(8), Data("PNYBKP4\n".utf8))
@@ -34,9 +34,9 @@ import XCTest
         let target = try directory(), receiver = VaultStore(directory: target, key: key)
         let preview = try await receiver.prepareFilesRestore(destination, recoveryKey: recovery)
         XCTAssertEqual(preview.createdAt, summary.createdAt); try await preview.replace(in: receiver)
-        var expected = store.snapshot; expected.snapshotId = summary.snapshotId; expected.createdAt = summary.createdAt
-        XCTAssertEqual(try encoded(VaultStore(directory: target, key: key).snapshot), try encoded(expected))
-        XCTAssertEqual(try encoded(store.snapshot), source); try await export.close()
+        var expected = (try store.compatibilitySnapshot()); expected.snapshotId = summary.snapshotId; expected.createdAt = summary.createdAt
+        XCTAssertEqual(try encoded((try VaultStore(directory: target, key: key).compatibilitySnapshot())), try encoded(expected))
+        XCTAssertEqual(try encoded((try store.compatibilitySnapshot())), source); try await export.close()
     }
     func testWriteSyncCloseReadbackAndCancellationFailuresRemoveOnlyOwnedFile() async throws {
         let (_, export) = try await prepared(), folder = try directory()
