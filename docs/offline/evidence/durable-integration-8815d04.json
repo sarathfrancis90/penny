@@ -1,0 +1,48 @@
+{
+  "capturedAt": "2026-09-14T03:35:37.361916+00:00",
+  "head": "8815d04247fff3843fe82954f79622adf11cc263",
+  "pr": "https://github.com/sarathfrancis90/penny/pull/44",
+  "scope": "Local review integration and enabled hooks; hosted checks are separately pending",
+  "results": {
+    "offlineNode": {
+      "passed": 88,
+      "failed": 0
+    },
+    "offlinePython": {
+      "passed": 27,
+      "failed": 0
+    },
+    "nativeStaticBoundaries": "passed",
+    "reviewDocs": {
+      "passed": 104,
+      "failed": 0
+    },
+    "changedSourceSAST": {
+      "rulesRun": 15,
+      "files": 22,
+      "findings": 0
+    },
+    "prePushFlutter": {
+      "passed": 290,
+      "failed": 0
+    },
+    "requiredWorkflowPolicy": "passed20workflows",
+    "requiredWaitLogicTests": {
+      "passed": 6,
+      "failed": 0
+    }
+  },
+  "logSHA256": {
+    "artifacts/offline/durable-review-docs.log": "a17bf8268b228b8e93a4d68c17f7f77ed6a690cf3850e394e7e2fc665bb092fd",
+    "artifacts/offline/durable-review-offline.log": "6140661c2ff841219d6da39ca02deeb6256c811488fd97b2f6648b6820590314",
+    "artifacts/offline/durable-review-sast.log": "42ec8f01656a710afcc37ebdcef3e63a07a799da5c7b36bd8073b3c6d6447a90",
+    "artifacts/offline/durable-review-commit.log": "0f4b43269ba745838b4022031b182e8920a8f483c913c5d6d11618ffdbb28d68",
+    "artifacts/offline/durable-review-push.log": "dbb84d5efa32a26f60557f551718bcc594d66eb79fceaf50b483f641286403a2"
+  },
+  "hostedRuns": {
+    "native": "https://github.com/sarathfrancis90/penny/actions/runs/34802852476",
+    "retainedFlutterIOS": "https://github.com/sarathfrancis90/penny/actions/runs/34802852547",
+    "requiredAggregate": "https://github.com/sarathfrancis90/penny/actions/runs/34802852497"
+  },
+  "preservedLegacySourceHashes": 18
+}

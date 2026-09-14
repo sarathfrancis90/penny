@@ -17,12 +17,19 @@ Updated 2026-09-13. [PLAN.md](PLAN.md) defines the product and phased release ga
 | On-device AI | Optional Foundation Models / Gemini Nano proposals with explicit unavailable/download states and strict grounded review; manual entry remains available | Actual supported physical-device inference, model quality/resources and SDK/AICore traffic observation |
 | Portable recovery | Authenticated v1/v2/v3 backups covering every native domain; actual opposite-platform files decoded, receipt bytes preserved; confirmed user-held recovery key | Large streamed archives, bounded incremental hydration and physical recovery tests |
 | Private cloud backup | CloudKit / Drive appDataFolder adapters, explicit opt-in, publication/restore guards and default-off scheduling; fake transport, expiry/cancel/account/revision tests | Real-account consent, remote completion, clean-device recovery, background execution and retention |
-| Migration and retirement | Strict local converter/preflight and reconciliation reports; web feature development retired and old README archived | Complete authenticated legacy export/receipt acquisition, signed upgrade and support-window retirement gates |
+| Migration and retirement | Fixed-time authenticated raw-query exporter and strict local converter/preflight with reconciliation reports; web feature development retired | Complete authenticated legacy export/receipt acquisition, signed upgrade and support-window retirement gates |
 | Packaging | Isolated packaging and version/signature/provider preflight, negative tests and unsigned native builds | Actual signing/profile/entitlement configuration, distribution artifacts and store validation |
 
 Current product limits remain **10,000 expenses, 100 receipts, 8 MiB aggregate receipt bytes and 2 MiB per receipt**. These are development limits. No larger tier is enabled merely because its contract or crypto prototype exists.
 
 ## Latest hosted and local checkpoints
+
+The durable storage milestone is pushed as `8815d04247fff3843fe82954f79622adf11cc263`.
+[Local integration gates](evidence/durable-integration-8815d04.json) passed: 88 Node
+tests, 27 Python groups, static boundaries, 104 review documentation tests,
+changed-source SAST and all 290 enabled pre-push Flutter tests. Hosted native,
+retained Flutter and aggregate checks are running for this revision. Later
+performance work and raw legacy export validation are separate checkpoints.
 
 At source commit `e3d6dc53e224357553795083bae45b222548298e`, all hosted native jobs passed in [run 34797361200](https://github.com/sarathfrancis90/penny/actions/runs/34797361200):
 
@@ -34,7 +41,7 @@ At source commit `e3d6dc53e224357553795083bae45b222548298e`, all hosted native j
 
 The prior `6cdf304` revision passed every listed hosted check and both aggregate gates, including retained Flutter iOS integration and its unsigned release build; [its native report](evidence/hosted-native-6cdf304.json) remains historical evidence. On `3414197`, authenticated source/reference checks and both native library builds passed, but API37 failed a composite save/snackbar wait and iOS failed its initial five-second Photos-grid readiness assertion. The fixes passed focused local tests and the full native `e3d6dc5` run above. See [Android failure and regression](evidence/capture-dismiss-regression.json), [iOS local readiness proof](evidence/ios-photo-picker-readiness.json), and [hosted crypto source/build evidence](evidence/hosted-crypto-3414197.json). The earlier retained Flutter dashboard fixture correction preserves application behavior and passed both affected local scenarios and all 290 pre-push Flutter tests.
 
-Android expense save/delete now returns validated state after a successful commit, avoiding a redundant full-vault read. Local build/JVM/lint, 16 API37 tests and four API26 regressions passed. Five alternating pairs in one debug API37/16 KiB process measured 1.07 s median with returned state versus 2.07 s with replayed reads for 10k expenses. This is the save/state data path, not physical p95 or an original-binary comparison. [PERFORMANCE.md](PERFORMANCE.md) preserves workload and measurement limits.
+At the earlier inline-receipt checkpoint, Android expense save/delete began returning validated state after a successful commit, avoiding a redundant full-vault read. Local build/JVM/lint, 16 API37 tests and four API26 regressions passed. Five alternating pairs in one debug API37/16 KiB process measured 1.07 s median with returned state versus 2.07 s with replayed reads for 10k expenses. This is historical save/state evidence before durable generations, not current-storage latency, physical p95 or an original-binary comparison. [PERFORMANCE.md](PERFORMANCE.md) preserves workload and measurement limits.
 
 ## Streamed backup work in progress
 

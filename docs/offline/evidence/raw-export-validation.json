@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-09-14T03:40:39.294238+00:00",
+  "scope": "Synthetic client transport/filesystem validation of read-only fixed-time Firestore raw evidence exporter; no real account or migration completion",
+  "tests": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "rootReview": "Added bounded FIFO-token rejection after review found open could block before regular-file validation",
+  "sha256": {
+    "scripts/offline/export-legacy-raw.mjs": "5f7a329b502bd7ac2d2d63e22b16bcf599fb24cfe56b10ed56cc51fcbdc85cbc",
+    "scripts/offline/export-legacy-raw.test.mjs": "b0d3a1c917a094f3a5be49ce934884d92f2d4255e257684a9887015752b2a9f1",
+    "scripts/offline/LEGACY_RAW_EXPORT.md": "0eda99b5f122ae42733b1b466fe433ecc9b0ff543a46085dc3ff0bcfa683e073",
+    "artifacts/offline/raw-export-root-tests.log": "864dfe5726b3d26902168a476289fae6f233e7ca3c9bedfc57e1641788a4b8b5",
+    "artifacts/offline/raw-export-root-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/offline/raw-export-review-docs.log": "8c31890bcb2195ce5bc07d57295becdaf4748fc042418158bc94553eebee1d9a",
+    "artifacts/offline/raw-export-review-offline.log": "f34aa10212a8985c21b8a2f518a352c88e9777e3dbaa69bd3b0d33de06c37c74",
+    "artifacts/offline/raw-export-review-sast.log": "8be2e5f7dfad468d938844f37aee72cee3f4abacd4048bb14742f423d68c51bc"
+  },
+  "limits": [
+    "Receipt references remain unresolved; no URLs fetched",
+    "No raw-evidence conversion adapter or signed upgrade",
+    "No real Firebase token, rules, indexes or source records used",
+    "Path-based publication assumes a trusted private directory without concurrent namespace mutation"
+  ],
+  "integration": {
+    "offlineNodePassed": 97,
+    "offlinePythonGroupsPassed": 27,
+    "reviewDocumentationTestsPassed": 104,
+    "eslint": "passed",
+    "sast": {
+      "targets": 2,
+      "rules": 73,
+      "findings": 0
+    }
+  }
+}

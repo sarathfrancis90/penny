@@ -4,6 +4,25 @@
 
 The bootstrap export shape was inspected in the user's pre-existing uncommitted API/Flutter work in the original checkout. That work is deliberately excluded from the isolated native review branch, whose retained API does not yet expose `PersonalBootstrapPage`. References below describe that inspected proposed source contract, not an endpoint confirmed in production or delivered by the native branch. The converter is preparation for an eventual verified export/bridge, not a replacement for it.
 
+## Fixed-time raw source acquisition
+
+[`export-legacy-raw.mjs`](../../scripts/offline/export-legacy-raw.mjs) now provides
+a read-only acquisition step using an existing Firebase user ID token. It verifies
+the token against the explicit project/user, obtains one server read time, and
+exhausts ten exact-owner collection queries at that same time. Raw typed values,
+unsupported fields, histories, group evidence, cursor traces and unresolved
+receipt references are retained. The script does not depend on the proposed
+bootstrap endpoint or change the retained API/Flutter work.
+
+[Usage and limits](../../scripts/offline/LEGACY_RAW_EXPORT.md) describe private
+output, strict resource/identity checks and exact scope. Nine synthetic transport
+and filesystem test groups pass, including partial-query failure, unsafe output
+and FIFO-token rejection. This does not establish production rules/index access
+or complete account migration. No receipt URL is fetched; storage generation
+binding, a raw-evidence conversion adapter, domain reconciliation and a signed
+upgrade remain open. The raw format cannot be supplied directly to the existing
+converter described below.
+
 ## Input and completeness
 
 The inspected proposed source shape is represented by `PersonalBootstrapPage` in the original checkout's `apps/api/src/services/mobile-data.ts`. The wrapper contains:

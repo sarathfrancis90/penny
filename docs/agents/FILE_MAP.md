@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1282
+- Total source-visible files: 1287
 
 | Path | Area |
 |---|---|
@@ -420,6 +420,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-performance.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
+| `docs/offline/evidence/durable-integration-8815d04.json` | docs |
 | `docs/offline/evidence/durable-process-runners.json` | docs |
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
@@ -450,6 +451,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/ios-visible-a11y/visible-capacity.png` | docs |
 | `docs/offline/evidence/local-receipt-independent.json` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
+| `docs/offline/evidence/raw-export-validation.json` | docs |
 | `docs/superpowers/plans/2026-04-17-observability-foundation.md` | docs |
 | `docs/testing/DEFAULT_GROUP_VERIFICATION.md` | docs |
 | `docs/testing/GROUPS_TESTING_GUIDE.md` | docs |
@@ -1007,6 +1009,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/generate-jwt-secret.js` | script |
 | `scripts/grant-admin.ts` | script |
 | `scripts/mobile/check-api-only.ts` | script |
+| `scripts/offline/LEGACY_RAW_EXPORT.md` | script |
 | `scripts/offline/benchmark-contract.mjs` | script |
 | `scripts/offline/check-android-device.sh` | script |
 | `scripts/offline/check-android-generation.sh` | script |
@@ -1014,6 +1017,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/check-boundaries.py` | script |
 | `scripts/offline/check-ios-generation.sh` | script |
 | `scripts/offline/check-ios.sh` | script |
+| `scripts/offline/export-legacy-raw.mjs` | script |
+| `scripts/offline/export-legacy-raw.test.mjs` | script |
 | `scripts/offline/migrate-finance.mjs` | script |
 | `scripts/offline/migrate-finance.test.mjs` | script |
 | `scripts/offline/migrate-legacy.mjs` | script |
