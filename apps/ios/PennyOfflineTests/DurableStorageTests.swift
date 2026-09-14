@@ -1,5 +1,7 @@
 import CryptoKit
 import Foundation
+import Synchronization
+import UIKit
 import XCTest
 @testable import PennyOffline
 
@@ -163,4 +165,143 @@ import XCTest
         XCTAssertThrowsError(try fresh.apply(stale)); XCTAssertTrue(fresh.snapshot.expenses.isEmpty)
     }
 
+    private func metadataStorage(_ directory: URL) throws -> DurableVaultStorage {
+        try DurableVaultStorage(directory.appendingPathComponent("PennyOffline"), hydrationCheckpoint: { throw LocalReceiptBlobError.closed })
+    }
+    private func assertSummary(_ summary: DurableVerifiedMetadata, _ snapshot: VaultSnapshot) throws {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        XCTAssertEqual(summary.vaultId, snapshot.vaultId); XCTAssertEqual(summary.snapshotId, snapshot.snapshotId)
+        XCTAssertEqual(summary.createdAt, snapshot.createdAt)
+        XCTAssertEqual(summary.counts, ["expenses": snapshot.expenses.count, "attachments": snapshot.attachments.count,
+            "budgets": snapshot.budgets.count, "incomeSources": snapshot.incomeSources.count,
+            "incomeEntries": snapshot.incomeEntries.count, "savingsGoals": snapshot.savingsGoals.count,
+            "savingsEntries": snapshot.savingsEntries.count, "recurringExpenses": snapshot.recurringExpenses.count])
+        XCTAssertEqual(summary.expenseTotalMinor, try FinanceValidation.total(snapshot.expenses.map(\.amountMinor)))
+        XCTAssertEqual(summary.receiptBytes, snapshot.attachments.reduce(0) { $0 + $1.byteCount })
+        XCTAssertEqual(summary.snapshotBytes, try encoder.encode(snapshot).count)
+        XCTAssertEqual(summary.digest.count, 64)
+    }
+    private func largeReceipt(owner: String) throws -> ReceiptAttachment {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { context in
+            UIColor.white.setFill(); context.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+        }
+        var bytes = try XCTUnwrap(image.jpegData(compressionQuality: 0.8)); bytes.removeLast(2)
+        // Valid JPEG COM segments exercise near-capacity bytes without a large pixel allocation.
+        while ReceiptAttachment.maximumBytes - bytes.count - 2 >= 4 {
+            let payload = min(65_533, ReceiptAttachment.maximumBytes - bytes.count - 6), length = payload + 2
+            bytes.append(contentsOf: [0xff, 0xfe, UInt8(length >> 8), UInt8(length & 255)])
+            bytes.append(Data(repeating: 65, count: payload))
+        }
+        bytes.append(contentsOf: [0xff, 0xd9])
+        return try ReceiptAttachment(data: bytes, expenseId: owner)
+    }
+    func testVerifiedMetadataSizeParityAndSingleFinalHydration() throws {
+        var escaped = try input("previous")
+        escaped.expenses[0].merchant = "Café/東京 \"quote\" \\ path"
+        escaped.expenses[0].note = "Line\nTab\t/slash/🎯"
+        var large = try input("previous")
+        large.attachments = [try largeReceipt(owner: large.expenses[0].id), large.attachments[0]]
+        for snapshot in [VaultSnapshot(), try input("previous"), try input("replacement"), escaped, large] {
+            let dir = try directory(), events = Mutex<[String]>([])
+            let storage = try DurableVaultStorage(dir.appendingPathComponent("PennyOffline"), hydrationCheckpoint: { events.withLock { $0.append("hydrate") } })
+            let prepared = try PreparedVaultWrite.prepare(snapshot, key: key, revision: 0, writerId: UUID().uuidString.lowercased(), restoreEpoch: UUID().uuidString.lowercased(), restoring: true)
+            let loaded = try storage.leased {
+                try storage.commit(prepared, sourceDigest: nil, storeId: prepared.sourceStoreId, receipts: [], checkpoint: { stage in
+                    if stage == .verified { events.withLock { $0.append("verified") } }
+                    if stage == .journalCleared { events.withLock { $0.append("journalCleared") } }
+                })
+            }
+            XCTAssertEqual(events.withLock { $0 }, ["verified", "hydrate", "journalCleared"])
+            try equal(loaded.snapshot, snapshot)
+            let validation = try metadataStorage(dir), summary = try validation.verifiedMetadata(key: key)
+            try assertSummary(summary, snapshot); XCTAssertEqual(summary.snapshotBytes, loaded.snapshotBytes)
+            let root = dir.appendingPathComponent("PennyOffline")
+            let record = try XCTUnwrap(FileManager.default.contentsOfDirectory(atPath: root.path).first { $0.hasSuffix(".pennygen") })
+            XCTAssertEqual(summary.digest, DurableVaultStorage.digest(try Data(contentsOf: root.appendingPathComponent(record))))
+            XCTAssertThrowsError(try validation.leased { try validation.load(key: key) })
+            XCTAssertThrowsError(try validation.verifiedMetadata(key: SymmetricKey(size: .bits256)))
+        }
+    }
+    func testMetadataPendingRecoveryAndGarbageCollectionDoNotHydrate() throws {
+        for invalidCurrent in [false, true] {
+            let dir = try directory(), previous = try input("previous"), replacement = try input("replacement")
+            try VaultStore(directory: dir, key: key).replace(previous)
+            let groups = try files(dir)
+            let interrupted = VaultStore(directory: dir, key: key, commitCheckpoint: { if $0 == .committed { throw DurableCrash.interrupted } })
+            XCTAssertThrowsError(try interrupted.restore(replacement))
+            if invalidCurrent {
+                let group = try XCTUnwrap(files(dir).first { UUID(uuidString: $0) != nil && !groups.contains($0) })
+                let file = dir.appendingPathComponent("PennyOffline/" + group + "/" + replacement.attachments[0].id + ".pennyreceipt")
+                var bytes = try Data(contentsOf: file); bytes[bytes.count - 1] ^= 1; try bytes.write(to: file)
+            }
+            let storage = try metadataStorage(dir)
+            try assertSummary(storage.verifiedMetadata(key: key), invalidCurrent ? previous : replacement)
+            XCTAssertNoThrow(try storage.leased { try storage.collectGarbage(key: key) })
+            try equal(VaultStore(directory: dir, key: key).snapshot, invalidCurrent ? previous : replacement)
+        }
+    }
+    /// Re-authenticate deliberately invalid local metadata using a public test key.
+    /// This bypasses writers so rejection must come from reader semantics, not AEAD alone.
+    private func rewriteRecord(_ dir: URL, mutation: (inout [String: Any], URL) throws -> Void) throws {
+        let root = dir.appendingPathComponent("PennyOffline"), live = root.appendingPathComponent("vault-v1.pennyvault")
+        let pointerMagic = Data("PENNY-DURABLE:POINTER:1\n".utf8), recordMagic = Data("PENNY-DURABLE:RECORD:1\n".utf8)
+        func open(_ bytes: Data, _ aad: String) throws -> Data { try AES.GCM.open(AES.GCM.SealedBox(combined: bytes), using: key, authenticating: Data(aad.utf8)) }
+        func seal(_ bytes: Data, _ aad: String) throws -> Data { try XCTUnwrap(AES.GCM.seal(bytes, using: key, authenticating: Data(aad.utf8)).combined) }
+        var pointer = try XCTUnwrap(JSONSerialization.jsonObject(with: open(Data(contentsOf: live).dropFirst(pointerMagic.count), "PENNY-LOCAL-POINTER:1")) as? [String: Any])
+        var current = try XCTUnwrap(pointer["current"] as? [String: Any])
+        let id = try XCTUnwrap(current["id"] as? String), storeId = try XCTUnwrap(pointer["storeId"] as? String)
+        let file = root.appendingPathComponent(id + ".pennygen"), aad = "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + id
+        var record = try XCTUnwrap(JSONSerialization.jsonObject(with: open(Data(contentsOf: file).dropFirst(recordMagic.count), aad)) as? [String: Any])
+        try mutation(&record, root)
+        let wire = try recordMagic + seal(JSONSerialization.data(withJSONObject: record), aad)
+        try wire.write(to: file); current["sha256"] = DurableVaultStorage.digest(wire); pointer["current"] = current
+        try (pointerMagic + seal(JSONSerialization.data(withJSONObject: pointer), "PENNY-LOCAL-POINTER:1")).write(to: live)
+    }
+    func testAuthenticatedInvalidMetadataFailsBothValidationAndFacade() throws {
+        for variant in ["orphanReceipt", "missingIncomeSource", "duplicateBudget", "unknownDescriptorField"] {
+            let dir = try directory(); try VaultStore(directory: dir, key: key).replace(input("previous"))
+            try rewriteRecord(dir) { record, _ in
+                if variant == "orphanReceipt" || variant == "unknownDescriptorField" {
+                    var receipts = try XCTUnwrap(record["receipts"] as? [[String: Any]])
+                    receipts[0][variant == "orphanReceipt" ? "expenseId" : "unknown"] = UUID().uuidString.lowercased()
+                    record["receipts"] = receipts
+                } else {
+                    let encoded = try XCTUnwrap(record["body"] as? String)
+                    var body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(Data(base64Encoded: encoded))) as? [String: Any])
+                    if variant == "missingIncomeSource" { body["incomeSources"] = [] as [Any] }
+                    else {
+                        var budgets = try XCTUnwrap(body["budgets"] as? [[String: Any]])
+                        var duplicate = budgets[0]; duplicate["id"] = UUID().uuidString.lowercased(); budgets.append(duplicate); body["budgets"] = budgets
+                    }
+                    let wire = try JSONSerialization.data(withJSONObject: body)
+                    XCTAssertThrowsError(try StrictJSON.snapshot(wire)); record["body"] = wire.base64EncodedString()
+                }
+            }
+            let live = dir.appendingPathComponent("PennyOffline/vault-v1.pennyvault"), before = try Data(contentsOf: live)
+            XCTAssertThrowsError(try metadataStorage(dir).verifiedMetadata(key: key), variant)
+            XCTAssertFalse(VaultStore(directory: dir, key: key).isReady, variant)
+            XCTAssertEqual(try Data(contentsOf: live), before)
+        }
+    }
+    func testAuthenticatedReceiptStillRequiresFullNativeDecode() throws {
+        let dir = try directory(); try VaultStore(directory: dir, key: key).replace(input("previous"))
+        let corpus = try XCTUnwrap(Bundle(for: Self.self).resourceURL).appendingPathComponent("fixtures/png-integrity-corpus.json")
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: corpus)) as? [String: Any])
+        let cases = try XCTUnwrap(object["cases"] as? [[String: Any]])
+        let bad = try XCTUnwrap(cases.first { $0["id"] as? String == "rgba9-plain-invalid_filter" })
+        let bytes = try XCTUnwrap(Data(base64Encoded: XCTUnwrap(bad["dataBase64"] as? String)))
+        XCTAssertThrowsError(try ReceiptAttachment(data: bytes, expenseId: input("previous").expenses[0].id))
+        try rewriteRecord(dir) { record, root in
+            var receipts = try XCTUnwrap(record["receipts"] as? [[String: Any]])
+            receipts[0]["byteCount"] = bytes.count; receipts[0]["sha256"] = DurableVaultStorage.digest(bytes)
+            let descriptor = try JSONDecoder().decode(LocalReceiptDescriptor.self, from: JSONSerialization.data(withJSONObject: receipts[0]))
+            let sealed = try XCTUnwrap(AES.GCM.seal(bytes, using: LocalReceiptBlob.derivedKey(root: key, descriptor: descriptor), authenticating: LocalReceiptBlob.aad(descriptor)).combined)
+            try (LocalReceiptBlob.magic + sealed).write(to: root.appendingPathComponent(descriptor.generationId + "/" + descriptor.id + ".pennyreceipt"))
+            record["receipts"] = receipts
+        }
+        let live = dir.appendingPathComponent("PennyOffline/vault-v1.pennyvault"), before = try Data(contentsOf: live)
+        XCTAssertThrowsError(try metadataStorage(dir).verifiedMetadata(key: key))
+        XCTAssertFalse(VaultStore(directory: dir, key: key).isReady)
+        XCTAssertEqual(try Data(contentsOf: live), before)
+    }
 }

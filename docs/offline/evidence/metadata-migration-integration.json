@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-09-14T04:40:39.031369+00:00",
+  "baseCommit": "5d98016148321a8d2e029b6c65f8c7bfe074a8f1",
+  "scope": "Accepted source delta: strict raw migration adapter, paired metadata-only generation verification and iOS search prompt. Local source and binary checkpoints are pinned by the referenced native reports; hosted results at the base do not cover this delta.",
+  "results": {
+    "offlineNode": 118,
+    "offlinePythonGroups": 27,
+    "nativeStaticBoundaries": "passed",
+    "reviewDocs": 104,
+    "originalDocs": 105,
+    "targetedESLint": "passed",
+    "androidMetadataFocusedGroupsPerRuntime": 23,
+    "androidJVM": 25,
+    "androidRawMigrationMethodsPerRuntime": 2,
+    "androidRuntimes": [
+      26,
+      37
+    ],
+    "iosCombinedFocusedMethods": 45,
+    "iosRawMigrationIncludedMethods": 2,
+    "rootNativeHashesVerified": 120,
+    "rootDemoHashesVerified": 110
+  },
+  "evidence": [
+    "apps/android/evidence/generation-metadata.json",
+    "apps/ios/evidence/generation-metadata.json",
+    "docs/offline/evidence/raw-migration-validation.json",
+    "docs/offline/evidence/raw-migration-native.json",
+    "docs/offline/evidence/native-demo-metadata.json"
+  ],
+  "logSHA256": {
+    "artifacts/offline/metadata-migration-review-docs.log": "dfd3890f7237e945089394ffdcc4ad2b3e2c038846325097529134d2f5702742",
+    "artifacts/offline/metadata-migration-original-docs.log": "b8609dd56d820c050bd0af6095bc2f596a6099ea81874dc0aca81b4a6c471400",
+    "artifacts/offline/metadata-migration-review-offline.log": "87504577cb81c0b940f64ab3a40a053e15abadfcd7c974c02345ed444cdd2787",
+    "artifacts/offline/metadata-migration-review-eslint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "limitations": [
+    "Focused methods are not a fresh full native UI suite.",
+    "No performance, constant-memory, capacity-increase or complete-account migration claim.",
+    "Physical device, provider account, signing and release acceptance remain open.",
+    "Pre-commit and pre-push results for the integration commit are recorded separately after execution."
+  ]
+}

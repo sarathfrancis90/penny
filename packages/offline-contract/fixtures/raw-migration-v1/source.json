@@ -1,0 +1,785 @@
+{
+  "format": "penny-legacy-raw-evidence-v1",
+  "project": "penny-public-fixture",
+  "database": "(default)",
+  "userId": "public-migration-user",
+  "readTime": "2026-09-13T12:00:00.000Z",
+  "startedAt": "2026-09-13T12:00:00.000Z",
+  "finishedAt": "2026-09-13T12:00:00.000Z",
+  "scope": {
+    "collections": [
+      "expenses",
+      "budgets_personal",
+      "income_sources_personal",
+      "savings_goals_personal",
+      "savings_contributions",
+      "monthly_income_records",
+      "monthly_savings_summary",
+      "budget_allocation_history",
+      "monthly_setup_status",
+      "groupMembers"
+    ],
+    "ownerQueriesExhausted": true,
+    "fullAccountExport": false,
+    "migrationReady": false,
+    "storageSnapshotConsistent": false,
+    "omitted": [
+      "other owners group records",
+      "unlisted collections/subcollections",
+      "device-only or unsynced records",
+      "receipt bytes"
+    ]
+  },
+  "totals": {
+    "documents": 3,
+    "requests": 11,
+    "responseBytes": 3549,
+    "unresolvedReceipts": 1
+  },
+  "probe": {
+    "request": {
+      "structuredQuery": {
+        "from": [
+          {
+            "collectionId": "expenses"
+          }
+        ],
+        "where": {
+          "fieldFilter": {
+            "field": {
+              "fieldPath": "userId"
+            },
+            "op": "EQUAL",
+            "value": {
+              "stringValue": "public-migration-user"
+            }
+          }
+        },
+        "orderBy": [
+          {
+            "field": {
+              "fieldPath": "__name__"
+            },
+            "direction": "ASCENDING"
+          }
+        ],
+        "limit": 1
+      }
+    },
+    "response": [
+      {
+        "document": {
+          "name": "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1",
+          "fields": {
+            "userId": {
+              "stringValue": "public-migration-user"
+            },
+            "createdAt": {
+              "stringValue": "2026-09-13T12:00:00.000Z"
+            },
+            "updatedAt": {
+              "stringValue": "2026-09-13T12:00:00.000Z"
+            },
+            "id": {
+              "stringValue": "expense-1"
+            },
+            "vendor": {
+              "stringValue": "Public fixture cafe"
+            },
+            "amount": {
+              "doubleValue": 12.34
+            },
+            "category": {
+              "stringValue": "Meals and entertainment"
+            },
+            "date": {
+              "stringValue": "2026-09-12"
+            },
+            "expenseType": {
+              "stringValue": "personal"
+            },
+            "description": {
+              "stringValue": "Public description"
+            },
+            "notes": {
+              "stringValue": "Separate public note"
+            },
+            "receiptUrl": {
+              "stringValue": "https://untrusted.invalid/never-fetched"
+            }
+          },
+          "createTime": "2026-09-13T12:00:00.000Z",
+          "updateTime": "2026-09-13T12:00:00.000Z"
+        },
+        "readTime": "2026-09-13T12:00:00.000Z"
+      }
+    ],
+    "responseSha256": "f133b114ca32bbeda752b08335c13a3cd26c53f18a625c0a2127fc21949877f4",
+    "responseBytes": 802,
+    "finalTime": "2026-09-13T12:00:00.000Z",
+    "cursor": "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1",
+    "count": 1
+  },
+  "collections": [
+    {
+      "collection": "expenses",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 1,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "expenses"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "document": {
+                "name": "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1",
+                "fields": {
+                  "userId": {
+                    "stringValue": "public-migration-user"
+                  },
+                  "createdAt": {
+                    "stringValue": "2026-09-13T12:00:00.000Z"
+                  },
+                  "updatedAt": {
+                    "stringValue": "2026-09-13T12:00:00.000Z"
+                  },
+                  "id": {
+                    "stringValue": "expense-1"
+                  },
+                  "vendor": {
+                    "stringValue": "Public fixture cafe"
+                  },
+                  "amount": {
+                    "doubleValue": 12.34
+                  },
+                  "category": {
+                    "stringValue": "Meals and entertainment"
+                  },
+                  "date": {
+                    "stringValue": "2026-09-12"
+                  },
+                  "expenseType": {
+                    "stringValue": "personal"
+                  },
+                  "description": {
+                    "stringValue": "Public description"
+                  },
+                  "notes": {
+                    "stringValue": "Separate public note"
+                  },
+                  "receiptUrl": {
+                    "stringValue": "https://untrusted.invalid/never-fetched"
+                  }
+                },
+                "createTime": "2026-09-13T12:00:00.000Z",
+                "updateTime": "2026-09-13T12:00:00.000Z"
+              },
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "f133b114ca32bbeda752b08335c13a3cd26c53f18a625c0a2127fc21949877f4",
+          "responseBytes": 802,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "collection": "budgets_personal",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 1,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "budgets_personal"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "document": {
+                "name": "projects/penny-public-fixture/databases/(default)/documents/budgets_personal/budget-1",
+                "fields": {
+                  "userId": {
+                    "stringValue": "public-migration-user"
+                  },
+                  "createdAt": {
+                    "stringValue": "2026-09-13T12:00:00.000Z"
+                  },
+                  "updatedAt": {
+                    "stringValue": "2026-09-13T12:00:00.000Z"
+                  },
+                  "id": {
+                    "stringValue": "budget-1"
+                  },
+                  "category": {
+                    "stringValue": "Meals and entertainment"
+                  },
+                  "monthlyLimit": {
+                    "integerValue": "100"
+                  },
+                  "period": {
+                    "mapValue": {
+                      "fields": {
+                        "year": {
+                          "integerValue": "2026"
+                        },
+                        "month": {
+                          "integerValue": "9"
+                        }
+                      }
+                    }
+                  },
+                  "settings": {
+                    "mapValue": {
+                      "fields": {
+                        "rollover": {
+                          "booleanValue": true
+                        },
+                        "alertThreshold": {
+                          "doubleValue": 80.5
+                        },
+                        "notificationsEnabled": {
+                          "booleanValue": false
+                        }
+                      }
+                    }
+                  }
+                },
+                "createTime": "2026-09-13T12:00:00.000Z",
+                "updateTime": "2026-09-13T12:00:00.000Z"
+              },
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "fe40472787ea42d900fbfc2e0f4f27d638d10a799a9d67c1bf65ae6a659ac55e",
+          "responseBytes": 771,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": "projects/penny-public-fixture/databases/(default)/documents/budgets_personal/budget-1",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "collection": "income_sources_personal",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 1,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "income_sources_personal"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "document": {
+                "name": "projects/penny-public-fixture/databases/(default)/documents/income_sources_personal/income-1",
+                "fields": {
+                  "userId": {
+                    "stringValue": "public-migration-user"
+                  },
+                  "createdAt": {
+                    "stringValue": "2026-09-13T12:00:00.000Z"
+                  },
+                  "updatedAt": {
+                    "stringValue": "2026-09-13T12:00:00.000Z"
+                  },
+                  "id": {
+                    "stringValue": "income-1"
+                  },
+                  "name": {
+                    "stringValue": "Public salary"
+                  },
+                  "category": {
+                    "stringValue": "salary"
+                  },
+                  "amount": {
+                    "integerValue": "1000"
+                  },
+                  "netAmount": {
+                    "integerValue": "800"
+                  },
+                  "currency": {
+                    "stringValue": "CAD"
+                  },
+                  "taxable": {
+                    "booleanValue": true
+                  },
+                  "isRecurring": {
+                    "booleanValue": true
+                  },
+                  "isActive": {
+                    "booleanValue": true
+                  },
+                  "frequency": {
+                    "stringValue": "monthly"
+                  },
+                  "recurringDate": {
+                    "integerValue": "15"
+                  },
+                  "startDate": {
+                    "stringValue": "2026-01-15"
+                  },
+                  "description": {
+                    "stringValue": "Configured source only"
+                  }
+                },
+                "createTime": "2026-09-13T12:00:00.000Z",
+                "updateTime": "2026-09-13T12:00:00.000Z"
+              },
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "873a7c36dd99630e5cb730cd0cdf63db58d99357735f28de0aef3e02968867ea",
+          "responseBytes": 887,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": "projects/penny-public-fixture/databases/(default)/documents/income_sources_personal/income-1",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "collection": "savings_goals_personal",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "savings_goals_personal"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    },
+    {
+      "collection": "savings_contributions",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "savings_contributions"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    },
+    {
+      "collection": "monthly_income_records",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "monthly_income_records"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    },
+    {
+      "collection": "monthly_savings_summary",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "monthly_savings_summary"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    },
+    {
+      "collection": "budget_allocation_history",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "budget_allocation_history"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    },
+    {
+      "collection": "monthly_setup_status",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "monthly_setup_status"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    },
+    {
+      "collection": "groupMembers",
+      "ownerField": "userId",
+      "queryExhausted": true,
+      "documentCount": 0,
+      "pages": [
+        {
+          "request": {
+            "structuredQuery": {
+              "from": [
+                {
+                  "collectionId": "groupMembers"
+                }
+              ],
+              "where": {
+                "fieldFilter": {
+                  "field": {
+                    "fieldPath": "userId"
+                  },
+                  "op": "EQUAL",
+                  "value": {
+                    "stringValue": "public-migration-user"
+                  }
+                }
+              },
+              "orderBy": [
+                {
+                  "field": {
+                    "fieldPath": "__name__"
+                  },
+                  "direction": "ASCENDING"
+                }
+              ],
+              "limit": 100
+            },
+            "readTime": "2026-09-13T12:00:00.000Z"
+          },
+          "response": [
+            {
+              "readTime": "2026-09-13T12:00:00.000Z"
+            }
+          ],
+          "responseSha256": "9cb7d22dfc0f43cfa62f30361593b14221ede599accbbec541e72a21c148a805",
+          "responseBytes": 41,
+          "finalTime": "2026-09-13T12:00:00.000Z",
+          "cursor": null,
+          "count": 0
+        }
+      ]
+    }
+  ],
+  "receiptReferences": [
+    {
+      "document": "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1",
+      "source": {
+        "stringValue": "https://untrusted.invalid/never-fetched"
+      },
+      "status": "unresolved_not_downloaded"
+    }
+  ],
+  "quarantined": []
+}

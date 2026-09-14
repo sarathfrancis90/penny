@@ -1,0 +1,776 @@
+{
+  "sourceCommit": "5d98016148321a8d2e029b6c65f8c7bfe074a8f1",
+  "runId": 34805112934,
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934",
+  "nativeGate": "success",
+  "capturedAt": "2026-09-14T04:39:57.738300+00:00",
+  "scope": "Hosted exact-commit native checkpoint. Later raw migration adapter and both Android and iOS metadata-only seams are excluded. No physical-device, provider-account or performance evidence inferred from passing jobs.",
+  "runEvidence": {
+    "path": "artifacts/offline/hosted-5d98016/run.json",
+    "sha256": "f8a8d335e0d5ac92c479b467d036fc81f19087788d21cbd81e43af4dc3680608"
+  },
+  "artifacts": [
+    {
+      "id": 10333625347,
+      "name": "penny-offline-crypto-apple-build",
+      "sizeBytes": 17530,
+      "reportedArchiveDigest": "sha256:80e5a127967761179c6c0694e3e49d996a1fce3ec28121cb74b2ed3534731c40"
+    },
+    {
+      "id": 10333346030,
+      "name": "penny-offline-ios-simulator-evidence",
+      "sizeBytes": 6830509,
+      "reportedArchiveDigest": "sha256:41011cf8b1b93fa90719a30e4aee5a80e50d15b00f323e1d19c3987ad92583fe"
+    },
+    {
+      "id": 10333225401,
+      "name": "penny-offline-android-api-37.0-evidence",
+      "sizeBytes": 2254763,
+      "reportedArchiveDigest": "sha256:db10a5019a639fa88f0236759122e47e212845a79758d4f320f94c605f559b42"
+    },
+    {
+      "id": 10332987234,
+      "name": "penny-offline-crypto-android-build",
+      "sizeBytes": 38435,
+      "reportedArchiveDigest": "sha256:ef2040f45750d5a572e4671010bde48c4295840dfd69fee58c1807e42a0af099"
+    },
+    {
+      "id": 10332812046,
+      "name": "penny-offline-crypto-reference",
+      "sizeBytes": 8515,
+      "reportedArchiveDigest": "sha256:dc46d91237f02397c11a0c16d6ea37130c10f85f13c87f1dc1649f0b87e7bd4f"
+    },
+    {
+      "id": 10332642780,
+      "name": "penny-offline-android-api-26-evidence",
+      "sizeBytes": 1889418,
+      "reportedArchiveDigest": "sha256:6267989ee039482d51ad020e16ca970da5ef5038e433832583446c4e77ff28f6"
+    },
+    {
+      "id": 10332572782,
+      "name": "penny-offline-android-development",
+      "sizeBytes": 36593694,
+      "reportedArchiveDigest": "sha256:5bdbccd1d701cd20edc88ed61e1936dc3c6c109bfd78d09cd8ebd11759db734b"
+    }
+  ],
+  "jobs": [
+    {
+      "name": "native-offline-contract",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370168"
+    },
+    {
+      "name": "native-offline-android-build",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370285"
+    },
+    {
+      "name": "native-offline-android-api-37.0",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370294"
+    },
+    {
+      "name": "native-offline-android-api-26",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370308"
+    },
+    {
+      "name": "native-offline-ios-simulator",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370389"
+    },
+    {
+      "name": "native-offline-gate",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103859519892"
+    }
+  ],
+  "android": [
+    {
+      "runtime": "26",
+      "suite": {
+        "tests": "56",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "8",
+        "time": "119.258",
+        "timestamp": "2026-09-14T04:18:53",
+        "hostname": "localhost"
+      },
+      "discovered": 56,
+      "passed": 48,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "seedPending"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "reopenPending"
+        }
+      ],
+      "failures": [],
+      "junit": {
+        "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/app/build/outputs/androidTest-results/connected/debug/TEST-test(AVD) - 8.0.0-_app-.xml",
+        "sha256": "fd92a0e940fcd6271a347d9395a3bbb58d1b2cec0aa234f610e6a43b54585d71"
+      },
+      "processProof": {
+        "process-create.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/evidence/process-create.log",
+          "sha256": "a5aab9719e288442bb5b9ea3937ef1575db8c3fee57c99130246190f0a05c286",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-verify.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/evidence/process-verify.log",
+          "sha256": "4e60a945ce7889b866d10d086eaf64678c299f6d1b69d9a6adbdea28bd0e6042",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-restart.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/evidence/process-restart.log",
+          "sha256": "e63e4dfa0c9b7830abb08694bd38a9500ccb1cd11bb1dc4a450a3494ce8addf9",
+          "proof": [
+            "Process before force-stop: 6307",
+            "New process after restart: 6354",
+            "PASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+          ]
+        },
+        "generation-seedPending.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/evidence/generation-seedPending.log",
+          "sha256": "f85ae286fbf37286003f8d83770a930299a40177491f2f10a93f2a5f53f9f30c",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "generation-reopenPending.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/evidence/generation-reopenPending.log",
+          "sha256": "5a839038c52b48cb02b925b9b39b94900fa906bf8782893193c6f57f807ae94f",
+          "proof": [
+            "OK (1 test)"
+          ]
+        }
+      },
+      "generationProcess": {
+        "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-26-evidence/evidence/generation-process.json",
+        "sha256": "6b619ad363f1b453c6f1faa4ca08d885d1a959e1383a63c05e95ab2fbc5fec78",
+        "result": {
+          "pid": 6520,
+          "seedPid": 6481,
+          "phase": "authenticated-new-generation"
+        }
+      },
+      "skippedScope": "Performance and network-specialized modes are not covered by this ordinary suite. Four skipped process phase methods were executed separately, evidenced above; skips remain counted as skips."
+    },
+    {
+      "runtime": "37.0",
+      "suite": {
+        "tests": "56",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "8",
+        "time": "173.162",
+        "timestamp": "2026-09-14T04:21:21",
+        "hostname": "localhost"
+      },
+      "discovered": 56,
+      "passed": 48,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "seedPending"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "reopenPending"
+        }
+      ],
+      "failures": [],
+      "junit": {
+        "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/app/build/outputs/androidTest-results/connected/debug/TEST-test(AVD) - 17-_app-.xml",
+        "sha256": "91aff5558d65a7f71e9ee5e35f2673da8394ac56acb86122c3e9f9cbcca6e3ad"
+      },
+      "processProof": {
+        "process-create.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/evidence/process-create.log",
+          "sha256": "bdc40f49610ec5f4fe64e17134546f7da7f5933510947bf605d4da99f599be20",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-verify.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/evidence/process-verify.log",
+          "sha256": "55a1562b5d92ed763b46e4cd7e7c891dc6ef7567f539bfa541d6a611616421ff",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-restart.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/evidence/process-restart.log",
+          "sha256": "b4d4edbd57121932bd3be74df7483f260a2d34a488d9ff6311e373e991214f6e",
+          "proof": [
+            "Process before force-stop: 7113",
+            "New process after restart: 7162",
+            "PASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+          ]
+        },
+        "generation-seedPending.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/evidence/generation-seedPending.log",
+          "sha256": "bcb07afc65870424c328b813a68f1324003094918130875d5771de5d7d05e7b9",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "generation-reopenPending.log": {
+          "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/evidence/generation-reopenPending.log",
+          "sha256": "6751ba32777bf52d11229b3f57e285cb6ab21c8694df4fc4b7185d11c90feaaa",
+          "proof": [
+            "OK (1 test)"
+          ]
+        }
+      },
+      "generationProcess": {
+        "path": "artifacts/offline/hosted-5d98016/android/penny-offline-android-api-37.0-evidence/evidence/generation-process.json",
+        "sha256": "7d0175abbd44edb5d600881cc1cc05bd4bfa39508f32a92cf090173e7905ceae",
+        "result": {
+          "pid": 7318,
+          "seedPid": 7279,
+          "phase": "authenticated-new-generation"
+        }
+      },
+      "skippedScope": "Performance and network-specialized modes are not covered by this ordinary suite. Four skipped process phase methods were executed separately, evidenced above; skips remain counted as skips."
+    }
+  ],
+  "ios": {
+    "summary": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+            "deviceName": "iPhone 17 Pro",
+            "modelName": "iPhone 17 Pro",
+            "osBuildNumber": "23F77",
+            "osVersion": "26.5",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 81,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789360248.951,
+      "passedTests": 81,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789359280.92,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOffline",
+      "topInsights": [
+        {
+          "category": "Longest Test Runs",
+          "impact": "57% of duration",
+          "text": "3 longest test runs with outlier durations exceeding 3.07s (three standard deviations)"
+        }
+      ],
+      "totalTestCount": 81
+    },
+    "summaryEvidence": {
+      "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/Tests-summary.json",
+      "sha256": "9b80876722e4f311f9cade2e444c70a44b4d289fdf7ac0d8dabbdd24e106a8ae"
+    },
+    "testTreeEvidence": {
+      "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/Tests-tests.json",
+      "sha256": "17116da0133534720c9045357dfe7702ff8cf508b17cace2dfe5e498c29f1d83"
+    },
+    "bundles": [
+      {
+        "name": "PennyOfflineTests",
+        "passed": 72,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "name": "PennyOfflineUITests",
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "skipped": [],
+    "crudRelaunchScope": {
+      "proof": [
+        {
+          "bundle": "PennyOfflineUITests",
+          "identifier": "ExpenseFlowTests/testEmptyExpenseActionHasAccessibleHitArea()",
+          "result": "Passed"
+        },
+        {
+          "bundle": "PennyOfflineUITests",
+          "identifier": "ExpenseFlowTests/testLocalExpenseSurvivesRelaunchThenEditAndDelete()",
+          "result": "Passed"
+        },
+        {
+          "bundle": "PennyOfflineUITests",
+          "identifier": "ExpenseFlowTests/testReceiptPhotoSurvivesRelaunchAndCanBeRemoved()",
+          "result": "Passed"
+        }
+      ],
+      "disposition": "Ordinary UI suite exercised relaunch CRUD and receipt removal. No separate iOS external force-stop CRUD runner/artifact is present; do not infer Android-style PID proof for these UI tests."
+    },
+    "separateGenerationPhases": [
+      {
+        "phase": "Write",
+        "summary": {
+          "devicesAndConfigurations": [
+            {
+              "device": {
+                "architecture": "arm64",
+                "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+                "deviceName": "iPhone 17 Pro",
+                "modelName": "iPhone 17 Pro",
+                "osBuildNumber": "23F77",
+                "osVersion": "26.5",
+                "platform": "iOS Simulator"
+              },
+              "expectedFailures": 0,
+              "failedTests": 0,
+              "passedTests": 1,
+              "skippedTests": 0,
+              "testPlanConfiguration": {
+                "configurationId": "1",
+                "configurationName": "Test Scheme Action"
+              }
+            }
+          ],
+          "environmentDescription": "PennyOfflineDurableProcess \u00b7 Built with macOS 26.6.2",
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "finishTime": 1789360434.864,
+          "passedTests": 1,
+          "result": "Passed",
+          "skippedTests": 0,
+          "startTime": 1789360410.365,
+          "statistics": [],
+          "testFailures": [],
+          "title": "Test - PennyOfflineDurableProcess",
+          "topInsights": [],
+          "totalTestCount": 1
+        },
+        "summaryEvidence": {
+          "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/GenerationWrite-summary.json",
+          "sha256": "fb89df95c1f0b6f2d160c93765d44787d4a7d157fb0e2ec8fad52b6c96619763"
+        },
+        "testsEvidence": {
+          "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/GenerationWrite-tests.json",
+          "sha256": "02b02f22baa676ce1a6104eddbbca1e3bc9bb9b736063c628bd96721a4b16472"
+        },
+        "logEvidence": {
+          "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/generation-Write.log",
+          "sha256": "00da38aba4e4a7f99422de8b1f98b98e9f76b508bed0029d2c8005dbe4e38569"
+        },
+        "pidProof": [
+          "DURABLE_WRITER_PID=63860"
+        ]
+      },
+      {
+        "phase": "Read",
+        "summary": {
+          "devicesAndConfigurations": [
+            {
+              "device": {
+                "architecture": "arm64",
+                "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+                "deviceName": "iPhone 17 Pro",
+                "modelName": "iPhone 17 Pro",
+                "osBuildNumber": "23F77",
+                "osVersion": "26.5",
+                "platform": "iOS Simulator"
+              },
+              "expectedFailures": 0,
+              "failedTests": 0,
+              "passedTests": 1,
+              "skippedTests": 0,
+              "testPlanConfiguration": {
+                "configurationId": "1",
+                "configurationName": "Test Scheme Action"
+              }
+            }
+          ],
+          "environmentDescription": "PennyOfflineDurableProcess \u00b7 Built with macOS 26.6.2",
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "finishTime": 1789360468.758,
+          "passedTests": 1,
+          "result": "Passed",
+          "skippedTests": 0,
+          "startTime": 1789360443.953,
+          "statistics": [],
+          "testFailures": [],
+          "title": "Test - PennyOfflineDurableProcess",
+          "topInsights": [],
+          "totalTestCount": 1
+        },
+        "summaryEvidence": {
+          "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/GenerationRead-summary.json",
+          "sha256": "b232c23c278f307c6fde5d361485206b0d56307b3def623da56435b7d93e3fd5"
+        },
+        "testsEvidence": {
+          "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/GenerationRead-tests.json",
+          "sha256": "00b9e19a1cb8206b09bf66146dfb53af4fcd87170e5352ac16fdefa0fb156c62"
+        },
+        "logEvidence": {
+          "path": "artifacts/offline/hosted-5d98016/ios/evidence.6Hmtvp/generation-Read.log",
+          "sha256": "770e7bfd686954befa75b1836f1850bae9aa816b2b578e04a7cb9658ef381ee6"
+        },
+        "pidProof": [
+          "DURABLE_READER_PID=65019; WRITER_PID=63860"
+        ]
+      }
+    ]
+  },
+  "checksSnapshot": {
+    "headRefOid": "5d98016148321a8d2e029b6c65f8c7bfe074a8f1",
+    "prUrl": "https://github.com/sarathfrancis90/penny/pull/44",
+    "capturedAt": "2026-09-14T04:39:57.738300+00:00",
+    "requiredByGitHub": [
+      {
+        "bucket": "pass",
+        "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112843/job/103855369842",
+        "name": "Flutter Analyze + Unit Tests",
+        "state": "SUCCESS",
+        "workflow": "Mobile Tests"
+      }
+    ],
+    "nonSuccessRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "0001-01-01T00:00:00Z",
+        "conclusion": "",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112807/job/103855369674",
+        "name": "mobile-ios-ci",
+        "startedAt": "2026-09-14T04:11:29Z",
+        "status": "IN_PROGRESS",
+        "workflowName": "Mobile iOS CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "0001-01-01T00:00:00Z",
+        "conclusion": "",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112830/job/103855369843",
+        "name": "Penny Required Gate",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "IN_PROGRESS",
+        "workflowName": "Penny Required Gate"
+      }
+    ],
+    "allChecks": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "0001-01-01T00:00:00Z",
+        "conclusion": "",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112807/job/103855369674",
+        "name": "mobile-ios-ci",
+        "startedAt": "2026-09-14T04:11:29Z",
+        "status": "IN_PROGRESS",
+        "workflowName": "Mobile iOS CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "0001-01-01T00:00:00Z",
+        "conclusion": "",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112830/job/103855369843",
+        "name": "Penny Required Gate",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "IN_PROGRESS",
+        "workflowName": "Penny Required Gate"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:13:12Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112800/job/103855369733",
+        "name": "api-ci",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "API CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:07Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112838/job/103855369805",
+        "name": "Generated Agent Docs",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Agent Docs"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:14:06Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112811/job/103855369722",
+        "name": "backend-tests",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Backend Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:00Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112812/job/103855369778",
+        "name": "ci-policy-guard",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Policy Guard"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:03Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112831/job/103855369732",
+        "name": "docs-contract-ci",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Docs and Contracts CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:23Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112863/job/103855370051",
+        "name": "firebase-rules-ci",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Firebase Rules CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:18:19Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112864/job/103855369919",
+        "name": "mobile-android-ci",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Mobile Android CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:13:18Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112869/job/103855369845",
+        "name": "mobile-shared-ci",
+        "startedAt": "2026-09-14T04:11:26Z",
+        "status": "COMPLETED",
+        "workflowName": "Mobile Shared CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:59Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112843/job/103855369842",
+        "name": "Flutter Analyze + Unit Tests",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Mobile Tests"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:33Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370168",
+        "name": "native-offline-contract",
+        "startedAt": "2026-09-14T04:11:25Z",
+        "status": "COMPLETED",
+        "workflowName": "Penny Offline Native CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:10Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112902/job/103855369896",
+        "name": "sast-ci",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "SAST CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:24Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112799/job/103855369784",
+        "name": "dependency-security",
+        "startedAt": "2026-09-14T04:11:26Z",
+        "status": "COMPLETED",
+        "workflowName": "Security CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:17:58Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370285",
+        "name": "native-offline-android-build",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Penny Offline Native CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:11:43Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112799/job/103855369944",
+        "name": "osv-scan",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Security CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:34:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370389",
+        "name": "native-offline-ios-simulator",
+        "startedAt": "2026-09-14T04:11:28Z",
+        "status": "COMPLETED",
+        "workflowName": "Penny Offline Native CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:12:30Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112799/job/103855539440",
+        "name": "security-ci",
+        "startedAt": "2026-09-14T04:12:27Z",
+        "status": "COMPLETED",
+        "workflowName": "Security CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:19:44Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370308",
+        "name": "native-offline-android-api-26",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Penny Offline Native CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:22:12Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370294",
+        "name": "native-offline-android-api-37.0",
+        "startedAt": "2026-09-14T04:11:24Z",
+        "status": "COMPLETED",
+        "workflowName": "Penny Offline Native CI"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:34:54Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103859519892",
+        "name": "native-offline-gate",
+        "startedAt": "2026-09-14T04:34:51Z",
+        "status": "COMPLETED",
+        "workflowName": "Penny Offline Native CI"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "Vercel",
+        "startedAt": "2026-09-14T04:13:48Z",
+        "state": "SUCCESS",
+        "targetUrl": "https://vercel.com/sarath-francis-projects/penny/2PgJT4sBwhWnTLWc4xRY53p1LYaQ"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-09-14T04:13:49Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://vercel.com/github",
+        "name": "Vercel Preview Comments",
+        "startedAt": "2026-09-14T04:13:49Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "rawRequiredChecks": {
+      "path": "artifacts/offline/hosted-5d98016/checks.json",
+      "sha256": "167723db07849916e9be21873eddd3e87709126bd3688fb1677b5ce30e77e9a7"
+    },
+    "rawRollup": {
+      "path": "artifacts/offline/hosted-5d98016/rollup.json",
+      "sha256": "b650ac18541238fa9a04aaa8b8d9c015d387296e9306139ae0c07be9ad9628a0"
+    },
+    "interpretation": "GitHub --required currently reports only Flutter Analyze + Unit Tests. The broader rollup still has mobile-ios-ci and Penny Required Gate in progress; native success does not establish full PR completion."
+  },
+  "rawInventory": {
+    "path": "artifacts/offline/hosted-5d98016/raw-file-sha256.json",
+    "sha256": "56fede96b64f2717e149bda77ef2709717f6d4f9fe0109530fa64860529a07f1",
+    "scope": "SHA-256 of each extracted/downloaded report file, including all xcresult components and captured GitHub snapshots. Artifact archive digests above are GitHub-reported values."
+  }
+}

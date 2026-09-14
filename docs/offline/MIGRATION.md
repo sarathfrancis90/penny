@@ -23,9 +23,25 @@ or complete account migration. The separate
 now downloads explicitly mapped current originals with complete byte/checksum
 verification and unchanged before/after metadata. It never fetches source URLs.
 Nine new synthetic test groups pass; no live acquisition or historical storage
-consistency is established. A raw-evidence conversion adapter, domain
-reconciliation and a signed upgrade remain open. The raw format cannot be
-supplied directly to the existing converter described below.
+consistency is established.
+
+[`migrate-raw-evidence.mjs`](../../scripts/offline/MIGRATE_RAW_EVIDENCE.md) now
+validates all ten retained query traces and converts represented expenses,
+budgets and configured income sources through the existing converter. Any
+record in the other seven domains blocks backup output with a private report;
+source exhaustion never becomes a savings-history completeness assertion.
+Exact source/acquisition hashes, receipt coverage, native capacity, integer
+totals and source/native mappings are checked. Description and notes remain
+separate, and configured income never becomes received cash. Root verification
+passes [28 converter tests](evidence/raw-migration-validation.json).
+
+[Native fixture proof](evidence/raw-migration-native.json) passes two affected
+methods on iOS and each Android API26/37: the valid encrypted candidate restores
+and reopens with its receipt, while an authenticated invalid image is rejected
+before replacement. Each report names its source checkpoint. Complete finance
+and history reconciliation, real-account acquisition and signed upgrade remain
+open. The original converter below still accepts its own bootstrap shape;
+raw input uses the separate adapter.
 
 ## Input and completeness
 

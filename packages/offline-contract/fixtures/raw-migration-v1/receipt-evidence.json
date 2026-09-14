@@ -1,0 +1,60 @@
+{
+  "format": "penny-legacy-receipt-evidence-v1",
+  "project": "penny-public-fixture",
+  "userId": "public-migration-user",
+  "bucket": "penny-public-fixture.appspot.com",
+  "readTime": "2026-09-13T12:00:00.000Z",
+  "sourceSha256": "c7fb5c56fecac5507ce3ca0bbad52668fed323d55e7f8570287e6a777bec0833",
+  "mappingSha256": "b0cefc5cd0e4482d07cb6c18d78e75692b91f1d124d6eb6b2acab9a6061c5510",
+  "startedAt": "2026-09-13T12:00:00.000Z",
+  "finishedAt": "2026-09-13T12:00:00.000Z",
+  "scope": {
+    "allMappedReferencesAcquired": true,
+    "storageSnapshotConsistent": false,
+    "migrationReady": false,
+    "nativeImageValidated": false,
+    "historicalGenerationDownload": false,
+    "sourceExportReauthenticated": false
+  },
+  "totals": {
+    "objects": 1,
+    "references": 1,
+    "originalBytes": 70
+  },
+  "receipts": [
+    {
+      "documents": [
+        "projects/penny-public-fixture/databases/(default)/documents/expenses/expense-1"
+      ],
+      "object": "receipts/public-migration-user/public.png",
+      "before": {
+        "bucket": "penny-public-fixture.appspot.com",
+        "name": "receipts/public-migration-user/public.png",
+        "generation": "1234567890123456789",
+        "metageneration": "1",
+        "size": "70",
+        "md5Hash": "j+6k4qxCjRtb2ot+yZVYJQ==",
+        "timeCreated": "2026-09-13T12:00:00.000Z",
+        "updated": "2026-09-13T12:00:00.000Z",
+        "contentType": "image/png",
+        "contentEncoding": ""
+      },
+      "after": {
+        "bucket": "penny-public-fixture.appspot.com",
+        "name": "receipts/public-migration-user/public.png",
+        "generation": "1234567890123456789",
+        "metageneration": "1",
+        "size": "70",
+        "md5Hash": "j+6k4qxCjRtb2ot+yZVYJQ==",
+        "timeCreated": "2026-09-13T12:00:00.000Z",
+        "updated": "2026-09-13T12:00:00.000Z",
+        "contentType": "image/png",
+        "contentEncoding": ""
+      },
+      "byteCount": 70,
+      "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+      "originalBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==",
+      "status": "current_object_observed_unchanged"
+    }
+  ]
+}

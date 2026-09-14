@@ -86,7 +86,7 @@ struct ExpensesView: View {
                 } header: { Text("Your expenses").foregroundStyle(Color.pennySecondary) }
             }
             .navigationTitle("Penny")
-            .searchable(text: $search, prompt: "Search your expenses")
+            .searchable(text: $search, prompt: "Search")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("Add expense", systemImage: "plus") { adding = true }.accessibilityIdentifier("addExpense")

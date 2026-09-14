@@ -26,6 +26,16 @@ struct DurableLoaded: Sendable {
     let receipts: [LocalReceiptDescriptor]
 }
 
+/// Informational verified summary, never a reusable admission or receipt capability.
+struct DurableVerifiedMetadata: Sendable {
+    let vaultId: String, snapshotId: String, createdAt: String
+    let counts: [String: Int]
+    let expenseTotalMinor: Int64
+    let receiptBytes: Int, snapshotBytes: Int
+    /// SHA-256 of the authenticated local generation wire, not a portable digest.
+    let digest: String
+}
+
 /// One FD lease addresses the actual directory inode across every store instance.
 /// Root provisioning occurs before this trusted storage context is exposed.
 final class DurableVaultStorage {
@@ -36,8 +46,10 @@ final class DurableVaultStorage {
     let url: URL
     private let fd: Int32
     private let identity: stat
-    init(_ url: URL) throws {
+    private let hydrationCheckpoint: (() throws -> Void)?
+    init(_ url: URL, hydrationCheckpoint: (() throws -> Void)? = nil) throws {
         self.url = url
+        self.hydrationCheckpoint = hydrationCheckpoint
         // This private application root never comes from backup metadata.
         if !FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
@@ -173,7 +185,43 @@ final class DurableVaultStorage {
         if let journal = p.journal { object["journal"] = journal.base64EncodedString() }
         return try Self.pointerMagic + Self.seal(JSONSerialization.data(withJSONObject: object), key: key, domain: "PENNY-LOCAL-POINTER:1")
     }
-    private func hydrate(_ ref: DurableReference, storeId: String, key: SymmetricKey) throws -> DurableLoaded {
+    private struct ReceiptWire: Encodable {
+        let id: String, expenseId: String, mediaType: String
+        let byteCount: Int
+        let sha256: String
+        var dataBase64 = ""
+        init(_ descriptor: LocalReceiptDescriptor) {
+            id = descriptor.id; expenseId = descriptor.expenseId; mediaType = descriptor.mediaType
+            byteCount = descriptor.byteCount; sha256 = descriptor.sha256
+        }
+    }
+    /// Only this compatibility adapter accumulates receipt base64.
+    private final class SnapshotHydration {
+        var attachments: [ReceiptAttachment] = []
+        var result: DurableLoaded?
+        func receipt(_ descriptor: LocalReceiptDescriptor, bytes: Data) throws {
+            var wire = ReceiptWire(descriptor); wire.dataBase64 = bytes.base64EncodedString()
+            attachments.append(try JSONDecoder().decode(ReceiptAttachment.self, from: JSONEncoder().encode(wire)))
+        }
+        func finish(_ body: VaultSnapshot, record: DurableRecord, metadata: DurableVerifiedMetadata) throws {
+            var snapshot = body; snapshot.attachments = attachments
+            try snapshot.validate()
+            result = DurableLoaded(snapshot: snapshot, metadata: record.metadata, snapshotBytes: metadata.snapshotBytes,
+                                   storeId: record.storeId, receipts: record.receipts)
+        }
+    }
+    private func summary(_ snapshot: VaultSnapshot, receiptCount: Int, receiptBytes: Int, snapshotBytes: Int, digest: String) throws -> DurableVerifiedMetadata {
+        DurableVerifiedMetadata(vaultId: snapshot.vaultId, snapshotId: snapshot.snapshotId, createdAt: snapshot.createdAt,
+            counts: ["expenses": snapshot.expenses.count, "attachments": receiptCount, "budgets": snapshot.budgets.count,
+                     "incomeSources": snapshot.incomeSources.count, "incomeEntries": snapshot.incomeEntries.count,
+                     "savingsGoals": snapshot.savingsGoals.count, "savingsEntries": snapshot.savingsEntries.count,
+                     "recurringExpenses": snapshot.recurringExpenses.count],
+            expenseTotalMinor: try FinanceValidation.total(snapshot.expenses.map(\.amountMinor)),
+            receiptBytes: receiptBytes, snapshotBytes: snapshotBytes, digest: digest)
+    }
+    private func readVerified(_ ref: DurableReference, storeId: String, key: SymmetricKey,
+                              hydration: SnapshotHydration? = nil,
+                              receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil) throws -> DurableVerifiedMetadata {
         let wire = try referenced(ref)
         guard wire.starts(with: Self.recordMagic) else { throw ExpenseError.invalidSnapshot }
         let plain = try Self.open(wire.dropFirst(Self.recordMagic.count), key: key, domain: "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + ref.id)
@@ -182,40 +230,80 @@ final class DurableVaultStorage {
         let shape = try StrictJSON.object(plain, keys: ["version","storeId","generationId","metadata","body","receipts"])
         guard let metadata = shape["metadata"] as? [String: Any], Set(metadata.keys) == ["writerId","revision","restoreEpoch"] else { throw ExpenseError.invalidSnapshot }
         try record.metadata.validate()
-        var snapshot = try StrictJSON.snapshot(record.body)
+        let snapshot = try StrictJSON.snapshot(record.body)
+        let receiptBytes = record.receipts.reduce(0, { $0 + $1.byteCount })
+        let owners = Set(snapshot.expenses.map(\.id))
         guard snapshot.attachments.isEmpty, record.receipts.count <= ReceiptAttachment.maximumCount,
               Set(record.receipts.map(\.id)).count == record.receipts.count,
-              record.receipts.reduce(0, { $0 + $1.byteCount }) <= ReceiptAttachment.maximumTotalBytes else { throw ExpenseError.invalidSnapshot }
-        for descriptor in record.receipts {
-            guard descriptor.vaultId == snapshot.vaultId else { throw ExpenseError.invalidSnapshot }
-            let bytes = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: descriptor, root: key)
-            let receiptObject: [String: Any] = ["id":descriptor.id,"expenseId":descriptor.expenseId,"mediaType":descriptor.mediaType,"byteCount":descriptor.byteCount,"sha256":descriptor.sha256,"dataBase64":bytes.base64EncodedString()]
-            snapshot.attachments.append(try JSONDecoder().decode(ReceiptAttachment.self, from: JSONSerialization.data(withJSONObject: receiptObject)))
+              receiptBytes <= ReceiptAttachment.maximumTotalBytes,
+              record.receipts.allSatisfy({ $0.vaultId == snapshot.vaultId && owners.contains($0.expenseId) }) else { throw ExpenseError.invalidSnapshot }
+        // The validated body already includes attachments:[]. Insert each compact
+        // receipt JSON shape and its exact unescaped base64 length, plus commas.
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        var snapshotBytes = try encoder.encode(snapshot).count
+        for (index, descriptor) in record.receipts.enumerated() {
+            snapshotBytes += try encoder.encode(ReceiptWire(descriptor)).count + 4 * ((descriptor.byteCount + 2) / 3) + (index == 0 ? 0 : 1)
         }
-        try snapshot.validate(); let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
-        let bytes = try encoder.encode(snapshot).count; try BackupArchive.validateExportCapacity(bytes)
-        return DurableLoaded(snapshot: snapshot, metadata: record.metadata, snapshotBytes: bytes, storeId: storeId, receipts: record.receipts)
+        try BackupArchive.validateExportCapacity(snapshotBytes)
+        for descriptor in record.receipts {
+            try autoreleasepool {
+                let bytes = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: descriptor, root: key)
+                try hydration?.receipt(descriptor, bytes: bytes)
+            }
+        }
+        let result = try summary(snapshot, receiptCount: record.receipts.count, receiptBytes: receiptBytes, snapshotBytes: snapshotBytes, digest: ref.sha256)
+        try hydration?.finish(snapshot, record: record, metadata: result)
+        record.receipts.forEach { receiptMetadata?($0) }
+        return result
+    }
+    private func hydrate(_ ref: DurableReference, storeId: String, key: SymmetricKey) throws -> DurableLoaded {
+        try hydrationCheckpoint?()
+        let hydration = SnapshotHydration()
+        _ = try readVerified(ref, storeId: storeId, key: key, hydration: hydration)
+        guard let result = hydration.result else { throw ExpenseError.invalidSnapshot }; return result
     }
     private func decoded(_ wire: Data, key: SymmetricKey) throws -> DurableLoaded {
         if wire.starts(with: Self.prefix) { let p = try pointer(wire, key: key); return try hydrate(p.current, storeId: p.storeId, key: key) }
         let old = try LocalVaultFrame.decode(VaultCipher.open(wire, key: key))
         return DurableLoaded(snapshot: old.snapshot, metadata: old.metadata, snapshotBytes: old.snapshotBytes, storeId: nil, receipts: [])
     }
-    func load(key: SymmetricKey) throws -> DurableLoaded? {
+    private func verifiedDecoded(_ wire: Data, key: SymmetricKey, receiptMetadata: ((LocalReceiptDescriptor) -> Void)? = nil) throws -> DurableVerifiedMetadata {
+        if wire.starts(with: Self.prefix) {
+            let p = try pointer(wire, key: key)
+            return try readVerified(p.current, storeId: p.storeId, key: key, receiptMetadata: receiptMetadata)
+        }
+        // Legacy inline archives necessarily decode their existing base64 representation.
+        let old = try LocalVaultFrame.decode(VaultCipher.open(wire, key: key))
+        return try summary(old.snapshot, receiptCount: old.snapshot.attachments.count,
+                           receiptBytes: old.snapshot.attachments.reduce(0, { $0 + $1.byteCount }),
+                           snapshotBytes: old.snapshotBytes, digest: Self.digest(wire))
+    }
+    private func recoveredWire(key: SymmetricKey) throws -> Data? {
         guard let wire = try liveBytes() else { guard try !establishedWithoutLive() else { throw ExpenseError.lockedVault }; return nil }
-        guard wire.starts(with: Self.prefix) else { return try decoded(wire, key: key) }
+        guard wire.starts(with: Self.prefix) else { return wire }
         let p = try pointer(wire, key: key)
-        guard let journal = p.journal else { return try hydrate(p.current, storeId: p.storeId, key: key) }
+        guard let journal = p.journal else { return wire }
         let j = try Self.decode(DurableJournal.self, Self.open(journal, key: key, domain: "PENNY-LOCAL-JOURNAL:1\0" + p.storeId), keys: ["currentHash","previousHash"])
         guard j.currentHash == p.current.sha256, j.previousHash == p.previous?.sha256 else { throw ExpenseError.invalidSnapshot }
         do {
-            let result = try hydrate(p.current, storeId: p.storeId, key: key)
-            try write(encodePointer(DurablePointer(version: 1, storeId: p.storeId, current: p.current, previous: p.previous, journal: nil), key: key), name: Self.live, replacing: true)
-            return result
+            _ = try readVerified(p.current, storeId: p.storeId, key: key)
+            let verified = try encodePointer(DurablePointer(version: 1, storeId: p.storeId, current: p.current, previous: p.previous, journal: nil), key: key)
+            try write(verified, name: Self.live, replacing: true)
+            return verified
         } catch {
             guard let previous = p.previous else { throw error }
-            let old = try referenced(previous), restored = try decoded(old, key: key)
-            try write(old, name: Self.live, replacing: true); return restored
+            let old = try referenced(previous)
+            _ = try verifiedDecoded(old, key: key)
+            try write(old, name: Self.live, replacing: true); return old
+        }
+    }
+    func load(key: SymmetricKey) throws -> DurableLoaded? {
+        guard let wire = try recoveredWire(key: key) else { return nil }; return try decoded(wire, key: key)
+    }
+    func verifiedMetadata(key: SymmetricKey) throws -> DurableVerifiedMetadata {
+        try leased {
+            guard let wire = try recoveredWire(key: key) else { throw ExpenseError.lockedVault }
+            return try verifiedDecoded(wire, key: key)
         }
     }
     func pinSnapshot(key: SymmetricKey) throws -> DurableSnapshotLease {
@@ -235,18 +323,20 @@ final class DurableVaultStorage {
     func collectGarbage(key: SymmetricKey) throws -> Int {
         guard let wire = try liveBytes(), wire.starts(with: Self.pointerMagic) else { return 0 }
         let p = try pointer(wire, key: key); guard p.journal == nil else { return 0 }
-        var keep = Set(try hydrate(p.current, storeId: p.storeId, key: key).receipts.map(\.generationId))
+        var keep = Set<String>()
+        _ = try readVerified(p.current, storeId: p.storeId, key: key, receiptMetadata: { keep.insert($0.generationId) })
         if let previous = p.previous {
             // Key loss or unknown previous state prevents guessing reachability.
-            let old = try decoded(referenced(previous), key: key); keep.formUnion(old.receipts.map(\.generationId))
+            _ = try verifiedDecoded(referenced(previous), key: key, receiptMetadata: { keep.insert($0.generationId) })
         }
         var removed = 0
         for name in try names() where name.hasSuffix(".pennygen") && name != p.current.name && name != p.previous?.name {
             let id = String(name.dropLast(".pennygen".count)); guard UUID(uuidString: id)?.uuidString.lowercased() == id else { continue }
             guard let bytes = try? read(name), bytes.starts(with: Self.recordMagic) else { continue }
             let ref = DurableReference(id: id, sha256: Self.digest(bytes))
-            guard let candidate = try? hydrate(ref, storeId: p.storeId, key: key) else { continue }
-            for receipt in candidate.receipts where !keep.contains(receipt.generationId) {
+            var receipts: [LocalReceiptDescriptor] = []
+            guard (try? readVerified(ref, storeId: p.storeId, key: key, receiptMetadata: { receipts.append($0) })) != nil else { continue }
+            for receipt in receipts where !keep.contains(receipt.generationId) {
                 let directory = openat(fd, receipt.generationId, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                 guard directory >= 0 else { continue }
                 var directoryClosed = false; defer { if !directoryClosed { _ = Darwin.close(directory) } }
@@ -284,7 +374,7 @@ final class DurableVaultStorage {
         defer { for generation in ownedGroups { try? generation.close() } }
         for receipt in prepared.snapshot.attachments {
             if prepared.metadata.restoreEpoch == prepared.sourceRestoreEpoch, let old = receipts.first(where: { $0.id == receipt.id && $0.vaultId == prepared.snapshot.vaultId && $0.expenseId == receipt.expenseId && $0.sha256 == receipt.sha256 && $0.byteCount == receipt.byteCount && $0.mediaType == receipt.mediaType }) {
-                // The complete candidate hydrate below authenticates every reused receipt before staging.
+                // Complete candidate validation authenticates every reused receipt before staging.
                 descriptors.append(old)
             } else {
                 let group = try LocalReceiptBlobGroup(parent: url, vaultId: prepared.snapshot.vaultId, root: prepared.key)
@@ -297,12 +387,12 @@ final class DurableVaultStorage {
         let record = DurableRecord(version: 1, storeId: storeId, generationId: id, metadata: prepared.metadata, body: try JSONEncoder().encode(body), receipts: descriptors)
         let encrypted = try Self.recordMagic + Self.seal(JSONEncoder().encode(record), key: prepared.key, domain: "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + id)
         let current = DurableReference(id: id, sha256: Self.digest(encrypted)); try write(encrypted, name: current.name)
-        let loaded = try hydrate(current, storeId: storeId, key: prepared.key); try checkpoint?(.staged)
+        _ = try readVerified(current, storeId: storeId, key: prepared.key); try checkpoint?(.staged)
         let previous = try previousBytes.map { try reference($0) }
         if let previousBytes { try write(previousBytes, name: Self.rollback, replacing: true) }
         try checkpoint?(.rollbackSaved); try Task.checkCancellation()
         guard try liveBytes().map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }
-        _ = try hydrate(current, storeId: storeId, key: prepared.key)
+        _ = try readVerified(current, storeId: storeId, key: prepared.key)
         let journal = try Self.seal(JSONEncoder().encode(DurableJournal(currentHash: current.sha256, previousHash: previous?.sha256)), key: prepared.key, domain: "PENNY-LOCAL-JOURNAL:1\0" + storeId)
         // Optional Codable omission is avoided for this closed journal schema.
         let journalObject: [String: Any] = ["currentHash":current.sha256,"previousHash":previous?.sha256 as Any? ?? NSNull()]
@@ -313,9 +403,9 @@ final class DurableVaultStorage {
         do {
             try write(encodePointer(pending, key: prepared.key), name: Self.live, replacing: true)
             try checkpoint?(.committed)
-            _ = try hydrate(current, storeId: storeId, key: prepared.key)
+            _ = try readVerified(current, storeId: storeId, key: prepared.key)
             try checkpoint?(.verified)
-            _ = try hydrate(current, storeId: storeId, key: prepared.key)
+            let loaded = try hydrate(current, storeId: storeId, key: prepared.key)
             try Task.checkCancellation()
             try write(encodePointer(DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: nil), key: prepared.key), name: Self.live, replacing: true)
             try checkpoint?(.journalCleared)

@@ -24,6 +24,17 @@ Current product limits remain **10,000 expenses, 100 receipts, 8 MiB aggregate r
 
 ## Latest hosted and local checkpoints
 
+Current review head `5d98016148321a8d2e029b6c65f8c7bfe074a8f1` is pushed.
+It adds authenticated raw/receipt acquisition, bounded receipt-read corrections
+and the native UI test fixes below. The stable review passed 106 Node tests,
+27 Python groups, static boundaries, 104 documentation tests, targeted ESLint
+and all 290 enabled pre-push Flutter tests.
+[Hosted native run34805112934](evidence/hosted-native-5d98016.json)
+passed all native jobs: iOS81/81 (72 unit and nine UI), both Android runtimes
+48/56 with eight explicit skips, and separate process persistence/recovery
+phases. Retained Flutter iOS and the repository required aggregate are still
+pending at this snapshot. This result covers5d98016 only.
+
 The durable storage milestone is pushed as `8815d04247fff3843fe82954f79622adf11cc263`.
 [Local integration gates](evidence/durable-integration-8815d04.json) passed: 88 Node
 tests, 27 Python groups, static boundaries, 104 review documentation tests,
@@ -41,10 +52,11 @@ journeys: [Android receipt entry](evidence/android-receipt-input-readiness.json)
 on API26/37, one method each, and
 [iOS Files cancellation and consent](../../apps/ios/evidence/hosted-ui-readiness.md),
 two methods. Unchanged focused baselines also passed locally, so these results
-do not establish a deterministic reproduction or hosted cure. The fixes wait
+do not establish a deterministic local reproduction. The subsequent5d98016
+hosted native suite above passed all affected journeys. The fixes wait
 for actual control readiness, strengthen saved-state assertions and retain
 mandatory consent checks. Production source is unchanged by these test fixes.
-Later performance work and raw legacy acquisition are separate checkpoints.
+The newer metadata and raw migration adapter changes are separate checkpoints.
 
 At source commit `e3d6dc53e224357553795083bae45b222548298e`, all hosted native jobs passed in [run 34797361200](https://github.com/sarathfrancis90/penny/actions/runs/34797361200):
 
@@ -58,7 +70,25 @@ The prior `6cdf304` revision passed every listed hosted check and both aggregate
 
 At the earlier inline-receipt checkpoint, Android expense save/delete began returning validated state after a successful commit, avoiding a redundant full-vault read. Local build/JVM/lint, 16 API37 tests and four API26 regressions passed. Five alternating pairs in one debug API37/16 KiB process measured 1.07 s median with returned state versus 2.07 s with replayed reads for 10k expenses. This is historical save/state evidence before durable generations, not current-storage latency, physical p95 or an original-binary comparison. [PERFORMANCE.md](PERFORMANCE.md) preserves workload and measurement limits.
 
+The newer, separately validated [metadata and migration checkpoint](evidence/metadata-migration-integration.json)
+passes118 Node tests,27 Python groups, static boundaries,104 review documentation
+tests and targeted lint. Its paired native proofs and current demo hashes are
+recorded below. Hosted results for the base commit do not cover this delta.
+
 ## Streamed backup work in progress
+
+Both platforms now verify durable generation metadata and every native receipt
+without building aggregate receipt Base64 for validation-only paths. The existing
+Snapshot interface still hydrates receipts when application state needs them.
+Private formats, portable backups and current capacity are unchanged. Android
+passes23 focused groups on each API26/37 plus25 JVM tests; iOS passes45 focused
+methods including exact JSON byte-count parity, recovery, authenticated invalid
+metadata/images and the two raw migration fixture methods. Root checked120 source,
+fixture, binary and test-report hashes and independently reviewed both changes;
+a second reviewer found no actionable Swift blocker. These are validation results,
+not measured latency, constant-memory or larger-capacity acceptance. See
+[Android](../../apps/android/evidence/generation-metadata.md) and
+[iOS](../../apps/ios/evidence/generation-metadata.md).
 
 The following bounded receipt-read corrections preserve authentication and
 complete pre-publication validation. Android passes 17/17 focused tests on both
@@ -71,9 +101,15 @@ test groups. The new [receipt acquisition adapter](../../scripts/offline/LEGACY_
 preserves bounded current originals using explicit source bindings, unchanged
 before/after metadata and complete checksummed bytes. Its nine new groups plus
 the nine raw exporter groups pass locally and independent review found no
-actionable blocker. Real-account acquisition, historical storage consistency
-and native conversion of the raw format remain open; no migration-ready claim
-is made. [Validation scope](evidence/receipt-acquisition-validation.json).
+actionable blocker. A strict raw-format adapter now converts represented expenses, budgets and
+configured income sources, with all seven unsupported domains blocking output.
+Root passes28 converter tests and two native fixture methods on iOS and each
+Android API26/37; an authenticated invalid image is rejected before replacement.
+[Converter](evidence/raw-migration-validation.json) and
+[native fixture](evidence/raw-migration-native.json) reports preserve exact
+source checkpoints. Real-account acquisition, historical storage consistency
+and complete financial/history reconciliation remain open; no full-account
+migration claim is made. [Acquisition scope](evidence/receipt-acquisition-validation.json).
 
 The detached encrypted receipt foundation now passes the shared public golden
 and 35 negative cases, plus native ownership/cleanup/inventory/capacity tests:
@@ -120,15 +156,16 @@ Profile A targets 50,000 expenses, 5,000 receipts and 512 MiB raw receipt bytes,
 
 ## Demo, design and physical boundaries
 
-[Current native demo proof](evidence/current-native-demo.json) records fresh builds,
-installed executable/APK hashes and root-inspected captures after the durable
-receipt corrections. Both normal development apps launched with empty vaults
+[Current native demo proof](evidence/native-demo-metadata.json) records fresh builds,
+installed executable/APK hashes and root-inspected captures after metadata-only
+verification and the iOS Search prompt correction; all110 source/artifact hashes
+were independently checked. The earlier [receipt checkpoint](evidence/current-native-demo.json) remains separate. Both normal development apps launched with empty vaults
 without clearing data or editing records. This is startup proof only; test
 identities, populated migration and physical release remain separate.
 
 Both normal development apps have been built, installed and launched with empty local vaults: `ca.penny.offline.dev` on the iPhone 17/iOS26.4.1 simulator and Android17/16 KiB emulator. Test automation uses separate sandbox identities. [iOS](evidence/ios-demo-launch.png) and [Android](evidence/android-demo-launch.png) captures show the actual development UI; current local binaries and hashes are recorded under ignored build/artifact directories. They are not signed store candidates.
 
-Small-phone/tablet, large-text/dark-mode and functional native journeys passed at documented checkpoints. The separate unfiltered iOS accessibility diagnostic remains **failed with 13 findings: ten Dynamic Type, two clipping and one contrast**. Inspected default/XXXL/AX5 targets and the 44pt action correction do not resolve the complete audit. See [element-specific disposition](evidence/ios-accessibility-disposition.md). Physical VoiceOver/TalkBack remains open.
+Small-phone/tablet, large-text/dark-mode and functional native journeys passed at documented checkpoints. The separate unfiltered iOS accessibility diagnostic remains **failed with 13 findings: ten Dynamic Type, two clipping and one contrast**. Inspected default/XXXL/AX5 targets and the 44pt action correction do not resolve the complete audit. See [element-specific disposition](evidence/ios-accessibility-disposition.md). Physical VoiceOver/TalkBack remains open. A later [AX5 search prompt correction](../../apps/ios/evidence/a11y-search-prompt.md) keeps the focused native prompt large; both before/after unfiltered audits still report the same13 findings, so the full gate remains open.
 
 No attached supported device has established Foundation Models or Nano inference. Simulator success cannot prove hardware key protection, provider account recovery, battery use or store approval. Android's default-deny platform TLS policy restricts app-owned backup traffic, but it does not prove custom SDK/AICore metadata behavior. [PRIVACY.md](PRIVACY.md), [PROVIDER_SETUP.md](PROVIDER_SETUP.md) and [RELEASE.md](RELEASE.md) retain those exact gates. Existing store/API observations are historical snapshots, not a newly verified release state.
 
@@ -140,6 +177,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **41% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **38% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
-The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **10,401,224 aggregate tokens and 25,791 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.
+The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **13,921,673 aggregate tokens and 35,841 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

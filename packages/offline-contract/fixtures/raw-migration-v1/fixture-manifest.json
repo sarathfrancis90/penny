@@ -1,0 +1,48 @@
+{
+  "format": "penny-raw-migration-fixtures-v1",
+  "publicFixtureOnly": true,
+  "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+  "sourceSha256": "c7fb5c56fecac5507ce3ca0bbad52668fed323d55e7f8570287e6a777bec0833",
+  "receiptEvidenceSha256": "8b7267c60281bb55ff9da4e53bd0beadc5ac5941a9168721d9b3fd1432a29e88",
+  "expected": {
+    "schemaVersion": 3,
+    "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "vaultId": "70c9532b-727c-5507-906a-e293bfe8c0b9",
+    "createdAt": "2026-09-13T12:00:00.000Z",
+    "counts": {
+      "expenses": 1,
+      "attachments": 1,
+      "budgets": 1,
+      "incomeSources": 1,
+      "incomeEntries": 0,
+      "savingsGoals": 0,
+      "savingsEntries": 0,
+      "recurringExpenses": 0
+    },
+    "expenseTotalMinor": 1234,
+    "budgetTotalMinor": 10000,
+    "configuredGrossMinor": 100000,
+    "configuredNetMinor": 80000,
+    "receivedIncomeMinor": 0,
+    "attachmentSha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+  },
+  "cases": [
+    {
+      "file": "positive.pennybackup",
+      "sha256": "199f9ed2eb89602a8a8b5a019fd5cc1e93fb1c9d963803bbf2c4f45c422aadd8",
+      "bytes": 2411,
+      "nativeExpected": "accept",
+      "snapshotFile": "positive.snapshot.json"
+    },
+    {
+      "file": "invalid-image.pennybackup",
+      "sha256": "cdee9ee4d5928abeccdc28dfb5bff4a42bb65164a99b164f0527a12409cfeab1",
+      "bytes": 2851,
+      "nativeExpected": "reject",
+      "portableExpected": "accept",
+      "reason": "PNG invalid filter with valid chunk CRCs and valid AEAD/attachment hash",
+      "imageSource": "png-integrity-corpus.json#rgba9-plain-invalid_filter",
+      "imageSha256": "675b2b872c0f4594533433bfc5cc0eacabd8f9d5191e237dfd84994d8e6d5b1f"
+    }
+  ]
+}

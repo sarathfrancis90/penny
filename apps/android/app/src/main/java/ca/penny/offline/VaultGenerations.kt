@@ -29,7 +29,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_receipts (id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL, sealed BLOB NOT NULL)")
         }
     }
-    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED }
+    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION }
     internal var fault: (Point) -> Unit = {}
     private val domains = listOf("expenses", "attachments") + FinanceData.limits.keys
     private fun <T> locked(block: () -> T): T = synchronized(locks.getOrPut(db().path) { Any() }, block)
@@ -93,14 +93,33 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         return LocalReceiptBlob.Descriptor(Wire.string(j,"vaultId"),Wire.string(j,"generationId"),Wire.string(j,"id"),Wire.string(j,"expenseId"),Wire.string(j,"mediaType"),Wire.integer(j,"byteCount"),Wire.string(j,"sha256"))
     }
     private fun json(d: LocalReceiptBlob.Descriptor)=JSONObject().put("vaultId",d.vaultId).put("generationId",d.generationId).put("id",d.id).put("expenseId",d.expenseId).put("mediaType",d.mediaType).put("byteCount",d.byteCount).put("sha256",d.sha256)
-    private fun digest(snapshot: Snapshot): String {
+    private fun receiptMetadata(d: LocalReceiptBlob.Descriptor) = JSONObject().put("id",d.id).put("expenseId",d.expenseId)
+        .put("mediaType",d.mediaType).put("byteCount",d.byteCount).put("sha256",d.sha256)
+    private fun digest(snapshot: Snapshot): String = digest(snapshot.vaultId,snapshot.expenses,
+        snapshot.attachments.map {it.id to it.json().apply {remove("dataBase64")}},snapshot.finance)
+    private fun digest(vaultId: String, expenses: List<Expense>, receipts: List<Pair<String,JSONObject>>, finance: FinanceData): String {
         val digest=java.security.MessageDigest.getInstance("SHA-256")
         fun add(domain: String, id: String, bytes: ByteArray) {digest.update("$domain:$id:${bytes.size}:".toByteArray());digest.update(bytes)}
-        add("vault","",snapshot.vaultId.toByteArray())
-        snapshot.expenses.sortedBy {it.id}.forEach {add("expenses",it.id,StrictJson.bytes(it.json()))}
-        snapshot.attachments.sortedBy {it.id}.forEach {add("attachments",it.id,StrictJson.bytes(it.json().apply {remove("dataBase64")}))}
-        snapshot.finance.domains().forEach {(domain,rows)-> rows.sortedBy {it.id}.forEach {add(domain,it.id,StrictJson.bytes(it.json()))}}
+        add("vault","",vaultId.toByteArray())
+        expenses.sortedBy {it.id}.forEach {add("expenses",it.id,StrictJson.bytes(it.json()))}
+        receipts.sortedBy {it.first}.forEach {(id,json)->add("attachments",id,StrictJson.bytes(json))}
+        finance.domains().forEach {(domain,rows)-> rows.sortedBy {it.id}.forEach {add(domain,it.id,StrictJson.bytes(it.json()))}}
         return digest.digest().joinToString("") {"%02x".format(it.toInt() and 255)}
+    }
+    /** Verified summary only: no rows, receipt handles, plaintext or reusable admission capability. */
+    internal data class VerifiedMetadata(val vaultId: String, val snapshotId: String, val createdAt: String,
+        val counts: Map<String,Int>, val expenseTotalMinor: Long, val receiptBytes: Long, val digest: String)
+    /** Explicit compatibility adapter; receipt buffers remain borrowed from consumeReopened. */
+    private class SnapshotHydration {
+        private val attachments=mutableListOf<Attachment>()
+        var result: Snapshot? = null
+            private set
+        fun receipt(d: LocalReceiptBlob.Descriptor, bytes: ByteArray) {
+            attachments += Attachment(d.id,d.expenseId,d.mediaType,d.byteCount,d.sha256,Base64.getEncoder().encodeToString(bytes))
+        }
+        fun finish(metadata: VerifiedMetadata, expenses: List<Expense>, finance: FinanceData) {
+            result=Snapshot(metadata.vaultId,expenses,metadata.snapshotId,metadata.createdAt,attachments,finance).also {it.validate()}
+        }
     }
     private fun header(id: String, key: SecretKey): JSONObject {
         val bytes=db().rawQuery("SELECT sealedHeader FROM vault_generations WHERE id=?",arrayOf(id)).use {check(it.moveToFirst());it.getBlob(0)}
@@ -116,6 +135,12 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         check(db().update("vault_generations",ContentValues().apply {put("sealedHeader",seal(h,SecretKeySpec(raw,"AES"),"header:$id"))},"id=?",arrayOf(id))==1)
     }
     private fun read(id: String): Snapshot {
+        fault(Point.SNAPSHOT_HYDRATION)
+        val hydration=SnapshotHydration()
+        readVerified(id,hydration)
+        return checkNotNull(hydration.result)
+    }
+    private fun readVerified(id: String, hydration: SnapshotHydration? = null): VerifiedMetadata {
         val raw=key(id)
         try {
             val secret=SecretKeySpec(raw,"AES");val h=header(id,secret)
@@ -132,16 +157,30 @@ internal class VaultGenerations(private val context: Context, private val db: ()
                 }
             }
             arrays.forEach {(name,array)->finance.put(name,array)}
-            val attachments=mutableListOf<Attachment>()
+            val decodedFinance=FinanceData.decode(finance)
+            val sortedExpenses=expenses.sortedWith(compareByDescending<Expense>{it.expenseDate}.thenByDescending{it.createdAt}.thenBy{it.id})
+            // Reuse all existing expense/finance/identity semantics without constructing receipt base64.
+            Snapshot(Wire.string(h,"vaultId"),sortedExpenses,Wire.string(h,"snapshotId"),Wire.string(h,"createdAt"),finance=decodedFinance).validate()
+            require(descriptors.size<=100) {"Unsupported receipt count"}
+            require(descriptors.map {it.id}.toSet().size==descriptors.size) {"Duplicate receipt IDs"}
+            val owners=expenses.map {it.id}.toSet()
+            require(descriptors.all {it.expenseId in owners}) {"Receipt owner is missing"}
+            val receiptBytes=descriptors.sumOf {it.byteCount}
+            require(receiptBytes<=Attachment.maxTotalBytes) {"Receipts exceed the 8 MiB vault limit"}
+            val membership=digest(Wire.string(h,"vaultId"),expenses,descriptors.map {it.id to receiptMetadata(it)},decodedFinance)
+            require(membership==Wire.string(h,"digest")) {"Generation membership changed"}
             descriptors.groupBy {it.generationId}.forEach {(group,items) ->
                 require(items.all {it.vaultId==Wire.string(h,"vaultId")})
                 LocalReceiptBlob.consumeReopened(context,raw,Wire.string(h,"vaultId"),group,items) { d,bytes ->
-                    attachments += Attachment(d.id,d.expenseId,d.mediaType,d.byteCount,d.sha256,Base64.getEncoder().encodeToString(bytes))
+                    hydration?.receipt(d,bytes)
                 }
             }
-            val snapshot=Snapshot(Wire.string(h,"vaultId"),expenses.sortedWith(compareByDescending<Expense>{it.expenseDate}.thenByDescending{it.createdAt}.thenBy{it.id}),Wire.string(h,"snapshotId"),Wire.string(h,"createdAt"),attachments,FinanceData.decode(finance))
-            snapshot.validate();require(digest(snapshot)==Wire.string(h,"digest")) {"Generation membership changed"}
-            return snapshot
+            val counts=linkedMapOf("expenses" to expenses.size,"attachments" to descriptors.size)
+            decodedFinance.domains().forEach {(domain,rows)->counts[domain]=rows.size}
+            val metadata=VerifiedMetadata(Wire.string(h,"vaultId"),Wire.string(h,"snapshotId"),Wire.string(h,"createdAt"),
+                java.util.Collections.unmodifiableMap(counts),Money.total(expenses),receiptBytes,membership)
+            hydration?.finish(metadata,sortedExpenses,decodedFinance)
+            return metadata
         } finally {raw.fill(0)}
     }
     private fun receiptFiles(id: String, raw: ByteArray, snapshot: Snapshot, guard: () -> Unit = {}): List<LocalReceiptBlob.Descriptor> {
@@ -182,7 +221,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             val wrapped=crypt(raw,device(true),"key:$id",true)
             transaction {db().insertOrThrow("vault_generations",null,ContentValues().apply {put("id",id);put("wrappedKey",wrapped);put("sealedHeader",byteArrayOf())});setHeader(id,raw,snapshot)}
             val descriptors=receiptFiles(id,raw,snapshot,guard);fault(Point.FILES_READY);guard()
-            transaction {writeRows(id,raw,rowMap(snapshot,descriptors),guard);read(id);fault(Point.ROWS_READY);guard()}
+            transaction {writeRows(id,raw,rowMap(snapshot,descriptors),guard);readVerified(id);fault(Point.ROWS_READY);guard()}
             return id
         } catch (failure: Throwable) {
             cleanupFailed(failure);throw failure
@@ -220,14 +259,14 @@ internal class VaultGenerations(private val context: Context, private val db: ()
     private fun recover(): State {
         val current=state()
         if(!current.pending) return current
-        try {transaction {read(current.active)}} catch(failure: Exception) {
+        try {transaction {readVerified(current.active)}} catch(failure: Exception) {
             val previous=current.previous ?: run {
                 // First migration retains the complete legacy source until finalization.
                 migrationSource(legacy())
                 transaction {db().delete("metadata","key IN ('activeState','generationFormat')",null)}
                 throw IllegalStateException("Interrupted migration retained its legacy source; reopen the vault",failure)
             }
-            transaction {read(previous.id);setState(State(previous.id,null,false,previous.revision,previous.incarnation))}
+            transaction {readVerified(previous.id);setState(State(previous.id,null,false,previous.revision,previous.incarnation))}
             throw IllegalStateException("Interrupted replacement was rolled back; reopen the vault",failure)
         }
         fault(Point.REOPENED)
@@ -270,9 +309,10 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         }
     }
     fun snapshot(): Snapshot = locked {val current=ensure();transaction {read(current.active)}}
+    internal fun verifiedMetadata(): VerifiedMetadata = locked {val current=ensure();transaction {readVerified(current.active)}}
     fun revision(): Long = locked { legacyRevision() }
     fun incarnation(): String = locked {ensure().incarnation}
-    fun vaultId(): String = locked {snapshot().vaultId}
+    fun vaultId(): String = verifiedMetadata().vaultId
     fun checkpoint(after: () -> Unit): Triple<Snapshot,Long,String> = locked {
         val current=ensure();transaction {val snapshot=read(current.active);after();Triple(snapshot,current.revision,current.incarnation)}
     }
@@ -287,7 +327,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             } else receiptFiles(current.active,raw,snapshot)
             transaction {
                 check(state()==current);writeRows(current.active,raw,rowMap(snapshot,descriptors));setHeader(current.active,raw,snapshot)
-                val next=current.copy(revision=Math.addExact(current.revision,1));setState(next);read(current.active)
+                val next=current.copy(revision=Math.addExact(current.revision,1));setState(next);readVerified(current.active)
             }
             collect(state())
             snapshot.copy(expenses=snapshot.expenses.sortedWith(compareByDescending<Expense>{it.expenseDate}.thenByDescending{it.createdAt}.thenBy{it.id}))
@@ -306,7 +346,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             operation.check()
             require(expectedBinding==null || binding()==expectedBinding) {"Vault identity changed during preparation"}
             check(get("activeState")==token) {"Vault changed during preparation"}
-            read(id)
+            readVerified(id)
             operation.beginPublication() // Cancellation after this CAS cannot claim the old vault was retained.
             setState(State(id,old?.let {Previous(it.active,it.revision,it.incarnation)},true,Math.addExact(revision,1),Wire.id()))
         }

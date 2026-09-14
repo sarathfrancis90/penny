@@ -157,4 +157,51 @@ final class FinanceTests: XCTestCase {
         XCTAssertEqual(result.recurringExpenses, expected.recurringExpenses)
     }
 
+    @MainActor func testRawMigrationFixtureRestoresAndReopensWithoutInventingIncome() throws {
+        let manifest = try XCTUnwrap(try JSONSerialization.jsonObject(with: file("raw-migration-v1/fixture-manifest.json")) as? [String: Any])
+        let recoveryKey = try XCTUnwrap(manifest["recoveryKey"] as? String)
+        let expected = try StrictJSON.snapshot(file("raw-migration-v1/positive.snapshot.json"))
+        let imported = try BackupArchive.restore(file("raw-migration-v1/positive.pennybackup"), recoveryKey: recoveryKey)
+        XCTAssertEqual(imported.expenses, expected.expenses); XCTAssertEqual(imported.attachments, expected.attachments)
+        XCTAssertEqual(imported.budgets, expected.budgets); XCTAssertEqual(imported.incomeSources, expected.incomeSources)
+        XCTAssertEqual(imported.vaultId, expected.vaultId); XCTAssertEqual(imported.snapshotId, expected.snapshotId)
+        XCTAssertEqual(imported.createdAt, expected.createdAt)
+        XCTAssertEqual(imported.expenses.first?.amountMinor, 1234)
+        XCTAssertEqual(imported.expenses.first?.expenseDate, "2026-09-12")
+        XCTAssertEqual(imported.expenses.first?.description, "Public description")
+        XCTAssertEqual(imported.expenses.first?.note, "Separate public note")
+        XCTAssertEqual(imported.budgets.first?.alertThresholdBps, 8050)
+        XCTAssertEqual(imported.incomeSources.first?.grossMinor, 100000)
+        XCTAssertEqual(imported.incomeSources.first?.netMinor, 80000)
+        XCTAssertTrue(imported.incomeEntries.isEmpty && imported.savingsGoals.isEmpty && imported.savingsEntries.isEmpty && imported.recurringExpenses.isEmpty)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let deviceKey = SymmetricKey(size: .bits256)
+        let store = VaultStore(directory: directory, key: deviceKey)
+        try store.restore(imported)
+        let reopened = VaultStore(directory: directory, key: deviceKey)
+        XCTAssertTrue(reopened.isReady)
+        XCTAssertEqual(reopened.snapshot.expenses, expected.expenses); XCTAssertEqual(reopened.snapshot.attachments, expected.attachments)
+        XCTAssertEqual(reopened.snapshot.budgets, expected.budgets); XCTAssertEqual(reopened.snapshot.incomeSources, expected.incomeSources)
+        let report = FinanceEngine.report(reopened.snapshot, month: "2026-09")
+        XCTAssertEqual(report.expenses, 1234); XCTAssertEqual(report.received, 0)
+    }
+
+    @MainActor func testRawMigrationAuthenticatedInvalidImageCannotReplaceVault() throws {
+        let manifest = try XCTUnwrap(try JSONSerialization.jsonObject(with: file("raw-migration-v1/fixture-manifest.json")) as? [String: Any])
+        let recoveryKey = try XCTUnwrap(manifest["recoveryKey"] as? String)
+        let good = try BackupArchive.restore(file("raw-migration-v1/positive.pennybackup"), recoveryKey: recoveryKey)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let deviceKey = SymmetricKey(size: .bits256)
+        let store = VaultStore(directory: directory, key: deviceKey); try store.restore(good)
+        let revision = store.revision
+        XCTAssertThrowsError(try store.restore(BackupArchive.restore(file("raw-migration-v1/invalid-image.pennybackup"), recoveryKey: recoveryKey)))
+        XCTAssertEqual(store.revision, revision)
+        let reopened = VaultStore(directory: directory, key: deviceKey)
+        XCTAssertTrue(reopened.isReady); XCTAssertEqual(reopened.revision, revision)
+        XCTAssertEqual(reopened.snapshot.expenses, good.expenses); XCTAssertEqual(reopened.snapshot.attachments, good.attachments)
+        XCTAssertEqual(reopened.snapshot.budgets, good.budgets); XCTAssertEqual(reopened.snapshot.incomeSources, good.incomeSources)
+    }
+
 }
