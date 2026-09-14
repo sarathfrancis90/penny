@@ -36,6 +36,23 @@ struct DurableVerifiedMetadata: Sendable {
     let digest: String
 }
 
+/// Typed receipt declaration only; no serialized parser, bytes or storage paths.
+struct DurableReceiptDeclaration: Sendable {
+    let id: String, expenseId: String, mediaType: String
+    let byteCount: Int
+    let sha256: String
+    fileprivate func descriptor(vaultId: String, generationId: String) throws -> LocalReceiptDescriptor {
+        try LocalReceiptDescriptor(vaultId: vaultId, generationId: generationId, id: id, expenseId: expenseId,
+                                   mediaType: mediaType, byteCount: byteCount, sha256: sha256)
+    }
+}
+
+/// Ownership transfers to append: exactly one close attempt, including failures.
+protocol DurableReceiptSource: AnyObject {
+    func read(maximum: Int) throws -> Data
+    func close() throws
+}
+
 /// One FD lease addresses the actual directory inode across every store instance.
 /// Root provisioning occurs before this trusted storage context is exposed.
 final class DurableVaultStorage {
@@ -231,20 +248,7 @@ final class DurableVaultStorage {
         guard let metadata = shape["metadata"] as? [String: Any], Set(metadata.keys) == ["writerId","revision","restoreEpoch"] else { throw ExpenseError.invalidSnapshot }
         try record.metadata.validate()
         let snapshot = try StrictJSON.snapshot(record.body)
-        let receiptBytes = record.receipts.reduce(0, { $0 + $1.byteCount })
-        let owners = Set(snapshot.expenses.map(\.id))
-        guard snapshot.attachments.isEmpty, record.receipts.count <= ReceiptAttachment.maximumCount,
-              Set(record.receipts.map(\.id)).count == record.receipts.count,
-              receiptBytes <= ReceiptAttachment.maximumTotalBytes,
-              record.receipts.allSatisfy({ $0.vaultId == snapshot.vaultId && owners.contains($0.expenseId) }) else { throw ExpenseError.invalidSnapshot }
-        // The validated body already includes attachments:[]. Insert each compact
-        // receipt JSON shape and its exact unescaped base64 length, plus commas.
-        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
-        var snapshotBytes = try encoder.encode(snapshot).count
-        for (index, descriptor) in record.receipts.enumerated() {
-            snapshotBytes += try encoder.encode(ReceiptWire(descriptor)).count + 4 * ((descriptor.byteCount + 2) / 3) + (index == 0 ? 0 : 1)
-        }
-        try BackupArchive.validateExportCapacity(snapshotBytes)
+        let (receiptBytes, snapshotBytes) = try Self.receiptCapacity(snapshot, receipts: record.receipts)
         for descriptor in record.receipts {
             try autoreleasepool {
                 let bytes = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: descriptor, root: key)
@@ -255,6 +259,23 @@ final class DurableVaultStorage {
         try hydration?.finish(snapshot, record: record, metadata: result)
         record.receipts.forEach { receiptMetadata?($0) }
         return result
+    }
+    private static func receiptCapacity(_ snapshot: VaultSnapshot, receipts: [LocalReceiptDescriptor]) throws -> (Int, Int) {
+        let receiptBytes = receipts.reduce(0, { $0 + $1.byteCount })
+        let owners = Set(snapshot.expenses.map(\.id))
+        guard snapshot.attachments.isEmpty, receipts.count <= ReceiptAttachment.maximumCount,
+              Set(receipts.map(\.id)).count == receipts.count,
+              receiptBytes <= ReceiptAttachment.maximumTotalBytes,
+              receipts.allSatisfy({ $0.vaultId == snapshot.vaultId && owners.contains($0.expenseId) }) else { throw ExpenseError.invalidSnapshot }
+        // The validated body already includes attachments:[]. Insert each compact
+        // receipt JSON shape and its exact unescaped base64 length, plus commas.
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        var snapshotBytes = try encoder.encode(snapshot).count
+        for (index, descriptor) in receipts.enumerated() {
+            snapshotBytes += try encoder.encode(ReceiptWire(descriptor)).count + 4 * ((descriptor.byteCount + 2) / 3) + (index == 0 ? 0 : 1)
+        }
+        try BackupArchive.validateExportCapacity(snapshotBytes)
+        return (receiptBytes, snapshotBytes)
     }
     private func hydrate(_ ref: DurableReference, storeId: String, key: SymmetricKey) throws -> DurableLoaded {
         try hydrationCheckpoint?()
@@ -366,6 +387,207 @@ final class DurableVaultStorage {
         }
         return removed
     }
+
+    /// Pins the originally created inode through cleanup, including unlink/recreate races.
+    private final class OwnedRecord {
+        let reference: DurableReference
+        private let storage: DurableVaultStorage, identity: stat
+        private var pin: Int32
+        init(storage: DurableVaultStorage, reference: DurableReference, identity: stat, pin: Int32) {
+            self.storage = storage; self.reference = reference; self.identity = identity; self.pin = pin
+        }
+        func validateOwnership() throws {
+            var held = stat(), current = stat()
+            guard pin >= 0, fstat(pin, &held) == 0,
+                  held.st_mode & S_IFMT == S_IFREG, held.st_uid == geteuid(), held.st_mode & 0o077 == 0, held.st_nlink == 1,
+                  fstatat(storage.fd, reference.name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+                  current.st_dev == identity.st_dev, current.st_ino == identity.st_ino else { throw LocalReceiptBlobError.replaced }
+            try LocalReceiptProtectionMode.validate(pin)
+        }
+        func close() throws {
+            guard pin >= 0 else { return }
+            let held = pin; pin = -1
+            var current = stat(), failed = false
+            if fstatat(storage.fd, reference.name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+               current.st_dev == identity.st_dev, current.st_ino == identity.st_ino {
+                if unlinkat(storage.fd, reference.name, 0) != 0 || fsync(storage.fd) != 0 { failed = true }
+            } else { failed = true }
+            if Darwin.close(held) != 0 { failed = true }
+            if failed { throw LocalReceiptBlobError.file }
+        }
+        deinit { try? close() }
+    }
+    private func inactiveRecord(_ bytes: Data, id: String, cancellation: () throws -> Void) throws -> OwnedRecord {
+        try cancellation(); try checkRoot()
+        let reference = DurableReference(id: id, sha256: Self.digest(bytes))
+        let output = penny_open_receipt_protected_at(fd, reference.name)
+        guard output >= 0 else { throw LocalReceiptBlobError.file }
+        let file = FileHandle(fileDescriptor: output, closeOnDealloc: true); defer { try? file.close() }
+        var info = stat(); guard fstat(output, &info) == 0 else { throw LocalReceiptBlobError.file }
+        let pin = fcntl(output, F_DUPFD_CLOEXEC, 0)
+        guard pin >= 0 else {
+            var current = stat()
+            if fstatat(fd, reference.name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+               current.st_dev == info.st_dev, current.st_ino == info.st_ino { _ = unlinkat(fd, reference.name, 0) }
+            throw LocalReceiptBlobError.file
+        }
+        let owned = OwnedRecord(storage: self, reference: reference, identity: info, pin: pin)
+        do {
+            try LocalReceiptProtectionMode.validate(output)
+            for offset in stride(from: 0, to: bytes.count, by: 65_536) {
+                try cancellation(); try file.write(contentsOf: bytes[offset..<min(bytes.count, offset + 65_536)])
+            }
+            try file.synchronize(); try file.close()
+            guard fsync(fd) == 0, try read(reference.name) == bytes else { throw LocalReceiptBlobError.bytes }
+            try cancellation(); try checkRoot(); try owned.validateOwnership(); return owned
+        } catch { try owned.close(); throw error }
+    }
+
+    /// Unexposed, synchronous/off-main preparation. No activation/install API.
+    /// Callers provide an already-owned device key; this type never accesses Keychain.
+    final class Preparation {
+        enum Phase { case beforeFinish, afterMetadataClose, afterVerification }
+        private let storage: DurableVaultStorage, body: VaultSnapshot, declarations: [DurableReceiptDeclaration]
+        private let metadata: LocalVaultMetadata, storeId: String
+        private let cancellation: () throws -> Void, fault: (Phase) throws -> Void
+        private let receiptFault: LocalReceiptBlobGroup.Fault
+        private var key: SymmetricKey?, active = true
+        private var groups: [LocalReceiptGeneration] = [], descriptors: [LocalReceiptDescriptor] = [], pins: [Int32] = []
+        private var record: OwnedRecord?
+
+        static func begin(directory: URL, key: SymmetricKey?, body: VaultSnapshot, receipts: [DurableReceiptDeclaration],
+                          metadata: LocalVaultMetadata, storeId: String,
+                          cancellation: @escaping () throws -> Void = { try Task.checkCancellation() },
+                          fault: @escaping (Phase) throws -> Void = { _ in },
+                          receiptFault: @escaping LocalReceiptBlobGroup.Fault = { _, _ in }) throws -> Preparation {
+            // All declaration/key checks precede even private root provisioning.
+            guard let key, key.bitCount == 256 else { throw LocalReceiptBlobError.key }
+            try cancellation(); guard body.attachments.isEmpty, receipts.count <= ReceiptAttachment.maximumCount else { throw ExpenseError.invalidSnapshot }
+            try body.validate(); try metadata.validate(); try FinanceValidation.uuid(storeId)
+            _ = try DurableVaultStorage.receiptCapacity(body, receipts: receipts.map { try $0.descriptor(vaultId: body.vaultId, generationId: storeId) })
+            try cancellation()
+            let storage = try DurableVaultStorage(directory)
+            return Preparation(storage: storage, key: key, body: body, declarations: receipts, metadata: metadata,
+                               storeId: storeId, cancellation: cancellation, fault: fault, receiptFault: receiptFault)
+        }
+        private init(storage: DurableVaultStorage, key: SymmetricKey, body: VaultSnapshot, declarations: [DurableReceiptDeclaration],
+                     metadata: LocalVaultMetadata, storeId: String, cancellation: @escaping () throws -> Void,
+                     fault: @escaping (Phase) throws -> Void, receiptFault: @escaping LocalReceiptBlobGroup.Fault) {
+            self.storage = storage; self.key = key; self.body = body; self.declarations = declarations
+            self.metadata = metadata; self.storeId = storeId; self.cancellation = cancellation; self.fault = fault; self.receiptFault = receiptFault
+        }
+        private func checkpoint(_ phase: Phase) throws { try cancellation(); try fault(phase); try cancellation() }
+        /// Materializes at most one declared receipt. True EOF and source close
+        /// precede encryption; no caller-supplied path or aggregate receipt graph.
+        func append(receiptId: String, source: DurableReceiptSource) throws {
+            var input: Result<Data, Error>
+            do {
+                guard active, descriptors.count < declarations.count,
+                      declarations[descriptors.count].id == receiptId else { throw LocalReceiptBlobError.closed }
+                let expected = declarations[descriptors.count].byteCount
+                var bytes = Data()
+                while true {
+                    try cancellation()
+                    let maximum = min(65_536, expected - bytes.count + 1)
+                    let chunk = try source.read(maximum: maximum)
+                    try cancellation()
+                    guard chunk.count <= maximum else { throw LocalReceiptBlobError.bytes }
+                    if chunk.isEmpty {
+                        guard bytes.count == expected else { throw LocalReceiptBlobError.bytes }; break
+                    }
+                    guard bytes.count + chunk.count <= expected else { throw LocalReceiptBlobError.bytes }
+                    bytes.append(chunk)
+                }
+                input = .success(bytes)
+            } catch { input = .failure(error) }
+            do { try source.close() } catch { input = .failure(error) }
+            do {
+                try cancellation()
+                try append(receiptId: receiptId, bytes: input.get())
+            } catch { try close(); throw error }
+        }
+        /// Input order is the declaration order. Every failure permanently consumes preparation.
+        func append(receiptId: String, bytes: Data) throws {
+            guard active, let key else { throw LocalReceiptBlobError.closed }
+            do {
+                try cancellation()
+                guard descriptors.count < declarations.count, declarations[descriptors.count].id == receiptId else { throw LocalReceiptBlobError.descriptor }
+                let declared = declarations[descriptors.count]
+                guard bytes.count == declared.byteCount else { throw LocalReceiptBlobError.bytes }
+                try storage.leased {
+                    let group = try LocalReceiptBlobGroup(parent: storage.url, vaultId: body.vaultId, root: key, cancellation: cancellation, fault: receiptFault)
+                    let descriptor = try declared.descriptor(vaultId: body.vaultId, generationId: group.generationId)
+                    _ = try group.append(bytes, descriptor: descriptor)
+                    let generation = try group.complete(); groups.append(generation)
+                    let pin = openat(storage.fd, descriptor.generationId, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+                    guard pin >= 0 else { throw LocalReceiptBlobError.file }; pins.append(pin)
+                    guard flock(pin, LOCK_SH | LOCK_NB) == 0 else { throw LocalReceiptBlobError.file }
+                    descriptors.append(descriptor); try cancellation()
+                }
+            } catch { try close(); throw error }
+        }
+        func finish() throws -> InactiveCandidate {
+            guard active, let key else { throw LocalReceiptBlobError.closed }
+            do {
+                try checkpoint(.beforeFinish)
+                guard descriptors.count == declarations.count else { throw LocalReceiptBlobError.bytes }
+                let summary = try storage.leased {
+                    let id = UUID().uuidString.lowercased()
+                    let value = DurableRecord(version: 1, storeId: storeId, generationId: id, metadata: metadata,
+                                              body: try JSONEncoder().encode(body), receipts: descriptors)
+                    let wire = try DurableVaultStorage.recordMagic + DurableVaultStorage.seal(JSONEncoder().encode(value), key: key,
+                        domain: "PENNY-LOCAL-GENERATION:1\0" + storeId + "\0" + id)
+                    record = try storage.inactiveRecord(wire, id: id, cancellation: cancellation)
+                    try checkpoint(.afterMetadataClose)
+                    guard let record else { throw LocalReceiptBlobError.file }
+                    try validateOwnership()
+                    let summary = try storage.readVerified(record.reference, storeId: storeId, key: key)
+                    try checkpoint(.afterVerification); try validateOwnership(); return summary
+                }
+                try cancellation(); active = false
+                return InactiveCandidate(owner: self, summary: summary)
+            } catch { try close(); throw error }
+        }
+        fileprivate func verifiedSummary() throws -> DurableVerifiedMetadata {
+            guard let record, let key else { throw LocalReceiptBlobError.closed }
+            return try storage.leased {
+                try cancellation(); try validateOwnership()
+                let summary = try storage.readVerified(record.reference, storeId: storeId, key: key)
+                try cancellation(); try validateOwnership(); return summary
+            }
+        }
+        private func validateOwnership() throws {
+            try record?.validateOwnership()
+            for group in groups { try group.validateOwnership() }
+        }
+        /// After transfer this cannot delete the candidate; candidate close owns cleanup.
+        func close() throws { guard active else { return }; active = false; try cleanup() }
+        fileprivate func cleanup() throws {
+            key = nil
+            let ownedRecord = record, ownedGroups = groups, ownedPins = pins
+            record = nil; groups.removeAll(); pins.removeAll(); descriptors.removeAll()
+            var failed = false
+            // Pins remain held while removing own files. No blocking root lease is
+            // needed: collectors can authenticate but cannot acquire group LOCK_EX.
+            do { try ownedRecord?.close() } catch { failed = true }
+            for group in ownedGroups { do { try group.close() } catch { failed = true } }
+            for pin in ownedPins { if Darwin.close(pin) != 0 { failed = true } }
+            if failed { throw LocalReceiptBlobError.file }
+        }
+        deinit { try? close() }
+    }
+    /// Opaque informational result, intentionally unusable by current install APIs.
+    final class InactiveCandidate {
+        let summary: DurableVerifiedMetadata
+        private var owner: Preparation?
+        fileprivate init(owner: Preparation, summary: DurableVerifiedMetadata) { self.owner = owner; self.summary = summary }
+        func verifiedSummary() throws -> DurableVerifiedMetadata {
+            guard let owner else { throw LocalReceiptBlobError.closed }; return try owner.verifiedSummary()
+        }
+        func close() throws { let owned = owner; owner = nil; try owned?.cleanup() }
+        deinit { try? close() }
+    }
+
     func commit(_ prepared: PreparedVaultWrite, sourceDigest: String?, storeId: String, receipts: [LocalReceiptDescriptor], checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> DurableLoaded {
         let previousBytes = try liveBytes()
         guard previousBytes.map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }

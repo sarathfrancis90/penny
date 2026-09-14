@@ -17,7 +17,7 @@ Create a protected local JSON file with exactly these fields:
 | `profileUUID` | UUID of an already installed App Store distribution profile |
 | `signingIdentity` | SHA-1 identifier of the appropriate installed distribution signing certificate |
 
-The profile and private signing key must already be usable by Xcode. The script does not pass `-allowProvisioningUpdates`. It generates a separate Info.plist and CloudKit entitlement file, enables the real-device CloudKit compile condition, archives for iPhoneOS, and exports with destination `export`. It disables automatic version/build rewriting. The archived app passes the signed-artifact preflight before the build report is written.
+The profile and private signing key must already be usable by Xcode. The script does not pass `-allowProvisioningUpdates`. It generates a separate Info.plist and CloudKit entitlement file, enables the real-device CloudKit compile condition, archives for iPhoneOS, and exports with destination `export`. It disables automatic version/build rewriting. The exported IPA payload passes the signed-artifact preflight before the build report is written. The retained IPA digest must match the exact frozen object inspected by that preflight.
 
 ```sh
 npm run offline:release:package -- ios \
@@ -26,7 +26,7 @@ npm run offline:release:package -- ios \
   --store-max-build FRESH_STORE_MAXIMUM
 ```
 
-Xcode can re-sign during export. The archive's successful `.app` preflight therefore does **not** validate the exported `.ipa`. The report records the IPA digest and explicitly retains `storeUploadArtifactValidated: false`. Inspect the exported payload's actual signature/profile/entitlements and complete App Store processing and installation before accepting it.
+Xcode can re-sign during export, so packaging now checks the app inside the exported `.ipa`. The extractor snapshots the archive into private temporary storage, validates its bounded ZIP layout and inspects the resulting payload while that snapshot remains owned. The report records its exact SHA-256 and `exactUploadObjectPreflightPassed: true` only for the iOS IPA path. `storeUploadArtifactValidated: false` remains explicit: local payload/signature checks do not establish Apple processing, store delivery or installation. Direct `.app` preflight remains available but cannot satisfy this packaging gate.
 
 ## Android profile
 

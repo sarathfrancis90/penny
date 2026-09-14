@@ -6,13 +6,15 @@ The command deliberately requires a freshly observed `--store-max-build`. The 10
 
 ## iOS
 
-Use the exported **iPhoneOS `.app`** destined for distribution:
+Use the exported **`.ipa`** destined for distribution. A direct signed iPhoneOS `.app` is also supported for a narrower bundle check:
 
 ```sh
-npm run offline:release:preflight -- ios /absolute/path/PennyOffline.app \
+npm run offline:release:preflight -- ios /absolute/path/PennyOffline.ipa \
   --version 3.0.0 --store-max-build STORE_MAX_BUILD \
   --team-id APPLE_TEAM_ID --cloud-container iCloud.CONFIGURED_CONTAINER
 ```
+
+IPA mode copies and hashes the regular input file into an owner-only temporary directory, rejects unsafe or unsupported ZIP layouts and extracts exactly one `Payload/*.app`. It checks that frozen payload and removes temporary bytes on success or failure. The input SHA-256 and archive counts identify the inspected object. Symlinks/special files, ambiguous names, extra payloads, encrypted entries, truncation, CRC failures and declared or actual size-limit violations fail closed. See the helper's documented limits; ZIP64 is unsupported in this bounded native packaging profile.
 
 The check verifies Apple's code-signature trust anchor and sealed bundle, signing-certificate team and profile membership, distribution signing authority, production bundle identity, matching app/profile team and application identifier, expiration, disabled debugging, App Store profile shape and actual signed CloudKit entitlements. The app ID prefix is read separately from the team because legacy Apple prefixes can differ. The signed iCloud environment must be Production, the profile must authorize that environment, and the container must match `PennyCloudKitContainerIdentifier`; `PennyCloudKitSignedBuild` must be a Boolean true. These configuration fields alone cannot satisfy the signed-entitlement gate.
 
@@ -36,10 +38,12 @@ The check verifies the APK signature and exact certificate, production package, 
 
 The Drive signing guard is compared to `--drive-signing-sha256`, separately from the APK's `--certificate-sha256`. Under Play App Signing the installed registration can use a different certificate from the local upload key; both must be supplied from the appropriate independent records. A structurally correct upload-signed APK need not authorize Drive locally when its guard expects Play's delivered certificate.
 
-The check does not unpack `.ipa` or validate/upload `.aab` files. [Native packaging](NATIVE_PACKAGING.md) builds in an isolated working-tree snapshot and records product digests, with those upload-artifact checks explicitly still open. The development applications are expected to fail this preflight; a green simulator test is not a release artifact.
+Exact `.aab` module/signature validation and Play-generated artifacts remain separate. [Native packaging](NATIVE_PACKAGING.md) builds in an isolated working-tree snapshot, checks the exported IPA or local APK and binds the retained product digest to that preflight. An APK pass does not establish its sibling AAB. The development applications are expected to fail this preflight; a green simulator test is not a release artifact.
 
 ## Local evidence
 
 On 2026-09-13, all twelve policy/parser test groups passed. Independent review added regressions for the actual iOS leaf certificate/profile membership, profile CloudKit environment and compiled Android resource references for debug/test flags. Unresolved Android Boolean references fail closed. The existing iOS simulator `.app` was rejected for its development identity/build, simulator platform, signing/profile/CloudKit configuration and missing packaged icon/privacy assets. The Android development APK was also inspected with the installed SDK tools and rejected. Sanitized reports are in ignored `artifacts/offline/ios-development-preflight.json` and `android-development-preflight.json`. This is negative-gate evidence; no signed production artifact has passed.
 
 Primary references: [Apple distribution entitlements](https://developer.apple.com/library/archive/qa/qa1798/_index.html), [Apple signature verification](https://developer.apple.com/library/archive/technotes/tn2318/), [Android APK signature verification](https://developer.android.com/tools/apksigner), [Android 17 SDK setup](https://developer.android.com/about/versions/17/setup-sdk).
+
+The later [exported IPA checkpoint](evidence/exported-ipa-preflight.json) passes 38 Python groups in `scripts/offline`, including 13 archive-helper groups. Independent reviews cover the helper and integration separately. A synthetic ZIP of the frozen simulator app reached the actual signature/metadata checker and failed with 18 expected findings, with the exact IPA digest verified. That negative container is not an Xcode-exported distribution artifact.

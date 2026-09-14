@@ -23,13 +23,14 @@ internal class VaultGenerations(private val context: Context, private val db: ()
     private val legacyRevision: () -> Long, private val legacyIncarnation: () -> String) {
     companion object {
         private val locks = ConcurrentHashMap<String, Any>()
+        private val candidatePins = ConcurrentHashMap<String,MutableSet<String>>()
         fun create(db: SQLiteDatabase) {
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_generations (id TEXT PRIMARY KEY NOT NULL, wrappedKey BLOB NOT NULL, sealedHeader BLOB NOT NULL)")
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_rows (generationId TEXT NOT NULL, domain TEXT NOT NULL, id TEXT NOT NULL, sealed BLOB NOT NULL, PRIMARY KEY(generationId,domain,id))")
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_receipts (id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL, sealed BLOB NOT NULL)")
         }
     }
-    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION }
+    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED }
     internal var fault: (Point) -> Unit = {}
     private val domains = listOf("expenses", "attachments") + FinanceData.limits.keys
     private fun <T> locked(block: () -> T): T = synchronized(locks.getOrPut(db().path) { Any() }, block)
@@ -183,6 +184,149 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             return metadata
         } finally {raw.fill(0)}
     }
+    internal data class ReceiptDeclaration(val id: String, val expenseId: String, val mediaType: String,
+        val byteCount: Long, val sha256: String)
+    internal interface ReceiptPreparation : java.io.Closeable {
+        /** Borrowed input; caller retains ownership and must wipe its buffer. */
+        fun append(receiptId: String, bytes: ByteArray)
+        /** Owns and closes the input; exact declared length and true EOF required. */
+        fun append(receiptId: String, input: java.io.InputStream)
+        fun finish(): PreparedGeneration
+    }
+    internal interface PreparedGeneration : java.io.Closeable {
+        val metadata: VerifiedMetadata
+    }
+    private fun frozenMetadata(snapshot: Snapshot): Snapshot {
+        require(snapshot.attachments.isEmpty()) {"Preparation metadata must not contain receipt bytes"}
+        val f=snapshot.finance
+        return snapshot.copy(expenses=snapshot.expenses.toList(),attachments=emptyList(),finance=f.copy(
+            budgets=f.budgets.toList(),incomeSources=f.incomeSources.toList(),incomeEntries=f.incomeEntries.toList(),
+            savingsGoals=f.savingsGoals.toList(),savingsEntries=f.savingsEntries.toList(),recurringExpenses=f.recurringExpenses.toList()))
+            .also {it.validate()}
+    }
+    /** Exact existing schema-3 JSON size: base64 has no JSON escaping overhead. */
+    private fun requireReceiptCapacity(snapshot: Snapshot, descriptors: List<LocalReceiptBlob.Descriptor>) {
+        require(descriptors.size<=100 && descriptors.map {it.id}.toSet().size==descriptors.size) {"Invalid receipt count or duplicate IDs"}
+        val owners=snapshot.expenses.map {it.id}.toSet()
+        require(descriptors.all {it.expenseId in owners}) {"Receipt owner is missing"}
+        require(descriptors.sumOf {it.byteCount}<=Attachment.maxTotalBytes) {"Receipts exceed the 8 MiB vault limit"}
+        var size=StrictJson.bytes(snapshot.json()).size.toLong()+maxOf(0,descriptors.size-1)
+        descriptors.forEach {d -> size=Math.addExact(size,StrictJson.bytes(receiptMetadata(d).put("dataBase64","")).size+4*((d.byteCount+2)/3))}
+        require(size<=Backup.maxPlaintextBytes && 4*((size+2)/3)+1024<=Backup.maxEnvelopeBytes) {"Vault backup capacity reached"}
+    }
+    private inner class CandidateStorage(val id: String, val raw: ByteArray, val snapshot: Snapshot,
+        val group: String, val descriptors: List<LocalReceiptBlob.Descriptor>, val operation: RestoreOperation) {
+        var writer: LocalReceiptBlob.Operation? = null
+        var files: LocalReceiptBlob.ReceiptGeneration? = null
+        var databaseOwned = false
+        var cleanupUncertain = false
+        val received=mutableSetOf<String>()
+        fun discard() {
+            // No installation API exists for this capability. Its unique DB rows
+            // and file generation remain inactive for the entire owned lifetime.
+            try {
+                writer?.close()
+                if(files!=null) files!!.discard()
+                if(databaseOwned && !cleanupUncertain) transaction {
+                    db().delete("vault_receipts","owner=?",arrayOf(id));db().delete("vault_rows","generationId=?",arrayOf(id));db().delete("vault_generations","id=?",arrayOf(id))
+                }
+            } finally {
+                // Failed authenticated reopen/cleanup retains ciphertext/catalog
+                // for conservative existing GC; it never becomes an active vault.
+                raw.fill(0);candidatePins[db().path]?.let {it.remove(id);if(it.isEmpty()) candidatePins.remove(db().path)}
+            }
+        }
+        fun failed(error: Throwable): Nothing {
+            cleanupUncertain=cleanupUncertain || error.suppressed.isNotEmpty()
+            try {discard()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)}
+            throw error
+        }
+    }
+    private inner class Preparation(private val storage: CandidateStorage) : ReceiptPreparation {
+        private var open=true
+        override fun append(receiptId: String, bytes: ByteArray) = locked {
+            check(open) {"Receipt preparation is closed"}
+            try {
+                storage.operation.check()
+                val descriptor=checkNotNull(storage.descriptors.find {it.id==receiptId}) {"Undeclared receipt"}
+                check(receiptId !in storage.received) {"Receipt already supplied"}
+                require(bytes.size.toLong()==descriptor.byteCount) {"Receipt input length mismatch"}
+                checkNotNull(storage.writer).seal(descriptor,bytes)
+                storage.received+=receiptId;fault(Point.CANDIDATE_INPUT);storage.operation.check()
+            } catch(error: Throwable) {open=false;storage.failed(error)}
+        }
+        override fun append(receiptId: String, input: java.io.InputStream) = locked {
+            var bytes: ByteArray? = null
+            try {
+                input.use {source ->
+                    check(open) {"Receipt preparation is closed"};storage.operation.check()
+                    val d=checkNotNull(storage.descriptors.find {it.id==receiptId}) {"Undeclared receipt"}
+                    check(receiptId !in storage.received) {"Receipt already supplied"}
+                    val data=ByteArray(d.byteCount.toInt());bytes=data
+                    var offset=0
+                    while(offset<data.size) {
+                        storage.operation.check();val requested=minOf(32768,data.size-offset);val count=source.read(data,offset,requested)
+                        check(count in 1..requested) {"Truncated, stalled or over-reported receipt input"};offset+=count
+                    }
+                    storage.operation.check();check(source.read()==-1) {"Trailing receipt input"}
+                }
+                storage.operation.check();append(receiptId,checkNotNull(bytes))
+            } catch(error: Throwable) {if(open) {open=false;storage.failed(error)} else throw error}
+            finally {bytes?.fill(0)}
+        }
+        override fun finish(): PreparedGeneration = locked {
+            check(open) {"Receipt preparation is closed"}
+            try {
+                storage.operation.check();check(storage.received.size==storage.descriptors.size) {"Missing declared receipts"}
+                storage.files=storage.writer?.complete()
+                val summary=transaction {readVerified(storage.id)}
+                fault(Point.CANDIDATE_VERIFIED);storage.operation.check()
+                // readVerified has closed its complete verification lease. The
+                // original ownership pins stay private until candidate discard,
+                // preventing same-ciphertext inode substitutions from becoming owned.
+                fault(Point.CANDIDATE_CLOSED);storage.operation.check()
+                val candidate=Candidate(storage,summary);open=false;candidate
+            } catch(error: Throwable) {open=false;storage.failed(error)}
+        }
+        override fun close() = locked {if(open) {open=false;storage.discard()}}
+    }
+    private inner class Candidate(private val storage: CandidateStorage, override val metadata: VerifiedMetadata) : PreparedGeneration {
+        private var open=true
+        override fun close() = locked {if(open) {open=false;storage.discard()}}
+    }
+    /** Unexposed preparation seam: no ensure/recovery, device-key creation, active
+     * pointer write or installation capability. Callers must close their handles. */
+    internal fun beginReceiptPreparation(metadata: Snapshot, receipts: List<ReceiptDeclaration>,
+        operation: RestoreOperation = RestoreOperation()): ReceiptPreparation = locked {
+        operation.check()
+        val snapshot=frozenMetadata(metadata);val id=Wire.id();val group=Wire.id()
+        val descriptors=receipts.toList().map {LocalReceiptBlob.Descriptor(snapshot.vaultId,group,it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)}
+        requireReceiptCapacity(snapshot,descriptors)
+        val current=state();check(!current.pending) {"Finish existing vault recovery before preparing a candidate"}
+        val device=device() // Existing key only. Rejected preview must never repair or provision it.
+        val raw=ByteArray(32).also {SecureRandom().nextBytes(it)}
+        val storage=CandidateStorage(id,raw,snapshot,group,descriptors,operation)
+        check(candidatePins.getOrPut(db().path) {mutableSetOf()}.add(id)) {"Candidate identity already owned"}
+        try {
+            val membership=digest(snapshot.vaultId,snapshot.expenses,descriptors.map {it.id to receiptMetadata(it)},snapshot.finance)
+            val header=JSONObject().put("format",1).put("generationId",id).put("vaultId",snapshot.vaultId).put("snapshotId",snapshot.snapshotId).put("createdAt",snapshot.createdAt).put("digest",membership)
+            transaction {
+                db().insertOrThrow("vault_generations",null,ContentValues().apply {put("id",id);put("wrappedKey",crypt(raw,device,"key:$id",true));put("sealedHeader",seal(header,SecretKeySpec(raw,"AES"),"header:$id"))})
+                writeRows(id,raw,rowMap(snapshot,descriptors),operation::check)
+                if(descriptors.isNotEmpty()) {
+                    // Format 2 denotes still-owned, unactivated candidate files. The
+                    // persisted-generation collector only admits format 1; abandoned
+                    // or uncertain candidate cleanup must remain quarantined.
+                    val manifest=JSONObject().put("format",2).put("vaultId",snapshot.vaultId).put("descriptors",JSONArray().apply {descriptors.forEach {put(json(it))}})
+                    db().insertOrThrow("vault_receipts",null,ContentValues().apply {put("id",group);put("owner",id);put("sealed",seal(manifest,SecretKeySpec(raw,"AES"),"receipts:$id:$group"))})
+                }
+            }
+            storage.databaseOwned=true
+            if(descriptors.isNotEmpty()) storage.writer=LocalReceiptBlob.Operation(context,raw,snapshot.vaultId,
+                faults=LocalReceiptBlob.Faults {_,_->operation.check()},generationId=group)
+            operation.check();Preparation(storage)
+        } catch(error: Throwable) {storage.failed(error)}
+    }
     private fun receiptFiles(id: String, raw: ByteArray, snapshot: Snapshot, guard: () -> Unit = {}): List<LocalReceiptBlob.Descriptor> {
         if(snapshot.attachments.isEmpty()) return emptyList()
         val group=Wire.id()
@@ -275,7 +419,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         return state()
     }
     private fun collect(current: State) {
-        val protected = setOfNotNull(current.active,current.previous?.id)
+        val protected = setOfNotNull(current.active,current.previous?.id) + candidatePins[db().path].orEmpty()
         val liveGroups=mutableSetOf<String>()
         protected.forEach {id ->
             val raw=key(id)

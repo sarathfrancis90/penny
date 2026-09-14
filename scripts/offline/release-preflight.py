@@ -3,6 +3,7 @@
 import argparse
 from datetime import datetime, timezone
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -141,6 +142,20 @@ def ios_evidence(app, team):
     }
 
 
+def ios_export_evidence(ipa, team):
+    """Inspect the frozen exported payload, never the pre-export Xcode archive."""
+    spec = importlib.util.spec_from_file_location("penny_ipa_artifact", Path(__file__).with_name("ipa-artifact.py"))
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    with module.inspect_ipa(ipa) as inspected:
+        info = ios_evidence(inspected.app, team)
+        info.update({"artifactSha256": inspected.sha256, "containerType": "ipa",
+                     "archiveEntries": inspected.entries,
+                     "archiveUncompressedBytes": inspected.uncompressed_bytes})
+        return info
+
+
 def validate_android(info, fingerprint, client_id, version, store_max, drive_fingerprint=None):
     failures = validate_common(info, "com.penny.penny_mobile", version, store_max)
     if info.get("signers") != [fingerprint.lower().replace(":", "")]:
@@ -199,7 +214,7 @@ def android_evidence(apk, apksigner, apkanalyzer):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("platform", choices=["ios", "android"])
-    parser.add_argument("artifact", type=Path, help="Exported signed iPhoneOS .app or signed Android .apk; AAB/IPA extraction is intentionally separate")
+    parser.add_argument("artifact", type=Path, help="Exported iOS .ipa, signed iPhoneOS .app, or signed Android .apk; exact AAB checks remain separate")
     parser.add_argument("--version", default="3.0.0")
     parser.add_argument("--store-max-build", type=int, required=True, help="Freshly observed store build/version-code maximum; no stale default")
     parser.add_argument("--team-id")
@@ -215,13 +230,18 @@ def main():
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", args.version):
         parser.error("--version must be a numeric major.minor.patch")
     try:
-        artifact = args.artifact.resolve(strict=True)
+        # Keep an IPA's final path component intact so acquisition can reject
+        # symlinks/special files before snapshotting; other modes retain their API.
+        artifact = args.artifact.absolute() if args.platform == "ios" and args.artifact.suffix == ".ipa" else args.artifact.resolve(strict=True)
         if args.platform == "ios":
             if not args.team_id or not re.fullmatch(r"[A-Z0-9]{10}", args.team_id) or not args.cloud_container or not re.fullmatch(r"iCloud\.[A-Za-z0-9.-]{1,248}", args.cloud_container):
                 parser.error("iOS requires --team-id and an iCloud. --cloud-container")
-            if artifact.suffix != ".app" or not artifact.is_dir():
-                parser.error("iOS artifact must be an exported .app directory")
-            info = ios_evidence(artifact, args.team_id)
+            if artifact.suffix == ".ipa":
+                info = ios_export_evidence(artifact, args.team_id)
+            elif artifact.suffix == ".app" and artifact.is_dir():
+                info = ios_evidence(artifact, args.team_id)
+            else:
+                parser.error("iOS artifact must be an exported .ipa or .app directory")
             failures = validate_ios(info, args.team_id, args.cloud_container, args.version, args.store_max_build)
         else:
             if not args.certificate_sha256 or not re.fullmatch(r"(?:[0-9a-fA-F]{64}|(?:[0-9a-fA-F]{2}:){31}[0-9a-fA-F]{2})", args.certificate_sha256):
@@ -234,9 +254,9 @@ def main():
                 parser.error("Android artifact must be a signed .apk file")
             info = android_evidence(artifact, args.apksigner, args.apkanalyzer)
             failures = validate_android(info, args.certificate_sha256, args.drive_client_id, args.version, args.store_max_build, args.drive_signing_sha256)
-        report = {key: info.get(key) for key in ("bundle", "version", "build", "signatureVerified", "executableSha256", "artifactSha256") if key in info}
+        report = {key: info.get(key) for key in ("bundle", "version", "build", "signatureVerified", "executableSha256", "artifactSha256", "containerType", "archiveEntries", "archiveUncompressedBytes") if key in info}
         report.update({"platform": args.platform, "artifact": os.fspath(artifact), "checkedAt": datetime.now(timezone.utc).isoformat(), "passed": not failures, "failures": failures,
-                       "scope": "Local artifact checks only; provider operation, profile acceptance by Apple, signed upgrade, source provenance, AAB/IPA validation and store release approval remain separate gates."})
+                       "scope": "Local artifact checks only. IPA mode checks the exact frozen exported payload; .app mode does not establish an IPA. Provider operation, Apple processing, signed upgrade, source provenance, exact AAB validation and store release approval remain separate gates."})
     except (OSError, ValueError, KeyError, subprocess.TimeoutExpired, plistlib.InvalidFileException, ET.ParseError) as error:
         report = {"platform": args.platform, "passed": False, "failures": [str(error)]}
     print(json.dumps(report, indent=2))

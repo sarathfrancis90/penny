@@ -37,6 +37,26 @@ def verified_metadata(report, platform, config):
     return report
 
 
+def file_sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def verify_upload_object_binding(report, products, platform):
+    """Bind a local preflight to the actual product retained in the build report."""
+    if not products or not products[0].is_file():
+        raise ValueError("The preflighted product is absent")
+    if platform == "ios" and (products[0].suffix != ".ipa" or report.get("containerType") != "ipa"):
+        raise ValueError("iOS packaging requires preflight of the exported IPA payload")
+    expected = file_sha256(products[0])
+    if report.get("artifactSha256") != expected:
+        raise ValueError("The retained product differs from the exact preflighted artifact")
+    return expected
+
+
 def configuration(value, platform, store_max):
     common = {"version", "build"}
     required = common | ({"teamId", "container", "profileUUID", "signingIdentity"} if platform == "ios" else
@@ -103,7 +123,7 @@ def ios_build(config, output, log, workspace=None):
         raise ValueError("Expected exactly one exported IPA")
     # Archive and exported product may be re-signed differently. The IPA is the
     # upload object; this build report never treats the archived app as its proof.
-    return ipas, ["ios", str(archive / "Products/Applications/PennyOffline.app"),
+    return ipas, ["ios", str(ipas[0]),
                   "--team-id", config["teamId"], "--cloud-container", config["container"]]
 
 
@@ -162,13 +182,17 @@ def main():
         run([sys.executable, str(ROOT / "scripts/offline/release-preflight.py"), *preflight,
              "--version", config["version"], "--store-max-build", str(args.store_max_build)], ROOT, output / "preflight.json")
         observed = verified_metadata(json.loads((output / "preflight.json").read_text()), args.platform, config)
+        verified_product_sha = verify_upload_object_binding(observed, products, args.platform)
         report = {"platform": args.platform, "builtAt": datetime.now(timezone.utc).isoformat(),
                   "head": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
                   "sourceSha256": before, "version": config["version"], "build": config["build"],
                   "verifiedLocalArtifact": observed,
-                  "artifacts": {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in products},
-                  "localAppPreflightPassed": True, "storeUploadArtifactValidated": False, "uploaded": False,
-                  "remaining": "Validate the exact IPA/AAB and store-delivered signature; provider recovery, migration and physical-device gates remain."}
+                  "artifacts": {p.name: verified_product_sha if index == 0 else file_sha256(p)
+                                for index, p in enumerate(products)},
+                  "localAppPreflightPassed": True,
+                  "exactUploadObjectPreflightPassed": args.platform == "ios",
+                  "storeUploadArtifactValidated": False, "uploaded": False,
+                  "remaining": "Exact IPA payload preflight is local evidence, not Apple processing or installed-signature acceptance. Exact AAB validation, provider recovery, migration and physical-device gates remain."}
         (output / "build-report.json").write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps({"packaged": True, "uploaded": False, "report": str(output / "build-report.json")}, indent=2))
         return 0

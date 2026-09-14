@@ -66,3 +66,21 @@ The Node test verifies input validity and provenance only. Native reports map
 scenario IDs to executed methods and distinguish injected checkpoint failure,
 new store instances, actual fresh processes, disk-full and physical power loss.
 Do not mark an unexecuted scenario complete because its fixture exists.
+
+## Inactive receipt preparation
+
+The next internal seam accepts complete bounded metadata and declarations, then
+one raw receipt at a time. Input length, EOF and successful owned-source close
+precede encrypted admission. Complete native validation yields only an opaque
+informational candidate; no candidate installation or UI preview API is exposed.
+Original receipt/metadata ownership survives through candidate cleanup, including
+same-ciphertext path replacement. Normal writes and collection preserve live
+candidate pins. Existing Snapshot commit and portable formats remain in use.
+
+Both ports use the existing previous/replacement goldens through
+[`local-candidate-v1`](../../packages/offline-contract/fixtures/local-candidate-v1/README.md).
+Its three installation scenarios remain unimplemented. Guarded source/revision/
+incarnation/key/provider binding, strict v4 FINAL/EOF linkage, metadata streaming,
+crash cleanup and profile measurements are subsequent gates. Current capacity
+and metadata-array limits remain unchanged. See the platform evidence for
+executed cases; these internal preparation results are not streamed restore proof.

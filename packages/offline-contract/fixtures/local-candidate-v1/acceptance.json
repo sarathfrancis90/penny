@@ -1,0 +1,198 @@
+{
+  "format": "penny-local-candidate-acceptance-v1",
+  "status": "required_unproven",
+  "scope": "Shared native acceptance inputs and required outcomes. Fixture existence and Node reference checks are not runtime acceptance. No v4 app integration or increased caps.",
+  "files": {
+    "previous": {
+      "path": "../local-generation-v1/previous.json",
+      "sha256": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+      "schemaVersion": 3,
+      "vaultId": "33333333-3333-4333-8333-333333333333",
+      "snapshotId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "counts": {
+        "expenses": 3,
+        "attachments": 1,
+        "budgets": 2,
+        "incomeSources": 1,
+        "incomeEntries": 1,
+        "savingsGoals": 1,
+        "savingsEntries": 1,
+        "recurringExpenses": 1
+      },
+      "expenseTotalMinor": 15000,
+      "receipts": [
+        {
+          "id": "44444444-4444-4444-8444-444444444444",
+          "expenseId": "11111111-1111-4111-8111-111111111111",
+          "mediaType": "image/png",
+          "byteCount": 70,
+          "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+        }
+      ]
+    },
+    "replacement": {
+      "path": "../local-generation-v1/replacement.json",
+      "sha256": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+      "schemaVersion": 3,
+      "vaultId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "snapshotId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "counts": {
+        "expenses": 4,
+        "attachments": 1,
+        "budgets": 2,
+        "incomeSources": 1,
+        "incomeEntries": 1,
+        "savingsGoals": 1,
+        "savingsEntries": 1,
+        "recurringExpenses": 1
+      },
+      "expenseTotalMinor": 16350,
+      "receipts": [
+        {
+          "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+          "expenseId": "11111111-1111-4111-8111-111111111111",
+          "mediaType": "image/png",
+          "byteCount": 70,
+          "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+        }
+      ]
+    }
+  },
+  "currentStage": {
+    "metadata": "Complete bounded schema3 metadata/domain arrays, with receipt descriptors separated from raw payloads. This is not incremental metadata parsing.",
+    "receiptInput": "Supply one original receipt at a time from decoded fixture attachment dataBase64; candidate storage must not accumulate a second inline receipt graph. Keep exact original bytes.",
+    "caps": {
+      "expenses": 10000,
+      "receipts": 100,
+      "receiptBytes": 2097152,
+      "totalReceiptBytes": 8388608
+    },
+    "installation": "Current slice exposes no public install capability; existing Snapshot commit stays unchanged. Installation-tagged scenarios remain not_implemented until a separately reviewed guarded live-store seam exists."
+  },
+  "invalidImageReference": {
+    "path": "../png-integrity-corpus.json",
+    "caseId": "rgba9-plain-invalid_filter",
+    "instruction": "Use exact public dataBase64 and recomputed/declared descriptor length/hash; retain replacement receipt and owner IDs. PNG chunk CRCs are valid, scanline filter is invalid."
+  },
+  "requiredScenarios": [
+    {
+      "id": "prepare_isolated",
+      "stage": "preparation",
+      "trigger": "Prepare replacement metadata and supply its raw receipt while previous is active; inspect before finish and after finish.",
+      "requiredOutcome": "Previous identity, revision/incarnation, authenticated state digest, key identity and visible domains remain unchanged; finish returns only an inactive owned candidate."
+    },
+    {
+      "id": "candidate_metadata_receipt_roundtrip",
+      "stage": "preparation",
+      "trigger": "Finish replacement and use only an internal test-authenticated inactive-candidate reopen to inspect its metadata and receipt bytes.",
+      "requiredOutcome": "All eight represented domain arrays and receipt original bytes match replacement, with no active install and no forgeable public installation capability."
+    },
+    {
+      "id": "guarded_install_reopen",
+      "stage": "installation_if_wired",
+      "trigger": "Finish replacement, satisfy captured current identity guards, install and reopen from durable storage.",
+      "requiredOutcome": "All eight domain arrays equal replacement values, and receipt bytes equal the referenced original. Only documented local revision/incarnation metadata may change."
+    },
+    {
+      "id": "receipt_wrong_owner",
+      "stage": "preparation",
+      "trigger": "Substitute a receipt owner absent from replacement expenses, or substitute the expected owner while retaining the original descriptor binding.",
+      "requiredOutcome": "Reject; no successful candidate/install, current remains previous."
+    },
+    {
+      "id": "receipt_hash_mismatch",
+      "stage": "preparation",
+      "trigger": "Change one original byte without changing its declared SHA-256.",
+      "requiredOutcome": "Reject; discard only owned candidate data."
+    },
+    {
+      "id": "receipt_missing",
+      "stage": "preparation",
+      "trigger": "Declare the replacement receipt but finish before supplying it.",
+      "requiredOutcome": "Reject incomplete receipt inventory; no candidate success."
+    },
+    {
+      "id": "receipt_duplicate",
+      "stage": "preparation",
+      "trigger": "Supply the same receipt twice, or duplicate its descriptor ID.",
+      "requiredOutcome": "Reject rather than replace or double-count the first receipt."
+    },
+    {
+      "id": "receipt_native_invalid",
+      "stage": "preparation",
+      "trigger": "Supply a malformed image with recomputed length/hash and otherwise valid ownership. Reuse the native-invalid PNG corpus case named below.",
+      "requiredOutcome": "Actual native image validation rejects before candidate success; hash agreement alone is insufficient."
+    },
+    {
+      "id": "cancelled_input",
+      "stage": "preparation",
+      "trigger": "Cancel before input and during a receipt read/write.",
+      "requiredOutcome": "Reject and clean owned staging; current data/key unchanged."
+    },
+    {
+      "id": "cancelled_finish",
+      "stage": "preparation",
+      "trigger": "Cancel before finish and at final validation/close completion boundaries.",
+      "requiredOutcome": "Reject before inactive candidate transfer; no late successful handle after cancellation."
+    },
+    {
+      "id": "input_read_close_failure",
+      "stage": "preparation",
+      "trigger": "Inject read failure after partial bytes, and a source close failure after all expected bytes.",
+      "requiredOutcome": "Neither failure is successful input; no candidate success and owned staging cleaned."
+    },
+    {
+      "id": "candidate_write_close_failure",
+      "stage": "preparation",
+      "trigger": "Inject encrypted-file write/sync/close/reopen failure, including failure at final finish.",
+      "requiredOutcome": "Reject without exposing a successful candidate or deleting current/foreign data."
+    },
+    {
+      "id": "single_use_lifecycle",
+      "stage": "preparation",
+      "trigger": "After success, failure and explicit discard, attempt more input, another finish and handle reuse. Exercise repeated discard/close separately.",
+      "requiredOutcome": "Input/finish/reuse cannot revive the consumed operation. Cleanup is idempotent or explicitly rejects without touching another owner; transferred ownership cannot be reclaimed by the old operation."
+    },
+    {
+      "id": "candidate_gc_pin",
+      "stage": "preparation",
+      "trigger": "Retain finished inactive candidate, perform an ordinary current-vault write and ordinary GC, then internally reopen candidate and finally discard it.",
+      "requiredOutcome": "Pinned candidate data survives; ordinary current data remains authoritative. Discard releases only candidate ownership and later candidate reuse rejects."
+    },
+    {
+      "id": "candidate_gc_pin_then_stale",
+      "stage": "installation_if_wired",
+      "trigger": "Finish candidate; perform an ordinary active-vault edit through another instance; run ordinary GC while the candidate remains retained; try its original guarded install.",
+      "requiredOutcome": "Candidate-owned rows/blobs remain readable while pinned, but install rejects stale current identity. The ordinary edit stays active; discard releases candidate ownership only."
+    },
+    {
+      "id": "stale_incarnation",
+      "stage": "installation_if_wired",
+      "trigger": "After candidate finish, restore/recreate current state so a numeric revision repeats under a new incarnation, then install the old candidate.",
+      "requiredOutcome": "Reject using authenticated state/incarnation guards; numeric revision equality is insufficient."
+    },
+    {
+      "id": "abort_owned_only",
+      "stage": "preparation",
+      "trigger": "Abort during partial input and after finish using the candidate owner; preserve current files and a deliberately unknown sibling/replaced pathname.",
+      "requiredOutcome": "Delete only owned inactive candidate data. Never delete current or unknown/replaced entries; a consumed preparation owner cannot delete transferred candidate data."
+    },
+    {
+      "id": "key_unavailable_preview",
+      "stage": "preparation",
+      "trigger": "Preview/prepare against an established vault whose device key lookup fails; instrument provisioning APIs.",
+      "requiredOutcome": "Reject/lock, with zero key-provisioning calls and no empty-vault initialization or replacement of existing key/data."
+    }
+  ],
+  "futureSeparateGates": [
+    "Incremental metadata parsing and larger-capacity admission",
+    "v4 record grammar, authenticated FINAL and strict EOF before candidate success",
+    "Provider/account/session/revision guards and exact downloaded-input binding when a provider reader is linked",
+    "Crash recovery and atomic installation evidence for newly wired live-store candidate seams"
+  ],
+  "evidenceRequirements": [
+    "Each native report records manifest SHA-256, source/build/runtime identity, exact test methods and per-scenario outcome.",
+    "Any omitted, skipped or not-yet-wired scenario includes its reason and remains unproved.",
+    "Prove single-use ownership, input close/cancel boundaries, current identity and native image validation on actual runtime; no filesystem simulation acceptance."
+  ]
+}

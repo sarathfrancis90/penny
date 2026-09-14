@@ -24,7 +24,7 @@ Current product limits remain **10,000 expenses, 100 receipts, 8 MiB aggregate r
 
 ## Latest hosted and local checkpoints
 
-Current review head `5d98016148321a8d2e029b6c65f8c7bfe074a8f1` is pushed.
+Hosted checkpoint `5d98016148321a8d2e029b6c65f8c7bfe074a8f1` passed the native workflow.
 It adds authenticated raw/receipt acquisition, bounded receipt-read corrections
 and the native UI test fixes below. The stable review passed 106 Node tests,
 27 Python groups, static boundaries, 104 documentation tests, targeted ESLint
@@ -76,6 +76,24 @@ tests and targeted lint. Its paired native proofs and current demo hashes are
 recorded below. Hosted results for the base commit do not cover this delta.
 
 ## Streamed backup work in progress
+
+Internal inactive preparation now accepts bounded raw receipts with required
+source EOF/close, complete native validation and original-file ownership through
+cleanup. The shared acceptance manifest separates preparation from three future
+installation scenarios. iOS passed a 53-method compatibility checkpoint, then
+19 methods on the final source-input overlay; these remain distinct runs.
+[iOS evidence](../../apps/ios/evidence/inactive-generation.md) records each source
+and binary. Android passes 32 focused groups on each API26/37 and all 25 JVM tests;
+[its evidence](../../apps/android/evidence/receipt-candidate.md) retains the earlier
+failed cleanup expectation and final correction. Root independently verified
+132 current native source, fixture, binary and report hashes. Android's private
+format2 candidate intent remains quarantined after uncertain cleanup and is
+never implicitly promoted to persisted-generation ownership.
+The combined local gate passes 119 Node tests, 43 Python groups and static
+boundaries; review/original documentation checks pass 104/105 tests.
+No new candidate installation, v4 app linkage, larger capacity or performance
+acceptance is implied. Existing Snapshot publication remains in use.
+
 
 Both platforms now verify durable generation metadata and every native receipt
 without building aggregate receipt Base64 for validation-only paths. The existing
@@ -154,6 +172,13 @@ Incremental logical gates now require native schema3/reference/financial and ful
 
 Profile A targets 50,000 expenses, 5,000 receipts and 512 MiB raw receipt bytes, with independent metadata/wire bounds. These are measurement targets. Durable candidates and detached receipts are now integrated at existing limits. Next steps are incremental storage reads, streamed v4 application integration, complete profile measurements and file-based provider transfers. Multi-GiB profile B remains deferred.
 
+The [exported IPA checker](evidence/exported-ipa-preflight.json) now validates a
+private snapshot of the actual export and binds that digest to the retained
+packaging product. All 38 Python groups in `scripts/offline` pass, including 13
+archive-helper groups. A synthetic simulator payload reached the real signing
+checker and was rejected as expected. No signed distribution artifact or exact
+AAB validation has passed.
+
 ## Demo, design and physical boundaries
 
 [Current native demo proof](evidence/native-demo-metadata.json) records fresh builds,
@@ -177,6 +202,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **38% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **35% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **13,921,673 aggregate tokens and 35,841 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

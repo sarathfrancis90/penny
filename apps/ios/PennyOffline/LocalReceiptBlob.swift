@@ -115,6 +115,9 @@ final class LocalReceiptGeneration {
         guard let owner, let handle = receipts.first(where: { $0.descriptor.id == receiptId }) else { throw LocalReceiptBlobError.closed }
         return try owner.read(handle, root: root)
     }
+    func validateOwnership() throws {
+        guard let owner else { throw LocalReceiptBlobError.closed }; try owner.validateOwnership()
+    }
     /// Transfer committed byte lifetime to the repository. Releasing this lease
     /// closes FD pins; explicit repository GC is the only later deletion owner.
     func retainCommitted() throws { guard let held = owner else { throw LocalReceiptBlobError.closed }; owner = nil; try held.releaseLease() }
@@ -220,14 +223,27 @@ final class LocalReceiptBlobGroup {
             && info.st_dev == directoryIdentity.st_dev && info.st_ino == directoryIdentity.st_ino && info.st_mode & S_IFMT == S_IFDIR
             && info.st_uid == geteuid() && info.st_mode & 0o077 == 0
     }
+    fileprivate func validateOwnership() throws {
+        guard ownDirectory() else { throw LocalReceiptBlobError.replaced }
+        try validateInventory()
+        guard ownDirectory() else { throw LocalReceiptBlobError.replaced }
+    }
     func append(_ image: ReceiptAttachment) throws -> LocalReceiptBlobHandle {
-        guard active, let root else { throw LocalReceiptBlobError.closed }
+        guard active else { throw LocalReceiptBlobError.closed }
         do {
             let descriptor = try LocalReceiptDescriptor(vaultId: vaultId, generationId: generationId, id: image.id, expenseId: image.expenseId,
                 mediaType: image.mediaType, byteCount: image.byteCount, sha256: image.sha256)
-            guard handles.count < ReceiptAttachment.maximumCount, !ids.contains(image.id), total + descriptor.byteCount <= ReceiptAttachment.maximumTotalBytes else { throw LocalReceiptBlobError.capacity }
+            return try append(image.bytes(), descriptor: descriptor)
+        } catch { try abort(error) }
+    }
+    /// One bounded raw receipt; the declaration must belong to this owned group.
+    func append(_ bytes: Data, descriptor: LocalReceiptDescriptor) throws -> LocalReceiptBlobHandle {
+        guard active, let root else { throw LocalReceiptBlobError.closed }
+        do {
+            guard descriptor.vaultId == vaultId, descriptor.generationId == generationId else { throw LocalReceiptBlobError.descriptor }
+            guard handles.count < ReceiptAttachment.maximumCount, !ids.contains(descriptor.id), total + descriptor.byteCount <= ReceiptAttachment.maximumTotalBytes else { throw LocalReceiptBlobError.capacity }
             try cancellation(); guard ownDirectory() else { throw LocalReceiptBlobError.replaced }
-            let wire = try LocalReceiptBlob.seal(image.bytes(), descriptor: descriptor, root: root)
+            let wire = try LocalReceiptBlob.seal(bytes, descriptor: descriptor, root: root)
             let name = descriptor.id + ".pennyreceipt", url = directory.appendingPathComponent(name)
             try checkpoint(.beforeCreate, url)
             let fd = penny_open_receipt_protected_at(directoryFD, name)
@@ -258,7 +274,7 @@ final class LocalReceiptBlobGroup {
             try checkpoint(.beforeReopen, url); guard ownDirectory() else { throw LocalReceiptBlobError.replaced }
             let handle = LocalReceiptBlobHandle(descriptor: descriptor, name: name, device: info.st_dev, inode: info.st_ino)
             _ = try read(handle, root: root); try cancellation()
-            handles.append(handle); ids.insert(image.id); total += image.byteCount
+            handles.append(handle); ids.insert(descriptor.id); total += descriptor.byteCount
             return handle
         } catch { try abort(error) }
     }

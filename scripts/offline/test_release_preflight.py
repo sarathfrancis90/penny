@@ -5,6 +5,9 @@ import importlib.util
 import hashlib
 from pathlib import Path
 import unittest
+import tempfile
+import zipfile
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("release_preflight", Path(__file__).with_name("release-preflight.py"))
 preflight = importlib.util.module_from_spec(spec)
@@ -57,6 +60,39 @@ class ReleasePreflightTests(unittest.TestCase):
 
     def check_android(self, value):
         return preflight.validate_android(value, CERT, CLIENT, "3.0.0", 10014)
+
+    def test_exported_ipa_routes_frozen_payload_and_preserves_signature_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ipa = Path(directory) / "Exported.ipa"
+            with zipfile.ZipFile(ipa, "w", zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("Payload/Exported.app/Info.plist", b"synthetic payload")
+                archive.writestr("Payload/Exported.app/Executable", b"exported executable")
+            original_digest = hashlib.sha256(ipa.read_bytes()).hexdigest()
+            observed_paths = []
+            def inspect(app, team):
+                self.assertEqual(team, TEAM)
+                observed_paths.append(app)
+                self.assertEqual((app / "Executable").read_bytes(), b"exported executable")
+                # Replacing the external input cannot replace this inspected payload.
+                ipa.write_bytes(b"changed after private acquisition")
+                return {"signatureVerified": False, "executableSha256": "a" * 64}
+            with patch.object(preflight, "ios_evidence", side_effect=inspect):
+                result = preflight.ios_export_evidence(ipa, TEAM)
+            self.assertFalse(result["signatureVerified"])
+            self.assertEqual(result["artifactSha256"], original_digest)
+            self.assertEqual(result["containerType"], "ipa")
+            self.assertEqual(result["archiveEntries"], 2)
+            self.assertTrue(observed_paths)
+            self.assertFalse(observed_paths[0].exists())
+
+    def test_malformed_export_never_reaches_signed_app_inspector(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ipa = Path(directory) / "Bad.ipa"
+            with zipfile.ZipFile(ipa, "w") as archive:
+                archive.writestr("Payload/../escaped", b"unsafe")
+            with patch.object(preflight, "ios_evidence") as inspect, self.assertRaises(ValueError):
+                preflight.ios_export_evidence(ipa, TEAM)
+            inspect.assert_not_called()
 
     def test_valid_metadata_allows_legacy_app_id_prefix(self):
         self.assertEqual(self.check_ios(ios()), [])

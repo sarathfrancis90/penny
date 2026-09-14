@@ -41,6 +41,7 @@
 		8FF9758ED48B10509A5B0EB3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */; };
 		9D55ED213E0F715D96E20E9A /* CloudFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */; };
 		9F5CF59940F6EA12C2C323EF /* LocalAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD1EFF58A75FF36D2C0AC21 /* LocalAssistant.swift */; };
+		A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */; };
 		A8EBECDBB1852C98FA131C2D /* CloudPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8359A21263DD7094D573273 /* CloudPublication.swift */; };
 		ABD98FB4B5D5A4D812A6AECE /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
 		AE6E0742CCE8A75890C69F9A /* ReceiptCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */; };
@@ -117,6 +118,7 @@
 		280FBD85DF59ADA7D8D64811 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVaultFrame.swift; sourceTree = "<group>"; };
 		2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudManifest.swift; sourceTree = "<group>"; };
+		2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InactiveGenerationTests.swift; sourceTree = "<group>"; };
 		2E46C25CD198B4864A458AAF /* FinanceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEngine.swift; sourceTree = "<group>"; };
 		39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -248,6 +250,7 @@
 				23DE085B368DC456F5429CC0 /* CloudTests.swift */,
 				6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */,
 				3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */,
+				2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */,
 				1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */,
 				A066CE638380BFBDAC4B47EB /* VaultTests.swift */,
 			);
@@ -565,6 +568,7 @@
 				1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */,
 				5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */,
 				D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */,
+				A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */,
 				E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */,
 				B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */,
 			);

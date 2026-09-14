@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1325
+- Total source-visible files: 1338
 
 | Path | Area |
 |---|---|
@@ -82,6 +82,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/PolishFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ProcessPersistenceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/RawMigrationDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptCandidateDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt` | native-android |
@@ -190,6 +191,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/p6-performance-final-suite.json` | native-android |
 | `apps/android/evidence/p6-process-open.json` | native-android |
 | `apps/android/evidence/p6-source-sha256.txt` | native-android |
+| `apps/android/evidence/receipt-candidate.json` | native-android |
+| `apps/android/evidence/receipt-candidate.md` | native-android |
 | `apps/android/evidence/receipt-hydration.json` | native-android |
 | `apps/android/evidence/receipt-hydration.md` | native-android |
 | `apps/android/gradle.properties` | native-android |
@@ -304,6 +307,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineTests/CloudTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/DurableStorageTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/FinanceTests.swift` | native-ios |
+| `apps/ios/PennyOfflineTests/InactiveGenerationTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/VaultTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CaptureFlowTests.swift` | native-ios |
@@ -322,6 +326,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/generation-metadata.md` | native-ios |
 | `apps/ios/evidence/hosted-ui-readiness.json` | native-ios |
 | `apps/ios/evidence/hosted-ui-readiness.md` | native-ios |
+| `apps/ios/evidence/inactive-generation.json` | native-ios |
+| `apps/ios/evidence/inactive-generation.md` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.json` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.json` | native-ios |
@@ -435,11 +441,13 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
 | `docs/offline/evidence/android-receipt-input-readiness.json` | docs |
+| `docs/offline/evidence/candidate-ipa-integration.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
 | `docs/offline/evidence/current-native-demo.json` | docs |
 | `docs/offline/evidence/durable-integration-8815d04.json` | docs |
 | `docs/offline/evidence/durable-process-runners.json` | docs |
+| `docs/offline/evidence/exported-ipa-preflight.json` | docs |
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-5d98016.json` | docs |
@@ -834,6 +842,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/fixtures/golden-vector-v2.json` | offline-contract |
 | `packages/offline-contract/fixtures/golden-vector-v3.json` | offline-contract |
 | `packages/offline-contract/fixtures/golden-vector.json` | offline-contract |
+| `packages/offline-contract/fixtures/local-candidate-v1/README.md` | offline-contract |
+| `packages/offline-contract/fixtures/local-candidate-v1/acceptance.json` | offline-contract |
 | `packages/offline-contract/fixtures/local-generation-v1/lifecycle.json` | offline-contract |
 | `packages/offline-contract/fixtures/local-generation-v1/previous.json` | offline-contract |
 | `packages/offline-contract/fixtures/local-generation-v1/replacement.json` | offline-contract |
@@ -1055,6 +1065,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/check-ios.sh` | script |
 | `scripts/offline/export-legacy-raw.mjs` | script |
 | `scripts/offline/export-legacy-raw.test.mjs` | script |
+| `scripts/offline/ipa-artifact.py` | script |
+| `scripts/offline/local-candidate-fixtures.test.mjs` | script |
 | `scripts/offline/migrate-finance.mjs` | script |
 | `scripts/offline/migrate-finance.test.mjs` | script |
 | `scripts/offline/migrate-legacy.mjs` | script |
@@ -1066,6 +1078,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/requirements.txt` | script |
 | `scripts/offline/test_adb_boundary.py` | script |
 | `scripts/offline/test_avd_metadata.py` | script |
+| `scripts/offline/test_ipa_artifact.py` | script |
 | `scripts/offline/test_package_native.py` | script |
 | `scripts/offline/test_release_preflight.py` | script |
 | `sentry.client.config.ts` | repo |

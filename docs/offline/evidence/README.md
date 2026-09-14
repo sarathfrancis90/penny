@@ -41,3 +41,9 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Normal demos after metadata verification](native-demo-metadata.json):110 source/binary/artifact hashes checked and both empty startup screens visually inspected; no populated upgrade or physical-device claim.
 
 - [Hosted native5d98016](hosted-native-5d98016.json): iOS81/81, both Android48/56 with eight named skips, separate generation recovery on both platforms and Android external CRUD restart. Retained Flutter iOS and broader repository aggregate remained pending at capture.
+
+- [Exported IPA preflight](exported-ipa-preflight.json): bounded exact-container inspection, signing-policy routing and retained-product hash binding; 38 Python groups and a real negative development-payload check. No positive signed distribution claim.
+
+- Inactive preparation: [iOS](../../../apps/ios/evidence/inactive-generation.md) 53-method compatibility checkpoint then 19 final-overlay methods; [Android](../../../apps/android/evidence/receipt-candidate.md) 32/32 per API26/37 and 25 JVM tests. Root checked 132 native source/artifact/report hashes. Original ownership pins and explicit quarantine preserve substitutions. New candidate installation remains unimplemented.
+
+- [Inactive candidate and IPA integration](candidate-ipa-integration.json): 119 Node tests, 43 Python groups, paired native focused checks and resolved ownership/header findings, at explicit checkpoints.

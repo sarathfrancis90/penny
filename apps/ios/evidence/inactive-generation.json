@@ -1,0 +1,350 @@
+{
+  "recordedAt": "2026-09-14T04:59:20.978735+00:00",
+  "scope": "Internal unexposed/uninstallable inactive receipt-streamed preparation at existing caps. One bounded raw receipt in memory; no aggregate receipt base64 retained in preparation.",
+  "toolchain": "Xcode26.6(17F113), Swift6.3.3, SDK26.5, iOSdeployment26.0, Debug simulator",
+  "sourceSha256": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "bb00ed0399e2aed7e542904d23ebec56f2ed95c1c6d78e3beccecb40107c3205",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/ExpensesView.swift": "f591e9962a8cc864f2cf66c28ed2d1dc04ef613c199db42f9552f1af306cf77a",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "a471a19a98826491c079f3c40a029828d14fb9385ce3734d553a94d66ad05889",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "80cc14f5320755294219400d546d9bf24c26ee3f3285e2b199a54404825d573a",
+    "apps/ios/PennyOfflineTests/ArchiveWorkerTests.swift": "4a2d816b6f285f69688c9272c09a22ab4778c8b426979310edf675b6515b824b",
+    "apps/ios/PennyOfflineTests/AutomaticBackupTests.swift": "69d200162f93e84ca2731d40b99c25c44a3bb9b706e700e7b132c56f0692efb9",
+    "apps/ios/PennyOfflineTests/CaptureTests.swift": "703747bc0c9f9a201e8b4002049af9cafdfb5497fb6f7cb54c684b9c118e53ec",
+    "apps/ios/PennyOfflineTests/CloudTests.swift": "469f0ecfc3d2b72191c42eebd9e23506b48bb35683fcff18f8f7a8486a1102d0",
+    "apps/ios/PennyOfflineTests/DurableStorageTests.swift": "e1cdda0e49da004fe2c7384ab0d11361591a7008949fdea954855c5f0b1715d2",
+    "apps/ios/PennyOfflineTests/FinanceTests.swift": "ac3ea1f0755922b81b5057300a37868f62b74dc2b914083c4e7773189b776d18",
+    "apps/ios/PennyOfflineTests/InactiveGenerationTests.swift": "3d6ccc4c355ccdf320cd284d3aa466545e46445cc9d46593ca773750c1c74c41",
+    "apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift": "b28a6b84d0e206175a318d0e8e1b88fa25a5b47e3aa12732326c0d4dfea8dd47",
+    "apps/ios/PennyOfflineTests/VaultTests.swift": "becf0665de41659718f1278c13c10b6190567a6e5a527743d65b99280a920b61",
+    "apps/ios/project.yml": "0dde29e2af82b3369ca5bbd9408475db8376186196ed2229bc23b524d8cff962"
+  },
+  "binarySha256": {
+    "apps/ios/.build/inactive-generation/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "4c7e63814e630b6feaf80771e6a02f32facf6c63ee7b1ea5b8c2b4f343fc361e",
+    "apps/ios/.build/inactive-generation/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib": "6f6e84cb46e10f79ccd5474e2283684862c6359a508fb2617e51dfeaf33db01a",
+    "apps/ios/.build/inactive-generation/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "05da132ef428bd4de94f0a547a1513d540a54f60d5610fe0cddb6f1c1fa676a3"
+  },
+  "fixtureSha256": {
+    "packages/offline-contract/fixtures/local-candidate-v1/acceptance.json": "b61468ebc392597db6b758ebf07077bcc7b6f07200c3ca4c5eb0b3b6696597d1",
+    "packages/offline-contract/fixtures/local-generation-v1/previous.json": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+    "packages/offline-contract/fixtures/local-generation-v1/replacement.json": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+    "packages/offline-contract/fixtures/png-integrity-corpus.json": "e2728df1e7c45b119ca5a70d288de1c3bf7280f2b98c3ee6b7a8476fa17b7e5c",
+    "packages/offline-contract/fixtures/raw-migration-v1/positive.pennybackup": "199f9ed2eb89602a8a8b5a019fd5cc1e93fb1c9d963803bbf2c4f45c422aadd8",
+    "packages/offline-contract/fixtures/raw-migration-v1/invalid-image.pennybackup": "cdee9ee4d5928abeccdc28dfb5bff4a42bb65164a99b164f0527a12409cfeab1"
+  },
+  "runs": {
+    "Tests02": {
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "deviceName": "Penny A11y System Sizes",
+        "modelName": "iPhone 16e",
+        "osBuildNumber": "23E254a",
+        "osVersion": "26.4.1",
+        "platform": "iOS Simulator"
+      },
+      "groups": {
+        "ArchiveWorkerTests": 4,
+        "DurableStorageTests": 12,
+        "FinanceTests": 2,
+        "InactiveGenerationTests": 8,
+        "LocalReceiptBlobTests": 9,
+        "VaultTests": 18
+      },
+      "testMethods": [
+        "ArchiveWorkerTests/testAsyncPreparedWritesRejectStaleCancelledAndRestoreEpochChanges",
+        "ArchiveWorkerTests/testCancelledRestoreCompletionCannotClearNewArchiveAction",
+        "ArchiveWorkerTests/testSpecificRecordCapacityErrorPreservesSavedGeneration",
+        "ArchiveWorkerTests/testWorkerArchiveRoundtripCancellationAndExclusiveDestination",
+        "DurableStorageTests/testAuthenticatedInvalidMetadataFailsBothValidationAndFacade",
+        "DurableStorageTests/testAuthenticatedReceiptStillRequiresFullNativeDecode",
+        "DurableStorageTests/testCancelledPublishedTaskRollsBackAndVerifiedRestoreRepairsReceipt",
+        "DurableStorageTests/testCorruptUnchangedReceiptFailsBeforeStagingAndPreservesPointer",
+        "DurableStorageTests/testMetadataPendingRecoveryAndGarbageCollectionDoNotHydrate",
+        "DurableStorageTests/testMissingKeyRecoveryAndRepeatedRevisionIncarnation",
+        "DurableStorageTests/testPinnedPreviousAndForeignGarbageEntries",
+        "DurableStorageTests/testSharedLegacyMigrationPrepareCancelAndReceiptReuse",
+        "DurableStorageTests/testSharedPendingRecoveryAndEstablishedCorruption",
+        "DurableStorageTests/testSharedSecondInstanceRevisionRestoreIncarnationAndMissingActive",
+        "DurableStorageTests/testTamperedCandidateAndPendingInvalidReceiptPreservePrevious",
+        "DurableStorageTests/testVerifiedMetadataSizeParityAndSingleFinalHydration",
+        "FinanceTests/testRawMigrationAuthenticatedInvalidImageCannotReplaceVault",
+        "FinanceTests/testRawMigrationFixtureRestoresAndReopensWithoutInventingIncome",
+        "InactiveGenerationTests/testCandidatePinsSurviveOrdinaryEditAndCollectorWithoutBlocking",
+        "InactiveGenerationTests/testForeignMetadataReplacementAndAddedReceiptEntryArePreserved",
+        "InactiveGenerationTests/testIdenticalCiphertextReplacementCannotUseOldCandidatePins",
+        "InactiveGenerationTests/testInjectedWriteCloseAndFinishFailuresCleanOnlyOwnedState",
+        "InactiveGenerationTests/testInputAndPostVerificationCancellationPermanentlyDiscard",
+        "InactiveGenerationTests/testMissingDuplicateWrongHashLengthAndNativeInvalidReceiptDiscard",
+        "InactiveGenerationTests/testMissingKeyAndInvalidDeclarationsRejectBeforeProvisioning",
+        "InactiveGenerationTests/testSharedInactiveRoundtripIsolationAndSingleUse",
+        "LocalReceiptBlobTests/testAllSharedNegativeEnvelopes",
+        "LocalReceiptBlobTests/testCollisionAndSubstitutionPreserveUnownedEntries",
+        "LocalReceiptBlobTests/testCurrentCountAggregateAndDuplicateCapacity",
+        "LocalReceiptBlobTests/testDescriptorAddressedProtectionMode",
+        "LocalReceiptBlobTests/testParentSubstitutionCannotModifyExternalAttributesAndExtraInventoryFails",
+        "LocalReceiptBlobTests/testPostWriteSyncCloseReopenAndCompletionFaultCleanup",
+        "LocalReceiptBlobTests/testPublicParentAndHardlinkedBlobAreRejected",
+        "LocalReceiptBlobTests/testSharedGoldenAndEveryAADFieldSubstitution",
+        "LocalReceiptBlobTests/testTransferReadProtectionAndOneShotCleanup",
+        "VaultTests/testAndroidProducedReceiptBackup",
+        "VaultTests/testBackupRoundtripWrongKeyAndInvalidSnapshot",
+        "VaultTests/testCipherAuthenticationAndNoPlaintext",
+        "VaultTests/testCivilDatesAcrossTimezonesAndGregorianCutover",
+        "VaultTests/testExactMoneyAndCivilDates",
+        "VaultTests/testFailedCommitPreservesCompletePreviousGeneration",
+        "VaultTests/testLocalVaultCapacityAlwaysFitsBackupEnvelope",
+        "VaultTests/testOriginalReceiptPersistenceBackupRestoreAndDeletion",
+        "VaultTests/testPersistenceEditDeleteAndFailedOpenPreservesFile",
+        "VaultTests/testReceiptDecoderAndCapacityRefusal",
+        "VaultTests/testReceiptGoldenV2AndSharedRejections",
+        "VaultTests/testSharedGoldenBackup",
+        "VaultTests/testSharedPNGIntegrityAdmissionPreservesOnlyValidOriginalBytes",
+        "VaultTests/testStaleRestorePreviewCannotOverwriteNewExpense",
+        "VaultTests/testStrictFastPathUnicodeDepthAndClosedSchedule",
+        "VaultTests/testStrictJSONRejectsUnknownAndDuplicateMembers",
+        "VaultTests/testVerifiedRestoreRecoversUnreadableVault",
+        "VaultTests/testVisionReadsReceiptTextOnDevice"
+      ],
+      "xcresult": "apps/ios/.build/inactive-generation/Tests02.xcresult",
+      "logSha256": "f0f7ce535d53d219a4774317f2398cf52c479770b788d39939e440ce30cfb276",
+      "summarySha256": "0cccdabd5609cf01af9c61066d92fe6bb7d27322354c46bf9c5b3ad07f4ce7c2",
+      "sourceAndBinaryCheckpoint": {
+        "apps/ios/PennyOffline/DurableVaultStorage.swift": "245b37182d89fe65977db3c7768b112f1bb76f1fa83636cb31a73b30f0a5b98f",
+        "apps/ios/PennyOffline/LocalReceiptBlob.swift": "a471a19a98826491c079f3c40a029828d14fb9385ce3734d553a94d66ad05889",
+        "apps/ios/PennyOfflineTests/InactiveGenerationTests.swift": "0891a25f14e31bad62c23de38fe74bdb9d0ce9aeb3495a78a2471e02f386f50e",
+        "apps/ios/.build/inactive-generation/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "e70b8416b955b692b7a43a343be68b682e849c24c6eebb910271ac03f3137d80",
+        "apps/ios/.build/inactive-generation/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib": "281edacc71397a54ecad6b763a4d5dd1e0c357c58ea28d7132452ace095a8847",
+        "apps/ios/.build/inactive-generation/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "d64d40a69deaa7d372775ddbae804a19d13afc0e5b0a73c722777f210042b387",
+        "apps/ios/.build/inactive-generation/Tests02.log": "f0f7ce535d53d219a4774317f2398cf52c479770b788d39939e440ce30cfb276"
+      },
+      "scope": "53-test compatibility checkpoint before additive owned-source protocol/overload and two source tests. Exact source copies retained under Tests02-source; historical binaries are hash-pinned, not retained separately."
+    },
+    "Tests03": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "deviceName": "Penny A11y System Sizes",
+        "modelName": "iPhone 16e",
+        "osBuildNumber": "23E254a",
+        "osVersion": "26.4.1",
+        "platform": "iOS Simulator"
+      },
+      "groups": {
+        "InactiveGenerationTests": 10,
+        "LocalReceiptBlobTests": 9
+      },
+      "testMethods": [
+        "InactiveGenerationTests/testCandidatePinsSurviveOrdinaryEditAndCollectorWithoutBlocking",
+        "InactiveGenerationTests/testForeignMetadataReplacementAndAddedReceiptEntryArePreserved",
+        "InactiveGenerationTests/testIdenticalCiphertextReplacementCannotUseOldCandidatePins",
+        "InactiveGenerationTests/testInjectedWriteCloseAndFinishFailuresCleanOnlyOwnedState",
+        "InactiveGenerationTests/testInputAndPostVerificationCancellationPermanentlyDiscard",
+        "InactiveGenerationTests/testMissingDuplicateWrongHashLengthAndNativeInvalidReceiptDiscard",
+        "InactiveGenerationTests/testMissingKeyAndInvalidDeclarationsRejectBeforeProvisioning",
+        "InactiveGenerationTests/testOwnedSourceCancellationDuringReadCloseAndConsumedPreparation",
+        "InactiveGenerationTests/testOwnedSourceExactEOFPartialReadAndCloseFailures",
+        "InactiveGenerationTests/testSharedInactiveRoundtripIsolationAndSingleUse",
+        "LocalReceiptBlobTests/testAllSharedNegativeEnvelopes",
+        "LocalReceiptBlobTests/testCollisionAndSubstitutionPreserveUnownedEntries",
+        "LocalReceiptBlobTests/testCurrentCountAggregateAndDuplicateCapacity",
+        "LocalReceiptBlobTests/testDescriptorAddressedProtectionMode",
+        "LocalReceiptBlobTests/testParentSubstitutionCannotModifyExternalAttributesAndExtraInventoryFails",
+        "LocalReceiptBlobTests/testPostWriteSyncCloseReopenAndCompletionFaultCleanup",
+        "LocalReceiptBlobTests/testPublicParentAndHardlinkedBlobAreRejected",
+        "LocalReceiptBlobTests/testSharedGoldenAndEveryAADFieldSubstitution",
+        "LocalReceiptBlobTests/testTransferReadProtectionAndOneShotCleanup"
+      ],
+      "xcresult": "apps/ios/.build/inactive-generation/Tests03.xcresult",
+      "logSha256": "152c37cd6407034290a5ec1d83affa6aaeeab5a6c6a8b20c7731d4ae746888a6",
+      "summarySha256": "5194b9c0550783e3f03267bc859dadc9de4a3c215532a6e109114e1ee291e0da",
+      "scope": "Final-source overlay:10 candidate and9 receipt-foundation tests. Existing complete-Data input, Snapshot commit, local formats and foundation unchanged from Tests02; adds owned-source overload only."
+    }
+  },
+  "sharedScenarios": [
+    {
+      "id": "prepare_isolated",
+      "methods": [
+        "testSharedInactiveRoundtripIsolationAndSingleUse"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "candidate_metadata_receipt_roundtrip",
+      "methods": [
+        "testSharedInactiveRoundtripIsolationAndSingleUse"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "guarded_install_reopen",
+      "methods": [],
+      "status": "not_implemented",
+      "reason": "No candidate install API exists; current Snapshot commit remains unchanged."
+    },
+    {
+      "id": "receipt_wrong_owner",
+      "methods": [
+        "testMissingKeyAndInvalidDeclarationsRejectBeforeProvisioning"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "receipt_hash_mismatch",
+      "methods": [
+        "testMissingDuplicateWrongHashLengthAndNativeInvalidReceiptDiscard"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "receipt_missing",
+      "methods": [
+        "testMissingDuplicateWrongHashLengthAndNativeInvalidReceiptDiscard"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "receipt_duplicate",
+      "methods": [
+        "testMissingDuplicateWrongHashLengthAndNativeInvalidReceiptDiscard",
+        "testMissingKeyAndInvalidDeclarationsRejectBeforeProvisioning"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "receipt_native_invalid",
+      "methods": [
+        "testMissingDuplicateWrongHashLengthAndNativeInvalidReceiptDiscard"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "cancelled_input",
+      "methods": [
+        "testInputAndPostVerificationCancellationPermanentlyDiscard",
+        "testOwnedSourceCancellationDuringReadCloseAndConsumedPreparation"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "cancelled_finish",
+      "methods": [
+        "testInputAndPostVerificationCancellationPermanentlyDiscard",
+        "testOwnedSourceCancellationDuringReadCloseAndConsumedPreparation"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "input_read_close_failure",
+      "methods": [
+        "testOwnedSourceExactEOFPartialReadAndCloseFailures"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "candidate_write_close_failure",
+      "methods": [
+        "testInjectedWriteCloseAndFinishFailuresCleanOnlyOwnedState"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "single_use_lifecycle",
+      "methods": [
+        "testSharedInactiveRoundtripIsolationAndSingleUse",
+        "testOwnedSourceCancellationDuringReadCloseAndConsumedPreparation"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "candidate_gc_pin",
+      "methods": [
+        "testCandidatePinsSurviveOrdinaryEditAndCollectorWithoutBlocking"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "candidate_gc_pin_then_stale",
+      "methods": [],
+      "status": "not_implemented",
+      "reason": "No candidate install API exists; current Snapshot commit remains unchanged."
+    },
+    {
+      "id": "stale_incarnation",
+      "methods": [],
+      "status": "not_implemented",
+      "reason": "No candidate install API exists; current Snapshot commit remains unchanged."
+    },
+    {
+      "id": "abort_owned_only",
+      "methods": [
+        "testForeignMetadataReplacementAndAddedReceiptEntryArePreserved",
+        "testIdenticalCiphertextReplacementCannotUseOldCandidatePins"
+      ],
+      "status": "passed_internal_preparation_boundary"
+    },
+    {
+      "id": "key_unavailable_preview",
+      "methods": [
+        "testMissingKeyAndInvalidDeclarationsRejectBeforeProvisioning"
+      ],
+      "status": "passed_internal_preparation_boundary",
+      "scope": "Nil supplied key rejects before directory provisioning; API performs no Keychain read/create/replace. Linked UI/key-lookup preview is not implemented. Existing key-loss store scenarios passed at Tests02."
+    }
+  ],
+  "additionalProof": [
+    "Same-byte replacement record/receipt rejects despite authentic ciphertext; original inode pin prevents unsafe foreign cleanup.",
+    "Test reader returns7byte chunks and records exactly one source close attempt on success, partial read failure, full-input close failure, EOF length failures, cancellation and consumed preparation.",
+    "Injected afterWrite occurs after ciphertext hits a new file; sync/close hooks run after actual successful calls. These are injected errors, not a full volume or actual kernel close failure."
+  ],
+  "limits": [
+    "No candidate install API, source revision/incarnation/provider/account/session binding for new candidate, key lookup/provisioning, UI preview or v4 decoder linkage. Existing Snapshot commit/guards remain unchanged.",
+    "Complete bounded typed metadata arrays/descriptors remain materialized; existing native image helper temporarily constructs one receipt/base64. No aggregate preparation base64, constant-memory or benchmark claim.",
+    "Current caps unchanged:10kexpenses,100receipts,2MiB individual,8MiB aggregate and existing exact exportable byte capacity.",
+    "Simulator has compile-time simulated filesystem protection; physical device class-A validation gate is unchanged, not executed.",
+    "Candidate pins and cleanup are process lifetime ownership; no new crash recovery or GC of abandoned candidates is claimed. Unknown files are preserved.",
+    "Actual source reads and close are synchronous caller-provided capability operations; cancellation checks occur around each call, not preemption of a blocking source."
+  ],
+  "simulators": {
+    "730A6A04-3E7B-4B48-928C-7FE76873010F": "Booted, normaldemo untouched",
+    "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088": "Shutdown"
+  },
+  "estimatedTokens": "Approximately19k including design, implementation, ownership correction, runtime and owned-source follow-up; estimate only."
+}

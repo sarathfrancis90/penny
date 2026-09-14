@@ -21,6 +21,28 @@ class PackagingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 packaging.verified_metadata({**valid, **changes}, "android", config)
 
+    def test_packaging_binds_exported_object_and_rejects_archive_or_changed_bytes(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            ipa = Path(directory) / "Exported.ipa"
+            ipa.write_bytes(b"synthetic exported object, not a signed IPA")
+            digest = hashlib.sha256(ipa.read_bytes()).hexdigest()
+            report = {"artifactSha256": digest, "containerType": "ipa"}
+            self.assertEqual(packaging.verify_upload_object_binding(report, [ipa], "ios"), digest)
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding({"artifactSha256": digest}, [ipa], "ios")
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding(report, [], "ios")
+            ipa.write_bytes(b"different exported object after preflight")
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding(report, [ipa], "ios")
+            apk = Path(directory) / "Upload.apk"
+            apk.write_bytes(b"synthetic APK, not a signing proof")
+            apk_report = {"artifactSha256": hashlib.sha256(apk.read_bytes()).hexdigest()}
+            self.assertEqual(packaging.verify_upload_object_binding(apk_report, [apk], "android"), apk_report["artifactSha256"])
+            with self.assertRaises(ValueError):
+                packaging.verify_upload_object_binding(apk_report, [apk], "ios")
+
     def test_ios_rejects_unbounded_or_injected_release_metadata(self):
         config = {"version": "3.0.0", "build": 10015, "teamId": "TESTTEAM01", "container": "iCloud.test.penny",
                   "profileUUID": "00000000-0000-4000-8000-000000000001", "signingIdentity": "ab" * 20}
@@ -67,8 +89,9 @@ class PackagingTests(unittest.TestCase):
             config = {"version": "3.0.0", "build": 10015, "teamId": "TESTTEAM01", "container": "iCloud.test.penny",
                       "profileUUID": "00000000-0000-4000-8000-000000000001", "signingIdentity": "ab" * 20}
             with patch.object(packaging, "ROOT", root), patch.object(packaging, "run") as run:
-                artifacts, _ = packaging.ios_build(config, output, output / "build.log")
+                artifacts, preflight = packaging.ios_build(config, output, output / "build.log")
             self.assertEqual(len(artifacts), 1)
+            self.assertEqual(preflight[:2], ["ios", str(output / "export/PennyOffline.ipa")])
             self.assertEqual(source.read_bytes(), original)
             options = plistlib.loads((output / "ExportOptions.plist").read_bytes())
             self.assertEqual(options["destination"], "export")

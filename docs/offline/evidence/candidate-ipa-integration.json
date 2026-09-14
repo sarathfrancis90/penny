@@ -1,0 +1,52 @@
+{
+  "capturedAt": "2026-09-14T05:06:06.869627+00:00",
+  "baseCommit": "6d3e22da49da986d245d8af8aea52589c79143e9",
+  "scope": "Local integration of paired unexposed inactive receipt preparation and exact exported IPA checks; no live candidate installer, v4 integration, higher capacity or release acceptance.",
+  "results": {
+    "offlineNode": 119,
+    "offlinePythonGroups": 43,
+    "nativeStaticBoundaries": "passed",
+    "reviewDocs": 104,
+    "originalDocs": 105,
+    "androidFocusedGroupsPerAPI26And37": 32,
+    "androidJVMTests": 25,
+    "iosCompatibilityCheckpoint": 53,
+    "iosFinalSourceOverlay": 19,
+    "rootCurrentNativeHashesChecked": 132,
+    "changedSourceSAST": {
+      "rulesRun": 230,
+      "files": 7,
+      "findings": 0
+    },
+    "finalPythonOverlayGroups": 38
+  },
+  "reviewedFindingsResolved": [
+    "Suppressed cleanup errors conservatively retain Android catalog/key.",
+    "Original receipt pins prevent same-ciphertext inode replacement from becoming cleanup-owned.",
+    "Candidate-only Android format2 intent is not ordinary GC-authorized after uncertain cleanup.",
+    "Owned input read/EOF/close/cancellation failures cannot return a candidate.",
+    "IPA local/central headers, extra fields and data descriptors must agree with actual decoded size and CRC."
+  ],
+  "evidence": [
+    "apps/android/evidence/receipt-candidate.json",
+    "apps/ios/evidence/inactive-generation.json",
+    "docs/offline/evidence/exported-ipa-preflight.json"
+  ],
+  "logSha256": {
+    "artifacts/offline/candidate-ipa-review-offline.log": "9165b11e0149831feb444749fb1367cd37a0a83a07fb9dd137a5324698bf4a63",
+    "artifacts/offline/candidate-ipa-review-docs.log": "19b1b1ae71bceeee9643888d71d9f8318a3b88b277172e8f8f3433e3dc367ce5",
+    "artifacts/offline/candidate-ipa-original-docs.log": "4f40d03e59b41d2c7b63d9f7f512f901549178c2042932c6734c32a98241d82e",
+    "artifacts/offline/candidate-ipa-review-python-final.log": "bbc635642454b9db508a9d02544ea9aad189eb6a81bf4fef22f997d2efd56d89",
+    "artifacts/offline/candidate-ipa-review-sast.log": "45375552a08d3c91d5389dbdcc63cfe3b0f674928a615762261b3304c0b2e881",
+    "artifacts/offline/candidate-ipa-review-sast-final.log": "6abf573ed13bb230e74c18b9a3f8284a948319169b1b2163c31c2fe6a52285ca"
+  },
+  "limitations": [
+    "iOS53 and19 are distinct source checkpoints, not a new full53/55 method run.",
+    "Injected faults do not establish actual kernel close failure, power loss or full volume.",
+    "Candidates are internal, unexposed and non-resumable; three shared installation scenarios remain unimplemented.",
+    "Current normal demos remain at prior metadata checkpoint; no visual change or current-candidate demo claim.",
+    "Hosted native5d98016 results do not cover this delta.",
+    "Enabled commit/push hook and current hosted results will be recorded separately.",
+    "After the complete119 Node/43 Python gate, only the IPA temporary ownership assertion changed. Its affected38 Python groups and seven-file SAST were rerun; native and crypto sources stayed unchanged."
+  ]
+}
