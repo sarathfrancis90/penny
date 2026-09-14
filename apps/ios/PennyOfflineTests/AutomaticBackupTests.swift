@@ -21,8 +21,14 @@ import XCTest
     private let key = "pny1-1f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100"
     private func directory() -> URL { FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString) }
     private func settle(_ coordinator: BackupCoordinator) async {
-        for _ in 0..<2_000 { if !coordinator.isRunning { return }; await Task.yield() }
-        XCTFail("Coordinator failed to finish bounded fake-provider operation")
+        // Worker-backed storage needs elapsed time, not a scheduler-yield quota.
+        // Return only after real completion; a stuck operation still fails.
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        while coordinator.isRunning && ContinuousClock.now < deadline {
+            do { try await Task.sleep(for: .milliseconds(5)) }
+            catch { XCTFail("Cancelled while awaiting fake-provider completion"); return }
+        }
+        XCTAssertFalse(coordinator.isRunning, "Coordinator failed to finish bounded fake-provider operation")
     }
     func testDefaultsConstraintsDedupePersistenceAndUnchangedVaultSkip() async throws {
         let dir = directory(); defer { try? FileManager.default.removeItem(at: dir) }

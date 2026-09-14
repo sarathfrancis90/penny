@@ -136,3 +136,12 @@ records operation-boundary Java/native/PSS samples including the retained test
 oracle, not peak app memory. Each platform ran once without overlapping native
 measurements. Padded 1×1 PNGs establish encoded-byte/count behavior, not maximum
 pixel pressure, physical p95, battery, thermal or every longest-field case.
+
+A separate instrumented iOS follow-up split the read/install timer without
+changing the fixture, validation or exact oracle. It passed once: preparation
+1,992.08 ms (maximum heartbeat gap 79.91 ms), candidate begin 79.545 ms, and
+synchronous installation 1,332.40 ms (heartbeat gap 1,336.65 ms). This directly
+locates the long stall in installation. The [paired report](evidence/combined-current-cap-integration.json)
+pins the ignored instrumentation diff and raw result. Moving the existing leased
+installation/publication operation off MainActor is the next targeted change;
+ownership, actual key/source checks, cancellation and rollback must remain intact.

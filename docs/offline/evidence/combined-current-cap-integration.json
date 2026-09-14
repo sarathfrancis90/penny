@@ -62,10 +62,29 @@
     "diffCheck": "passed"
   },
   "limits": [
-    "One local observation per native platform; no physical p95, peak memory, energy, thermal or every longest-field/pixel combination proof.",
+    "One original acceptance observation per native platform plus the separately instrumented iOS attribution run; no physical p95, peak memory, energy, thermal or every longest-field/pixel combination proof.",
     "Both use padded1x1PNG count/byte stress. Existing16MP results remain separate.",
     "iOS v4 read/install heartbeat gap1277.55ms is an observed responsiveness issue; exact blocking subphase has not been timed separately.",
     "Android one API37 debug sample; no API26 combined-workload acceptance. Boundary memory includes the test oracle.",
     "Fresh store instances are same-process evidence. iOS fresh receiver directory uses the same supplied key; Android installs into the existing isolated store. Neither is new-device recovery."
-  ]
+  ],
+  "followupDiagnostic": {
+    "scope": "Separate single iOS instrumented run; not an additional unchanged baseline measurement or runtime fix",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "originalRuntimeAndHarnessUnchanged": true,
+    "sourceAndBinaryPinsMatched": 49,
+    "preparationMs": 1992.08,
+    "preparationMaximumHeartbeatGapMs": 79.91,
+    "candidateBeginMs": 79.545,
+    "synchronousInstallMs": 1332.4,
+    "synchronousInstallMaximumHeartbeatGapMs": 1336.65,
+    "finding": "Synchronous candidate installation directly accounts for the long MainActor stall; begin is materially shorter. Runtime fix remains pending.",
+    "report": "artifacts/offline/combined-install-diagnostic-ios/REPORT.md",
+    "reportSha256": "58d861f17055d52adff998f9e6e7028a7635edba2969258abb819be7bdf0c5f2",
+    "instrumentationSha256": "d559f36952f0ec8ef58044333bc154da43d2bc8532f06827c84f5c7bd44366ab",
+    "sourceAndBinaryPinsSha256": "0af3e01f8a09cb3dfef2d21c47aec05b6891a10a746d3f44d76b6c4de2919cb8",
+    "rootSummary": "artifacts/offline/combined-install-diagnostic-ios-root-summary.json"
+  }
 }

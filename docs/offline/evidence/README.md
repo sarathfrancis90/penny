@@ -92,3 +92,5 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Hosted59304d7](hosted-native-59304d7.json): iOS143 units/9 UI/two generation phases passed; Android37 passed with named skips and process phases; API26 readiness failures and a contract-download HTTP504 remain recorded.
 
 - [Combined current-cap native acceptance](combined-current-cap-integration.json): one shared10k/100receipt/8MiB workload, populated finance, exact native roundtrips; measured iOS read/install responsiveness issue remains open.
+
+- [Hosted1305c5e](hosted-native-1305c5e.json): Android, contract and build passed; one iOS automatic-backup completion-wait failure, with all nine UI methods passing. Historical failure retained.
