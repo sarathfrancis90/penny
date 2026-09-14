@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1472
+- Total source-visible files: 1474
 
 | Path | Area |
 |---|---|
@@ -501,6 +501,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/CAPTURE.md` | docs |
 | `docs/offline/CLOUD_BACKUP.md` | docs |
 | `docs/offline/COMPATIBILITY_SECURITY.md` | docs |
+| `docs/offline/DEVICE_SESSION.md` | docs |
 | `docs/offline/DURABLE_STORAGE.md` | docs |
 | `docs/offline/FINANCE_CONTRACT.md` | docs |
 | `docs/offline/LIVE_STATE.md` | docs |
@@ -537,6 +538,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-2114c61.json` | docs |
+| `docs/offline/evidence/hosted-native-59304d7.json` | docs |
 | `docs/offline/evidence/hosted-native-59877b1.json` | docs |
 | `docs/offline/evidence/hosted-native-5d98016.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |

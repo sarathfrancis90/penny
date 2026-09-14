@@ -1,0 +1,81 @@
+{
+  "commit": "59304d718835b0a3844b3c2429322c600584acf8",
+  "runId": 34824732165,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34824732165",
+  "conclusion": "failure",
+  "jobs": {
+    "native-offline-android-build": "success",
+    "native-offline-contract": "failure",
+    "native-offline-ios-simulator": "success",
+    "native-offline-android-api-37.0": "success",
+    "native-offline-android-api-26": "failure",
+    "native-offline-gate": "failure"
+  },
+  "ios": {
+    "unitPassed": 143,
+    "uiPassed": 9,
+    "failed": 0,
+    "separateGenerationPhasesPassed": 2,
+    "logSha256": "5474b2425388e67f4818b1efce4b09589f3b5a696f723497a4060ca6d1b51e53"
+  },
+  "android": {
+    "penny-offline-android-api-26-evidence": {
+      "total": 120,
+      "passed": 110,
+      "skipped": [
+        "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+        "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+        "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+        "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+        "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+        "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+        "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+        "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+      ],
+      "failed": [
+        "ca.penny.offline.CaptureFlowTest.zCameraCallbackPreparesInMemoryAndSavesReceipt",
+        "ca.penny.offline.V4FilesExportFlowTest.dismissDuringConfirmationCannotLaunchLatePicker"
+      ],
+      "xmlSha256": "6aa372ab958a782cd67d70bd48059636709aa9b5eeaeebec1b4bbf514b2ed964",
+      "processPhases": {
+        "process-create.log": "not established",
+        "process-verify.log": "not established",
+        "generation-seedPending.log": "not established",
+        "generation-reopenPending.log": "not established"
+      }
+    },
+    "penny-offline-android-api-37.0-evidence": {
+      "total": 120,
+      "passed": 112,
+      "skipped": [
+        "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+        "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+        "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+        "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+        "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+        "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+        "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+        "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+      ],
+      "failed": [],
+      "xmlSha256": "a3cb873b5b2471e2a7182615e2d2a9840487fcdd9e9eb0503e14ec0c8fa35398",
+      "processPhases": {
+        "process-create.log": "passed",
+        "process-verify.log": "passed",
+        "generation-seedPending.log": "passed",
+        "generation-reopenPending.log": "passed"
+      }
+    }
+  },
+  "contractFailure": {
+    "jobId": 103914118297,
+    "error": "HTTP504 during pinned crypto source download; reference corpus phase did not run and its artifact was absent.",
+    "logSha256": "42085d48d4aa524d5ef3b637d6441d0977d07606246738cde0aa287860216c3c"
+  },
+  "disposition": "Historical run remains failed. Test-only Android readiness fixes and later iOS capacity-count reuse are locally validated in successor915a617; a new source workflow must rerun all gates. No standalone retry of this failed source.",
+  "limits": [
+    "Hosted results cover59304d7 only, not subsequent capacity-count reuse or Android test corrections.",
+    "Android26 process phases are not established by this failed full-suite run; prior passing phases remain separate.",
+    "Retained Flutter iOS and the repository aggregate are separate gates."
+  ]
+}

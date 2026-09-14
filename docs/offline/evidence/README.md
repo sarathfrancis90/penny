@@ -88,3 +88,5 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Validated capacity-count reuse](capacity-count-reuse-integration.json): immutable same-read body/count provenance removes duplicate encoding;32 focused tests and one three-case Release run pass, with unchanged validation/reopen boundaries and explicit remaining latency limits.
 
 - [Android59304d7 readiness correction](../../../apps/android/evidence/ui-readiness-59304d7.json): two source-confirmed test readiness fixes pass2/2 on each API26/37 against unchanged production APK; null accessibility state is never treated as proof of picker absence.
+
+- [Hosted59304d7](hosted-native-59304d7.json): iOS143 units/9 UI/two generation phases passed; Android37 passed with named skips and process phases; API26 readiness failures and a contract-download HTTP504 remain recorded.
