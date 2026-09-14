@@ -1,0 +1,209 @@
+{
+  "scope": "iOS current-cap authenticated metadata retention; no cap, wire, cloud or UI change",
+  "runtime": {
+    "simulator": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "device": "iPhone 16e",
+    "os": "iOS Simulator 26.4.1 (23E254a)",
+    "xcode": "26.6 (17F113)",
+    "sdk": "26.5",
+    "swift": "6.3.3",
+    "deployment": "26.0",
+    "architecture": "arm64",
+    "configuration": "Debug",
+    "bundleId": "ca.penny.offline.retention",
+    "finalSimulatorState": "Shutdown",
+    "normalDemo": "730A6A04-3E7B-4B48-928C-7FE76873010F untouched"
+  },
+  "validation": {
+    "before": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "claim": "Actual unchanged repair-frozen runtime, newly added measurement test; not a cleanup-disabled replay",
+      "evidence": "artifacts/offline/metadata-retention-ios/before",
+      "resultBundle": "apps/ios/.build/metadata-retention/Before.xcresult"
+    },
+    "after01": {
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "claim": "Prior checkpoint before FIFO and overlapping-pin fixes; preserved independently",
+      "evidence": "artifacts/offline/metadata-retention-ios/after01",
+      "resultBundle": "apps/ios/.build/metadata-retention/After01.xcresult"
+    },
+    "final": {
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "evidence": "artifacts/offline/metadata-retention-ios/after02",
+      "resultBundle": "apps/ios/.build/metadata-retention/After02.xcresult",
+      "buildLog": "apps/ios/.build/metadata-retention/build-after03.log",
+      "groups": {
+        "MetadataRetentionTests": 5,
+        "DurableStorageTests": 12,
+        "LocalReceiptBlobTests": 9,
+        "LiveStateTests": 2,
+        "V4ExportTests": 1,
+        "InactiveGenerationTests": 2,
+        "V4RepairTests": 2
+      },
+      "sourceAndBinaryDrift": []
+    }
+  },
+  "workload": {
+    "fixture": "packages/offline-contract/fixtures/live-state-v1/retention.json",
+    "edits": 50,
+    "path": "Real Files v4 import then ordinary saveAsync metadata edits, final full compatibility reopen",
+    "beforeSamples": [
+      {
+        "edit": 0,
+        "pointerBytes": 0,
+        "pointerFiles": 0,
+        "recordBytes": 5964,
+        "recordFiles": 1
+      },
+      {
+        "edit": 1,
+        "pointerBytes": 277,
+        "pointerFiles": 1,
+        "recordBytes": 11904,
+        "recordFiles": 2
+      },
+      {
+        "edit": 10,
+        "pointerBytes": 3823,
+        "pointerFiles": 10,
+        "recordBytes": 65370,
+        "recordFiles": 11
+      },
+      {
+        "edit": 25,
+        "pointerBytes": 9733,
+        "pointerFiles": 25,
+        "recordBytes": 154545,
+        "recordFiles": 26
+      },
+      {
+        "edit": 50,
+        "pointerBytes": 19583,
+        "pointerFiles": 50,
+        "recordBytes": 303206,
+        "recordFiles": 51
+      }
+    ],
+    "afterSamples": [
+      {
+        "edit": 0,
+        "pointerBytes": 0,
+        "pointerFiles": 0,
+        "recordBytes": 5964,
+        "recordFiles": 1
+      },
+      {
+        "edit": 1,
+        "pointerBytes": 277,
+        "pointerFiles": 1,
+        "recordBytes": 11904,
+        "recordFiles": 2
+      },
+      {
+        "edit": 10,
+        "pointerBytes": 394,
+        "pointerFiles": 1,
+        "recordBytes": 11886,
+        "recordFiles": 2
+      },
+      {
+        "edit": 25,
+        "pointerBytes": 394,
+        "pointerFiles": 1,
+        "recordBytes": 11890,
+        "recordFiles": 2
+      },
+      {
+        "edit": 50,
+        "pointerBytes": 394,
+        "pointerFiles": 1,
+        "recordBytes": 11926,
+        "recordFiles": 2
+      }
+    ],
+    "sameFinalData": "All eight arrays and vault/snapshot identity match expected edited fixture; unchanged private receipt descriptor/ciphertext and raw bytes",
+    "measurementScope": "On-disk metadata record/pointer file counts and byte lengths only; not total allocated blocks, latency, energy or production performance"
+  },
+  "behavior": {
+    "retention": "Current and immediate predecessor record bodies plus the immediate predecessor wrapper. Pending state prevents collection. Root lease and pinned inode/hash rechecks govern unlink. Candidate metadata uses SH flock; reader-locked historical records retain all overlapping receipt provenance. Metadata is processed one record at a time.",
+    "deletionAuthority": "Full authenticated metadata/model/native receipt validation required for old records; exact authenticated pointer wrappers and full validated inline legacy predecessors handled separately. No deletion authority from missing or empty returned receipt descriptors.",
+    "automaticTrigger": "After successful shared publication/finalization, outside rollback catch. Cleanup cancellation/error logs deferred cleanup and returns the committed result.",
+    "observability": "storage-retention OSLog counters and an internal CollectionReport record removals, quarantined/pinned entries and automatic failure. No user-content/path/key logging. Quarantine means retained in place, not moved.",
+    "limits": "Unreadable/tampered/unknown history and retained pins are excluded from settled two-record bound; they may retain bytes indefinitely. Partial cleanup errors can leave quarantined history. No janitorial override of unreadable evidence."
+  },
+  "acceptance": {
+    "repeated-edits-bounded-storage": [
+      "MetadataRetentionTests.testFiftyEditsPreserveExactDataAndRecordDiskSample"
+    ],
+    "exact-final-golden-and-ciphertext": [
+      "MetadataRetentionTests.testFiftyEditsPreserveExactDataAndRecordDiskSample"
+    ],
+    "predecessor-recovery-preserved": [
+      "DurableStorageTests.testSharedPendingRecoveryAndEstablishedCorruption",
+      "DurableStorageTests.testTamperedCandidateAndPendingInvalidReceiptPreservePrevious",
+      "LiveStateTests.testCancelledAndFailedMetadataPublicationPreservePredecessor"
+    ],
+    "owned-read-export-candidate-preserved": [
+      "MetadataRetentionTests.testReceiptFreeCandidateIsPinnedAcrossOrdinaryPublication",
+      "MetadataRetentionTests.testOverlappingPinnedRecordsRetainCompleteReceiptProvenance",
+      "LiveStateTests.testOwnedReceiptPinSurvivesRemovalAndGarbageCollection",
+      "V4ExportTests.testCapturedReceiptPinsSurviveOrdinaryEditsAndGC",
+      "InactiveGenerationTests.testCandidatePinsSurviveOrdinaryEditAndCollectorWithoutBlocking"
+    ],
+    "unknown-substituted-record-preserved": [
+      "MetadataRetentionTests.testUnknownUnreadableAndSymlinkMetadataRemainQuarantined",
+      "MetadataRetentionTests.testCleanupFailureCancellationAndSubstitutionCannotFailCommittedSave"
+    ],
+    "failed-cleanup-does-not-report-failed-save": [
+      "MetadataRetentionTests.testCleanupFailureCancellationAndSubstitutionCannotFailCommittedSave"
+    ]
+  },
+  "reviewCorrections": [
+    "Nonblocking pre-fstat metadata and receipt opens prevent unknown FIFO hangs; regular files retain existing type/protection/size checks. Actual mkfifo preservation through ordinary saves passed.",
+    "Preservation prepass prevents deleting a receipt shared with another reader-pinned historical record; overlapping B/C pins with shared A regression passed.",
+    "Hosted stale-incarnation test removes only redundant replace after eager legacy migration; exact same-revision/different-epoch/stale-install assertions remain and final method passed."
+  ],
+  "proofLimits": [
+    "New VaultStore instances in same XCTest process; simulated interruption checkpoints, not a new forced process-death run.",
+    "Injected cleanup error/cancellation and actual unlink/recreate/FIFO operations; not a real full-volume or hardware fsync-failure experiment.",
+    "Compile-time simulator filesystem mode; physical class-A protection, lock/reboot and Files-provider behavior not retested.",
+    "No UI/full performance/cloud matrix rerun; no timing improvement claim."
+  ],
+  "estimatedTokens": "Approximately 14\u201316k including review-driven FIFO/overlap corrections, beyond initial 10k soft estimate; no subagents spawned",
+  "sourceSha256": {
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "fd4946aae588ee159a15e35b74e9bb0077934bdab53ce13d1ceb2e6b70b88a89",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "348952cc0c0bddcb396d7fe5d380bb3bd86506f8fd6ba35a53f89e7e3882a862",
+    "apps/ios/PennyOfflineTests/MetadataRetentionTests.swift": "2180674356a8c633b29e0eb54d8063ef4fc99f1e8d5523f66f0b0c9b022b4462",
+    "apps/ios/PennyOfflineTests/InactiveGenerationTests.swift": "69f0aeac913d18deeef560e330b96928014d8cfd8366125f173bcf236dc7543f",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "9e7ed9d955660a3573a093ad3b0ff6e71eeb30c1e75bfaa804099f2324af087b"
+  },
+  "fixtureSha256": {
+    "packages/offline-contract/fixtures/live-state-v1/retention.json": "e30a5edad1e2a8a06879e395ec1798c765dfa50ef1e0257e56ce97801315f37d",
+    "packages/offline-contract/fixtures/live-state-v1/metadata-edit.json": "71d95161f9f22ac3784a932e1b15a1434034e7d66677eebcc78b7a70a05f75db",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.pennybackup": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.snapshot.json": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3"
+  },
+  "binarySha256": {
+    "apps/ios/.build/metadata-retention/After/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib": "13322ed9c7e9631b46f664cd396980a37c2d371bf17c2768d7ec465775c5b947",
+    "apps/ios/.build/metadata-retention/After/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "5dde421aa784d6bd1d7d976815d26af82719ca1dfb7fdbe9f3c96ce2a2c77747",
+    "apps/ios/.build/metadata-retention/After/Build/Products/Debug-iphonesimulator/libPennyV4.a": "e05fd794da7aaa87a573d83e0fffaebb76fab94f9e76b5f7cf39c1f275063b56"
+  },
+  "beforeRuntimeSha256": {
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "c051bd919f57a5f1399bf50b3d9f6c8e7ba90ce31fc387f7a9a39e658924efb5",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "a471a19a98826491c079f3c40a029828d14fb9385ce3734d553a94d66ad05889",
+    "apps/ios/.build/metadata-retention/Before/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib": "8c661d8547db0c42384130330b845f108cc1da80bdfcfdb705655d6bd64d4550"
+  },
+  "provenanceSha256": "0329e4d4c7e99581830dda01ec01d5efad9b02adcdd2323e269adfac3e431bdf",
+  "independentReview": {
+    "scope": "Frozen after02 FIFO and overlapping-pin deltas",
+    "result": "No additional confirmed P1/P2; NONBLOCK and provenance fixes accepted",
+    "runtimeRunsByReviewer": 0
+  }
+}

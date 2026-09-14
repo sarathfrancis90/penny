@@ -1,6 +1,7 @@
 import CryptoKit
 import Darwin
 import Foundation
+import OSLog
 
 /// Local formats only. Portable backup bytes and validation are unchanged.
 struct DurableReference: Codable, Equatable, Sendable {
@@ -77,10 +78,18 @@ final class DurableVaultStorage {
     let url: URL
     private let fd: Int32
     private let identity: stat
+    struct CollectionReport: Equatable {
+        var metadataRemoved = 0, receiptGroupsRemoved = 0, quarantined = 0, pinned = 0
+        var failed = false
+    }
+    private(set) var collectionReport = CollectionReport()
+    private let collectionCheckpoint: ((String) throws -> Void)?
     private let hydrationCheckpoint: (() throws -> Void)?
-    init(_ url: URL, hydrationCheckpoint: (() throws -> Void)? = nil) throws {
+    init(_ url: URL, hydrationCheckpoint: (() throws -> Void)? = nil,
+         collectionCheckpoint: ((String) throws -> Void)? = nil) throws {
         self.url = url
         self.hydrationCheckpoint = hydrationCheckpoint
+        self.collectionCheckpoint = collectionCheckpoint
         // This private application root never comes from backup metadata.
         if !FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
@@ -118,7 +127,7 @@ final class DurableVaultStorage {
     }
     static func digest(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
     private func read(_ name: String, maximum: Int = 32 * 1_024 * 1_024) throws -> Data? {
-        let input = openat(fd, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        let input = openat(fd, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         if input < 0 { if errno == ENOENT { return nil }; throw LocalReceiptBlobError.file }
         let file = FileHandle(fileDescriptor: input, closeOnDealloc: true); defer { try? file.close() }
         var info = stat()
@@ -495,53 +504,134 @@ final class DurableVaultStorage {
             return DurableSnapshotLease(snapshot: loaded.snapshot, descriptors: pins)
         } catch { for pin in pins { _ = Darwin.close(pin) }; throw error }
     }
-    /// Explicit conservative GC. Pending transitions are never collected. Unknown
-    /// entries and any group with a reader's shared directory lock are preserved.
+    /// Called under the root lease. Only authenticated, presently readable old
+    /// records authorize reclamation. Missing/tampered history stays quarantined.
+    /// A reader lock retains the whole record as receipt ownership provenance.
     func collectGarbage(key: SymmetricKey) throws -> Int {
+        collectionReport = CollectionReport()
+        defer {
+            Logger(subsystem: "ca.penny.offline", category: "storage-retention").info("Collection: metadata=\(self.collectionReport.metadataRemoved), receipts=\(self.collectionReport.receiptGroupsRemoved), quarantined=\(self.collectionReport.quarantined), pinned=\(self.collectionReport.pinned)")
+        }
+        try Task.checkCancellation(); try checkRoot()
         guard let wire = try liveBytes(), wire.starts(with: Self.pointerMagic) else { return 0 }
         let p = try pointer(wire, key: key); guard p.journal == nil else { return 0 }
-        var keep = Set<String>()
-        _ = try readVerified(p.current, storeId: p.storeId, key: key, receiptMetadata: { keep.insert($0.generationId) })
+        var keepFiles: Set<String> = [p.current.name], keepGroups = Set<String>()
+        _ = try readVerified(p.current, storeId: p.storeId, key: key, receiptMetadata: { keepGroups.insert($0.generationId) })
         if let previous = p.previous {
-            // Key loss or unknown previous state prevents guessing reachability.
-            _ = try verifiedDecoded(referenced(previous), key: key, receiptMetadata: { keep.insert($0.generationId) })
+            let old = try referenced(previous)
+            _ = try verifiedDecoded(old, key: key, receiptMetadata: { keepGroups.insert($0.generationId) })
+            keepFiles.insert(previous.name)
+            if old.starts(with: Self.pointerMagic) {
+                let prior = try pointer(old, key: key)
+                // Only the immediate predecessor's current record is read by
+                // recovery; its historical previous chain is not traversed.
+                guard prior.journal == nil, prior.storeId == p.storeId else { throw ExpenseError.invalidSnapshot }
+                keepFiles.insert(prior.current.name)
+            }
         }
-        var removed = 0
-        for name in try names() where name.hasSuffix(".pennygen") && name != p.current.name && name != p.previous?.name {
-            let id = String(name.dropLast(".pennygen".count)); guard UUID(uuidString: id)?.uuidString.lowercased() == id else { continue }
-            guard let bytes = try? read(name), bytes.starts(with: Self.recordMagic) else { continue }
+        let entries = try names().sorted(), reachableGroups = keepGroups
+        // Preservation-only prepass: overlapping historical receipt sets must
+        // not lose a shared blob while any complete owner record is reader-pinned.
+        // Metadata is processed one record at a time; no plaintext graph is held.
+        for name in entries where name.hasSuffix(".pennygen") && !keepFiles.contains(name) {
+            try Task.checkCancellation()
+            let id = String(name.dropLast(".pennygen".count))
+            guard UUID(uuidString: id)?.uuidString.lowercased() == id,
+                  let bytes = try? read(name), bytes.starts(with: Self.recordMagic),
+                  let (record, _, _, _) = try? exportMetadata(DurableReference(id: id, sha256: Self.digest(bytes)), storeId: p.storeId, key: key) else { continue }
+            var pinned = false, unavailable = false
+            for receipt in record.receipts where !reachableGroups.contains(receipt.generationId) {
+                let group = openat(fd, receipt.generationId, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+                if group < 0 { unavailable = true; break }
+                let result = flock(group, LOCK_EX | LOCK_NB)
+                guard Darwin.close(group) == 0 else { throw LocalReceiptBlobError.file }
+                if result != 0 { pinned = true; break }
+            }
+            if pinned || unavailable {
+                keepFiles.insert(name); keepGroups.formUnion(record.receipts.map(\.generationId))
+                if pinned { collectionReport.pinned += 1 } else { collectionReport.quarantined += 1 }
+            }
+        }
+        for name in entries where name.hasSuffix(".pennygen") && !keepFiles.contains(name) {
+            try Task.checkCancellation(); try checkRoot()
+            let id = String(name.dropLast(".pennygen".count))
+            guard UUID(uuidString: id)?.uuidString.lowercased() == id else { collectionReport.quarantined += 1; continue }
+            let pin = openat(fd, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
+            guard pin >= 0 else { collectionReport.quarantined += 1; continue }
+            var closed = false; defer { if !closed { _ = Darwin.close(pin) } }
+            var info = stat()
+            guard fstat(pin, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_uid == geteuid(),
+                  info.st_mode & 0o077 == 0, info.st_nlink == 1 else { collectionReport.quarantined += 1; continue }
+            guard flock(pin, LOCK_EX | LOCK_NB) == 0 else { collectionReport.pinned += 1; continue }
+            guard let bytes = try? read(name) else { collectionReport.quarantined += 1; continue }
             let ref = DurableReference(id: id, sha256: Self.digest(bytes))
             var receipts: [LocalReceiptDescriptor] = []
-            guard (try? readVerified(ref, storeId: p.storeId, key: key, receiptMetadata: { receipts.append($0) })) != nil else { continue }
-            for receipt in receipts where !keep.contains(receipt.generationId) {
-                let directory = openat(fd, receipt.generationId, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
-                guard directory >= 0 else { continue }
-                var directoryClosed = false; defer { if !directoryClosed { _ = Darwin.close(directory) } }
-                guard flock(directory, LOCK_EX | LOCK_NB) == 0 else {
-                    directoryClosed = true; guard Darwin.close(directory) == 0 else { throw LocalReceiptBlobError.file }; continue
-                }
-                let child = receipt.id + ".pennyreceipt"
-                let pin = openat(directory, child, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
-                guard pin >= 0 else {
-                    directoryClosed = true; guard Darwin.close(directory) == 0 else { throw LocalReceiptBlobError.file }; continue
-                }
-                var pinClosed = false; defer { if !pinClosed { _ = Darwin.close(pin) } }
-                var dirInfo = stat(), fileInfo = stat(), current = stat()
-                guard fstat(directory, &dirInfo) == 0, fstat(pin, &fileInfo) == 0 else { throw LocalReceiptBlobError.file }
-                // Full authenticated strict inventory read precedes deletion.
-                _ = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: receipt, root: key)
-                guard fstatat(fd, receipt.generationId, &current, AT_SYMLINK_NOFOLLOW) == 0, current.st_dev == dirInfo.st_dev, current.st_ino == dirInfo.st_ino,
-                      fstatat(directory, child, &current, AT_SYMLINK_NOFOLLOW) == 0, current.st_dev == fileInfo.st_dev, current.st_ino == fileInfo.st_ino else { throw LocalReceiptBlobError.replaced }
-                guard unlinkat(directory, child, 0) == 0, fsync(directory) == 0, unlinkat(fd, receipt.generationId, AT_REMOVEDIR) == 0, fsync(fd) == 0 else { throw LocalReceiptBlobError.file }
-                pinClosed = true; let pinResult = Darwin.close(pin)
-                directoryClosed = true; let directoryResult = Darwin.close(directory)
-                guard pinResult == 0, directoryResult == 0 else { throw LocalReceiptBlobError.file }
-                removed += 1
+            if bytes.starts(with: Self.recordMagic) {
+                guard (try? readVerified(ref, storeId: p.storeId, key: key, receiptMetadata: { receipts.append($0) })) != nil else { collectionReport.quarantined += 1; continue }
+            } else if bytes.starts(with: Self.pointerMagic) {
+                // Authenticated obsolete pointer wrappers carry no receipt
+                // ownership. Reachable wrappers were explicitly retained above.
+                guard let old = try? pointer(bytes, key: key), old.storeId == p.storeId, old.journal == nil else { collectionReport.quarantined += 1; continue }
+            } else {
+                // A historical inline predecessor is removable only after its
+                // complete legacy schema/image validation, never by empty refs.
+                guard (try? verifiedDecoded(bytes, key: key)) != nil else { collectionReport.quarantined += 1; continue }
             }
-            // Keep authenticated metadata for conservative ownership provenance;
-            // this collector only reclaims unreferenced receipt bytes.
+            var groupPins: [(LocalReceiptDescriptor, Int32, stat)] = []
+            defer { for (_, held, _) in groupPins { _ = Darwin.close(held) } }
+            var blocked = false
+            for receipt in receipts where !keepGroups.contains(receipt.generationId) {
+                let group = openat(fd, receipt.generationId, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+                guard group >= 0 else { blocked = true; break }
+                var groupInfo = stat()
+                guard fstat(group, &groupInfo) == 0, flock(group, LOCK_EX | LOCK_NB) == 0 else {
+                    guard Darwin.close(group) == 0 else { throw LocalReceiptBlobError.file }; blocked = true; break
+                }
+                groupPins.append((receipt, group, groupInfo))
+            }
+            if blocked { collectionReport.pinned += 1; continue }
+            try collectionCheckpoint?(name); try Task.checkCancellation(); try checkRoot()
+            // Keep the inode pinned across validation/unlink to defeat inode reuse.
+            var current = stat()
+            guard fstatat(fd, name, &current, AT_SYMLINK_NOFOLLOW) == 0, current.st_dev == info.st_dev,
+                  current.st_ino == info.st_ino, try read(name) == bytes else { throw LocalReceiptBlobError.replaced }
+            for (receipt, group, groupInfo) in groupPins {
+                let child = receipt.id + ".pennyreceipt"
+                let blob = openat(group, child, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
+                guard blob >= 0 else { throw LocalReceiptBlobError.file }
+                var blobClosed = false; defer { if !blobClosed { _ = Darwin.close(blob) } }
+                var blobInfo = stat(); guard fstat(blob, &blobInfo) == 0 else { throw LocalReceiptBlobError.file }
+                _ = try LocalReceiptGeneration.readCommitted(parent: url, descriptor: receipt, root: key)
+                try Task.checkCancellation(); try checkRoot()
+                guard fstatat(fd, receipt.generationId, &current, AT_SYMLINK_NOFOLLOW) == 0,
+                      current.st_dev == groupInfo.st_dev, current.st_ino == groupInfo.st_ino,
+                      fstatat(group, child, &current, AT_SYMLINK_NOFOLLOW) == 0,
+                      current.st_dev == blobInfo.st_dev, current.st_ino == blobInfo.st_ino else { throw LocalReceiptBlobError.replaced }
+                guard unlinkat(group, child, 0) == 0, fsync(group) == 0,
+                      unlinkat(fd, receipt.generationId, AT_REMOVEDIR) == 0, fsync(fd) == 0 else { throw LocalReceiptBlobError.file }
+                blobClosed = true; guard Darwin.close(blob) == 0 else { throw LocalReceiptBlobError.file }
+                collectionReport.receiptGroupsRemoved += 1
+            }
+            guard fstatat(fd, name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+                  current.st_dev == info.st_dev, current.st_ino == info.st_ino,
+                  try read(name) == bytes else { throw LocalReceiptBlobError.replaced }
+            guard unlinkat(fd, name, 0) == 0, fsync(fd) == 0 else { throw LocalReceiptBlobError.file }
+            collectionReport.metadataRemoved += 1
+            closed = true; guard Darwin.close(pin) == 0 else { throw LocalReceiptBlobError.file }
+            let groups = groupPins; groupPins = []
+            var closeFailed = false; for (_, held, _) in groups { if Darwin.close(held) != 0 { closeFailed = true } }
+            if closeFailed { throw LocalReceiptBlobError.file }
         }
-        return removed
+        return collectionReport.receiptGroupsRemoved
+    }
+    private func collectAfterPublication(key: SymmetricKey) {
+        // This is outside publication's rollback catch. A cleanup error cannot
+        // convert an authenticated, committed mutation into a reported failure.
+        do { _ = try collectGarbage(key: key) }
+        catch {
+            collectionReport.failed = true
+            Logger(subsystem: "ca.penny.offline", category: "storage-retention").error("Committed vault retained; storage collection deferred after an error")
+        }
     }
 
     /// Pins the originally created inode through cleanup, including unlink/recreate races.
@@ -593,6 +683,7 @@ final class DurableVaultStorage {
         }
         let owned = OwnedRecord(storage: self, reference: reference, identity: info, pin: pin)
         do {
+            guard flock(pin, LOCK_SH | LOCK_NB) == 0 else { throw LocalReceiptBlobError.file }
             try LocalReceiptProtectionMode.validate(output)
             for offset in stride(from: 0, to: bytes.count, by: 65_536) {
                 try cancellation(); try file.write(contentsOf: bytes[offset..<min(bytes.count, offset + 65_536)])
@@ -1051,6 +1142,7 @@ final class DurableVaultStorage {
         let pending = DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: closedJournal)
         // Transfer lifetime before an uncertain atomic publication can succeed.
         try beforePublication(Set(previous.map { [$0.name, Self.rollback] } ?? []))
+        let result: T
         do {
             try write(encodePointer(pending, key: key), name: Self.live, replacing: true)
             try checkpoint?(.committed)
@@ -1061,7 +1153,7 @@ final class DurableVaultStorage {
             try write(encodePointer(DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: nil), key: key), name: Self.live, replacing: true)
             try checkpoint?(.journalCleared)
             try finalize()
-            return loaded
+            result = loaded
         } catch {
             if case DurableCrash.interrupted = error { try uncertain(); throw error } // simulated interruption leaves journal intact
             do {
@@ -1070,6 +1162,8 @@ final class DurableVaultStorage {
             } catch { try uncertain(); throw error }
             throw error
         }
+        collectAfterPublication(key: key)
+        return result
     }
 }
 /// Internal checkpoint signal models interrupted recovery, not real process death.

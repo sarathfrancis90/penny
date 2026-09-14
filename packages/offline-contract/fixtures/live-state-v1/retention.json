@@ -1,0 +1,18 @@
+{
+  "fixtureVersion": 1,
+  "baseFixture": "metadata-edit.json",
+  "baseFixtureSha256": "71d95161f9f22ac3784a932e1b15a1434034e7d66677eebcc78b7a70a05f75db",
+  "mutationCount": 50,
+  "intermediateNotePrefix": "Retention edit ",
+  "sequence": "Edits1-49 use expenseAfter from base with note=intermediateNotePrefix+1-based edit number. Edit50 is exactly base expenseAfter. Every mutation goes through the ordinary metadata-edit path.",
+  "settledMaximumMetadataGenerations": 2,
+  "acceptanceIds": [
+    "repeated-edits-bounded-storage",
+    "exact-final-golden-and-ciphertext",
+    "predecessor-recovery-preserved",
+    "owned-read-export-candidate-preserved",
+    "unknown-substituted-record-preserved",
+    "failed-cleanup-does-not-report-failed-save"
+  ],
+  "scope": "Existing-cap native retention only; platform-specific metadata files/rows measured, no cross-platform byte comparison or larger-capacity claim."
+}

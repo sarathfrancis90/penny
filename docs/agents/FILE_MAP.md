@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1457
+- Total source-visible files: 1465
 
 | Path | Area |
 |---|---|
@@ -77,6 +77,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/FinanceFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/GenerationMetadataDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/LiveStateDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/LiveStateRetentionDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/NetworkBoundaryTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/OfflineFlowTest.kt` | native-android |
@@ -184,6 +185,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/interoperability/android-runtime-v3.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/ios-produced-v2.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/ios-runtime-v3.pennybackup` | native-android |
+| `apps/android/evidence/live-retention.json` | native-android |
 | `apps/android/evidence/live-state.json` | native-android |
 | `apps/android/evidence/live-state.md` | native-android |
 | `apps/android/evidence/local-receipt-foundation.json` | native-android |
@@ -356,6 +358,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineTests/InactiveGenerationTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/LiveStateTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift` | native-ios |
+| `apps/ios/PennyOfflineTests/MetadataRetentionTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/ObservedSavingsMigrationTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/V4AppModuleTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/V4CandidateTests.swift` | native-ios |
@@ -387,6 +390,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/live-state.md` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.json` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
+| `apps/ios/evidence/metadata-retention.json` | native-ios |
+| `apps/ios/evidence/metadata-retention.md` | native-ios |
 | `apps/ios/evidence/observed-savings-migration.json` | native-ios |
 | `apps/ios/evidence/observed-savings-migration.md` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.json` | native-ios |
@@ -528,6 +533,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-native-59877b1.json` | docs |
 | `docs/offline/evidence/hosted-native-5d98016.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
+| `docs/offline/evidence/hosted-native-7ba9512.json` | docs |
 | `docs/offline/evidence/hosted-native-8815d04.json` | docs |
 | `docs/offline/evidence/hosted-native-b22b4f6.json` | docs |
 | `docs/offline/evidence/hosted-native-e3d6dc5.json` | docs |
@@ -561,6 +567,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/live-state-integration.json` | docs |
 | `docs/offline/evidence/local-receipt-independent.json` | docs |
 | `docs/offline/evidence/metadata-migration-integration.json` | docs |
+| `docs/offline/evidence/metadata-retention-integration.json` | docs |
 | `docs/offline/evidence/metadata-retention-risk.md` | docs |
 | `docs/offline/evidence/native-demo-metadata.json` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
@@ -931,6 +938,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/fixtures/golden-vector.json` | offline-contract |
 | `packages/offline-contract/fixtures/live-state-v1/README.md` | offline-contract |
 | `packages/offline-contract/fixtures/live-state-v1/metadata-edit.json` | offline-contract |
+| `packages/offline-contract/fixtures/live-state-v1/retention.json` | offline-contract |
 | `packages/offline-contract/fixtures/local-candidate-v1/README.md` | offline-contract |
 | `packages/offline-contract/fixtures/local-candidate-v1/acceptance.json` | offline-contract |
 | `packages/offline-contract/fixtures/local-generation-v1/lifecycle.json` | offline-contract |

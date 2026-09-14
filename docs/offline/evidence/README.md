@@ -74,6 +74,10 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Independent accessibility disposition review](ios-accessibility-disposition-review.md): existing exact-element evidence establishes no additional app-owned defect; the unfiltered audit remains failed and later controls/physical/quantitative acceptance are separate.
 
-- [Unbounded iOS metadata retention](metadata-retention-risk.md): source-confirmed full metadata per mutation with indefinite retention; arithmetic estimates are not measurements. Authenticated bounded cleanup is a current-cap release blocker.
+- [Unbounded iOS metadata retention](metadata-retention-risk.md): historical full metadata per mutation with indefinite retention, followed by a measured bounded-collection correction. Quarantined and pinned history stays protected.
 
 - [Paired v4 in-place repair](v4-repair-integration.json): full validated repair preview, exact raw-target/key binding, exclusive owned-key creation and guarded replacement at current limits, with distinct native runs and explicit platform recovery boundaries.
+
+- [Hosted live-state7ba9512](hosted-native-7ba9512.json): both Android runtimes/build/contract passed; iOS recorded one incarnation-test assertion failure before cancellation by the next source push; native aggregate failed. No full native pass.
+
+- [Paired bounded metadata retention](metadata-retention-integration.json): same50-edit shared workload, iOS33/33 focused tests and Android2/2 on each API26/37, with measured ordinary history and protected reader/recovery provenance.

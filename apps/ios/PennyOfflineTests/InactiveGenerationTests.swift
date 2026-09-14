@@ -325,7 +325,7 @@ import XCTest
             } else if variant == "incarnation" {
                 let revision = store.revision, epoch = store.restoreEpoch
                 try VaultCipher.seal(JSONEncoder().encode(previous), key: key).write(to: root(dir).appendingPathComponent(DurableVaultStorage.live))
-                let reincarnated = VaultStore(directory: dir, key: key); try reincarnated.replace(previous)
+                let reincarnated = VaultStore(directory: dir, key: key)
                 XCTAssertEqual(reincarnated.revision, revision); XCTAssertNotEqual(reincarnated.restoreEpoch, epoch)
             } else if variant == "otherOwner" { destination = VaultStore(directory: dir, key: key) }
             else if variant == "rootReplaced" || variant == "rootReplacedEmpty" {

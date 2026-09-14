@@ -88,7 +88,7 @@ struct LocalReceiptBlobHandle {
     fileprivate let name: String
     fileprivate let device: dev_t, inode: ino_t
     fileprivate func read(directoryFD: Int32, root: SymmetricKey) throws -> Data {
-        let fd = openat(directoryFD, name, O_RDONLY | O_CLOEXEC | O_NOFOLLOW)
+        let fd = openat(directoryFD, name, O_RDONLY | O_NONBLOCK | O_CLOEXEC | O_NOFOLLOW)
         guard fd >= 0 else { throw LocalReceiptBlobError.file }
         let file = FileHandle(fileDescriptor: fd, closeOnDealloc: true); defer { try? file.close() }
         var info = stat()
@@ -128,7 +128,7 @@ final class LocalReceiptGeneration {
         guard directory >= 0 else { throw LocalReceiptBlobError.file }; var directoryClosed = false; defer { if !directoryClosed { _ = Darwin.close(directory) } }
         var folder = stat(); guard fstat(directory, &folder) == 0, folder.st_uid == geteuid(), folder.st_mode & 0o077 == 0 else { throw LocalReceiptBlobError.file }
         let name = descriptor.id + ".pennyreceipt"
-        let pin = openat(directory, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        let pin = openat(directory, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         guard pin >= 0 else { throw LocalReceiptBlobError.file }; var pinClosed = false; defer { if !pinClosed { _ = Darwin.close(pin) } }
         var info = stat(); guard fstat(pin, &info) == 0 else { throw LocalReceiptBlobError.file }
         let listingFD = openat(directory, ".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
@@ -252,7 +252,7 @@ final class LocalReceiptBlobGroup {
             // If fstat itself fails there is no trustworthy identity to unlink;
             // leave the unknown entry and fail cleanup rather than delete by name.
             var info = stat(); guard fstat(fd, &info) == 0 else { throw LocalReceiptBlobError.file }
-            let pin = openat(directoryFD, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+            let pin = openat(directoryFD, name, O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
             var pinInfo = stat()
             guard pin >= 0, fstat(pin, &pinInfo) == 0, pinInfo.st_dev == info.st_dev, pinInfo.st_ino == info.st_ino else {
                 if pin >= 0 { _ = Darwin.close(pin) }
