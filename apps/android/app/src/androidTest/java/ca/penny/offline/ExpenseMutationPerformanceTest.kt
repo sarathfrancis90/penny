@@ -38,7 +38,8 @@ class ExpenseMutationPerformanceTest {
             store.replace(Snapshot(Wire.id(),expenses,attachments=receipts))
             repeat(5) { index ->
                 // Alternate order in one process/binary. The replay adds the former
-                // all()/attachments() refresh to today's save; it is not old-source timing.
+                // all()/attachments() refresh to the compatibility save. This does not
+                // measure the receipt-free live edit path or an older source binary.
                 val paths=if(index%2==0) listOf(false,true) else listOf(true,false)
                 paths.forEach { replayRedundantRefresh ->
                     val changed=expenses[index].copy(merchant="Edited synthetic $index/$replayRedundantRefresh",amountMinor=2345)
@@ -52,12 +53,14 @@ class ExpenseMutationPerformanceTest {
                     assertEquals(revision+1,store.revision()) // Both paths must perform real mutations.
                     // Full validation/reopen oracle is outside the timed UI path.
                     val oracle=store.snapshot()
-                    assertEquals(oracle.expenses,ui.expenses);assertEquals(oracle.attachments,ui.attachments)
+                    assertEquals(oracle.expenses,ui.expenses)
+                    assertEquals(oracle.attachments.map {ReceiptInfo(it.id,it.expenseId,it.mediaType,it.byteCount,it.sha256)},ui.attachments)
+                    assertEquals(receipts.associateBy {it.id},oracle.attachments.associateBy {it.id})
                     assertEquals(10000,ui.expenses.size)
                     assertEquals(12_340_000L+(index+1)*1111,Money.total(ui.expenses))
                 }
             }
-            val result=JSONObject().put("kind","paired-current-binary-returned-state-vs-redundant-refresh")
+            val result=JSONObject().put("kind","compatibility-current-binary-returned-state-vs-redundant-refresh")
                 .put("returnedStateMs",samples).put("redundantRefreshMs",redundantRefreshSamples)
                 .put("api",android.os.Build.VERSION.SDK_INT).put("build","debug instrumented")
                 .put("recordCount",10000).put("receiptCount",receiptCount).put("receiptBytes",receipts.sumOf {it.byteCount}).put("pid",android.os.Process.myPid())

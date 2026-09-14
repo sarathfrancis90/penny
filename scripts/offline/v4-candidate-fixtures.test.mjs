@@ -30,3 +30,34 @@ test('v4 candidate acceptance pins existing corpora and resolves selected cases'
   assert.equal(refs.nativeImage.cases.find(c => c.id === manifest.nativeImageCase)?.valid, false);
   assert.equal(refs.candidate.assertionRevision, 2);
 });
+
+test('v4 repair acceptance pins both captured native writers and exact expected records', () => {
+  const repairBase = new URL('../../packages/offline-contract/fixtures/v4-repair-v1/', import.meta.url);
+  const manifest = JSON.parse(readFileSync(new URL('acceptance.json', repairBase)));
+  assert.equal(manifest.status, 'required_unproven');
+  assert.equal(new Set(manifest.requiredScenarios.map(s => s.id)).size, manifest.requiredScenarios.length);
+  assert.deepEqual(manifest.fixtures.map(f => f.producer).sort(), ['android', 'ios']);
+  for (const fixture of manifest.fixtures) {
+    const archive = readFileSync(new URL(fixture.archive, repairBase));
+    const raw = readFileSync(new URL(fixture.snapshot, repairBase));
+    const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+    assert.equal(hash(archive), fixture.archiveSha256);
+    assert.equal(archive.length, fixture.archiveBytes);
+    assert.equal(archive.subarray(0, 8).toString(), 'PNYBKP4\n');
+    assert.equal(hash(raw), fixture.snapshotSha256);
+    const snapshot = JSON.parse(raw);
+    for (const [domain, count] of Object.entries(fixture.expectedCounts)) assert.equal(snapshot[domain].length, count);
+    assert.equal(snapshot.expenses.reduce((sum, e) => sum + e.amountMinor, 0), fixture.expectedExpenseTotalMinor);
+    assert.equal(snapshot.attachments.reduce((sum, r) => sum + r.byteCount, 0), fixture.expectedReceiptBytes);
+    for (const receipt of snapshot.attachments) {
+      const bytes = Buffer.from(receipt.dataBase64, 'base64');
+      assert.equal(bytes.length, receipt.byteCount);
+      assert.equal(hash(bytes), receipt.sha256);
+      assert.ok(snapshot.expenses.some(e => e.id === receipt.expenseId));
+    }
+    const provenance = JSON.parse(readFileSync(new URL(`../v4-native-writer-v1/${fixture.producer}-provenance.json`, repairBase)));
+    assert.equal(fixture.recoveryKey, provenance.recoveryKey);
+    assert.equal(fixture.archiveSha256, provenance.ciphertextSha256);
+    assert.equal(fixture.snapshotSha256, provenance.snapshotSha256);
+  }
+});

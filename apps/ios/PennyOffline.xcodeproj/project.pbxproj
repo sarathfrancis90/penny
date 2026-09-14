@@ -25,6 +25,7 @@
 		35818B8E1533E17CDE203D71 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 280FBD85DF59ADA7D8D64811 /* Assets.xcassets */; };
 		36DC2BE0E103FCEA7FFEB08D /* V4FrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58862F5315DC63E712977D46 /* V4FrameCodec.swift */; };
 		3C823C976B5FB5D5420E9C47 /* RecoveryExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B388EBFEE9BDC225510B444 /* RecoveryExport.swift */; };
+		3F6C168D8771649876626F63 /* V4RepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6184113C469E01AF70DAE48E /* V4RepairTests.swift */; };
 		41B145070CC0D6E47CCF15FF /* FinanceEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */; };
 		4646820F00FAA391F1E59852 /* CaptureFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0A15C81F5BEC890A0545F2 /* CaptureFlowTests.swift */; };
 		4CB66CC5B8BE2B207C2EF002 /* V4ReadOnlyAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */; };
@@ -181,6 +182,7 @@
 		5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCamera.swift; sourceTree = "<group>"; };
 		5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArchive.swift; sourceTree = "<group>"; };
 		60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBackup.swift; sourceTree = "<group>"; };
+		6184113C469E01AF70DAE48E /* V4RepairTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4RepairTests.swift; sourceTree = "<group>"; };
 		61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptAttachment.swift; sourceTree = "<group>"; };
 		67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CiphertextSnapshot.swift; sourceTree = "<group>"; };
 		6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableStorageTests.swift; sourceTree = "<group>"; };
@@ -378,6 +380,7 @@
 				E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */,
 				6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */,
 				424ACA46C91287CE42FA8607 /* V4ExportTests.swift */,
+				6184113C469E01AF70DAE48E /* V4RepairTests.swift */,
 				A066CE638380BFBDAC4B47EB /* VaultTests.swift */,
 			);
 			path = PennyOfflineTests;
@@ -832,6 +835,7 @@
 				A0C690887AF00071B71AAA62 /* V4AppModuleTests.swift in Sources */,
 				6ECAA7AC6C75E1DB0D0C623C /* V4CandidateTests.swift in Sources */,
 				BCB0ECFC002834735B0016C4 /* V4ExportTests.swift in Sources */,
+				3F6C168D8771649876626F63 /* V4RepairTests.swift in Sources */,
 				B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

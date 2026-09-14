@@ -1,0 +1,43 @@
+{
+  "commit": "59877b1ff31b9869edc504f32420667396594a93",
+  "runId": 34817963139,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34817963139",
+  "conclusion": "failure",
+  "jobs": {
+    "native-offline-contract": "success",
+    "native-offline-android-build": "success",
+    "native-offline-android-api-37.0": "failure",
+    "native-offline-android-api-26": "failure",
+    "native-offline-ios-simulator": "success",
+    "native-offline-gate": "failure"
+  },
+  "ios": {
+    "unitPassed": 124,
+    "uiPassed": 9,
+    "failures": 0,
+    "separateGenerationPhases": [
+      1,
+      1
+    ],
+    "source": "Completed hosted job log; separate XCTest suite summaries, not unique counts summed across repeated summary lines."
+  },
+  "androidEach": {
+    "total": 106,
+    "failed": 1,
+    "skipped": 6,
+    "failedMethod": "CaptureFlowTest.recoveryReentryMismatchRefusesExportAndPickerCancellationKeepsVault",
+    "message": "External document picker is visible",
+    "subsequentCorrection": "Test-only readiness/actual staging cleanup fix in7ba9512; local1/1 perAPI against later live production binary, not a rerun of59877b1."
+  },
+  "raw": {
+    "artifacts/offline/hosted-59877b1-native-final.json": "5a6742b3f95eaef207df1ad14656a2dc78af9d18470bf5b2092086e42dc82f7c",
+    "artifacts/offline/hosted-59877b1-ios.log": "85c647a039877b8409a6e5874a3a0774b0dca366911907f466806553af80ecac",
+    "artifacts/offline/files-hosted-59877b1/api26.log": "ad58a1dcd469fdf6ba154785407418ae4d36bd0b663f9dfb39bc87a565a5a39d",
+    "artifacts/offline/files-hosted-59877b1/api37.log": "833f7127cda040db694081631a17853fd567af02e1c28a44158d83c30264e733"
+  },
+  "limits": [
+    "Retained Flutter iOS and repository aggregate are separate.",
+    "Newer live-state and repair source is not covered by this historical run.",
+    "Failed Android job stopped before all separate process phases; do not infer their execution from prior commits."
+  ]
+}

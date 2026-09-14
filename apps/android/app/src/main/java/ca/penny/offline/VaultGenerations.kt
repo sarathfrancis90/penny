@@ -31,7 +31,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             db.execSQL("CREATE TABLE IF NOT EXISTS vault_receipts (id TEXT PRIMARY KEY NOT NULL, owner TEXT NOT NULL, sealed BLOB NOT NULL)")
         }
     }
-    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED, CANDIDATE_INSTALL_READY, LIVE_EDIT_READY, LIVE_EDIT_WRITTEN }
+    internal enum class Point { FILES_READY, ROWS_READY, POINTER_COMMITTED, REOPENED, SNAPSHOT_HYDRATION, CANDIDATE_INPUT, CANDIDATE_VERIFIED, CANDIDATE_CLOSED, CANDIDATE_INSTALL_READY, LIVE_EDIT_READY, LIVE_EDIT_WRITTEN, REPAIR_KEY_READY, REPAIR_KEY_CREATING }
     internal var fault: (Point) -> Unit = {}
     private val domains = listOf("expenses", "attachments") + FinanceData.limits.keys
     private fun <T> locked(block: () -> T): T = synchronized(locks.getOrPut(db().path) { Any() }, block)
@@ -318,10 +318,161 @@ internal class VaultGenerations(private val context: Context, private val db: ()
             if(open) {open=false;namespace.close()}
         }
     }
-    internal fun captureReceiptTarget(): ReceiptTarget = locked {
+    internal fun captureReceiptTarget(allowRepair:Boolean = false): ReceiptTarget = locked {
         val namespace=CandidateNamespace()
-        try {namespace.check();val target=transaction {candidateTarget()};namespace.check();BoundTarget(target,namespace)}
+        try {
+            namespace.check()
+            // Prove access or actual absence before classifying an unreadable target.
+            val witness=if(allowRepair) keyWitness() else null
+            val target=runCatching {transaction {candidateTarget()}}
+            if(target.isSuccess) {namespace.check();BoundTarget(target.getOrThrow(),namespace)}
+            else {check(allowRepair);transaction {RepairTarget(namespace,checkNotNull(witness),rawRepairDigest(),dataVersion(),repairRevision(),java.io.File(context.noBackupFilesDir,LocalReceiptBlob.ROOT_NAME).exists())}}
+        }
         catch(error: Throwable) {try {namespace.close()} catch(cleanup: Throwable) {error.addSuppressed(cleanup)};throw error}
+    }
+    private data class KeyWitness(val present:Boolean,val proof:ByteArray,val plain:ByteArray)
+    private fun keyWitness():KeyWitness {
+        val keys=KeyStore.getInstance("AndroidKeyStore").apply {load(null)}
+        if(!keys.containsAlias(alias)) return KeyWitness(false,byteArrayOf(),byteArrayOf())
+        return witnessFor(checkNotNull(keys.getKey(alias,null) as? SecretKey) {"Device key is inaccessible"})
+    }
+    private fun witnessFor(key:SecretKey):KeyWitness {
+        val plain=ByteArray(32).also {SecureRandom().nextBytes(it)}
+        return KeyWitness(true,crypt(plain,key,"repair-binding",true),plain)
+    }
+    /** Existing same-database process lock serializes supported local key writers.
+     * Android Keystore has no atomic create-if-absent across unrelated processes. */
+    private fun createRepairKey():KeyWitness {
+        fault(Point.REPAIR_KEY_CREATING)
+        val keys=KeyStore.getInstance("AndroidKeyStore").apply {load(null)}
+        check(!keys.containsAlias(alias)) {"Receiving device key appeared before creation"}
+        val created=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore").apply {
+            init(KeyGenParameterSpec.Builder(alias,KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setKeySize(256).setRandomizedEncryptionRequired(true).build())
+        }.generateKey()
+        return witnessFor(created).also(::checkWitness)
+    }
+    private fun checkWitness(witness:KeyWitness) {
+        val keys=KeyStore.getInstance("AndroidKeyStore").apply {load(null)}
+        check(keys.containsAlias(alias)==witness.present) {"Receiving device key changed"}
+        if(witness.present) {
+            val key=checkNotNull(keys.getKey(alias,null) as? SecretKey) {"Device key is inaccessible"}
+            val plain=crypt(witness.proof,key,"repair-binding",false)
+            try {check(plain.contentEquals(witness.plain)) {"Receiving device key changed"}} finally {plain.fill(0)}
+        }
+    }
+    private fun dataVersion()=db().rawQuery("PRAGMA data_version",null).use {check(it.moveToFirst());it.getLong(0)}
+    private fun repairRevision():Long = runCatching {state().revision}.getOrElse {get("revision")?.toLongOrNull()?.takeIf {it>=0 && it<Long.MAX_VALUE} ?: 0L}
+    /** Raw encrypted source binding, not authentication/admission of unreadable data.
+     * Only the just-created, fully authenticated replacement may be excluded. */
+    private fun rawRepairDigest(excluded:String? = null,originalReceiptRoot:Boolean = true):String {
+        val hash=java.security.MessageDigest.getInstance("SHA-256")
+        fun add(bytes:ByteArray) {hash.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.size.toLong()).array());hash.update(bytes)}
+        val tables=domains.associateWith {"id"}+mapOf("metadata" to "key","vault_generations" to "id","vault_rows" to "generationId,domain,id","vault_receipts" to "id")
+        for((table,order) in tables) {
+            add(table.toByteArray())
+            val column=when(table) {"vault_generations"->"id";"vault_rows"->"generationId";"vault_receipts"->"owner";else->null}
+            val where=if(excluded!=null && column!=null) " WHERE $column != ?" else ""
+            db().rawQuery("SELECT * FROM $table$where ORDER BY $order",if(where.isEmpty()) null else arrayOf(excluded)).use {rows->
+                while(rows.moveToNext()) for(i in 0 until rows.columnCount) {
+                    add(byteArrayOf(rows.getType(i).toByte()))
+                    add(if(rows.isNull(i)) byteArrayOf() else if(rows.getType(i)==android.database.Cursor.FIELD_TYPE_BLOB) rows.getBlob(i) else rows.getString(i).toByteArray(Charsets.UTF_8))
+                }
+            }
+        }
+        val skip=if(excluded==null) emptySet() else db().rawQuery("SELECT id FROM vault_receipts WHERE owner=?",arrayOf(excluded)).use {rows->buildSet {while(rows.moveToNext()) add(rows.getString(0))}}
+        val base=java.io.File(context.noBackupFilesDir,LocalReceiptBlob.ROOT_NAME)
+        if(base.exists() && !originalReceiptRoot) {
+            check(base.listFiles().orEmpty().all {it.name in skip}) {"Receipt namespace changed"}
+        }
+        if(base.exists() && originalReceiptRoot) {
+            fun visit(file:java.io.File,relative:String) {
+                if(relative in skip) return
+                val fd=android.system.Os.open(file.absolutePath,android.system.OsConstants.O_RDONLY or android.system.OsConstants.O_NOFOLLOW or android.system.OsConstants.O_NONBLOCK,0)
+                try {
+                    val before=android.system.Os.fstat(fd);check(before.st_uid==android.os.Process.myUid())
+                    add(relative.toByteArray());add("${before.st_dev}:${before.st_ino}:${before.st_mode}".toByteArray())
+                    if(android.system.OsConstants.S_ISDIR(before.st_mode)) {
+                        android.os.ParcelFileDescriptor.dup(fd).use {pin->
+                            val anchored=java.io.File("/proc/self/fd/${pin.fd}")
+                            checkNotNull(anchored.list()).sorted().forEach {name->visit(java.io.File(anchored,name),if(relative.isEmpty()) name else "$relative/$name")}
+                        }
+                    } else {
+                        check(android.system.OsConstants.S_ISREG(before.st_mode) && before.st_nlink==1L)
+                        add(before.st_size.toString().toByteArray())
+                        val buffer=ByteArray(32768);var total=0L
+                        try {while(true) {val count=android.system.Os.read(fd,buffer,0,buffer.size);if(count==0) break;total=Math.addExact(total,count.toLong());check(total<=before.st_size);hash.update(buffer,0,count)}} finally {buffer.fill(0)}
+                        check(total==before.st_size)
+                    }
+                    val after=android.system.Os.fstat(fd);val named=android.system.Os.lstat(file.absolutePath)
+                    check(before.st_dev==named.st_dev && before.st_ino==named.st_ino && before.st_size==after.st_size && before.st_mtime==after.st_mtime && before.st_ctime==after.st_ctime)
+                } finally {android.system.Os.close(fd)}
+            }
+            visit(base,"")
+        }
+        return hash.digest().joinToString("") {"%02x".format(it.toInt() and 255)}
+    }
+    private inner class RepairTarget(val namespace:CandidateNamespace,val witness:KeyWitness,val digest:String,val version:Long,val revision:Long,val originalReceiptRoot:Boolean):ReceiptTarget {
+        val owner=this@VaultGenerations;var open=true
+        fun check(excluded:String? = null,currentKey:KeyWitness = witness) {
+            namespace.check();checkWitness(currentKey);check(dataVersion()==version) {"Another database writer changed the repair target"}
+            if(excluded!=null) readVerified(excluded)
+            check(rawRepairDigest(excluded,originalReceiptRoot)==digest) {"Unreadable receiving vault changed after preview"}
+            namespace.check();checkWitness(currentKey)
+        }
+        override fun close() {if(open) {open=false;namespace.close()}}
+    }
+    internal fun isRepairTarget(target:ReceiptTarget)=target is RepairTarget
+    internal fun finishRepair(target:ReceiptTarget,snapshot:Snapshot,operation:RestoreOperation):PreparedGeneration {
+        check(target is RepairTarget && target.owner===this)
+        return synchronized(locks.getOrPut(target.namespace.path) {Any()}) {
+            check(target.open);snapshot.validate();Backup.requireCapacity(snapshot);ReceiptImage.validate(snapshot.attachments)
+            target.check();operation.check();target.open=false
+            RepairCandidate(target,snapshot,operation)
+        }
+    }
+    private inner class RepairCandidate(val target:RepairTarget,val snapshot:Snapshot,val operation:RestoreOperation):PreparedGeneration {
+        private var open=true
+        override val metadata=VerifiedMetadata(snapshot.vaultId,snapshot.snapshotId,snapshot.createdAt,
+            mapOf("expenses" to snapshot.expenses.size,"attachments" to snapshot.attachments.size)+snapshot.finance.domains().mapValues {it.value.size},Money.total(snapshot.expenses),snapshot.attachments.sumOf {it.byteCount},digest(snapshot))
+        fun install(receiver:VaultGenerations) = synchronized(locks.getOrPut(target.namespace.path) {Any()}) {
+            check(receiver===target.owner);check(open);open=false
+            val id=Wire.id();var generated:KeyWitness?=null;var publication=false
+            try {
+                transaction {target.check();operation.check();snapshot.validate();Backup.requireCapacity(snapshot);ReceiptImage.validate(snapshot.attachments)}
+                if(!target.witness.present) generated=createRepairKey()
+                val current=generated ?: target.witness
+                fault(Point.REPAIR_KEY_READY);operation.check();target.check(currentKey=current)
+                prepare(snapshot,operation::check,id)
+                publish(id,null,target.revision,operation,guard={target.check(id,current)},afterPublicationStarted={publication=true})
+            } catch(error:Throwable) {
+                if(!publication) {
+                    // Own complete replacement only. Partial/foreign files remain quarantined.
+                    try {discardRepairPreparation(id)} catch(cleanup:Throwable) {error.addSuppressed(cleanup)}
+                    if(generated!=null) try {
+                        target.check(currentKey=generated!!)
+                        KeyStore.getInstance("AndroidKeyStore").apply {load(null);deleteEntry(alias)}
+                        checkWitness(target.witness)
+                    } catch(cleanup:Throwable) {error.addSuppressed(cleanup)}
+                }
+                throw error
+            } finally {operation.finish();target.namespace.close()}
+        }
+        override fun close() {synchronized(locks.getOrPut(target.namespace.path) {Any()}) {if(open) {open=false;target.namespace.close()}}}
+    }
+    private fun discardRepairPreparation(id:String) {
+        val exists=db().rawQuery("SELECT 1 FROM vault_generations WHERE id=?",arrayOf(id)).use {it.moveToFirst()};if(!exists) return
+        val raw=key(id)
+        try {
+            val groups=mutableListOf<Pair<String,ByteArray>>()
+            db().rawQuery("SELECT id,sealed FROM vault_receipts WHERE owner=?",arrayOf(id)).use {r->while(r.moveToNext()) groups+=r.getString(0) to r.getBlob(1)}
+            for((group,sealed) in groups) {
+                val j=open(sealed,SecretKeySpec(raw,"AES"),"receipts:$id:$group");val array=j.getJSONArray("descriptors")
+                val descriptors=(0 until array.length()).map {descriptor(array.getJSONObject(it))}
+                LocalReceiptBlob.reopen(context,raw,Wire.string(j,"vaultId"),group,descriptors).discard()
+            }
+            transaction {db().delete("vault_receipts","owner=?",arrayOf(id));db().delete("vault_rows","generationId=?",arrayOf(id));db().delete("vault_generations","id=?",arrayOf(id))}
+        } finally {raw.fill(0)}
     }
     private inner class CandidateStorage(val id: String, val raw: ByteArray, val snapshot: Snapshot,
         val group: String, val descriptors: List<LocalReceiptBlob.Descriptor>, val operation: RestoreOperation, val target: CandidateTarget, val namespace: CandidateNamespace) {
@@ -431,7 +582,7 @@ internal class VaultGenerations(private val context: Context, private val db: ()
         override fun close() = candidateLocked(storage) {if(open) {open=false;storage.discard()}}
     }
     internal fun installPrepared(candidate: PreparedGeneration) {
-        check(candidate is Candidate) {"Unsupported candidate capability"};candidate.install(this)
+        when(candidate) {is Candidate->candidate.install(this);is RepairCandidate->candidate.install(this);else->error("Unsupported candidate capability")}
     }
     private fun adoptCandidate(storage: CandidateStorage) {
         if(storage.descriptors.isEmpty()) return
@@ -528,10 +679,10 @@ internal class VaultGenerations(private val context: Context, private val db: ()
                 db().insertWithOnConflict("vault_rows",null,ContentValues().apply {put("generationId",id);put("domain",domain);put("id",row);put("sealed",seal(j,secret,aad))},SQLiteDatabase.CONFLICT_REPLACE).also {check(it != -1L)}
         }
     }
-    private fun prepare(snapshot: Snapshot, guard: () -> Unit = {}): String {
+    private fun prepare(snapshot: Snapshot, guard: () -> Unit = {}, id:String = Wire.id()): String {
         guard()
         snapshot.validate();Backup.requireCapacity(snapshot);ReceiptImage.validate(snapshot.attachments)
-        val id=Wire.id();val raw=ByteArray(32).also {SecureRandom().nextBytes(it)}
+        val raw=ByteArray(32).also {SecureRandom().nextBytes(it)}
         try {
             val wrapped=crypt(raw,device(true),"key:$id",true)
             transaction {db().insertOrThrow("vault_generations",null,ContentValues().apply {put("id",id);put("wrappedKey",wrapped);put("sealedHeader",byteArrayOf())});setHeader(id,raw,snapshot)}

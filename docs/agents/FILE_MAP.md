@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1446
+- Total source-visible files: 1457
 
 | Path | Area |
 |---|---|
@@ -95,6 +95,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/V4FilesExportFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/V4FilesRestoreDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/V4NativeWriterInterchangeDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/V4RepairDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/V4RestoreDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt` | native-android |
@@ -227,6 +228,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/v4-files-export-binding.json` | native-android |
 | `apps/android/evidence/v4-files-export.json` | native-android |
 | `apps/android/evidence/v4-files-export.md` | native-android |
+| `apps/android/evidence/v4-repair.json` | native-android |
 | `apps/android/evidence/v4-restore.json` | native-android |
 | `apps/android/evidence/v4-restore.md` | native-android |
 | `apps/android/gradle.properties` | native-android |
@@ -358,6 +360,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineTests/V4AppModuleTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/V4CandidateTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/V4ExportTests.swift` | native-ios |
+| `apps/ios/PennyOfflineTests/V4RepairTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/VaultTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CaptureFlowTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CloudFlowTests.swift` | native-ios |
@@ -396,6 +399,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/v4-export.md` | native-ios |
 | `apps/ios/evidence/v4-files-export.json` | native-ios |
 | `apps/ios/evidence/v4-files-export.md` | native-ios |
+| `apps/ios/evidence/v4-repair.json` | native-ios |
+| `apps/ios/evidence/v4-repair.md` | native-ios |
 | `apps/ios/project.yml` | native-ios |
 | `assets/offline/README.md` | repo |
 | `assets/offline/penny-offline-foreground.svg` | repo |
@@ -520,6 +525,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/exported-ipa-preflight.json` | docs |
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
+| `docs/offline/evidence/hosted-native-59877b1.json` | docs |
 | `docs/offline/evidence/hosted-native-5d98016.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
 | `docs/offline/evidence/hosted-native-8815d04.json` | docs |
@@ -530,6 +536,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-required-b22b4f6.json` | docs |
 | `docs/offline/evidence/hosted-required-e3d6dc5.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
+| `docs/offline/evidence/ios-accessibility-disposition-review.md` | docs |
 | `docs/offline/evidence/ios-accessibility-disposition.md` | docs |
 | `docs/offline/evidence/ios-accessibility-recheck.json` | docs |
 | `docs/offline/evidence/ios-demo-launch.png` | docs |
@@ -554,6 +561,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/live-state-integration.json` | docs |
 | `docs/offline/evidence/local-receipt-independent.json` | docs |
 | `docs/offline/evidence/metadata-migration-integration.json` | docs |
+| `docs/offline/evidence/metadata-retention-risk.md` | docs |
 | `docs/offline/evidence/native-demo-metadata.json` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
 | `docs/offline/evidence/raw-export-validation.json` | docs |
@@ -562,6 +570,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/receipt-acquisition-validation.json` | docs |
 | `docs/offline/evidence/v4-candidate-savings-integration.json` | docs |
 | `docs/offline/evidence/v4-files-export-integration.json` | docs |
+| `docs/offline/evidence/v4-repair-integration.json` | docs |
 | `docs/offline/evidence/v4-writer-files-integration.json` | docs |
 | `docs/superpowers/plans/2026-04-17-observability-foundation.md` | docs |
 | `docs/testing/DEFAULT_GROUP_VERIFICATION.md` | docs |
@@ -981,6 +990,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-contract/fixtures/v4-native-writer-v1/ios-finance.pennybackup` | offline-contract |
 | `packages/offline-contract/fixtures/v4-native-writer-v1/ios-finance.snapshot.json` | offline-contract |
 | `packages/offline-contract/fixtures/v4-native-writer-v1/ios-provenance.json` | offline-contract |
+| `packages/offline-contract/fixtures/v4-repair-v1/README.md` | offline-contract |
+| `packages/offline-contract/fixtures/v4-repair-v1/acceptance.json` | offline-contract |
 | `packages/offline-contract/generate-cloud-fixtures.mjs` | offline-contract |
 | `packages/offline-contract/generate-finance-fixtures.mjs` | offline-contract |
 | `packages/offline-contract/generate-fixtures.mjs` | offline-contract |

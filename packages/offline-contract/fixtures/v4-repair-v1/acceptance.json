@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "status": "required_unproven",
+  "scope": "Existing-cap Files v4 in-place repair for a missing target key or corrupt encrypted target; inaccessible key errors do not authorize provisioning. No provider, format or capacity change.",
+  "fixtures": [
+    {
+      "id": "ios-finance",
+      "producer": "ios",
+      "archive": "../v4-native-writer-v1/ios-finance.pennybackup",
+      "archiveSha256": "a8f04fd31473f78aef3a146d25af1edea04fcae1bb3d3f6c4d1cfadaf7ad6565",
+      "archiveBytes": 5287,
+      "snapshot": "../v4-native-writer-v1/ios-finance.snapshot.json",
+      "snapshotSha256": "67667cc2e87f3896c6a1797e445d591132efb06ee5095c3d35ee857290474d62",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "expectedCounts": {
+        "expenses": 4,
+        "attachments": 1,
+        "budgets": 2,
+        "incomeSources": 1,
+        "incomeEntries": 1,
+        "savingsGoals": 1,
+        "savingsEntries": 1,
+        "recurringExpenses": 1
+      },
+      "expectedExpenseTotalMinor": 16350,
+      "expectedReceiptBytes": 70
+    },
+    {
+      "id": "android-finance",
+      "producer": "android",
+      "archive": "../v4-native-writer-v1/android-finance.pennybackup",
+      "archiveSha256": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+      "archiveBytes": 4904,
+      "snapshot": "../v4-native-writer-v1/android-finance.snapshot.json",
+      "snapshotSha256": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "expectedCounts": {
+        "expenses": 3,
+        "attachments": 1,
+        "budgets": 2,
+        "incomeSources": 1,
+        "incomeEntries": 1,
+        "savingsGoals": 1,
+        "savingsEntries": 1,
+        "recurringExpenses": 1
+      },
+      "expectedExpenseTotalMinor": 15000,
+      "expectedReceiptBytes": 70
+    }
+  ],
+  "comparison": "Compare all fields in all eight record domains by ID, exact receipt bytes/digest and source vault identity. Local revision/incarnation/writer/key and export snapshotId/createdAt follow the existing restore contract and must not be inferred from fixture equality.",
+  "requiredScenarios": [
+    {
+      "id": "repair_missing_key",
+      "trigger": "Establish a nonempty target, remove its local device key, then select an existing captured archive with its recovery key.",
+      "requiredOutcome": "Complete full authenticated preview without provisioning/replacing a device key or changing original target files/rows. Only explicit Replace may establish the new protected key/storage. Reopen in a new store and compare every represented record and exact receipt bytes with the pinned expected snapshot."
+    },
+    {
+      "id": "repair_corrupt_target",
+      "trigger": "Keep the existing key but make receiving metadata or a saved receipt unreadable/invalid; exercise each corruption kind independently.",
+      "requiredOutcome": "A valid archive can reach explicit repair preview without treating the target as empty or deleting corrupt evidence. Guarded Replace and new-store reopen yield the complete expected snapshot. Retain original target material until replacement is verified."
+    },
+    {
+      "id": "wrong_recovery_key",
+      "trigger": "Select either captured archive using public pny1-08 repeated 32 bytes; also truncate/tamper its acquired ciphertext.",
+      "requiredOutcome": "Authentication/EOF failure yields no installable preview, device-key provisioning, active publication or original-target mutation. Close acquired input and clean only owned staging."
+    },
+    {
+      "id": "target_changed_after_preview",
+      "trigger": "After a valid repair preview, change original source bytes/namespace or change key observation: absent to present, present to absent, or present to a different key.",
+      "requiredOutcome": "Explicit Replace rejects the stale repair binding; preserve intervening state/key and unknown data. Never recapture the target or silently reinterpret a repair preview as a fresh empty-target restore."
+    },
+    {
+      "id": "cancelled_or_failed_preview",
+      "trigger": "Cancel acquisition, validation or completed preview; inject input/read/close/staging failure, including cancellation after validation completes.",
+      "requiredOutcome": "No successful preview escapes a later failure. Original target bytes/rows and key observation remain unchanged; release owned inputs/stages. Dismissed/replaced previews cannot later publish."
+    },
+    {
+      "id": "failed_install_ownership",
+      "trigger": "Inject cancellation/failure before publication, key/storage preparation failure, and existing publication/reopen failure; repeat Replace or reuse a dismissed/failed preview.",
+      "requiredOutcome": "Before publication preserve original target material and clean only owned preparation. Before explicit Replace, key state is unchanged. After explicit Replace, an exclusively created owned key may either be safely removed or retained for a fresh explicit retry; a foreign key must never be adopted, replaced or removed. After publication use established recovery semantics: confirmed rollback preserves originals; uncertain publication retains recovery material and reports uncertainty, never a false old-vault-kept claim. One-shot owner use rejects retries; unknown files are never cleanup targets."
+    },
+    {
+      "id": "healthy_target_unchanged",
+      "trigger": "Restore the same archives into a healthy target, and repeat legacy schema1-3 affected Files restore regressions.",
+      "requiredOutcome": "Healthy v4 still uses its established source-bound candidate path with no repair/key replacement shortcut. Preview leaves current state intact; explicit guarded install/new-store reopen preserves every expected domain and receipt. Legacy imports retain their existing behavior."
+    }
+  ],
+  "evidenceRequirements": [
+    "Each platform imports the opposite native captured archive without regenerating ciphertext; record the chosen fixture ID and hashes.",
+    "Record target condition, observed key presence/identity, original-source hashes, preview-before/after state, explicit confirmation and new-store reopen. Never log real keys or financial payloads.",
+    "Map every scenario to actual test methods and outcome; name omitted variants and skipped/not-run reasons. Fixture consistency is not runtime acceptance.",
+    "Preserve unchanged v4 FINAL/EOF, strict logical/native image admission and current capacity checks. No missing-key repair shortcut during ordinary open or healthy preview.",
+    "Physical key behavior, OS crash/power loss, real Files providers and store release are separate gates; injected failures/new-store reopen do not prove them."
+  ]
+}

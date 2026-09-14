@@ -18,12 +18,32 @@ internal object V4Restore {
         var secret=byteArrayOf()
         try {
             require(root.size==32);secret=root.copyOf();operation.check()
-            store.generations.captureReceiptTarget().use {target->
+            store.generations.captureReceiptTarget(allowRepair=true).use {target->
                 inputDelegated=true
                 OwnedV4Input.capture(context,input,operation,fault).use {ciphertext->
                     val first=MetadataSink(operation) {fault(Point.PASS1_CLOSED,context.noBackupFilesDir)}
                     val summary=V4BackupReader.decode(secret,ciphertext.open(Point.PASS1_READ),first)
                     operation.check();fault(Point.PASS1_DONE,context.noBackupFilesDir);operation.check()
+                    if(store.generations.isRepairTarget(target)) {
+                        // Explicit current-cap repair compatibility: no target key or DB
+                        // changes during preview. Healthy targets keep streamed preparation.
+                        val attachments=mutableListOf<Attachment>()
+                        val second=object:LogicalValidationSink {
+                            override fun begin(snapshotId:String,vaultId:String,createdAt:String) {operation.check()}
+                            override fun record(kind:Int,value:JSONObject) {operation.check()}
+                            override fun receipt(descriptor:ReceiptDescriptor,bytes:ByteArray) {
+                                operation.check();attachments+=Attachment(descriptor.id,descriptor.expenseId,descriptor.mediaType,descriptor.byteCount,descriptor.sha256,java.util.Base64.getEncoder().encodeToString(bytes))
+                            }
+                            override fun finishUncommitted(summary:LogicalSummary) {operation.check()}
+                            override fun discard() {attachments.clear()}
+                            override fun close() {fault(Point.PASS2_CLOSED,context.noBackupFilesDir);operation.check()}
+                        }
+                        val repeated=V4BackupReader.decode(secret,ciphertext.open(Point.PASS2_READ),second)
+                        check(repeated==summary) {"Backup meaning changed between validation passes"}
+                        operation.check();fault(Point.PASS2_DONE,context.noBackupFilesDir);operation.check()
+                        ciphertext.close();operation.check()
+                        return store.generations.finishRepair(target,first.snapshot().copy(attachments=attachments.toList()),operation)
+                    }
                     store.generations.beginReceiptPreparation(first.snapshot(),first.receipts.toList(),operation,target).use {preparation->
                         val second=object:LogicalValidationSink {
                             override fun begin(snapshotId:String,vaultId:String,createdAt:String) {operation.check()}

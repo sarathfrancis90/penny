@@ -69,3 +69,11 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Receipt-free live-state integration](live-state-integration.json): paired native open/list/view/edit, retained ciphertext, stale-form protection and explicit complete compatibility paths at unchanged caps. Distinct failing/passing test overlays are preserved.
 - [Android hosted Files readiness correction](../../../apps/android/evidence/files-hosted-readiness.json): historical59877b1 fails one picker-readiness method on each runtime; test-only correction passes locally on both with unchanged live production APK.
+
+- [Hosted Files59877b1](hosted-native-59877b1.json): iOS124 unit +9 UI and separate generation phases passed; Android each106total/1failure/6skips, failing the older picker-readiness test. Both aggregates failed; later local correction is separate.
+
+- [Independent accessibility disposition review](ios-accessibility-disposition-review.md): existing exact-element evidence establishes no additional app-owned defect; the unfiltered audit remains failed and later controls/physical/quantitative acceptance are separate.
+
+- [Unbounded iOS metadata retention](metadata-retention-risk.md): source-confirmed full metadata per mutation with indefinite retention; arithmetic estimates are not measurements. Authenticated bounded cleanup is a current-cap release blocker.
+
+- [Paired v4 in-place repair](v4-repair-integration.json): full validated repair preview, exact raw-target/key binding, exclusive owned-key creation and guarded replacement at current limits, with distinct native runs and explicit platform recovery boundaries.

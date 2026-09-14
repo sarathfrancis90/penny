@@ -90,12 +90,12 @@ class V4RestoreDeviceTest {
             assertTrue(edited);assertTrue(store.all().any {it.note=="preserve intervening edit"});assertEquals(snapshot("local-generation-v1/previous.json").vaultId,store.vaultId())
         }
     }
-    @Test fun missingKeyBeforeCaptureAndAtInstallNeverProvisions() {
+    @Test fun missingKeyRepairPreviewAndLateLossNeverProvision() {
         for(late in listOf(false,true)) isolated {store,_,alias,_ ->
             val before=state(store);var reads=0;val input=object:ByteArrayInputStream(bytes("v4-frames/one-receipt.pennyframe")) {override fun read(b:ByteArray,off:Int,len:Int):Int {reads++;return super.read(b,off,len)}}
             val keys=KeyStore.getInstance("AndroidKeyStore").apply {load(null)}
             if(late) {val candidate=store.prepareV4(input,root);keys.deleteEntry(alias);fails {store.installPrepared(candidate)};candidate.close()}
-            else {keys.deleteEntry(alias);fails {store.prepareV4(input,root)};assertEquals(0,reads)}
+            else {keys.deleteEntry(alias);store.prepareV4(input,root).close();assertTrue(reads>0)}
             assertFalse(keys.containsAlias(alias));assertEquals(before,state(store))
         }
     }

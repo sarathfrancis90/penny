@@ -26,8 +26,15 @@ enum DeviceKey {
         if status == errSecSuccess, let data = result as? Data, data.count == 32 { return SymmetricKey(data: data) }
         guard status == errSecItemNotFound else { throw ExpenseError.keychain(status) }
         guard create else { throw ExpenseError.missingKey }
+        return try createAbsent()
+    }
+    /// Atomic create-only operation for explicit repair. A newly appearing alias
+    /// is a conflict; it can never be silently adopted as this operation's key.
+    static func createAbsent() throws -> SymmetricKey {
         let key = SymmetricKey(size: .bits256)
-        var add = query
+        var add: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+                                  kSecAttrService as String: "ca.penny.offline.dev.vault",
+                                  kSecAttrAccount as String: "local-v1"]
         add[kSecValueData as String] = key.withUnsafeBytes { Data($0) }
         add[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
         add[kSecAttrSynchronizable as String] = false
@@ -58,16 +65,18 @@ final class VaultStore {
     private var key: SymmetricKey?
     private let suppliedKey: SymmetricKey?
     private let deviceKeyReader: @Sendable (Bool) throws -> SymmetricKey
+    private let deviceKeyCreator: @Sendable () throws -> SymmetricKey
     private let hydrationCheckpoint: (@Sendable () throws -> Void)?
     // Fault injection exercises transaction boundaries without changing crypto.
     enum CommitStage: Sendable { case staged, rollbackSaved, committed, verified, journalCleared }
     private let commitCheckpoint: (@Sendable (CommitStage) throws -> Void)?
 
-    init(directory: URL? = nil, key: SymmetricKey? = nil, deviceKeyReader: @escaping @Sendable (Bool) throws -> SymmetricKey = { try DeviceKey.load(create: $0) }, commitCheckpoint: (@Sendable (CommitStage) throws -> Void)? = nil, hydrationCheckpoint: (@Sendable () throws -> Void)? = nil) {
+    init(directory: URL? = nil, key: SymmetricKey? = nil, deviceKeyReader: @escaping @Sendable (Bool) throws -> SymmetricKey = { try DeviceKey.load(create: $0) }, deviceKeyCreator: @escaping @Sendable () throws -> SymmetricKey = { try DeviceKey.createAbsent() }, commitCheckpoint: (@Sendable (CommitStage) throws -> Void)? = nil, hydrationCheckpoint: (@Sendable () throws -> Void)? = nil) {
         let support = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         file = support.appendingPathComponent("PennyOffline", isDirectory: true).appendingPathComponent("vault-v1.pennyvault")
         suppliedKey = key
         self.deviceKeyReader = deviceKeyReader
+        self.deviceKeyCreator = deviceKeyCreator
         self.commitCheckpoint = commitCheckpoint
         self.hydrationCheckpoint = hydrationCheckpoint
         load()
@@ -177,6 +186,35 @@ final class VaultStore {
         return try DurableVaultStorage.ReceivingBinding.capture(directory: file.deletingLastPathComponent(), key: existing,
             owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
             source: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
+    }
+    func captureRepairTarget() throws -> DurableVaultStorage.RepairBinding {
+        guard !isWriting else { throw CloudFailure.staleRestore }
+        let observation = try DurableVaultStorage.RepairKey.read { try suppliedKey ?? deviceKeyReader(false) }
+        return try DurableVaultStorage.RepairBinding.capture(directory: file.deletingLastPathComponent(), owner: localReceiptOwner,
+            cachedDigest: diskDigest, storeId: storeId, metadata: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch), observedKey: observation)
+    }
+    func ownsRepairTarget(_ binding: DurableVaultStorage.RepairBinding) -> Bool { binding.belongs(to: localReceiptOwner) }
+    func validateRepairTarget(_ binding: DurableVaultStorage.RepairBinding) throws {
+        guard matchesRepairTarget(binding) else { throw CloudFailure.staleRestore }
+        try binding.validate { try suppliedKey ?? deviceKeyReader(false) }
+    }
+    func matchesRepairTarget(_ binding: DurableVaultStorage.RepairBinding) -> Bool {
+        !isWriting && binding.matches(owner: localReceiptOwner, digest: diskDigest, storeId: storeId,
+            metadata: LocalVaultMetadata(writerId: writerId, revision: revision, restoreEpoch: restoreEpoch))
+    }
+    /// Explicit repair alone may install when the existing vault cannot open.
+    /// Archive validation and owned input close have completed before this call.
+    func installRepair(_ snapshot: VaultSnapshot, binding: DurableVaultStorage.RepairBinding) async throws {
+        guard ownsRepairTarget(binding) else { throw CloudFailure.staleRestore }
+        guard matchesRepairTarget(binding) else { binding.close(); throw CloudFailure.staleRestore }
+        isWriting = true; defer { isWriting = false }
+        let supplied = suppliedKey, reader = deviceKeyReader, create = deviceKeyCreator
+        let owned = V4Transfer(binding, cleanup: { $0.close() })
+        do {
+            let (loaded, digest, installedKey) = try await ArchiveWorker.shared.repair(snapshot, binding: owned,
+                currentKey: { try supplied ?? reader(false) }, createKey: create, checkpoint: commitCheckpoint)
+            adopt(loaded); diskDigest = digest; key = installedKey; isReady = true; errorMessage = nil
+        } catch { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription; throw error }
     }
     private func existingReplacementKey() throws -> SymmetricKey {
         try Task.checkCancellation()

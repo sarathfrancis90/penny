@@ -105,7 +105,7 @@ final class V4Transfer<Value>: @unchecked Sendable {
     deinit { try? close() }
 }
 
-private final class V4CollectedRecords: PennyV4Events {
+class V4CollectedRecords: PennyV4Events {
     var body = VaultSnapshot(), receipts: [DurableReceiptDeclaration] = []
     func begin(_ metadata: PennyV4Declaration) throws {
         body.snapshotId = metadata.snapshotId; body.vaultId = metadata.vaultId; body.createdAt = metadata.createdAt

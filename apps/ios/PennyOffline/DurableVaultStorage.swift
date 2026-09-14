@@ -603,6 +603,142 @@ final class DurableVaultStorage {
         } catch { try owned.close(); throw error }
     }
 
+    /// Fingerprints the existing encrypted namespace for explicit repair. Receipts
+    /// and metadata are read through anchored FDs in 64 KiB chunks, without keys.
+    /// Unknown regular entries are also bound; unsafe links/deeper trees fail closed.
+    private func rawRepairInventory(excludingOwnedRoots excluded: Set<String> = []) throws -> [String: String] {
+        func stamp(_ info: stat) -> String {
+            "\(info.st_dev):\(info.st_ino):\(info.st_mode):\(info.st_uid):\(info.st_nlink):\(info.st_size):\(info.st_mtimespec.tv_sec):\(info.st_mtimespec.tv_nsec):\(info.st_ctimespec.tv_sec):\(info.st_ctimespec.tv_nsec)"
+        }
+        func names(_ parent: Int32) throws -> [String] {
+            let fd = openat(parent, ".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            guard fd >= 0, let stream = fdopendir(fd) else { if fd >= 0 { _ = Darwin.close(fd) }; throw LocalReceiptBlobError.file }
+            var closed = false; defer { if !closed { _ = closedir(stream) } }
+            var names: [String] = []; errno = 0
+            while let entry = readdir(stream) {
+                let name = withUnsafePointer(to: entry.pointee.d_name) { pointer in pointer.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: entry.pointee.d_name)) { String(cString: $0) } }
+                if name != "." && name != ".." { names.append(name) }; errno = 0
+            }
+            guard errno == 0 else { throw LocalReceiptBlobError.file }; closed = true
+            guard closedir(stream) == 0 else { throw LocalReceiptBlobError.file }; return names.sorted()
+        }
+        var result: [String: String] = [:]
+        func walk(_ parent: Int32, prefix: String) throws {
+            let entries = try names(parent)
+            for name in entries {
+                if prefix.isEmpty && excluded.contains(name) { continue }
+                try Task.checkCancellation()
+                let input = openat(parent, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC | O_NONBLOCK)
+                guard input >= 0 else { throw LocalReceiptBlobError.file }
+                let file = FileHandle(fileDescriptor: input, closeOnDealloc: true); defer { try? file.close() }
+                var info = stat(); guard fstat(input, &info) == 0, info.st_uid == geteuid() else { throw LocalReceiptBlobError.file }
+                let path = prefix + name, before = stamp(info)
+                if info.st_mode & S_IFMT == S_IFDIR {
+                    guard prefix.isEmpty, info.st_mode & 0o077 == 0 else { throw LocalReceiptBlobError.file }
+                    try walk(input, prefix: path + "/"); result[path] = before
+                } else {
+                    guard info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1,
+                          info.st_size >= 0, info.st_size <= 32 * 1_024 * 1_024 else { throw LocalReceiptBlobError.file }
+                    var hash = SHA256(), count = 0
+                    while let chunk = try file.read(upToCount: 65_536), !chunk.isEmpty {
+                        try Task.checkCancellation(); count += chunk.count
+                        guard count <= info.st_size else { throw LocalReceiptBlobError.bytes }; hash.update(data: chunk)
+                    }
+                    guard count == info.st_size else { throw LocalReceiptBlobError.bytes }
+                    result[path] = before + ":" + hash.finalize().map { String(format: "%02x", $0) }.joined()
+                }
+                var after = stat(), current = stat()
+                guard fstat(input, &after) == 0, stamp(after) == before,
+                      fstatat(parent, name, &current, AT_SYMLINK_NOFOLLOW) == 0, stamp(current) == before else { throw LocalReceiptBlobError.replaced }
+                try file.close()
+            }
+            guard try names(parent) == entries else { throw LocalReceiptBlobError.replaced }
+        }
+        try checkRoot(); try walk(fd, prefix: ""); try checkRoot(); return result
+    }
+
+    /// Recovery observes the key without creating it. Locked/inaccessible Keychain
+    /// failures remain errors; only the explicit missing-key result means absent.
+    enum RepairKey: Equatable {
+        case missing, available(SymmetricKey)
+        static func read(_ reader: () throws -> SymmetricKey) throws -> Self {
+            do { return .available(try reader()) }
+            catch ExpenseError.missingKey { return .missing }
+        }
+    }
+    /// Explicit replacement authority for an unreadable predecessor, never a
+    /// normal mutation capability. Its root FD and raw pointer digest are captured
+    /// before archive acquisition; the original bytes need not decrypt to retain them.
+    final class RepairBinding {
+        private let storage: DurableVaultStorage, target: LocalReceiptTarget
+        private let observedKey: RepairKey, rawDigest: String?
+        private let originals: [String: String]
+        private var active = true
+        private init(storage: DurableVaultStorage, target: LocalReceiptTarget, key: RepairKey, digest: String?, originals: [String: String]) {
+            self.storage = storage; self.target = target; observedKey = key; rawDigest = digest; self.originals = originals
+        }
+        static func capture(directory: URL, owner: UUID, cachedDigest: String?, storeId: String,
+                            metadata: LocalVaultMetadata, observedKey: RepairKey) throws -> RepairBinding {
+            try metadata.validate(); guard metadata.revision < CloudWire.maximumRevision else { throw ExpenseError.invalidSnapshot }
+            let storage = try DurableVaultStorage(directory)
+            return try storage.leased {
+                try Task.checkCancellation()
+                let bytes = try storage.liveBytes()
+                // A healthy newer vault is a stale-target failure, not permission
+                // to bypass the normal authenticated receiving binding.
+                if case .available(let key) = observedKey {
+                    if let bytes, (try? storage.verifiedDecoded(bytes, key: key)) != nil { throw CloudFailure.staleRestore }
+                    if bytes == nil, try !storage.establishedWithoutLive() { throw CloudFailure.staleRestore }
+                }
+                let target = LocalReceiptTarget(owner: owner, digest: cachedDigest, storeId: storeId, metadata: metadata)
+                return RepairBinding(storage: storage, target: target, key: observedKey, digest: bytes.map(DurableVaultStorage.digest), originals: try storage.rawRepairInventory())
+            }
+        }
+        func matches(owner: UUID, digest: String?, storeId: String, metadata: LocalVaultMetadata) -> Bool {
+            active && target.owner == owner && target.digest == digest && target.storeId == storeId &&
+                target.metadata.writerId == metadata.writerId && target.metadata.revision == metadata.revision && target.metadata.restoreEpoch == metadata.restoreEpoch
+        }
+        func belongs(to owner: UUID) -> Bool { target.owner == owner }
+        func close() { active = false }
+        func validate(currentKey: () throws -> SymmetricKey) throws {
+            guard active else { throw LocalReceiptBlobError.closed }
+            try storage.leased {
+                try Task.checkCancellation(); try sourceUnchanged()
+                guard try RepairKey.read(currentKey) == observedKey else { throw ExpenseError.missingKey }
+            }
+        }
+        private func sourceUnchanged(ownedRoots: Set<String> = []) throws {
+            try storage.checkRoot()
+            guard try storage.liveBytes().map(DurableVaultStorage.digest) == rawDigest else { throw CloudFailure.staleRestore }
+            var expected = originals
+            if ownedRoots.contains(DurableVaultStorage.rollback) {
+                expected.removeValue(forKey: DurableVaultStorage.rollback)
+                guard try storage.read(DurableVaultStorage.rollback).map(DurableVaultStorage.digest) == rawDigest else { throw CloudFailure.staleRestore }
+            }
+            guard try storage.rawRepairInventory(excludingOwnedRoots: ownedRoots) == expected else { throw CloudFailure.staleRestore }
+        }
+        /// Called only after explicit replacement confirmation. The existing key
+        /// atomic create-absent primitive is used only for an unchanged missing key.
+        func install(_ snapshot: VaultSnapshot, currentKey: @escaping () throws -> SymmetricKey, createKey: () throws -> SymmetricKey,
+                     checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?, SymmetricKey) {
+            guard active else { throw LocalReceiptBlobError.closed }; active = false
+            return try storage.leased {
+                try Task.checkCancellation(); try sourceUnchanged()
+                guard try RepairKey.read(currentKey) == observedKey else { throw ExpenseError.missingKey }
+                let key: SymmetricKey
+                switch observedKey { case .available(let available): key = available; case .missing: key = try createKey() }
+                let verifyKey = { try Task.checkCancellation(); try self.storage.checkRoot(); guard try currentKey() == key else { throw ExpenseError.missingKey } }
+                try verifyKey(); try sourceUnchanged()
+                let prepared = try PreparedVaultWrite.prepare(snapshot, key: key, revision: target.metadata.revision,
+                    writerId: target.metadata.writerId, restoreEpoch: target.metadata.restoreEpoch, restoring: true,
+                    sourceDigest: rawDigest, sourceStoreId: target.storeId)
+                let loaded = try storage.commit(prepared, sourceDigest: rawDigest, storeId: target.storeId, receipts: [],
+                    checkpoint: checkpoint, validateOwned: verifyKey, beforePublication: { try self.sourceUnchanged(ownedRoots: $0) })
+                return (loaded, try storage.liveBytes().map(DurableVaultStorage.digest), key)
+            }
+        }
+    }
+
     /// Opaque local authority captured before parsing. Retains the actual root FD;
     /// never reconstructed from incoming metadata and consumed at candidate begin.
     final class ReceivingBinding {
@@ -779,7 +915,7 @@ final class DurableVaultStorage {
                     checkpoint: checkpoint,
                     finalRead: { try self.storage.hydrate(record.reference, storeId: target.storeId, key: key) },
                     validateOwned: { try self.validateOwnership(); try self.cancellation() },
-                    beforePublication: { try validate(target, key); try self.storage.verifyTarget(target, key: key) },
+                    beforePublication: { _ in try validate(target, key); try self.storage.verifyTarget(target, key: key) },
                     finalize: { try self.cancellation(); try self.validateOwnership(); try self.retainCommitted() },
                     uncertain: { try self.retainCommitted() })
                 return (loaded, try storage.liveBytes().map(DurableVaultStorage.digest), key)
@@ -833,7 +969,9 @@ final class DurableVaultStorage {
         deinit { try? close() }
     }
 
-    func commit(_ prepared: PreparedVaultWrite, sourceDigest: String?, storeId: String, receipts: [LocalReceiptDescriptor], checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> DurableLoaded {
+    func commit(_ prepared: PreparedVaultWrite, sourceDigest: String?, storeId: String, receipts: [LocalReceiptDescriptor], checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?,
+                validateOwned: () throws -> Void = {}, beforePublication: (Set<String>) throws -> Void = { _ in }) throws -> DurableLoaded {
+        try validateOwned()
         let previousBytes = try liveBytes()
         guard previousBytes.map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }
         var descriptors: [LocalReceiptDescriptor] = []
@@ -856,7 +994,12 @@ final class DurableVaultStorage {
         let current = DurableReference(id: id, sha256: Self.digest(encrypted)); try write(encrypted, name: current.name)
         return try publish(current, key: prepared.key, sourceDigest: sourceDigest, storeId: storeId, checkpoint: checkpoint,
                            finalRead: { try self.hydrate(current, storeId: storeId, key: prepared.key) },
-                           beforePublication: { for generation in ownedGroups { try generation.retainCommitted() } })
+                           validateOwned: validateOwned,
+                           beforePublication: { protocolNames in
+                               try beforePublication(protocolNames.union(Set(descriptors.map(\.generationId))).union([current.name]))
+                               for generation in ownedGroups { try generation.retainCommitted() }
+                           },
+                           finalize: validateOwned)
     }
     static func expenseEditProposal(_ expense: Expense, body original: VaultSnapshot, receipts: [LocalReceiptDescriptor]) throws -> VaultSnapshot {
         try expense.validate()
@@ -891,7 +1034,7 @@ final class DurableVaultStorage {
     private func publish<T>(_ current: DurableReference, key: SymmetricKey, sourceDigest: String?, storeId: String,
                          checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?,
                          finalRead: () throws -> T,
-                         validateOwned: () throws -> Void = {}, beforePublication: () throws -> Void = {},
+                         validateOwned: () throws -> Void = {}, beforePublication: (Set<String>) throws -> Void = { _ in },
                          finalize: () throws -> Void = {}, uncertain: () throws -> Void = {}) throws -> T {
         let previousBytes = try liveBytes()
         guard previousBytes.map(Self.digest) == sourceDigest else { throw CloudFailure.staleRestore }
@@ -907,7 +1050,7 @@ final class DurableVaultStorage {
         let closedJournal = previous == nil ? try Self.seal(JSONSerialization.data(withJSONObject: journalObject), key: key, domain: "PENNY-LOCAL-JOURNAL:1\0" + storeId) : journal
         let pending = DurablePointer(version: 1, storeId: storeId, current: current, previous: previous, journal: closedJournal)
         // Transfer lifetime before an uncertain atomic publication can succeed.
-        try beforePublication()
+        try beforePublication(Set(previous.map { [$0.name, Self.rollback] } ?? []))
         do {
             try write(encodePointer(pending, key: key), name: Self.live, replacing: true)
             try checkpoint?(.committed)

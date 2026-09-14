@@ -11,7 +11,7 @@ Updated 2026-09-14. [PLAN.md](PLAN.md) defines the product and release gates. Th
 | Area | Implemented and verified scope | Remaining acceptance |
 | --- | --- | --- |
 | Native apps | iOS 26 SwiftUI; Android API26+ Compose/Material3; local CRUD, search, summaries, native navigation and empty/error states | Physical accessibility, hardware security and final signed installs |
-| Encrypted ledger | Device-bound generations, detached receipts, guarded publication, authenticated predecessor recovery and separate-process checks | Remaining receipt/finance mutation deltas, large-dataset measurements, physical interrupted-write/full-disk matrix |
+| Encrypted ledger | Device-bound generations, detached receipts, guarded publication, authenticated predecessor recovery and separate-process checks | In-place repair qualification, bounded iOS metadata retention, current-cap resource checks, physical interrupted-write/full-disk matrix |
 | Finance | Budgets, received income, savings contributions, recurring review, deterministic reports and CSV; matching shared financial cases | Full legacy reconciliation, refunds/non-CAD/withdrawal product decisions and localization |
 | Receipt capture | Native camera/picker, bounded image preparation, bundled OCR, shared parser and PNG integrity corpus | Physical camera/HEIC quality and supported-device performance |
 | On-device AI | Optional Foundation Models / Gemini Nano proposals with explicit unavailable/download states and grounded review; manual entry remains available | Supported physical-device inference, quality/resources and SDK/AICore traffic observation |
@@ -53,11 +53,21 @@ Ordinary open/list/view-one and unchanged-receipt expense edits now use authenti
 
 Hosted Files checkpoint `59877b1` failed one existing Android picker test on each runtime (106 total, one failure, six skips each). The test polled the external screen before Compose installed the request launcher. [A test-only readiness and staging-cleanup correction](../../apps/android/evidence/files-hosted-readiness.json) passes on both runtimes against the same current production APK. The historical hosted jobs remain failed. The iOS, contract and Android build jobs passed; the native and repository aggregate gates failed. Retained Flutter iOS was still running at this capture.
 
+## Current-cap v4 repair
+
+[Paired native repair](evidence/v4-repair-integration.json) now validates a backup when the receiving local key is missing or encrypted state is corrupt. Preview does not provision keys or mutate originals. Explicit Replace rechecks raw source, namespace and key observation, then reuses guarded replacement. Only this repair path holds a bounded complete Snapshot; healthy candidate and ordinary live paths are unchanged.
+
+- iOS final27/27 passed, zero skips, after fixing the independent review finding at the actual key-creation boundary. Atomic create-only Keychain insertion rejects an intervening key. All focused compatibility cases reran on the corrected runtime.
+- Android final repair6/6 on each API26/37 passed, following earlier16/16 per runtime. A separate10k-expense/four2MiB-receipt compatibility workload passed before the final repair-only key-ownership correction. JVM25/build/lint passed. These remain distinct runs.
+- Shared126 Node/62 Python tests passed with zero skips. The static90-file gate passed using the existing virtualenv after a system-Python dependency failure; the failed initial command is retained. Changed runtime/JS SAST, final iOS key overlay and targeted lint passed. Both independent reviews are clear within the recorded scope.
+
+Android repair needs readable SQLite tables and cannot provide atomic Keystore creation against arbitrary other processes. iOS raw-inventory capture remains synchronous; storage-history cost requires separate qualification. Injected failures and new-store reopen do not prove physical key behavior, power loss or provider recovery. [Unbounded iOS metadata retention](evidence/metadata-retention-risk.md) is the next current-cap disk-safety blocker.
+
 ## Next implementation sequence
 
-1. Commit and push the integrated live-state implementation and Android hosted-test correction; require new hosted checks for that source.
+1. Live state and the Android hosted-test correction are pushed as `7ba951285f90a515448d84843f82154046c46695`; new hosted checks are running for that source. Both native repair implementations and their focused checks are now complete; the next integration includes their exact evidence.
 2. Under the recorded [current-cap scope decision](PLAN.md#current-cap-release-scope-decision--2026-09-14), prioritize remaining release blockers at existing limits: provider configuration/real recovery, complete legacy reconciliation, accessibility and signed distribution. Larger-capacity work is a separate target and is not evidence of release readiness.
-3. Complete receipt/finance mutation deltas and file-based cloud transfer before attempting Profile A. Cloud-v1 remains a separately versioned compatibility protocol until a paired successor is accepted.
+3. Fix unbounded iOS obsolete metadata retention and qualify current-cap compatibility paths. Further receipt/finance mutation deltas and file-based cloud transfer precede any later Profile A attempt. Cloud-v1 remains a separately versioned compatibility protocol until a paired successor is accepted.
 4. Execute physical-device and real-provider gates, then internal-store validation and controlled rollout. Retire web dependencies only after migration/support gates pass.
 
 Each slice reuses existing authenticated storage/publication primitives. Do not widen scope or repeat unchanged tests merely because an agent is idle. Substantial release work remains; test/file counts do not establish a completion percentage or delivery date.
@@ -78,6 +88,6 @@ No attached supported device has established Foundation Models/Nano inference, h
 
 The original checkout contains 18 protected legacy source paths recorded in `artifacts/offline/legacy-baseline-hashes.json`; they are excluded from native synchronization. Generated docs are regenerated independently per checkout. The review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offline-review`, branch `codex/penny-offline-native` from `bcdd69d`. No blanket staging, resetting or copying of unrelated API/Flutter edits is allowed. Raw logs, source pins and failed evidence remain under ignored artifact/build directories; compact reports and public fixtures are checked in.
 
-The latest recorded account reading is **84% weekly usage consumed / 16% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide, not a repository token budget. No reset credit has been redeemed. Work uses two narrowly scoped implementers plus independent review when a concrete patch is ready, with usage checks at integration milestones.
+The latest recorded account reading is **86% weekly usage consumed / 14% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide, not a repository token budget. No reset credit has been redeemed. Work uses two narrowly scoped implementers plus independent review when a concrete patch is ready, with usage checks at integration milestones.
 
 The original **120,000-token estimate was exceeded**. The latest goal-tool checkpoint recorded **18,192,562 aggregate tokens and 47,454 elapsed seconds**; this historical measurement is not current consumption, a forecast or proof of budget compliance. The active goal has no enforced ceiling. Worker allocations are soft estimates, not measured usage. Unfinished gates are never accepted because an allocation is spent.

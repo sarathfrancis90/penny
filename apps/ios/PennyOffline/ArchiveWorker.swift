@@ -13,6 +13,11 @@ struct PreparedArchive: Sendable {
 actor ArchiveWorker {
     static let shared = ArchiveWorker()
     private var exports: [UUID: VerifiedBackupExport] = [:]
+    func repair(_ snapshot: VaultSnapshot, binding: V4Transfer<DurableVaultStorage.RepairBinding>,
+                currentKey: @escaping @Sendable () throws -> SymmetricKey, createKey: @Sendable () throws -> SymmetricKey,
+                checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?, SymmetricKey) {
+        try binding.take().install(snapshot, currentKey: currentKey, createKey: createKey, checkpoint: checkpoint)
+    }
     func editExpense(_ expense: Expense, request: V4Transfer<DurableVaultStorage.LiveEditRequest>, checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLiveLoaded, String?) {
         try request.take().run(expense, checkpoint: checkpoint)
     }
