@@ -1,0 +1,70 @@
+{
+  "commit": "2114c61ede2b2e56555ba871d4d8dde15a4b28de",
+  "runId": 34822346871,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34822346871",
+  "conclusion": "failure",
+  "jobs": {
+    "native-offline-ios-simulator": "failure",
+    "native-offline-contract": "success",
+    "native-offline-android-api-37.0": "success",
+    "native-offline-android-build": "success",
+    "native-offline-android-api-26": "success",
+    "native-offline-gate": "failure"
+  },
+  "ios": {
+    "unitTotal": 138,
+    "unitPassed": 137,
+    "unitFailed": 1,
+    "uiPassed": 9,
+    "uiFailed": 0,
+    "failedMethod": "InactiveGenerationTests.testBoundInstallConsumesStaleOwnerRevisionIncarnationAndRoot",
+    "failure": "Revision2 versus1 after redundant test-only replacement following eager legacy migration. Corrected method passes locally in subsequent retention checkpoint.",
+    "separateGenerationPhases": "Not reached because ordinary test command failed.",
+    "logSha256": "5249947863360b6405505e673bd23ee14c7d7cb944f6508f994dc5da132948e6"
+  },
+  "android": {
+    "penny-offline-android-api-26-evidence": {
+      "xmlTests": 119,
+      "testcases": 119,
+      "passed": 111,
+      "skipped": [
+        "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+        "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+        "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+        "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+        "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+        "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+        "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+        "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+      ],
+      "failed": 0,
+      "xml": "artifacts/offline/hosted-2114c61-android-evidence/penny-offline-android-api-26-evidence/apps/android/app/build/outputs/androidTest-results/connected/debug/TEST-test(AVD) - 8.0.0-_app-.xml",
+      "xmlSha256": "67259341ef7395a0c1954406f63f5ca7d5e07faf44a3e9a5044c798029c5a186",
+      "separateProcessMethodsPassed": 4
+    },
+    "penny-offline-android-api-37.0-evidence": {
+      "xmlTests": 119,
+      "testcases": 119,
+      "passed": 111,
+      "skipped": [
+        "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+        "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+        "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+        "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+        "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+        "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+        "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+        "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+      ],
+      "failed": 0,
+      "xml": "artifacts/offline/hosted-2114c61-android-evidence/penny-offline-android-api-37.0-evidence/apps/android/app/build/outputs/androidTest-results/connected/debug/TEST-test(AVD) - 17-_app-.xml",
+      "xmlSha256": "b5f6cd955aa68738d29358c9c37ce8c76f3e12c75a5f83e0df0b324c93ec52a7",
+      "separateProcessMethodsPassed": 4
+    }
+  },
+  "limits": [
+    "Historical repair source only; no hosted acceptance of subsequent retention or performance harness.",
+    "No workflow cancellation; one known unit setup assertion failed. No full native pass.",
+    "Retained Flutter iOS and repository aggregate are separate pending runs."
+  ]
+}

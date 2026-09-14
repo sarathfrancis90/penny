@@ -81,3 +81,6 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 - [Hosted live-state7ba9512](hosted-native-7ba9512.json): both Android runtimes/build/contract passed; iOS recorded one incarnation-test assertion failure before cancellation by the next source push; native aggregate failed. No full native pass.
 
 - [Paired bounded metadata retention](metadata-retention-integration.json): same50-edit shared workload, iOS33/33 focused tests and Android2/2 on each API26/37, with measured ordinary history and protected reader/recovery provenance.
+
+- [Hosted repair2114c61](hosted-native-2114c61.json): iOS137/138 units and9/9 UI, one known incarnation setup assertion; Android111/119 each with eight named skips plus four separate process methods each. No full native pass.
+- [Current iOS Release resource sample](../../../apps/ios/evidence/current-cap-resource.md): one exact-data run, current harness, measured10k save/export latency and heartbeat gaps; physical and complete-capacity gates remain open.

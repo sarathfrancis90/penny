@@ -33,12 +33,22 @@ import XCTest
                 last = now; ticks += 1
             }
         }
+        defer { heartbeat.cancel() }
         await Task.yield()
         let start = ContinuousClock.now
         let result = try await operation(), elapsed = start.duration(to: .now).components
         heartbeat.cancel()
         await heartbeat.value
         return (result, Double(elapsed.seconds) * 1000 + Double(elapsed.attoseconds) / 1e15, ticks, maximumGap)
+    }
+    private func encoded(_ snapshot: VaultSnapshot) throws -> Data {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        return try encoder.encode(snapshot)
+    }
+    private func assertExact(_ actual: VaultSnapshot, _ expected: VaultSnapshot) throws {
+        // Complete Snapshot equality includes all eight arrays, all fields and IDs.
+        XCTAssertEqual(try encoded(actual), try encoded(expected))
+        XCTAssertEqual(try actual.attachments.map { try $0.bytes() }, try expected.attachments.map { try $0.bytes() })
     }
     func testNativeStorageOperationTimings() async throws {
         var results: [[String: Any]] = []
@@ -55,17 +65,29 @@ import XCTest
             let key = SymmetricKey(size: .bits256), vault = VaultStore(directory: dir, key: key)
             let (_, create, _, _) = try await responsive { try await vault.replaceAsync(snapshot) }
             let (opened, cold) = timed { VaultStore(directory: dir, key: key) }; XCTAssertTrue(opened.isReady)
-            var edit = opened.snapshot.expenses[0]; edit.merchant = "Edited benchmark"
+            XCTAssertTrue(opened.liveBody.attachments.isEmpty)
+            var edit = opened.liveBody.expenses[0]; edit.merchant = "Edited benchmark"
             let (_, save, saveTicks, saveGap) = try await responsive { try await opened.saveAsync(edit) }
-            let (_, report) = timed { FinanceEngine.report(opened.snapshot, month: "2026-09") }
+            var expected = snapshot; expected.expenses[0] = edit
+            var expectedBody = expected; expectedBody.attachments = []
+            XCTAssertEqual(try encoded(opened.liveBody), try encoded(expectedBody))
+            let (_, report) = timed { FinanceEngine.report(opened.liveBody, month: "2026-09") }
             let recoveryKey = BackupArchive.newRecoveryKey()
-            let (staged, export, exportTicks, exportGap) = try await responsive { try await ArchiveWorker.shared.prepare(opened.snapshot, key: recoveryKey) }
+            // Deliberate legacy compatibility operation; hydration is included in
+            // this timing. It does not measure the current streamed v4 Files writer.
+            let (staged, export, exportTicks, exportGap) = try await responsive { try await ArchiveWorker.shared.prepare(opened.compatibilitySnapshot(), key: recoveryKey) }
             let archive = staged.bytes
             let (decoded, decode, restoreTicks, restoreGap) = try await responsive { try await ArchiveWorker.shared.decode(archive, key: recoveryKey) }
+            XCTAssertNotEqual(decoded.snapshotId, expected.snapshotId)
+            XCTAssertTrue(CivilDate.validTimestamp(decoded.createdAt))
+            expected.snapshotId = decoded.snapshotId; expected.createdAt = decoded.createdAt
+            try assertExact(decoded, expected)
             let (_, commit, commitTicks, commitGap) = try await responsive { try await opened.restoreAsync(decoded) }
             await ArchiveWorker.shared.cancel(staged)
             XCTAssertGreaterThan(exportTicks, 1); XCTAssertGreaterThan(restoreTicks, 1)
-            XCTAssertEqual(opened.snapshot.expenses.count, count); XCTAssertEqual(opened.snapshot.attachments.count, snapshot.attachments.count)
+            try assertExact(opened.compatibilitySnapshot(), expected)
+            let reopened = VaultStore(directory: dir, key: key); XCTAssertTrue(reopened.isReady)
+            try assertExact(reopened.compatibilitySnapshot(), expected)
             results.append(["case": count == 100 ? "receipt-byte-and-pixel-bound" : "expenses-\(count)", "expenses": count,
                 "receipts": snapshot.attachments.count, "receiptBytes": snapshot.attachments.reduce(0) { $0 + $1.byteCount }, "archiveBytes": archive.count,
                 "createMs": create, "coldOpenMs": cold, "saveMs": save, "reportMs": report, "protectedExportMs": export, "restoreMs": decode + commit, "restoreDecodeMs": decode, "restoreCommitMs": commit, "saveMainActorHeartbeatTicks": saveTicks, "saveMaximumHeartbeatGapMs": saveGap,
@@ -73,7 +95,7 @@ import XCTest
                 "exportMainActorHeartbeatTicks": exportTicks, "exportMaximumHeartbeatGapMs": exportGap,
                 "restoreMainActorHeartbeatTicks": restoreTicks, "restoreMaximumHeartbeatGapMs": restoreGap])
         }
-        let output: [String: Any] = ["runtime": "Native iOS simulator XCTest; Release optimized; serial archive/write preparation; guarded MainActor disk replacement; 2ms UI heartbeat", "device": UIDevice.current.name, "systemVersion": UIDevice.current.systemVersion, "results": results]
+        let output: [String: Any] = ["runtime": "Native iOS simulator XCTest; Release optimized; serial worker preparation/publication; 2ms MainActor heartbeat; export measures legacy compatibility hydration/archive, not v4 Files writer", "oracle": "Exact edited snapshot/all eight arrays and receipt bytes after decode, restore and fresh store reopen; six finance arrays are empty in these preserved workloads", "device": UIDevice.current.name, "systemVersion": UIDevice.current.systemVersion, "results": results]
         let artifact = XCTAttachment(data: try JSONSerialization.data(withJSONObject: output, options: [.prettyPrinted, .sortedKeys]), uniformTypeIdentifier: "public.json")
         artifact.name = "native-performance.json"; artifact.lifetime = .keepAlways; add(artifact)
     }

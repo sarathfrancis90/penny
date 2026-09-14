@@ -1,0 +1,120 @@
+{
+  "scope": "Single serial current-runtime Release simulator resource sample; test harness only changed",
+  "runtime": {
+    "device": "iPhone16e / F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "os": "iOS Simulator26.4.1",
+    "xcode": "26.6",
+    "sdk": "26.5",
+    "optimization": "Release -O -whole-module-optimization, ENABLE_TESTABILITY=YES",
+    "architecture": "arm64",
+    "bundleId": "ca.penny.offline.resources",
+    "stateAfter": "F70 shutdown; normal730A demo untouched"
+  },
+  "test": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "runs": 1,
+    "result": "apps/ios/.build/current-cap-resource/Tests01.xcresult",
+    "rawEvidence": "artifacts/offline/current-cap-resource-ios/validation-01",
+    "initialBuildFailure": "build01 omitted ENABLE_TESTABILITY required for existing @testable import; corrected command only in build02, retained both logs"
+  },
+  "measurements": {
+    "device": "Penny A11y System Sizes",
+    "oracle": "Exact edited snapshot/all eight arrays and receipt bytes after decode, restore and fresh store reopen; six finance arrays are empty in these preserved workloads",
+    "results": [
+      {
+        "archiveBytes": 455049,
+        "case": "expenses-1000",
+        "coldOpenMs": 22.8685,
+        "commitMainActorHeartbeatTicks": 64,
+        "commitMaximumHeartbeatGapMs": 3.095834,
+        "createMs": 140.155042,
+        "expenses": 1000,
+        "exportMainActorHeartbeatTicks": 12,
+        "exportMaximumHeartbeatGapMs": 26.830959,
+        "protectedExportMs": 58.946083,
+        "receiptBytes": 0,
+        "receipts": 0,
+        "reportMs": 0.291375,
+        "restoreCommitMs": 193.97225,
+        "restoreDecodeMs": 18.045416,
+        "restoreMainActorHeartbeatTicks": 6,
+        "restoreMaximumHeartbeatGapMs": 3.057916,
+        "restoreMs": 212.017666,
+        "saveMainActorHeartbeatTicks": 77,
+        "saveMaximumHeartbeatGapMs": 9.320583,
+        "saveMs": 219.753834
+      },
+      {
+        "archiveBytes": 4559049,
+        "case": "expenses-10000",
+        "coldOpenMs": 208.31625,
+        "commitMainActorHeartbeatTicks": 614,
+        "commitMaximumHeartbeatGapMs": 3.24275,
+        "createMs": 1309.667459,
+        "expenses": 10000,
+        "exportMainActorHeartbeatTicks": 98,
+        "exportMaximumHeartbeatGapMs": 266.19125,
+        "protectedExportMs": 552.368792,
+        "receiptBytes": 0,
+        "receipts": 0,
+        "reportMs": 2.99975,
+        "restoreCommitMs": 1853.3015,
+        "restoreDecodeMs": 187.076417,
+        "restoreMainActorHeartbeatTicks": 64,
+        "restoreMaximumHeartbeatGapMs": 3.09875,
+        "restoreMs": 2040.377917,
+        "saveMainActorHeartbeatTicks": 708,
+        "saveMaximumHeartbeatGapMs": 80.943833,
+        "saveMs": 2143.2270829999998
+      },
+      {
+        "archiveBytes": 14960185,
+        "case": "receipt-byte-and-pixel-bound",
+        "coldOpenMs": 25.080958,
+        "commitMainActorHeartbeatTicks": 106,
+        "commitMaximumHeartbeatGapMs": 3.09175,
+        "createMs": 285.747334,
+        "expenses": 100,
+        "exportMainActorHeartbeatTicks": 51,
+        "exportMaximumHeartbeatGapMs": 71.563458,
+        "protectedExportMs": 221.9585,
+        "receiptBytes": 8388608,
+        "receipts": 4,
+        "reportMs": 0.037333,
+        "restoreCommitMs": 320.255125,
+        "restoreDecodeMs": 81.22825,
+        "restoreMainActorHeartbeatTicks": 27,
+        "restoreMaximumHeartbeatGapMs": 3.080583,
+        "restoreMs": 401.483375,
+        "saveMainActorHeartbeatTicks": 59,
+        "saveMaximumHeartbeatGapMs": 3.071541,
+        "saveMs": 177.3325
+      }
+    ],
+    "runtime": "Native iOS simulator XCTest; Release optimized; serial worker preparation/publication; 2ms MainActor heartbeat; export measures legacy compatibility hydration/archive, not v4 Files writer",
+    "systemVersion": "26.4.1"
+  },
+  "limits": [
+    "One observation per operation/case; no percentile or physical-device inference.",
+    "coldOpenMs field is historical naming: new VaultStore in the same process, with no page-cache eviction.",
+    "Legacy archive export includes explicit compatibilitySnapshot hydration; it is not streamed v4 Files export timing.",
+    "All eight arrays and exact receipt bytes compared after decrypt/install/new-store reopen; finance arrays are empty in these unchanged workloads.",
+    "Cases remain1000/10000 expenses and100 expenses with4x2MiB/16MP JPEG receipts. No100-receipt-count case or combined10000+100 receipt case.",
+    "No memory/energy/thermal/process-cold measurement, no new capacity acceptance claim.",
+    "Heartbeat maximum is a2ms scheduled MainActor task observation, not frame-time instrumentation; 10k save80.94ms/export266.19ms gaps remain observed limitations."
+  ],
+  "sourceSha256": {
+    "apps/ios/PennyOfflinePerformanceTests/NativePerformanceTests.swift": "500052841ed66e1b4f89f3e6c00d36addfa8506d099dfe7ef3d5d4ae8f04d644"
+  },
+  "binarySha256": {
+    "apps/ios/.build/current-cap-resource/DerivedData/Build/Products/Release-iphonesimulator/PennyOffline.app/PennyOffline": "c605f0c97faac0f7253b464158cdc1b823a41f67e47f8a1c602134017f3dfece",
+    "apps/ios/.build/current-cap-resource/DerivedData/Build/Products/Release-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflinePerformanceTests.xctest/PennyOfflinePerformanceTests": "709e5084e5135078cf94ace7f0f0550ef7a7689a6c2950282c757a4cd705428f",
+    "apps/ios/.build/current-cap-resource/DerivedData/Build/Products/Release-iphonesimulator/libPennyV4.a": "4f6eb8fe153d5f7c0781b5f4a34135245722fc73cc97c81f1f2e8961c84db247"
+  },
+  "completeSourceAndBinaryPins": "artifacts/offline/current-cap-resource-ios/validation-01/hashes.json",
+  "provenanceSha256": "cae5d7a3587153170b12aaa8068c8440775d75bb824226fe1a5373e6a6d1ffd7",
+  "verifiedDrift": [],
+  "estimatedTokens": "Approximately4\u20135k including initial Release command correction and evidence; no runtime change or repeat timing"
+}

@@ -97,3 +97,7 @@ physical-device, streamed capacity or release acceptance. Source/APK/binary
 pins, all samples and exact limitations are in the
 [Android report](../../apps/android/evidence/receipt-hydration.md) and
 [iOS report](../../apps/ios/evidence/receipt-reuse-performance.md).
+
+## Current-cap Release sample after bounded retention
+
+The [current-source iOS evidence](../../apps/ios/evidence/current-cap-resource.md) records one Release run of the existing three workloads, with an updated test-only harness and exact snapshot/receipt checks after decode, install and new-store reopen. At10,000 expenses, save took2.14s, legacy compatibility export552ms and restore2.04s. The observed MainActor heartbeat gaps reached81ms for save and266ms for compatibility export. These limitations remain open; the sample does not establish physical p95 acceptance or comparative improvement. Receipt-byte/pixel capacity was exercised separately with100 expenses and four2MiB/16MP JPEG receipts. Receipt-count capacity, combined maximum, memory and physical behavior were not measured.
