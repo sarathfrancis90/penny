@@ -51,7 +51,7 @@ export async function requestJSON(url, init, { fetchImpl = fetch, maximum = limi
     return { value: parseStrictJSON(raw, maximum), bytes: raw.length, sha256: hash(raw) };
   } finally { clearTimeout(timer); controller.abort(); }
 }
-async function identity(token, project, userId, transport) {
+export async function identity(token, project, userId, transport) {
   ensure(typeof token === 'string' && token.length <= limits.tokenBytes && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token), 'invalid_token');
   const [encodedHeader, encodedPayload, signature] = token.split('.');
   for (const part of [encodedHeader, encodedPayload, signature]) ensure(Buffer.from(part, 'base64url').toString('base64url') === part, 'noncanonical_token');
@@ -135,7 +135,7 @@ export async function collectRawEvidence({ project, userId, token, database = '(
     scope: { collections: [...collections], ownerQueriesExhausted: true, fullAccountExport: false, migrationReady: false, storageSnapshotConsistent: false, omitted: ['other owners group records', 'unlisted collections/subcollections', 'device-only or unsynced records', 'receipt bytes'] },
     totals: { documents: documentCount, requests: pages, responseBytes: receivedBytes, unresolvedReceipts: receiptReferences.length }, probe, collections: results, receiptReferences, quarantined };
 }
-function privateFile(file, maximum) {
+export function privateFile(file, maximum) {
   // A FIFO must not block before fstat can reject nonregular inputs.
   const fd = openSync(file, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {

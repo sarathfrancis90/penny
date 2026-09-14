@@ -18,10 +18,14 @@ bootstrap endpoint or change the retained API/Flutter work.
 output, strict resource/identity checks and exact scope. Nine synthetic transport
 and filesystem test groups pass, including partial-query failure, unsafe output
 and FIFO-token rejection. This does not establish production rules/index access
-or complete account migration. No receipt URL is fetched; storage generation
-binding, a raw-evidence conversion adapter, domain reconciliation and a signed
-upgrade remain open. The raw format cannot be supplied directly to the existing
-converter described below.
+or complete account migration. The separate
+[receipt acquisition adapter](../../scripts/offline/LEGACY_RECEIPT_ACQUISITION.md)
+now downloads explicitly mapped current originals with complete byte/checksum
+verification and unchanged before/after metadata. It never fetches source URLs.
+Nine new synthetic test groups pass; no live acquisition or historical storage
+consistency is established. A raw-evidence conversion adapter, domain
+reconciliation and a signed upgrade remain open. The raw format cannot be
+supplied directly to the existing converter described below.
 
 ## Input and completeness
 

@@ -1,0 +1,87 @@
+{
+  "hostedFailure": {
+    "sourceCommit": "8815d04247fff3843fe82954f79622adf11cc263",
+    "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34802852476",
+    "runtime": "API37",
+    "method": "ReceiptFlowTest.unreadableTextRetainsImageForManualEntryViewAndDelete",
+    "symptom": "Amount input node disappeared during performTextInput RequestFocus."
+  },
+  "change": "Test only: wait for OCR completion, scroll and focus fields, resolve focused nodes before input, assert text and actual committed expense/attachment/editor closure before activity recreation. No runtime code changed.",
+  "scope": "Unchanged focused API37 baseline passed; hosted failure is not deterministically reproduced. Full affected URI scan/manual entry/save/recreate/view/remove/delete journey passed locally. Hosted confirmation pending.",
+  "sourceAndEvidence": {
+    "capturedAt": "2026-09-14T03:58:55.641757+00:00",
+    "files": {
+      "apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptFlowTest.kt": "b055c6c3c1e94cc247a4b6a96c4a72c96c8fdcded593994e8aeda736fe91f474",
+      "apps/android/app/src/main/java/ca/penny/offline/FinanceModels.kt": "c2b6f24beee88f7fd77eb418c1e6def5d30708200f857706944d08ecd9d1e08a",
+      "apps/android/app/src/main/java/ca/penny/offline/RecoveryDialog.kt": "09b680c5ef06869092f8fcc879c61bc717008cdf83328f85315e8ce4a01e948f",
+      "apps/android/app/src/main/java/ca/penny/offline/StrictJson.kt": "0b61d55be110cb588d9dd84db682edaa46f8ce183d377b5d6d758e19d97d31a4",
+      "apps/android/app/src/main/java/ca/penny/offline/MainActivity.kt": "c6c07bf7d9cafb5b999a8591a15196da3e547a33aabcc1621a0f86a1e9c69291",
+      "apps/android/app/src/main/java/ca/penny/offline/FinanceScreen.kt": "4af696d8d42fe9af56255d3c507e4c933c72037ebed8ee67905bc08ae2fad56b",
+      "apps/android/app/src/main/java/ca/penny/offline/RecoveryKeyStore.kt": "ee78e48e8d5364a7b32aebcd33137433a902957dd7ce9c156bce86914a6536f8",
+      "apps/android/app/src/main/java/ca/penny/offline/ReceiptImage.kt": "977bd205b8e6f7da26101f3f63029975e12f49c260828348e3a95dbd18cf9b27",
+      "apps/android/app/src/main/java/ca/penny/offline/Attachment.kt": "55b1f095ee2ced7fa73e2ba7e977fd125708b637e4f21115091f497b03d5508b",
+      "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "3ef891de7def1e9bd99387170cec9ab7c6aacf5d71d54c9842577a6e45adf7f2",
+      "apps/android/app/src/main/java/ca/penny/offline/DrivePanel.kt": "937dbfe5238ee16f294ff9db30abd7baf32c33274526cdd596111041ee95a35f",
+      "apps/android/app/src/main/java/ca/penny/offline/CloudCoordinator.kt": "84ec5b406603244b65dc4baeb0a3e2b1ade7ee687322743760d724e93a88588e",
+      "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "a2c9aef6f691f721f008c4f2f5dbba88f72908cc862cfd024c05ff657a0603e1",
+      "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "ef8c987f929b79affed7c09ce0ff2eb1c08daf712fc3e44ed14669fca1d7299b",
+      "apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt": "a8eab51da168c449b0e55c61c5848f44de0ca000a05af70e608144287b9a4e49",
+      "apps/android/app/src/main/java/ca/penny/offline/DriveTransport.kt": "eccdb803f0dcef445693d7d42ef50b9c4d85b7d717b95d5b30a1ea28c43182b8",
+      "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+      "apps/android/app/src/main/java/ca/penny/offline/BackupExporter.kt": "6d7dba3c84094d4c1699b5a503a68764825d8af364f52c388b7fc2f766964a1d",
+      "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "0eb48e53c85e4df3dbf37620131c61d3c310df79ab5ab1fce2fd07fd55108ca0",
+      "apps/android/app/src/main/java/ca/penny/offline/ReceiptParser.kt": "db7c01431cee2d1d28cfba43bf5c681f392e9d584400183991196e7545c9d0e8",
+      "apps/android/app/src/main/java/ca/penny/offline/Backup.kt": "3b679eb3bce15faa7ebe6436c940d56823c4c9cb72d67d5bd6db0405964621c1",
+      "apps/android/app/src/main/java/ca/penny/offline/Expense.kt": "fc6d6f8ef1fd23027ffd2df31842b48098c216e7480b345cf8baab225c162f77",
+      "apps/android/app/src/main/java/ca/penny/offline/AutomaticBackup.kt": "a67c6559bd106287799a03f0f7527596a0521cdf3ea05670b0b22e1dfb4d6c65",
+      "apps/android/app/src/main/java/ca/penny/offline/ReceiptCamera.kt": "6cd1d029ff142acfcdcbaaca504def970e505be4f0ac6ff49d4cc4ed066449b7",
+      "apps/android/app/src/main/java/ca/penny/offline/CloudContract.kt": "ff15348bb1acbc49d31d524d8752b5691df299eb1e321eb88af8f08534a66cce",
+      "apps/android/app/src/main/java/ca/penny/offline/CloudPublication.kt": "eb9b5c6e3f32bcf2a0e551bdcb9e1e9587e5fa843084985cb8bf7f12006f8464",
+      "apps/android/app/src/main/java/ca/penny/offline/LocalIntelligence.kt": "c4c06113c94ebdd0a510d27d557a12218a64f53609b32c865f28e08a61f0406d",
+      "apps/android/app/src/main/java/ca/penny/offline/PennyApp.kt": "ffa5c738d4376069f37a3ab4c8e9c090851ceb283b0ed14a22d7998da0442710",
+      "apps/android/app/src/main/java/ca/penny/offline/PennyTheme.kt": "2d97a0657f93481b6589ad8b96f49e7a04849cd544f66a18d968d33b75e7f288",
+      "apps/android/app/src/main/java/ca/penny/offline/FinanceMath.kt": "52674e1bb36684ea5f3668285c4e67a36c828ec0532e094bfbc21ba214bb9d25",
+      "apps/android/app/src/main/java/ca/penny/offline/Categories.kt": "25b6defb9197cd81b2a41250c763ebf685b027499bd07cee2e3f439c3772f00f",
+      "apps/android/app/src/main/java/ca/penny/offline/CloudSettingsStore.kt": "e2880c34e9cc17533359071aac846ffc1523a37ecd5b4c0cd10a7aed7c04bbd2",
+      "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "3ffb280e23f78408db7c13790791b9aa691bff0815ce57e1b671bd37bdeaf9db",
+      "apps/android/app/build/outputs/apk/debug/app-debug.apk": "3bd25cd1e5f136613abf0b2533409a95d63ee0d3569713cc94e8324a528fde4a",
+      "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "a955ddd6af7ca681cc2dd5a8c47c65bbe3efa7b72c27af1cf3dc7b23059e922e"
+    },
+    "evidence": {
+      "artifacts/offline/receipt-flow-focus/emulator-5560.log": "1f017592424cb350dae3123c40840ab9bc8482f588442d50d9c59867a43942c1",
+      "artifacts/offline/receipt-flow-focus/emulator-5562.log": "e15fa7a3e96a94e70f08f1cac8a4bb4b49f6e4315e6e7997962e292e5c532e8c",
+      "artifacts/offline/receipt-flow-focus/commands.json": "670152a9ff1035dad6c12dbd99cec0dd2872bf3018d32c25cff451258b4ddc78",
+      "artifacts/offline/receipt-flow-focus/baseline-api37.log": "b0cb02878717aff88be32da469dc372ec530da43a7f3a2304ae7fd6fc18844be",
+      "artifacts/offline/receipt-flow-focus/api26-boot.log": "2be53f686cc0281e8b5620134d0ca9d380c4b7a3cd94cf7a935c874ec77786fe",
+      "artifacts/offline/receipt-flow-focus/build.log": "c85d570fe08900fa4b4cf034134b4fd09b16ce525dbe273f6b69c549b78f75ab"
+    },
+    "notes": [
+      "Unchanged focused API37 run passed; hosted stale-node failure was not deterministically reproduced locally.",
+      "Fix changes ReceiptFlowTest only: settled OCR, explicit visible focus, reacquire for input; committed save and attachment/editor-close gate before recreation.",
+      "Full URI scan/manual entry/save/recreate/view/remove receipt/delete expense journey. Activity recreation is not process-death proof. No normal demo data clear or edits."
+    ],
+    "operationalLogCorrection": {
+      "path": "artifacts/offline/receipt-flow-focus/api26-boot.log",
+      "originalReportedSha256": "9491e876726d860110f46f5a606880cb9a8d9a89af8a9e34038ce9f04f1d8b58",
+      "finalSha256": "2be53f686cc0281e8b5620134d0ca9d380c4b7a3cd94cf7a935c874ec77786fe",
+      "scope": "Emulator operational boot/shutdown log changed after initial capture; final closed log hash recorded by root. Test result/source/APK hashes remain unchanged."
+    }
+  },
+  "focusedResults": {
+    "unchangedAPI37": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 5.89
+    },
+    "correctedAPI37": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 6.32
+    },
+    "correctedAPI26": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 5.394
+    }
+  }
+}

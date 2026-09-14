@@ -1,0 +1,238 @@
+{
+  "scope": "Two UI test interaction corrections only; no runtime source changes.",
+  "hostedSource": "8815d04",
+  "hostedResult": "71 unit passed, 7/9 UI passed",
+  "baselinePins": {
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "575bb30d27f1e5bf5fd5e375629fd37bb0f34135275ae363363790bade46a3d9",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+    "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "09a00a3c146b0b4410b3726174fb587c0d59315d29b09fb69812450d7a8e458c",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+    "apps/ios/PennyOfflineUITests/CaptureFlowTests.swift": "22d9d70ff15bf0e4b41129677aa0a2835e7e2b41a077d149058c0015dbff9631",
+    "apps/ios/PennyOfflineUITests/CloudFlowTests.swift": "d234b0993764c76b85c79dab0bceb9dc3e1c9871937703dd1e22050d9737f8dc",
+    "apps/ios/.build/hosted-ui-readiness/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "bde0ca72525581f18da760344c0f7a5b830635af0b5912926881851690e7025a",
+    "apps/ios/.build/hosted-ui-readiness/DerivedData/Build/Products/Debug-iphonesimulator/PennyOfflineUITests-Runner.app/PlugIns/PennyOfflineUITests.xctest/PennyOfflineUITests": "eb8705e348fd7ab864c24b7e220c3d296227705c94fadceb20e673157470a02f"
+  },
+  "correctedTestSourceSha256": {
+    "apps/ios/PennyOfflineUITests/CaptureFlowTests.swift": "9c94b002eb80036e2807079d43dc87f1cb3a848e09719eeffedc71ac72e3249e",
+    "apps/ios/PennyOfflineUITests/CloudFlowTests.swift": "ac21e98bfba7f7d16c3203a424a19fb02c6a45edb31142a5a6cde77a432d70b5"
+  },
+  "correctedBinarySha256": {
+    "apps/ios/.build/hosted-ui-readiness/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "bde0ca72525581f18da760344c0f7a5b830635af0b5912926881851690e7025a",
+    "apps/ios/.build/hosted-ui-readiness/DerivedData/Build/Products/Debug-iphonesimulator/PennyOfflineUITests-Runner.app/PlugIns/PennyOfflineUITests.xctest/PennyOfflineUITests": "5b5fca069c2d1c8bc51035a3bae3bf6c9f7d577e794ee7d691c4a8053302e95d"
+  },
+  "localResults": {
+    "Baseline": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 2,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789358531.5,
+      "passedTests": 2,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789358427.712,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOffline",
+      "topInsights": [],
+      "totalTestCount": 2
+    },
+    "Corrected": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 2,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789358715.068,
+      "passedTests": 2,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789358627.681,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - PennyOffline",
+      "topInsights": [],
+      "totalTestCount": 2
+    }
+  },
+  "commands": {
+    "Baseline": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOffline",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/hosted-ui-readiness/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "test",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/hosted-ui-readiness/Baseline.xcresult",
+        "-only-testing:PennyOfflineUITests/CaptureFlowTests/testFullRecoveryKeyReentryAndExportCancellation",
+        "-only-testing:PennyOfflineUITests/CloudFlowTests/testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ],
+    "Corrected": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOffline",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/hosted-ui-readiness/DerivedData",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES",
+        "test",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/hosted-ui-readiness/Corrected.xcresult",
+        "-only-testing:PennyOfflineUITests/CaptureFlowTests/testFullRecoveryKeyReentryAndExportCancellation",
+        "-only-testing:PennyOfflineUITests/CloudFlowTests/testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ]
+  },
+  "hostedEvidenceSha256": {
+    "apps/ios/.build/hosted-ui-readiness/hosted-cloud/747AF239-2037-4561-B804-7BE80886D4A4.txt": "26037bb1225f866f64aba8a0d605a0c3574f419a67f7bdfcc6d9c1d761d752d2",
+    "apps/ios/.build/hosted-ui-readiness/hosted-cloud/C149D264-FA68-46A9-B097-05399CF84620.txt": "26037bb1225f866f64aba8a0d605a0c3574f419a67f7bdfcc6d9c1d761d752d2",
+    "apps/ios/.build/hosted-ui-readiness/hosted-cloud/EC8ED310-C3CE-4B72-86A9-1F0932CB4F51.txt": "26037bb1225f866f64aba8a0d605a0c3574f419a67f7bdfcc6d9c1d761d752d2",
+    "apps/ios/.build/hosted-ui-readiness/hosted-cloud/4CDE16DE-6B07-4D13-874F-EA2BCA48809F.txt": "26037bb1225f866f64aba8a0d605a0c3574f419a67f7bdfcc6d9c1d761d752d2",
+    "apps/ios/.build/hosted-ui-readiness/hosted-cloud/965669FD-7E76-4101-8887-9E1727AE0546.txt": "276e6744794e405400feb8da02f9da0eaf06750c30cff2c308890c3c7f8399dd",
+    "apps/ios/.build/hosted-ui-readiness/hosted-cloud/539C1CD7-87E5-4F9C-A07D-6243563ADF20.txt": "26037bb1225f866f64aba8a0d605a0c3574f419a67f7bdfcc6d9c1d761d752d2",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/052582DE-79D6-481C-886D-6FEAAB8FD866.txt": "abe355581b6aa37f49b00aeec6844ba948973928665a6fc669a85062dfb9a00e",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/7197C5CC-4D5A-4C58-9CA6-3C338B653B4B.txt": "ef2f4eabd3ec9d191a9a6e688f814a4e0b120145e492dba3a13066f3345b4662",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/01DBA98B-E04B-4DFB-9B24-34B55C18D2CE.txt": "abe355581b6aa37f49b00aeec6844ba948973928665a6fc669a85062dfb9a00e",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/AF9FED97-6354-420C-AB40-7F7A1B7C38A6.txt": "abe355581b6aa37f49b00aeec6844ba948973928665a6fc669a85062dfb9a00e",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/0A24B258-380E-47C4-B181-FE6D9FF42EFD.txt": "abe355581b6aa37f49b00aeec6844ba948973928665a6fc669a85062dfb9a00e",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/1E54CA2E-9C45-4820-8ED1-D4F83EB3AD02.txt": "e84d5b78081593a7c7c300c29cc63b6ca92a06ddeee5a26b40fdabf9887e860c",
+    "apps/ios/.build/hosted-ui-readiness/hosted-capture/3F51F806-F84F-4B31-B2B7-92E31C07ACFD.txt": "abe355581b6aa37f49b00aeec6844ba948973928665a6fc669a85062dfb9a00e"
+  },
+  "logSha256": {
+    "apps/ios/.build/hosted-ui-readiness/Baseline.log": "fb286ddbca5f89eb6f25fe7617e043f001254f4da2be197ed50fb851336da960",
+    "apps/ios/.build/hosted-ui-readiness/Corrected.log": "f43daae207d902850f333112391fdf94ee4aaa2411dd6ef45c044d8c3fadaa38"
+  },
+  "limitations": [
+    "Unchanged source passed both journeys locally; hosted gesture delivery failure is not reproduced.",
+    "Hosted UIKit switch center tap landed at340.5,544.67 inside enabled UISwitch but no consent appeared; deeper native cause unproven.",
+    "The switch fix changes one real gesture, not app state; no retry or optional consent.",
+    "Remote Files readiness alone has a30second bounded wait based on late hosted picker appearance.",
+    "Corrected hosted run remains required; no full UI-suite claim from local2/2."
+  ]
+}

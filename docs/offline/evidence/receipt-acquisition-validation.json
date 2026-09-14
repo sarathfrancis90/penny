@@ -1,0 +1,37 @@
+{
+  "scope": "Synthetic transport and filesystem validation. No live identity, account export or receipt acquired. Current-object evidence only; no historical snapshot or migration readiness claim.",
+  "files": {
+    "scripts/offline/acquire-legacy-receipts.mjs": "17db63a7da4145567681c073711ffac67cedf4814aa6ce0148c985eb3f1a69e4",
+    "scripts/offline/acquire-legacy-receipts.test.mjs": "8684e8b9384cba9dd58ac33f9fb062e8cc7a3c23b52b1b3b7ea3cdeae90f3dd0",
+    "scripts/offline/LEGACY_RECEIPT_ACQUISITION.md": "4f40f50e23cffa8264a642db8c9f3db98e6f436a43786cbf74ae21304e46487a",
+    "scripts/offline/export-legacy-raw.mjs": "55dab6f60c1f61b1ec29ca71a9b458dade407b27ff0cd387b36d56b0bdf3c346"
+  },
+  "validation": {
+    "command": "node --test scripts/offline/acquire-legacy-receipts.test.mjs scripts/offline/export-legacy-raw.test.mjs",
+    "testGroups": 18,
+    "passed": 18,
+    "failed": 0,
+    "newAcquisitionGroups": 9,
+    "retainedRawExporterGroups": 9,
+    "rootLogSha256": "6107dab9b70415908afb97013a2cfe9853dd60bffe47aacde9aeae8ef6c66939",
+    "authorESLint": "passed",
+    "authorSemgrepFindings": 0,
+    "independentReview": "No actionable blockers found; root reran18 groups; independent Android agent reviewed source/helpers/docs without rerunning tests.",
+    "combinedOffline": {
+      "nodePassed": 106,
+      "pythonPassed": 27,
+      "staticBoundaries": "passed with configured Python venv",
+      "commandExit": "Initial npm run offline:check exited1 because default Python lacked defusedxml after all106 Node and27 Python groups passed. Root reran only boundaries with artifacts/offline/sast-venv/bin/python; passed.",
+      "testLogSha256": "b1a1b3bd300a8730906e14e92a20ef69b32594ce1789619dc652f327fcebf1b0",
+      "boundaryLogSha256": "95ff1db11c632b6c83125acc103904186595fd4d8a73c0c423386c5fad229817"
+    }
+  },
+  "unchangedProductLimits": true,
+  "boundaries": [
+    "Private plaintext evidence, not encrypted native backup",
+    "Explicit source/object mapping bound by input hashes",
+    "Selected metadata before/after, complete EOF, exact size and MD5; original SHA256 and bytes retained",
+    "Current-object acquisition, not server-pinned generation or cross-service snapshot",
+    "No native image admission, conversion, reconciliation or signed upgrade proof"
+  ]
+}

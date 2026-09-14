@@ -51,9 +51,19 @@ import XCTest
             let controls = row.descendants(matching: .switch).allElementsBoundByIndex.filter { $0.isHittable && $0.frame.width <= 100 && $0.frame.height <= 60 }
             // SwiftUI may expose the compact UISwitch as a child of a labelled
             // switch row. Require a single control; never tap near obscuring tabs.
-            if controls.count == 1 { controls[0].tap() }
-            else if controls.isEmpty { row.tap() }
+            let control: XCUIElement
+            if controls.count == 1 { control = controls[0] }
+            else if controls.isEmpty, row.frame.width <= 100, row.frame.height <= 60 { control = row }
             else { XCTFail("Ambiguous automatic-backup switch controls"); throw NSError(domain: "CloudFlowTests", code: 2) }
+            guard let value = row.value as? String, value == "0" || value == "1" else {
+                XCTFail("Automatic backup switch has no binary state"); throw NSError(domain: "CloudFlowTests", code: 3)
+            }
+            // A hosted native center tap left the enabled switch unchanged.
+            // Move its thumb once in the requested direction; consent/state
+            // assertions below remain mandatory, with no gesture retry.
+            let start = control.coordinate(withNormalizedOffset: CGVector(dx: value == "0" ? 0.25 : 0.75, dy: 0.5))
+            let end = control.coordinate(withNormalizedOffset: CGVector(dx: value == "0" ? 0.75 : 0.25, dy: 0.5))
+            start.press(forDuration: 0.1, thenDragTo: end)
         }
         openCloud(); let enable = app.buttons["enableCloudBackup"]
         if !enable.isHittable { app.swipeUp() }; enable.tap()

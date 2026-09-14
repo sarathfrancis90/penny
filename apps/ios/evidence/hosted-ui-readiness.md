@@ -1,0 +1,9 @@
+# Hosted UI interaction correction
+
+Two test files changed; production app source remained byte-identical through the local baseline and corrected runs. Both full journeys passed before changes (2/2) and after changes (2/2) on owned F70 iPhone 16e simulator, iOS 26.4.1. F70 returned to shutdown; normal demo data and frozen performance evidence were untouched.
+
+The hosted 8815d04 recovery/export journey failed only the initial Cancel existence assertion. The later hierarchy contains the remote Files navigation bar and its Cancel button; the subsequent actual tap, cancellation message and relaunch succeeded. The test now waits up to 30 seconds specifically for `FullDocumentManagerViewControllerNavigationBar`, then requires that navigation bar's hittable Cancel control and returns immediately on failure. This is Files startup synchronization, not an export-success bypass.
+
+The hosted automatic-consent journey reached Enabled and an off, fully visible native switch. Its recorded center tap at (340.5, 544.67) was within the switch frame (309, 530.7, 63, 28), yet no consent appeared and state remained 0. Thus offscreen targeting, disabled cloud and a missing control do not explain this failure. The deeper UIKit delivery cause is unproven; the unchanged journey passes locally. The test now identifies exactly one compact native switch and performs one thumb drag in the state-appropriate direction. No tap/gesture retry was added. Consent must still appear; Cancel must leave automatic backup off; enable, relaunch persistence, disable and second relaunch must all pass.
+
+Exact source/app/test hashes, commands, hosted hierarchy hashes and local summaries are in `hosted-ui-readiness.json`. Raw evidence is `apps/ios/.build/hosted-ui-readiness/{Baseline,Corrected}.xcresult` plus the two exported hosted attachment folders. Local corrected 2/2 is not a hosted/full-suite result; the next hosted run remains the confirmation gate.

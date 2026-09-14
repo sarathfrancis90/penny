@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1292
+- Total source-visible files: 1300
 
 | Path | Area |
 |---|---|
@@ -310,6 +310,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/README.md` | native-ios |
 | `apps/ios/evidence/durable-storage.json` | native-ios |
 | `apps/ios/evidence/durable-storage.md` | native-ios |
+| `apps/ios/evidence/hosted-ui-readiness.json` | native-ios |
+| `apps/ios/evidence/hosted-ui-readiness.md` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.json` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.json` | native-ios |
@@ -422,6 +424,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-api26-summary.json` | docs |
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
+| `docs/offline/evidence/android-receipt-input-readiness.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
 | `docs/offline/evidence/current-native-demo.json` | docs |
@@ -430,6 +433,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
+| `docs/offline/evidence/hosted-native-8815d04.json` | docs |
 | `docs/offline/evidence/hosted-native-e3d6dc5.json` | docs |
 | `docs/offline/evidence/hosted-required-e3d6dc5.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
@@ -457,6 +461,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/local-receipt-independent.json` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
 | `docs/offline/evidence/raw-export-validation.json` | docs |
+| `docs/offline/evidence/receipt-acquisition-validation.json` | docs |
 | `docs/superpowers/plans/2026-04-17-observability-foundation.md` | docs |
 | `docs/testing/DEFAULT_GROUP_VERIFICATION.md` | docs |
 | `docs/testing/GROUPS_TESTING_GUIDE.md` | docs |
@@ -1015,6 +1020,9 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/grant-admin.ts` | script |
 | `scripts/mobile/check-api-only.ts` | script |
 | `scripts/offline/LEGACY_RAW_EXPORT.md` | script |
+| `scripts/offline/LEGACY_RECEIPT_ACQUISITION.md` | script |
+| `scripts/offline/acquire-legacy-receipts.mjs` | script |
+| `scripts/offline/acquire-legacy-receipts.test.mjs` | script |
 | `scripts/offline/benchmark-contract.mjs` | script |
 | `scripts/offline/check-android-device.sh` | script |
 | `scripts/offline/check-android-generation.sh` | script |

@@ -1,6 +1,6 @@
 # Penny Offline execution status
 
-Updated 2026-09-13. [PLAN.md](PLAN.md) defines the product and phased release gates. Detailed earlier validation and corrections remain in [REVIEW.md](REVIEW.md), the native READMEs and [evidence/](evidence/README.md).
+Updated 2026-09-14. [PLAN.md](PLAN.md) defines the product and phased release gates. Detailed earlier validation and corrections remain in [REVIEW.md](REVIEW.md), the native READMEs and [evidence/](evidence/README.md).
 
 ## Release disposition
 
@@ -27,9 +27,24 @@ Current product limits remain **10,000 expenses, 100 receipts, 8 MiB aggregate r
 The durable storage milestone is pushed as `8815d04247fff3843fe82954f79622adf11cc263`.
 [Local integration gates](evidence/durable-integration-8815d04.json) passed: 88 Node
 tests, 27 Python groups, static boundaries, 104 review documentation tests,
-changed-source SAST and all 290 enabled pre-push Flutter tests. Hosted native,
-retained Flutter and aggregate checks are running for this revision. Later
-performance work and raw legacy export validation are separate checkpoints.
+changed-source SAST and all 290 enabled pre-push Flutter tests. The
+[hosted native run](evidence/hosted-native-8815d04.json) failed three UI methods:
+iOS passed 71 unit tests and seven of nine UI tests; Android API37 passed 46 of
+55 discovered tests, with one failure and eight explicit opt-in/process skips.
+API26 passed 47 of 55 with the same eight skips, then passed both separate CRUD
+and generation recovery phases. Recovery phases did not run on the failed iOS
+or API37 jobs. Native and required aggregates failed; retained Flutter iOS was
+still running at this snapshot. Contract and Android build jobs passed.
+
+Narrow test interaction corrections now pass their complete affected local
+journeys: [Android receipt entry](evidence/android-receipt-input-readiness.json)
+on API26/37, one method each, and
+[iOS Files cancellation and consent](../../apps/ios/evidence/hosted-ui-readiness.md),
+two methods. Unchanged focused baselines also passed locally, so these results
+do not establish a deterministic reproduction or hosted cure. The fixes wait
+for actual control readiness, strengthen saved-state assertions and retain
+mandatory consent checks. Production source is unchanged by these test fixes.
+Later performance work and raw legacy acquisition are separate checkpoints.
 
 At source commit `e3d6dc53e224357553795083bae45b222548298e`, all hosted native jobs passed in [run 34797361200](https://github.com/sarathfrancis90/penny/actions/runs/34797361200):
 
@@ -52,8 +67,13 @@ improved 3.76%, while the control was flat. iOS passes eight durable tests and
 six Release benchmark tests, with no meaningful timing gain established.
 [PERFORMANCE.md](PERFORMANCE.md) links exact source pins and workload limits.
 The fixed-time raw source exporter separately passes nine transport/filesystem
-test groups; the combined offline gate now passes 97 Node tests. Receipt
-acquisition and native conversion of that raw format remain open.
+test groups. The new [receipt acquisition adapter](../../scripts/offline/LEGACY_RECEIPT_ACQUISITION.md)
+preserves bounded current originals using explicit source bindings, unchanged
+before/after metadata and complete checksummed bytes. Its nine new groups plus
+the nine raw exporter groups pass locally and independent review found no
+actionable blocker. Real-account acquisition, historical storage consistency
+and native conversion of the raw format remain open; no migration-ready claim
+is made. [Validation scope](evidence/receipt-acquisition-validation.json).
 
 The detached encrypted receipt foundation now passes the shared public golden
 and 35 negative cases, plus native ownership/cleanup/inventory/capacity tests:
@@ -120,6 +140,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw export and bounded performance validation it reported **43% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage, recovery, raw acquisition and focused hosted-failure validation the 2026-09-14 reading reported **41% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **10,401,224 aggregate tokens and 25,791 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

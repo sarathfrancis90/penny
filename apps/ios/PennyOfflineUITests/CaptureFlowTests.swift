@@ -39,8 +39,17 @@ import XCTest
         app.buttons["confirmRecoveryKey"].tap()
         let save = app.buttons["saveEncryptedBackup"]
         XCTAssertTrue(save.waitForExistence(timeout: 5)); XCTAssertTrue(save.isEnabled); save.tap()
-        let cancel = app.buttons["Cancel"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 10)); cancel.tap()
+        // Files runs in a remote service; wait for its own navigation surface,
+        // not an arbitrary Cancel elsewhere in the host application's hierarchy.
+        let filesNavigation = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
+        guard filesNavigation.waitForExistence(timeout: 30) else {
+            XCTFail("Files folder picker did not become ready"); return
+        }
+        let cancel = filesNavigation.buttons["Cancel"]
+        guard cancel.waitForExistence(timeout: 5), cancel.isHittable else {
+            XCTFail("Files folder picker has no hittable Cancel control"); return
+        }
+        cancel.tap()
         XCTAssertTrue(app.staticTexts["Export cancelled. Your local vault is unchanged."].waitForExistence(timeout: 5))
         app.terminate(); app.launchArguments = ["--uitesting"]; app.launch(); app.buttons["Vault"].tap()
         XCTAssertTrue(app.buttons["saveEncryptedBackup"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["saveEncryptedBackup"].isEnabled)

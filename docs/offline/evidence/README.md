@@ -27,5 +27,8 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Durable recovery runner checkpoint](durable-process-runners.json): separate writer/reader processes on iOS and Android API26/37, with exact source and log hashes. This precedes the subsequent Drive cancellation correction. Full generation and cancellation coverage remains in each native app report.
 
-- [Durable integration at8815d04](durable-integration-8815d04.json): local gates and enabled pre-push hooks; hosted checks separately pending.
+- [Durable integration at8815d04](durable-integration-8815d04.json): local gates and enabled pre-push hooks. The subsequent [hosted report](hosted-native-8815d04.json) records three UI failures and a failed aggregate, with separate passing unit/API26 scopes.
 - [Raw source exporter validation](raw-export-validation.json): nine synthetic transport/filesystem groups, including FIFO rejection, and97 combined offline Node tests; no real-account acquisition or migration completion.
+- [Receipt acquisition validation](receipt-acquisition-validation.json): 18 combined groups and independent review; bounded current originals only, no historical snapshot or native migration readiness.
+- [Android receipt input readiness](android-receipt-input-readiness.json): full affected journey passed locally on both API26/37 after test-only input and saved-state checks; hosted confirmation pending.
+- [iOS export and consent readiness](../../../apps/ios/evidence/hosted-ui-readiness.md): two full affected journeys passed locally with guarded remote Files readiness and a single native switch gesture; hosted confirmation pending.
