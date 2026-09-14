@@ -268,9 +268,9 @@ final class DurableVaultStorage {
         let shape = try StrictJSON.object(plain, keys: ["version","storeId","generationId","metadata","body","receipts"])
         guard let metadata = shape["metadata"] as? [String: Any], Set(metadata.keys) == ["writerId","revision","restoreEpoch"] else { throw ExpenseError.invalidSnapshot }
         try record.metadata.validate()
-        let snapshot = try StrictJSON.snapshot(record.body)
-        let (receiptBytes, snapshotBytes) = try Self.receiptCapacity(snapshot, receipts: record.receipts)
-        return (record, snapshot, receiptBytes, snapshotBytes)
+        let validated = try StrictJSON.validatedSnapshot(record.body)
+        let (receiptBytes, snapshotBytes) = try Self.receiptCapacity(.validated(validated), receipts: record.receipts)
+        return (record, validated.snapshot, receiptBytes, snapshotBytes)
     }
     private func readVerified(_ ref: DurableReference, storeId: String, key: SymmetricKey,
                               hydration: SnapshotHydration? = nil,
@@ -311,7 +311,18 @@ final class DurableVaultStorage {
         let pointer = try pointer(wire, key: key)
         return try live(pointer.current, storeId: pointer.storeId, key: key)
     }
+    private enum CapacityBody {
+        case fresh(VaultSnapshot), validated(StrictJSON.ValidatedSnapshot)
+    }
     private static func receiptCapacity(_ snapshot: VaultSnapshot, receipts: [LocalReceiptDescriptor]) throws -> (Int, Int) {
+        try receiptCapacity(.fresh(snapshot), receipts: receipts)
+    }
+    private static func receiptCapacity(_ body: CapacityBody, receipts: [LocalReceiptDescriptor]) throws -> (Int, Int) {
+        let snapshot: VaultSnapshot
+        switch body {
+        case .fresh(let value): snapshot = value
+        case .validated(let value): snapshot = value.snapshot
+        }
         let receiptBytes = receipts.reduce(0, { $0 + $1.byteCount })
         let owners = Set(snapshot.expenses.map(\.id))
         guard snapshot.attachments.isEmpty, receipts.count <= ReceiptAttachment.maximumCount,
@@ -321,7 +332,11 @@ final class DurableVaultStorage {
         // The validated body already includes attachments:[]. Insert each compact
         // receipt JSON shape and its exact unescaped base64 length, plus commas.
         let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
-        var snapshotBytes = try encoder.encode(snapshot).count
+        var snapshotBytes: Int
+        switch body {
+        case .fresh(let value): snapshotBytes = try encoder.encode(value).count
+        case .validated(let value): snapshotBytes = value.exportByteCount
+        }
         for (index, descriptor) in receipts.enumerated() {
             snapshotBytes += try encoder.encode(ReceiptWire(descriptor)).count + 4 * ((descriptor.byteCount + 2) / 3) + (index == 0 ? 0 : 1)
         }

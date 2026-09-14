@@ -12,7 +12,19 @@ enum StrictJSON {
               Set(object.keys) == keys else { throw ExpenseError.invalidSnapshot }
         return object
     }
+    /// Immutable result of this exact strict parse, model validation and encoding.
+    /// The initializer is confined to this file; callers cannot supply a count.
+    struct ValidatedSnapshot {
+        let snapshot: VaultSnapshot
+        let exportByteCount: Int
+        fileprivate init(snapshot: VaultSnapshot, exportByteCount: Int) {
+            self.snapshot = snapshot; self.exportByteCount = exportByteCount
+        }
+    }
     static func snapshot(_ data: Data) throws -> VaultSnapshot {
+        try validatedSnapshot(data).snapshot
+    }
+    static func validatedSnapshot(_ data: Data) throws -> ValidatedSnapshot {
         guard data.count <= 15 * 1_024 * 1_024 else { throw ExpenseError.invalidSnapshot }
         var scanner = Scanner(bytes: Array(data))
         try scanner.value(depth: 0); scanner.whitespace()
@@ -21,8 +33,9 @@ enum StrictJSON {
         let decoded = try JSONDecoder().decode(VaultSnapshot.self, from: data)
         try decoded.validate()
         let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
-        try BackupArchive.validateExportCapacity(encoder.encode(decoded).count)
-        return decoded
+        let byteCount = try encoder.encode(decoded).count
+        try BackupArchive.validateExportCapacity(byteCount)
+        return ValidatedSnapshot(snapshot: decoded, exportByteCount: byteCount)
     }
     static func boundedRead(_ url: URL, maximum: Int) throws -> Data {
         let handle = try FileHandle(forReadingFrom: url)

@@ -147,6 +147,20 @@ final class VaultTests: XCTestCase {
         XCTAssertThrowsError(try StrictJSON.object(Data(#"{"a":1} garbage"#.utf8), keys: ["a"]))
         XCTAssertNoThrow(try StrictJSON.snapshot(snapshot))
     }
+    func testStrictValidatedSnapshotRetainsExactCountAndImmutableBody() throws {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.withoutEscapingSlashes]
+        var escaped = try StrictJSON.snapshot(sharedFile("snapshot-v3.json"))
+        escaped.expenses[0].merchant = "Café/東京 \"quote\" \\ path"
+        escaped.expenses[0].note = "Line\nTab\t/slash/🎯"
+        for original in [VaultSnapshot(), escaped] {
+            let result = try StrictJSON.validatedSnapshot(encoder.encode(original))
+            XCTAssertEqual(result.exportByteCount, try encoder.encode(result.snapshot).count)
+            var copy = result.snapshot
+            copy.expenses.removeAll()
+            XCTAssertEqual(result.snapshot.expenses, original.expenses)
+            XCTAssertEqual(result.exportByteCount, try encoder.encode(original).count)
+        }
+    }
     @MainActor func testVerifiedRestoreRecoversUnreadableVault() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

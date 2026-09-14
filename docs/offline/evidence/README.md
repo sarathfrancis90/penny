@@ -84,3 +84,7 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Hosted repair2114c61](hosted-native-2114c61.json): iOS137/138 units and9/9 UI, one known incarnation setup assertion; Android111/119 each with eight named skips plus four separate process methods each. No full native pass.
 - [Current iOS Release resource sample](../../../apps/ios/evidence/current-cap-resource.md): one exact-data run, current harness, measured10k save/export latency and heartbeat gaps; physical and complete-capacity gates remain open.
+
+- [Validated capacity-count reuse](capacity-count-reuse-integration.json): immutable same-read body/count provenance removes duplicate encoding;32 focused tests and one three-case Release run pass, with unchanged validation/reopen boundaries and explicit remaining latency limits.
+
+- [Android59304d7 readiness correction](../../../apps/android/evidence/ui-readiness-59304d7.json): two source-confirmed test readiness fixes pass2/2 on each API26/37 against unchanged production APK; null accessibility state is never treated as proof of picker absence.

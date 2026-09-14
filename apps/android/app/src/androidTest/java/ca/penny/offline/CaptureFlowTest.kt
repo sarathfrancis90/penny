@@ -115,8 +115,11 @@ class CaptureFlowTest {
         if(android.os.Build.VERSION.SDK_INT>=28) instrumentation.uiAutomation.grantRuntimePermission(instrumentation.targetContext.packageName,android.Manifest.permission.CAMERA)
         compose.waitUntil(15_000) { compose.onAllNodesWithText("Add expense",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("Add expense",useUnmergedTree=true).performClick()
+        compose.waitUntil(15_000) { compose.onAllNodesWithTag("expense-editor").fetchSemanticsNodes().isNotEmpty() }
+        compose.waitForIdle() // Finish the sheet's opening layout before lazy-list scrolling.
         compose.onNodeWithTag("expense-editor").performScrollToNode(hasText("Photograph receipt"))
-        compose.onNodeWithText("Photograph receipt",useUnmergedTree=true).performClick()
+        compose.waitUntil(15_000) { compose.onAllNodes(hasText("Photograph receipt") and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNode(hasText("Photograph receipt") and isEnabled()).assertIsDisplayed().performClick()
         if(android.os.Build.VERSION.SDK_INT<28) {
             compose.onNodeWithText("Allow camera",useUnmergedTree=true).performClick()
             fun allow(node:AccessibilityNodeInfo?):Boolean {

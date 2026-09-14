@@ -1,0 +1,131 @@
+{
+  "scope": "Reuse exact validated body encoding byte count within one authenticated exportMetadata read; no cache or omitted validation/reopen",
+  "provenance": "StrictJSON.ValidatedSnapshot binds immutable decoded body to existing encoder count; fileprivate initializer. Private CapacityBody has fresh or validated branches; no separate caller-supplied integer. Other call sites encode at the original point.",
+  "sourceSha256": {
+    "apps/ios/PennyOffline/StrictJSON.swift": "196d79177cc28157c86ee69b27cdbd08f0aa758d9269a43fa5e7337e89de2beb",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "252d9c4ba74621818daa18f12f43bd50b6e4ec3622361a470cf982ed39a3fa32",
+    "apps/ios/PennyOfflineTests/VaultTests.swift": "e395472110e0505c6951beb4ac015affcf1c2c9a2fce0f25053925787f8e0f18"
+  },
+  "validation": {
+    "focused": {
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "result": "apps/ios/.build/capacity-count-reuse/Focused01.xcresult",
+      "groups": [
+        "DurableStorageTests12",
+        "LocalReceiptBlobTests9",
+        "MetadataRetentionTests5",
+        "VaultTests5 strict/exact-token/capacity/receipt",
+        "LiveStateTests1 full-capacity usability"
+      ]
+    },
+    "resource": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "runs": 1,
+      "result": "apps/ios/.build/capacity-count-reuse/Resource01.xcresult",
+      "scope": "Original three cases, exact edited Snapshot/all-eight-array/raw-byte oracle; no diagnostic hooks"
+    }
+  },
+  "measurements": {
+    "device": "Penny A11y System Sizes",
+    "oracle": "Exact edited snapshot/all eight arrays and receipt bytes after decode, restore and fresh store reopen; six finance arrays are empty in these preserved workloads",
+    "results": [
+      {
+        "archiveBytes": 455049,
+        "case": "expenses-1000",
+        "coldOpenMs": 17.914833,
+        "commitMainActorHeartbeatTicks": 54,
+        "commitMaximumHeartbeatGapMs": 3.066666,
+        "createMs": 119.315125,
+        "expenses": 1000,
+        "exportMainActorHeartbeatTicks": 12,
+        "exportMaximumHeartbeatGapMs": 22.877125,
+        "protectedExportMs": 52.593083,
+        "receiptBytes": 0,
+        "receipts": 0,
+        "reportMs": 0.448834,
+        "restoreCommitMs": 161.51675,
+        "restoreDecodeMs": 17.681042,
+        "restoreMainActorHeartbeatTicks": 7,
+        "restoreMaximumHeartbeatGapMs": 3.05275,
+        "restoreMs": 179.197792,
+        "saveMainActorHeartbeatTicks": 52,
+        "saveMaximumHeartbeatGapMs": 8.238917,
+        "saveMs": 163.744209
+      },
+      {
+        "archiveBytes": 4559049,
+        "case": "expenses-10000",
+        "coldOpenMs": 167.818709,
+        "commitMainActorHeartbeatTicks": 509,
+        "commitMaximumHeartbeatGapMs": 3.079292,
+        "createMs": 1026.132583,
+        "expenses": 10000,
+        "exportMainActorHeartbeatTicks": 87,
+        "exportMaximumHeartbeatGapMs": 224.207542,
+        "protectedExportMs": 480.62925,
+        "receiptBytes": 0,
+        "receipts": 0,
+        "reportMs": 2.651083,
+        "restoreCommitMs": 1543.5703330000001,
+        "restoreDecodeMs": 166.069083,
+        "restoreMainActorHeartbeatTicks": 55,
+        "restoreMaximumHeartbeatGapMs": 3.060375,
+        "restoreMs": 1709.6394160000002,
+        "saveMainActorHeartbeatTicks": 485,
+        "saveMaximumHeartbeatGapMs": 77.407166,
+        "saveMs": 1547.5954590000001
+      },
+      {
+        "archiveBytes": 14960185,
+        "case": "receipt-byte-and-pixel-bound",
+        "coldOpenMs": 23.445583,
+        "commitMainActorHeartbeatTicks": 102,
+        "commitMaximumHeartbeatGapMs": 3.080209,
+        "createMs": 258.079209,
+        "expenses": 100,
+        "exportMainActorHeartbeatTicks": 54,
+        "exportMaximumHeartbeatGapMs": 69.630959,
+        "protectedExportMs": 225.771417,
+        "receiptBytes": 8388608,
+        "receipts": 4,
+        "reportMs": 0.038333,
+        "restoreCommitMs": 308.79125,
+        "restoreDecodeMs": 80.662416,
+        "restoreMainActorHeartbeatTicks": 27,
+        "restoreMaximumHeartbeatGapMs": 3.058583,
+        "restoreMs": 389.453666,
+        "saveMainActorHeartbeatTicks": 62,
+        "saveMaximumHeartbeatGapMs": 3.06825,
+        "saveMs": 181.217541
+      }
+    ],
+    "runtime": "Native iOS simulator XCTest; Release optimized; serial worker preparation/publication; 2ms MainActor heartbeat; export measures legacy compatibility hydration/archive, not v4 Files writer",
+    "systemVersion": "26.4.1"
+  },
+  "runtime": "Owned F70 iPhone16e, iOS Simulator26.4.1, Xcode26.6/SDK26.5, arm64; Debug focused; Release -O/WMO ENABLE_TESTABILITY=YES resource; ca.penny.offline.countreuse",
+  "evidence": "artifacts/offline/capacity-count-reuse-ios/validation-01",
+  "sourceAndBinaryPins": {
+    "Debug": {
+      "path": "artifacts/offline/capacity-count-reuse-ios/validation-01/Debug/hashes.json",
+      "sha256": "973d188d591cc72560200cb3523199c2ec851a247e765d40f2cc5c4c489622ec"
+    },
+    "Release": {
+      "path": "artifacts/offline/capacity-count-reuse-ios/validation-01/Release/hashes.json",
+      "sha256": "dde85a2669926ece99d2aa3893742842e312d55f9cee7c65584d2d1712234abd"
+    }
+  },
+  "sourceAndBinaryDrift": [],
+  "review": "Independent scope review clear on exact final source; no subsequent implementation edits",
+  "limits": [
+    "No missing crypto/shape/model/native-image/receipt/capacity checks; all existing repeated authenticated reopens retained.",
+    "Earlier instrumented diagnostic and earlier uninstrumented sample preserved separately. Single observations do not establish improvement, p95 or physical qualification.",
+    "No MainActor restructuring: 10k save77.41ms and legacy export224.21ms heartbeat maxima remain observed limitations.",
+    "Existing1000/10000/no-receipt and100expense+4x2MiB/16MP cases only; finance arrays empty; no100receipt/combinedmaximum/memory/energy qualification.",
+    "F70 shut down; normaldemo and prior evidence unchanged."
+  ],
+  "estimatedTokens": "Approximately5\u20136k including implementation, focused/Release proof and evidence; no broader changes or timing repeats"
+}

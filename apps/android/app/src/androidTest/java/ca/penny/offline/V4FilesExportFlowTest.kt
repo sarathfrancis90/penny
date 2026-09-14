@@ -30,7 +30,13 @@ class V4FilesExportFlowTest {
         } finally {release.countDown();blocker.join(15000)}
         compose.waitUntil(15000) {!model.state.value.busy}
         compose.onNodeWithText("Create encrypted backup").assertIsDisplayed();compose.onNodeWithTag("recovery-reentry").assertDoesNotExist()
-        assertEquals(ins.targetContext.packageName,ins.uiAutomation.rootInActiveWindow.packageName.toString())
+        compose.waitForIdle()
+        var activePackage:String?=null
+        compose.waitUntil(10_000) {
+            activePackage=ins.uiAutomation.rootInActiveWindow?.packageName?.toString()
+            activePackage!=null // A missing accessibility window proves neither app nor picker.
+        }
+        assertEquals("The settled foreground window must be Penny, never a late picker",ins.targetContext.packageName,activePackage)
     }
     @Test fun recoveryConfirmationCreateDocumentAndVerifiedExportUseActualPicker() {
         val ins=InstrumentationRegistry.getInstrumentation();val context=ins.targetContext
