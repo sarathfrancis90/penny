@@ -11,11 +11,11 @@ Updated 2026-09-13. [PLAN.md](PLAN.md) defines the product and phased release ga
 | Area | Implemented and verified scope | Remaining acceptance |
 | --- | --- | --- |
 | Native foundation | iOS 26 SwiftUI and Android API26+ Compose/Material3; local CRUD, search, summaries, empty/error states and native navigation | Physical accessibility, hardware security and final signed installs |
-| Encrypted ledger | iOS device-only Keychain and authenticated atomic vault; Android Keystore-wrapped random row key and SQLite transactions; tamper/key-loss/rollback and fresh-process tests | Incremental large-dataset storage, physical interrupted-write/full-disk matrix |
+| Encrypted ledger | Device-bound encrypted generations, detached receipt files, guarded publication and authenticated predecessor recovery on both platforms; tamper/key-loss/rollback and separate-process tests | Incremental large-dataset storage, physical interrupted-write/full-disk matrix |
 | Finance | Budgets, received income, savings contributions, recurring review, deterministic reports and CSV; matching shared financial cases | Full legacy reconciliation, refunds/non-CAD/withdrawal product decisions and localization |
 | Receipt capture | Native camera/picker, bounded image preparation and bundled OCR; 22-case shared parser and 24-case PNG integrity corpus | Physical camera/HEIC quality and supported-device performance |
 | On-device AI | Optional Foundation Models / Gemini Nano proposals with explicit unavailable/download states and strict grounded review; manual entry remains available | Actual supported physical-device inference, model quality/resources and SDK/AICore traffic observation |
-| Portable recovery | Authenticated v1/v2/v3 backups covering every native domain; actual opposite-platform files decoded, receipt bytes preserved; confirmed user-held recovery key | Large streamed archives and isolated durable candidate generations |
+| Portable recovery | Authenticated v1/v2/v3 backups covering every native domain; actual opposite-platform files decoded, receipt bytes preserved; confirmed user-held recovery key | Large streamed archives, bounded incremental hydration and physical recovery tests |
 | Private cloud backup | CloudKit / Drive appDataFolder adapters, explicit opt-in, publication/restore guards and default-off scheduling; fake transport, expiry/cancel/account/revision tests | Real-account consent, remote completion, clean-device recovery, background execution and retention |
 | Migration and retirement | Strict local converter/preflight and reconciliation reports; web feature development retired and old README archived | Complete authenticated legacy export/receipt acquisition, signed upgrade and support-window retirement gates |
 | Packaging | Isolated packaging and version/signature/provider preflight, negative tests and unsigned native builds | Actual signing/profile/entitlement configuration, distribution artifacts and store validation |
@@ -30,7 +30,7 @@ At source commit `e3d6dc53e224357553795083bae45b222548298e`, all hosted native j
 - Android API26 and API37/16 KiB: **33/39 on each runtime**, zero failures and six explicit opt-in/process skips. Both separate UI-created expense force-stop/relaunch phases passed under different processes.
 - Shared native contract/reference checks, native library builds, Android compilation/JVM/lint/APK and native aggregate passed.
 
-[The compact machine report](evidence/hosted-native-e3d6dc5.json) is extracted from that run's result bundle, fresh JUnit XML and process logs. Six skips are the two opt-in performance methods, TLS probe, 10k external-process method and two separately executed CRUD process phases. This checkpoint does not include the later, uncommitted detached receipt foundation. Retained Flutter iOS and the overall required gate remain pending at this recorded checkpoint.
+[The compact machine report](evidence/hosted-native-e3d6dc5.json) is extracted from that run's result bundle, fresh JUnit XML and process logs. Six skips are the two opt-in performance methods, TLS probe, 10k external-process method and two separately executed CRUD process phases. This checkpoint does not include the later detached receipt foundation or durable storage integration. Retained Flutter iOS subsequently passed; the required aggregate first timed out at its one-hour wait, then passed an aggregate-only rerun after all prerequisites completed. All 23 listed checks succeeded on that source. [The final required-check report](evidence/hosted-required-e3d6dc5.json) preserves both attempts' distinction. The next workflow revision extends its wait to 115 minutes within the existing 120-minute job policy, with 30-second polling.
 
 The prior `6cdf304` revision passed every listed hosted check and both aggregate gates, including retained Flutter iOS integration and its unsigned release build; [its native report](evidence/hosted-native-6cdf304.json) remains historical evidence. On `3414197`, authenticated source/reference checks and both native library builds passed, but API37 failed a composite save/snackbar wait and iOS failed its initial five-second Photos-grid readiness assertion. The fixes passed focused local tests and the full native `e3d6dc5` run above. See [Android failure and regression](evidence/capture-dismiss-regression.json), [iOS local readiness proof](evidence/ios-photo-picker-readiness.json), and [hosted crypto source/build evidence](evidence/hosted-crypto-3414197.json). The earlier retained Flutter dashboard fixture correction preserves application behavior and passed both affected local scenarios and all 290 pre-push Flutter tests.
 
@@ -51,12 +51,27 @@ not a physical protection test. See [iOS](../../apps/ios/evidence/local-receipt-
 [Android](../../apps/android/evidence/local-receipt-foundation.md) and the
 [independent positive vector](evidence/local-receipt-independent.json).
 
-This foundation alone has no live storage callers or crash recovery. The next
-implementation now integrates both native stores with durable detached receipts,
-inactive preparation, guarded atomic activation and retained predecessors under
-[DURABLE_STORAGE.md](DURABLE_STORAGE.md). Shared all-domain input files and 14
-lifecycle requirements are available; their existence is not passing native
-transaction evidence. Portable v1–v3 formats and capacity remain unchanged.
+Both live stores now use durable detached receipts, inactive preparation,
+guarded atomic activation and retained predecessors under
+[DURABLE_STORAGE.md](DURABLE_STORAGE.md). iOS passes **49/49** focused native tests,
+plus separate writer/reader tests and an unsigned iPhoneOS Release build. Android
+passed **28/28** selected groups on each API26/37 before the later cancellation
+correction; its final focused results and source pins are recorded separately in
+[the Android report](../../apps/android/evidence/durable-generations.md).
+[The iOS report](../../apps/ios/evidence/durable-storage.md) and both machine reports
+map the 14 shared lifecycle requirements to actual tests and explicitly retain
+unproven interruption, physical security and storage-exhaustion cases.
+
+The normal validation scripts now include dedicated writer/reader recovery phases.
+[Root runner validation](evidence/durable-process-runners.json) passed on iOS and
+both Android runtimes, with different process IDs asserted. Pending states were
+created by checkpoint failures; these are not physical power-loss tests. iOS
+validated both successful replacement and recovery from an invalid pending
+receipt. Android used actual host force-stop before authenticating replacement.
+That runner checkpoint precedes the subsequent Drive cancellation correction.
+Portable v1–v3 formats and capacity remain unchanged. Current APIs still hydrate
+receipt bytes in memory; no latency or peak-memory improvement is claimed by
+this storage change.
 
 The [capacity decision](CAPACITY_V4_DECISION.md) selects upstream libsodium secretstream with a separate HKDF-derived key. Its authenticated source archive/tree pin, independent signature verifier, license and out-of-tree Apple/Android builders are implemented in `packages/offline-crypto/`. Actual ARM64 iPhoneOS/simulator builds and Swift link probes passed; all four Android ABI static builds, ELF checks and CMake consumer links passed with 16 KiB alignment. Source/configuration/path/header/target rejection checks passed. Deterministic source/signature tests join the normal offline gate, which passed 74 Node tests and 27 Python test groups plus static boundaries at the frame checkpoint; the logical additions below bring the Node total to 82.
 
@@ -64,7 +79,7 @@ The [byte-exact v4 draft](BACKUP_V4_CONTRACT.md) and layout/HKDF vectors have in
 
 Incremental logical gates now require native schema3/reference/financial and full image validation before completion. Both decode the same ten positive and reject the same 60 negative shared logical streams through actual encryption/frame codecs. Swift passed six simulator test methods after independent review caught and fixed a stale-index sink reuse flaw; Android passed four final methods on each API26/37, with the unchanged frame callback covered by earlier 16-method regressions. The shared oracle adds eight passing Node tests, bringing the normal offline gate to 82 Node tests, 27 Python groups and static boundaries. These are validation-only experiments with mandatory isolated sinks; they do not implement durable encrypted candidates or restore commit. See [Swift](../../packages/offline-crypto/prototypes/apple/LOGICAL.md), [Android](../../packages/offline-crypto/prototypes/android/LOGICAL.md) and [shared corpus](../../packages/offline-crypto/prototypes/reference/logical_README.md).
 
-Profile A targets 50,000 expenses, 5,000 receipts and 512 MiB raw receipt bytes, with independent metadata/wire bounds. These are measurement targets. Next steps are isolated durable candidate integration, incremental storage and detached encrypted receipts at existing limits. Complete profile measurements and file-based provider transfers follow. Multi-GiB profile B remains deferred.
+Profile A targets 50,000 expenses, 5,000 receipts and 512 MiB raw receipt bytes, with independent metadata/wire bounds. These are measurement targets. Durable candidates and detached receipts are now integrated at existing limits. Next steps are incremental storage reads, streamed v4 application integration, complete profile measurements and file-based provider transfers. Multi-GiB profile B remains deferred.
 
 ## Demo, design and physical boundaries
 
@@ -82,6 +97,6 @@ The clean review worktree is `/Users/sarathfrancis/work/git/Personal/penny-offli
 
 ## Token accounting
 
-On the 2026-09-13 continuation, the account usage tool reported **50% of the weekly allowance remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
+On the 2026-09-13 continuation, the account usage tool initially reported 50% of the weekly allowance remaining; after durable storage and recovery-runner validation it reported **46% remaining**, resetting **2026-09-19 at 14:37:59 America/Toronto**. This is account-wide usage, not a token budget for this repository. The user explicitly asked to conserve it while completing the goal. Work now prioritizes storage/recovery, migration, and release gates, with narrow agent ownership, incremental source reads, one appropriate validation pass per stable change, and usage checks at integration milestones. Avoid speculative feature work, repeated unchanged CI polling, and repeated full-history exploration. Use two focused implementation workers and a bounded independent reviewer only when a concrete review target is ready.
 
 The original **120,000-token estimate was exceeded** and is not a consumption limit. At the latest recorded goal checkpoint, the tool reported **10,401,224 aggregate tokens and 25,791 elapsed seconds**. That is measured tool accounting, not a forecast or budget-compliance claim. The active goal has no enforced token ceiling. The logical slice assigned 10k soft checkpoints per worker; estimates were Swift 13–16k plus a 2–2.5k reuse fix, Android 14–16k, and shared oracle 13–15k plus a 2.5–3k independent review. These exceeded the initial estimates. The earlier frame-slice worker allocations were soft checkpoints: Swift 22k plus a 5k guard/interchange follow-up, Kotlin/JNI 24k and shared fixtures 18k plus a 6k independent review allowance. Exact per-worker consumption is unavailable; these are not measured usage totals. Completion depends on verified outcomes; no unfinished release gate is accepted because an allocation is spent.

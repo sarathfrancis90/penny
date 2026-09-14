@@ -1,0 +1,121 @@
+{
+  "scope": "Hosted retained Flutter iOS and required aggregate for the old e3d6dc5 source; excludes later foundation/durable-storage changes",
+  "headSha": "e3d6dc53e224357553795083bae45b222548298e",
+  "runs": [
+    {
+      "attempt": 1,
+      "conclusion": "success",
+      "createdAt": "2026-09-14T01:53:22Z",
+      "headSha": "e3d6dc53e224357553795083bae45b222548298e",
+      "status": "completed",
+      "updatedAt": "2026-09-14T02:58:35Z",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34797361259",
+      "runId": 34797361259
+    },
+    {
+      "attempt": 2,
+      "conclusion": "success",
+      "createdAt": "2026-09-14T01:53:22Z",
+      "headSha": "e3d6dc53e224357553795083bae45b222548298e",
+      "status": "completed",
+      "updatedAt": "2026-09-14T03:03:33Z",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34797361196",
+      "runId": 34797361196
+    }
+  ],
+  "checks": [
+    {
+      "name": "Penny Required Gate",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "native-offline-gate",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "Vercel Preview Comments",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "security-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "mobile-ios-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "native-offline-ios-simulator",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "api-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "dependency-security",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "native-offline-contract",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "firebase-rules-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "docs-contract-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "mobile-shared-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "sast-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "mobile-android-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "native-offline-android-build",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "osv-scan",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "Flutter Analyze + Unit Tests",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "ci-policy-guard",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "native-offline-android-api-26",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "native-offline-android-api-37.0",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "backend-tests",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "Generated Agent Docs",
+      "state": "SUCCESS"
+    },
+    {
+      "name": "Vercel",
+      "state": "SUCCESS"
+    }
+  ],
+  "history": "Required aggregate attempt1 timed out after 3600 seconds while FlutteriOS was still running. FlutteriOS then passed; aggregate-only rerun attempt2 passed with all prerequisites complete. Later workflow change extends bounded wait to6900seconds under120minutejobpolicy."
+}

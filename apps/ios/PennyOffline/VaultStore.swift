@@ -48,16 +48,22 @@ final class VaultStore {
     private var hasDurableIdentity = false
     var errorMessage: String?
     private let file: URL
+    private var isWriting = false
+    private var diskDigest: String?
+    private var storeId = UUID().uuidString.lowercased()
+    private var receiptReferences: [LocalReceiptDescriptor] = []
     private var key: SymmetricKey?
     private let suppliedKey: SymmetricKey?
+    private let deviceKeyReader: (Bool) throws -> SymmetricKey
     // Fault injection exercises transaction boundaries without changing crypto.
-    enum CommitStage { case staged, rollbackSaved, committed }
-    private let commitCheckpoint: ((CommitStage) throws -> Void)?
+    enum CommitStage: Sendable { case staged, rollbackSaved, committed, verified, journalCleared }
+    private let commitCheckpoint: (@Sendable (CommitStage) throws -> Void)?
 
-    init(directory: URL? = nil, key: SymmetricKey? = nil, commitCheckpoint: ((CommitStage) throws -> Void)? = nil) {
+    init(directory: URL? = nil, key: SymmetricKey? = nil, deviceKeyReader: @escaping (Bool) throws -> SymmetricKey = { try DeviceKey.load(create: $0) }, commitCheckpoint: (@Sendable (CommitStage) throws -> Void)? = nil) {
         let support = directory ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         file = support.appendingPathComponent("PennyOffline", isDirectory: true).appendingPathComponent("vault-v1.pennyvault")
         suppliedKey = key
+        self.deviceKeyReader = deviceKeyReader
         self.commitCheckpoint = commitCheckpoint
         load()
     }
@@ -67,16 +73,19 @@ final class VaultStore {
         return expenses.filter { $0.expenseDate.hasPrefix(prefix) }.reduce(0) { $0 + $1.amountMinor }
     }
     func load() {
+        guard !isWriting else { return }
         do {
-            let exists = FileManager.default.fileExists(atPath: file.path)
-            let localKey = try suppliedKey ?? DeviceKey.load(create: !exists)
-            if exists {
-                let clear = try VaultCipher.open(StrictJSON.boundedRead(file, maximum: 16 * 1_024 * 1_024), key: localKey)
-                let decoded = try LocalVaultFrame.decode(clear)
-                snapshot = decoded.snapshot; snapshotBytes = decoded.snapshotBytes
-                if let metadata = decoded.metadata {
-                    writerId = metadata.writerId; revision = metadata.revision; restoreEpoch = metadata.restoreEpoch; hasDurableIdentity = true
-                }
+            let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+            let localKey = try storage.leased {
+                // Capture the encrypted source even when platform key loading
+                // fails, so explicit verified recovery can guard its replacement.
+                diskDigest = try storage.liveBytes().map(DurableVaultStorage.digest)
+                return try suppliedKey ?? deviceKeyReader(storage.liveBytes() == nil && !storage.establishedWithoutLive())
+            }
+            try storage.leased {
+                diskDigest = try storage.liveBytes().map(DurableVaultStorage.digest)
+                if let decoded = try storage.load(key: localKey) { adopt(decoded) }
+                diskDigest = try storage.liveBytes().map(DurableVaultStorage.digest)
             }
             key = localKey
             isReady = true
@@ -118,7 +127,7 @@ final class VaultStore {
     func restore(_ next: VaultSnapshot, expectedRevision: Int? = nil) throws {
         guard expectedRevision == nil || expectedRevision == revision else { throw ExpenseError.invalidSnapshot }
         try next.validate()
-        let recoveryDeviceKey = try suppliedKey ?? DeviceKey.load(create: true)
+        let recoveryDeviceKey = try suppliedKey ?? deviceKeyReader(true)
         try commit(next, key: recoveryDeviceKey, restoring: true)
         key = recoveryDeviceKey
         isReady = true
@@ -141,81 +150,69 @@ final class VaultStore {
         return try AES.GCM.open(AES.GCM.SealedBox(combined: data), using: key, authenticating: Data("PENNY-OFFLINE-CLOUD-LOCAL:1".utf8))
     }
     private func commit(_ next: VaultSnapshot, key: SymmetricKey, restoring: Bool = false) throws {
-        try apply(PreparedVaultWrite.prepare(next, key: key, revision: revision, writerId: writerId, restoreEpoch: restoreEpoch, restoring: restoring))
+        try apply(PreparedVaultWrite.prepare(next, key: key, revision: revision, writerId: writerId, restoreEpoch: restoreEpoch, restoring: restoring, sourceDigest: diskDigest, sourceStoreId: storeId))
     }
     func prepareWrite(_ next: VaultSnapshot, restoring: Bool = false, expectedRevision: Int? = nil) async throws -> PreparedVaultWrite {
-        guard expectedRevision == nil || expectedRevision == revision else { throw CloudFailure.staleRestore }
+        guard !isWriting, expectedRevision == nil || expectedRevision == revision else { throw CloudFailure.staleRestore }
         guard restoring || isReady else { throw ExpenseError.lockedVault }
-        let deviceKey = try restoring ? (suppliedKey ?? DeviceKey.load(create: true)) : key
+        let deviceKey = try restoring ? (suppliedKey ?? deviceKeyReader(true)) : key
         guard let deviceKey else { throw ExpenseError.lockedVault }
-        return try await ArchiveWorker.shared.prepareVault(next, key: deviceKey, revision: revision, writerId: writerId, restoreEpoch: restoreEpoch, restoring: restoring)
+        return try await ArchiveWorker.shared.prepareVault(next, key: deviceKey, revision: revision, writerId: writerId, restoreEpoch: restoreEpoch, restoring: restoring, sourceDigest: diskDigest, sourceStoreId: storeId)
     }
-    func replaceAsync(_ next: VaultSnapshot) async throws { try apply(await prepareWrite(next)) }
+    func replaceAsync(_ next: VaultSnapshot) async throws { try await applyAsync(prepareWrite(next)) }
     func restoreAsync(_ next: VaultSnapshot, expectedRevision: Int? = nil) async throws {
-        try apply(await prepareWrite(next, restoring: true, expectedRevision: expectedRevision))
+        try await applyAsync(prepareWrite(next, restoring: true, expectedRevision: expectedRevision))
+    }
+    private func applyAsync(_ prepared: PreparedVaultWrite) async throws {
+        guard !isWriting, revision == prepared.sourceRevision, writerId == prepared.metadata.writerId,
+              restoreEpoch == prepared.sourceRestoreEpoch, storeId == prepared.sourceStoreId, diskDigest == prepared.sourceDigest else { throw CloudFailure.staleRestore }
+        isWriting = true; defer { isWriting = false }
+        do {
+            let (loaded, digest) = try await ArchiveWorker.shared.commitVault(prepared, directory: file.deletingLastPathComponent(), receipts: receiptReferences, checkpoint: commitCheckpoint)
+            adopt(loaded); diskDigest = digest; key = prepared.key; isReady = true; errorMessage = nil
+        } catch {
+            // Disk recovery decides any uncertain transition before further writes.
+            isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription; throw error
+        }
     }
     /// Only the non-suspending disk replacement runs on MainActor. The expensive
     /// image validation, encoding and encryption were completed on the worker.
     /// Reject any proposal whose base generation changed while it was prepared.
     func apply(_ prepared: PreparedVaultWrite) throws {
         try Task.checkCancellation()
-        guard revision == prepared.sourceRevision, writerId == prepared.metadata.writerId,
+        guard !isWriting, revision == prepared.sourceRevision, writerId == prepared.metadata.writerId,
               restoreEpoch == prepared.sourceRestoreEpoch else { throw CloudFailure.staleRestore }
-        let next = prepared.snapshot, key = prepared.key, framed = prepared.framed, sealed = prepared.sealed, metadata = prepared.metadata
-        var directory = file.deletingLastPathComponent()
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true,
-                                               attributes: [.protectionKey: FileProtectionType.complete])
-        var resources = URLResourceValues()
-        resources.isExcludedFromBackup = true
-        try directory.setResourceValues(resources)
-        let staging = directory.appendingPathComponent("vault-staging.pennyvault")
-        let rollback = directory.appendingPathComponent("vault-rollback.pennyvault")
-        defer { try? FileManager.default.removeItem(at: staging) }
-        try sealed.write(to: staging, options: [.atomic, .completeFileProtection])
-        let handle = try FileHandle(forWritingTo: staging)
-        try handle.synchronize()
-        try handle.close()
-        let verified = try VaultCipher.open(StrictJSON.boundedRead(staging, maximum: 16 * 1_024 * 1_024), key: key)
-        guard verified == framed else { throw ExpenseError.invalidSnapshot }
-        // The source model was fully validated before encoding; authenticated
-        // byte equality proves staging contains that same validated generation.
-        // Untrusted loads/restores still pass the complete strict decoder.
-        try commitCheckpoint?(.staged)
-        let previous = FileManager.default.fileExists(atPath: file.path)
-            ? try StrictJSON.boundedRead(file, maximum: 16 * 1_024 * 1_024) : nil
-        if let previous {
-            try previous.write(to: rollback, options: [.atomic, .completeFileProtection])
-            try synchronize(rollback)
-        }
-        try commitCheckpoint?(.rollbackSaved)
+        guard prepared.sourceStoreId == storeId, prepared.sourceDigest == diskDigest else { throw CloudFailure.staleRestore }
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent())
         do {
-            // Foundation's atomic replacement leaves the old live file intact if
-            // the replacement write fails. The separate rollback survives a crash.
-            try sealed.write(to: file, options: [.atomic, .completeFileProtection])
-            try synchronize(file)
-            try commitCheckpoint?(.committed)
-            let reopened = try VaultCipher.open(StrictJSON.boundedRead(file, maximum: 16 * 1_024 * 1_024), key: key)
-            guard reopened == framed else { throw ExpenseError.invalidSnapshot }
-        } catch {
-            do {
-                if let previous {
-                    try previous.write(to: file, options: [.atomic, .completeFileProtection])
-                    try synchronize(file)
-                } else { try FileManager.default.removeItem(at: file) }
-            } catch {
-                isReady = false
-                errorMessage = ExpenseError.lockedVault.localizedDescription
-                throw error
+            try storage.leased {
+                let loaded = try storage.commit(prepared, sourceDigest: prepared.sourceDigest, storeId: storeId, receipts: receiptReferences, checkpoint: commitCheckpoint)
+                diskDigest = try storage.liveBytes().map(DurableVaultStorage.digest)
+                adopt(loaded)
             }
+            key = prepared.key; isReady = true; errorMessage = nil
+        } catch {
+            // An uncertain rollback never permits writes using cached identity.
+            let current = try? storage.leased { try storage.liveBytes().map(DurableVaultStorage.digest) }
+            if current != diskDigest { isReady = false; errorMessage = ExpenseError.lockedVault.localizedDescription }
             throw error
         }
-        snapshot = next; snapshotBytes = prepared.byteCount
-        self.key = key; isReady = true; errorMessage = nil
-        revision = metadata.revision; restoreEpoch = metadata.restoreEpoch; hasDurableIdentity = true
     }
-    private func synchronize(_ url: URL) throws {
-        let handle = try FileHandle(forWritingTo: url)
-        defer { try? handle.close() }
-        try handle.synchronize()
+    func leaseSnapshot() throws -> DurableSnapshotLease {
+        guard !isWriting, isReady, let key else { throw ExpenseError.lockedVault }
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+        return try storage.leased { try storage.pinSnapshot(key: key) }
+    }
+    @discardableResult func collectReceiptGarbage() throws -> Int {
+        guard !isWriting, isReady, let key else { throw ExpenseError.lockedVault }
+        let storage = try DurableVaultStorage(file.deletingLastPathComponent())
+        return try storage.leased { try storage.collectGarbage(key: key) }
+    }
+    private func adopt(_ loaded: DurableLoaded) {
+        snapshot = loaded.snapshot; snapshotBytes = loaded.snapshotBytes; receiptReferences = loaded.receipts
+        if let local = loaded.metadata {
+            writerId = local.writerId; revision = local.revision; restoreEpoch = local.restoreEpoch; hasDurableIdentity = true
+        }
+        if let local = loaded.storeId { storeId = local }
     }
 }

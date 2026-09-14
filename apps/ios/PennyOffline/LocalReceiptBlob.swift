@@ -21,7 +21,7 @@ enum LocalReceiptProtectionMode {
     }
 }
 
-struct LocalReceiptDescriptor: Equatable, Sendable {
+struct LocalReceiptDescriptor: Equatable, Sendable, Codable {
     let vaultId: String, generationId: String, id: String, expenseId: String
     let mediaType: String, byteCount: Int, sha256: String
     init(vaultId: String, generationId: String, id: String, expenseId: String, mediaType: String, byteCount: Int, sha256: String) throws {
@@ -31,6 +31,15 @@ struct LocalReceiptDescriptor: Equatable, Sendable {
         self.vaultId = vaultId; self.generationId = generationId; self.id = id; self.expenseId = expenseId
         self.mediaType = mediaType; self.byteCount = byteCount; self.sha256 = sha256
     }
+    private enum CodingKeys: String, CodingKey, CaseIterable { case vaultId, generationId, id, expenseId, mediaType, byteCount, sha256 }
+    init(from decoder: Decoder) throws {
+        struct Key: CodingKey { let stringValue: String; var intValue: Int? { nil }; init?(stringValue: String) { self.stringValue = stringValue }; init?(intValue: Int) { return nil } }
+        let shape = try decoder.container(keyedBy: Key.self)
+        guard Set(shape.allKeys.map(\.stringValue)) == Set(CodingKeys.allCases.map(\.rawValue)) else { throw LocalReceiptBlobError.descriptor }
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        try self.init(vaultId: c.decode(String.self, forKey: .vaultId), generationId: c.decode(String.self, forKey: .generationId), id: c.decode(String.self, forKey: .id), expenseId: c.decode(String.self, forKey: .expenseId), mediaType: c.decode(String.self, forKey: .mediaType), byteCount: c.decode(Int.self, forKey: .byteCount), sha256: c.decode(String.self, forKey: .sha256))
+    }
+
 }
 
 enum LocalReceiptBlob {
@@ -105,6 +114,45 @@ final class LocalReceiptGeneration {
     func read(receiptId: String, root: SymmetricKey) throws -> Data {
         guard let owner, let handle = receipts.first(where: { $0.descriptor.id == receiptId }) else { throw LocalReceiptBlobError.closed }
         return try owner.read(handle, root: root)
+    }
+    /// Transfer committed byte lifetime to the repository. Releasing this lease
+    /// closes FD pins; explicit repository GC is the only later deletion owner.
+    func retainCommitted() throws { guard let held = owner else { throw LocalReceiptBlobError.closed }; owner = nil; try held.releaseLease() }
+    static func readCommitted(parent: URL, descriptor: LocalReceiptDescriptor, root: SymmetricKey) throws -> Data {
+        let parentFD = Darwin.open(parent.path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard parentFD >= 0 else { throw LocalReceiptBlobError.file }; var parentClosed = false; defer { if !parentClosed { _ = Darwin.close(parentFD) } }
+        let directory = openat(parentFD, descriptor.generationId, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard directory >= 0 else { throw LocalReceiptBlobError.file }; var directoryClosed = false; defer { if !directoryClosed { _ = Darwin.close(directory) } }
+        var folder = stat(); guard fstat(directory, &folder) == 0, folder.st_uid == geteuid(), folder.st_mode & 0o077 == 0 else { throw LocalReceiptBlobError.file }
+        let name = descriptor.id + ".pennyreceipt"
+        let pin = openat(directory, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        guard pin >= 0 else { throw LocalReceiptBlobError.file }; var pinClosed = false; defer { if !pinClosed { _ = Darwin.close(pin) } }
+        var info = stat(); guard fstat(pin, &info) == 0 else { throw LocalReceiptBlobError.file }
+        let listingFD = openat(directory, ".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        guard listingFD >= 0, let listing = fdopendir(listingFD) else { if listingFD >= 0 { _ = Darwin.close(listingFD) }; throw LocalReceiptBlobError.file }
+        var names = Set<String>(), listingClosed = false; defer { if !listingClosed { _ = closedir(listing) } }
+        errno = 0
+        while let entry = readdir(listing) {
+            let entryName = withUnsafePointer(to: entry.pointee.d_name) { pointer in pointer.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: entry.pointee.d_name)) { String(cString: $0) } }
+            if entryName != "." && entryName != ".." { names.insert(entryName) }
+            errno = 0
+        }
+        guard errno == 0, names == [name] else { throw LocalReceiptBlobError.replaced }
+        let data = try LocalReceiptBlobHandle(descriptor: descriptor, name: name, device: info.st_dev, inode: info.st_ino).read(directoryFD: directory, root: root)
+        var current = stat()
+        guard fstatat(parentFD, descriptor.generationId, &current, AT_SYMLINK_NOFOLLOW) == 0, current.st_dev == folder.st_dev, current.st_ino == folder.st_ino else { throw LocalReceiptBlobError.replaced }
+        rewinddir(listing); names.removeAll(); errno = 0
+        while let entry = readdir(listing) {
+            let entryName = withUnsafePointer(to: entry.pointee.d_name) { pointer in pointer.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: entry.pointee.d_name)) { String(cString: $0) } }
+            if entryName != "." && entryName != ".." { names.insert(entryName) }; errno = 0
+        }
+        guard errno == 0, names == [name] else { throw LocalReceiptBlobError.replaced }
+        listingClosed = true; guard closedir(listing) == 0 else { throw LocalReceiptBlobError.file }
+        pinClosed = true; let pinResult = Darwin.close(pin)
+        directoryClosed = true; let directoryResult = Darwin.close(directory)
+        parentClosed = true; let parentResult = Darwin.close(parentFD)
+        guard pinResult == 0, directoryResult == 0, parentResult == 0 else { throw LocalReceiptBlobError.file }
+        return data
     }
     func close() throws { let owned = owner; owner = nil; try owned?.cleanupOwned() }
     deinit { try? close() }
@@ -267,6 +315,13 @@ final class LocalReceiptBlobGroup {
         if ownDirectory() { if unlinkat(parentFD, directoryName, AT_REMOVEDIR) != 0 { failed = true } }
         else { failed = true }
         handles.removeAll(); ids.removeAll(); owned.removeAll()
+        do { try closeDirectories() } catch { failed = true }
+        if failed { throw LocalReceiptBlobError.file }
+    }
+    fileprivate func releaseLease() throws {
+        var failed = false
+        for (_, _, _, pin) in owned { if Darwin.close(pin) != 0 { failed = true } }
+        owned.removeAll(); handles.removeAll(); ids.removeAll()
         do { try closeDirectories() } catch { failed = true }
         if failed { throw LocalReceiptBlobError.file }
     }

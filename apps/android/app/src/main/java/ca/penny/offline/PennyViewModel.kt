@@ -14,25 +14,27 @@ import kotlinx.coroutines.withContext
 
 data class VaultUiState(val expenses: List<Expense> = emptyList(), val ready: Boolean = false, val busy: Boolean = false,
     val message: String? = null, val fatalError: Boolean = false, val nano: NanoState = NanoState.CHECKING, val finance: FinanceData = FinanceData(),
-    val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<Attachment> = emptyList(), val categorySuggestion: String? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null)
+    val receiptLocale: String = "en-CA", val receiptOptimized: Boolean = false, val receipt: ReceiptDraft? = null, val receiptBytes: ByteArray? = null, val attachments: List<Attachment> = emptyList(), val categorySuggestion: String? = null, val restorePreview: Snapshot? = null, val restoreRevision: Long? = null, val restoreBinding: String? = null)
 
 class PennyViewModel(application: Application, private val ai: ReceiptIntelligence, private val store: VaultStore = VaultStore(application)) : AndroidViewModel(application) {
     constructor(application: Application) : this(application,LocalIntelligence())
     private val mutex = Mutex()
+    private val restoreOperation = java.util.concurrent.atomic.AtomicReference<RestoreOperation?>()
     private val receiptGeneration = java.util.concurrent.atomic.AtomicLong()
     private val mutable = MutableStateFlow(VaultUiState())
     val state = mutable.asStateFlow()
-    private var cloudRestoreGuard: (suspend () -> Unit)?=null
-    val drive = DriveController(application,store,viewModelScope, { snapshot,revision,guard -> cloudRestoreGuard=guard;mutable.value=mutable.value.copy(restorePreview=snapshot,restoreRevision=revision) })
+    private var cloudRestoreGuard: (suspend (RestoreOperation) -> Unit)?=null
+    val drive = DriveController(application,store,viewModelScope, { snapshot,revision,guard -> restoreOperation.getAndSet(RestoreOperation())?.cancel();cloudRestoreGuard=guard;mutable.value=mutable.value.copy(restorePreview=snapshot,restoreRevision=revision) })
     init {
         operation { refresh() }
         viewModelScope.launch { val status = ai.status(); mutable.value = mutable.value.copy(nano = status) }
     }
-    private fun operation(block: suspend () -> Unit) { viewModelScope.launch {
+    private fun operation(failureMessage: String = "Unable to complete this action. Your saved expenses have been kept. Check the file, recovery key or device storage and try again.", block: suspend () -> Unit) { viewModelScope.launch {
         mutex.withLock {
             mutable.value = mutable.value.copy(busy = true, message = null)
             try { withContext(Dispatchers.IO) { block() } }
-            catch (_: Exception) { mutable.value = mutable.value.copy(message = "Unable to complete this action. Your saved expenses have been kept. Check the file, recovery key or device storage and try again.", fatalError = !mutable.value.ready) }
+            catch (_: RestoreCancelled) { mutable.value = mutable.value.copy(message = "Restore cancelled before replacement.") }
+            catch (_: Exception) { mutable.value = mutable.value.copy(message = failureMessage, fatalError = !mutable.value.ready) }
             finally { mutable.value = mutable.value.copy(busy = false) }
         }
     } }
@@ -98,7 +100,10 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
         BackupExporter(getApplication()).export(store.snapshot(),recovery,uri)
         mutable.value=mutable.value.copy(message="Encrypted file exported and read back successfully. This confirms the file only; it does not confirm a cloud upload. Keep your recovery key separately.")
     }
-    fun preview(uri: Uri, recovery: String) = operation {
+    fun preview(uri: Uri, recovery: String) {
+        val restore=RestoreOperation();restoreOperation.getAndSet(restore)?.cancel()
+        operation {
+        restore.check()
         cloudRestoreGuard=null;drive.cancel()
         val data = getApplication<Application>().contentResolver.openInputStream(uri).use {
             checkNotNull(it)
@@ -114,16 +119,30 @@ class PennyViewModel(application: Application, private val ai: ReceiptIntelligen
         }
         val snapshot = Backup.decrypt(data, recovery)
         ReceiptImage.validate(snapshot.attachments)
-        mutable.value = mutable.value.copy(restorePreview = snapshot, restoreRevision = store.revision())
+        restore.check()
+        mutable.value = mutable.value.copy(restorePreview = snapshot, restoreRevision = store.revision(), restoreBinding = store.restoreBinding())
     }
-    fun cancelRestore() { if(cloudRestoreGuard!=null) drive.cancel();cloudRestoreGuard=null;mutable.value = mutable.value.copy(restorePreview = null, restoreRevision = null) }
-    fun restore() = operation {
+    }
+    fun cancelRestore() { if(restoreOperation.get()?.cancel()==false) return; if(cloudRestoreGuard!=null) drive.cancel();cloudRestoreGuard=null;mutable.value = mutable.value.copy(restorePreview = null, restoreRevision = null, restoreBinding = null) }
+    fun restore() {
         val preview = checkNotNull(mutable.value.restorePreview)
-        val cloudCommit=cloudRestoreGuard
-        if(cloudCommit!=null) cloudCommit() else drive.localRestore { store.replace(preview, expectedRevision = checkNotNull(mutable.value.restoreRevision)) }
-        cloudRestoreGuard=null;drive.vaultRestored()
-        refresh("Backup restored on this device")
-        mutable.value = mutable.value.copy(restorePreview = null, restoreRevision = null)
+        val revision=checkNotNull(mutable.value.restoreRevision);val binding=mutable.value.restoreBinding
+        val restore=checkNotNull(restoreOperation.get());val cloudCommit=cloudRestoreGuard
+        if(!restore.start()) return
+        operation(failureMessage = "Restore could not finish. Reopen your vault to verify its saved state, then open the backup again if needed.") {
+            try {
+                restore.check()
+                if(cloudCommit!=null) cloudCommit(restore) else drive.localRestore { store.replace(preview, expectedRevision = revision, expectedBinding = checkNotNull(binding), operation = restore) }
+                cloudRestoreGuard=null;drive.vaultRestored()
+                refresh("Backup restored on this device")
+            } finally {
+                restore.finish()
+                // Each confirmation consumes its preview, including failed attempts.
+                cloudRestoreGuard=null
+                mutable.value = mutable.value.copy(restorePreview = null, restoreRevision = null, restoreBinding = null)
+            }
+        }
     }
-    override fun onCleared() { drive.cancel(); ai.close(); store.close() }
+
+    override fun onCleared() { restoreOperation.get()?.cancel();drive.cancel(); ai.close(); store.close() }
 }

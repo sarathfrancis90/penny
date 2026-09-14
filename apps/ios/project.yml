@@ -46,6 +46,16 @@ targets:
         buildPhase: resources
     dependencies:
       - target: PennyOffline
+  PennyOfflineDurableProcessTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: PennyOfflineDurableProcessTests
+      - path: ../../packages/offline-contract/fixtures
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - target: PennyOffline
   PennyOfflinePerformanceTests:
     type: bundle.unit-test
     platform: iOS
@@ -92,3 +102,12 @@ schemes:
       gatherCoverageData: false
       targets:
         - PennyOfflineAccessibilityTests
+  PennyOfflineDurableProcess:
+    build:
+      targets:
+        PennyOffline: all
+        PennyOfflineDurableProcessTests: [test]
+    test:
+      gatherCoverageData: false
+      targets:
+        - PennyOfflineDurableProcessTests

@@ -1,0 +1,179 @@
+{
+  "capturedAt": "2026-09-14T03:25:46.092117+00:00",
+  "scope": "Root validation of separate-process runners on durable storage after local cancellation fix and before the subsequent Drive cancellation correction",
+  "iOS": {
+    "Write": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "Read": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "writerPID": 14367,
+    "readerPID": 14402,
+    "runtime": "iOS 26.4.1 arm64 simulator",
+    "interruption": "Checkpoint-created pending state, writer process exits, reader in a different process; valid and invalid replacements tested"
+  },
+  "android": [
+    {
+      "api": 26,
+      "proof": {
+        "pid": 5150,
+        "seedPid": 5109,
+        "phase": "authenticated-new-generation"
+      },
+      "phases": [
+        {
+          "phase": "seedPending",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "phase": "reopenPending",
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "interruption": "Checkpoint-created pending state followed by host force-stop; different PID authenticates replacement"
+    },
+    {
+      "api": 37,
+      "proof": {
+        "pid": 7264,
+        "seedPid": 7221,
+        "phase": "authenticated-new-generation"
+      },
+      "phases": [
+        {
+          "phase": "seedPending",
+          "passed": 1,
+          "failed": 0
+        },
+        {
+          "phase": "reopenPending",
+          "passed": 1,
+          "failed": 0
+        }
+      ],
+      "interruption": "Checkpoint-created pending state followed by host force-stop; different PID authenticates replacement"
+    }
+  ],
+  "validatedCheckpointHashCounts": {
+    "apps/android/evidence/durable-generations.json": {
+      "matching": 20,
+      "total": 24,
+      "laterChanges": [
+        "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt",
+        "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt",
+        "apps/android/app/build/outputs/apk/debug/app-debug.apk",
+        "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+      ]
+    },
+    "apps/ios/evidence/durable-storage.json": {
+      "matching": 45,
+      "total": 45,
+      "laterChanges": []
+    },
+    "artifacts/offline/legacy-baseline-hashes.json": {
+      "matching": 18,
+      "total": 18,
+      "laterChanges": []
+    }
+  },
+  "sha256": {
+    "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "d45d9b0d803c14d7e5973d322b16e99ad057cf0ba43c2e1f85343f99402fbf2c",
+    "apps/android/app/build/outputs/apk/debug/app-debug.apk": "04936f089e750b4104e37358752cb9cc44ceea875488caf2f863cdaac35c333e",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt": "491da2f5a527443fa6e6a8d9af3c79b86a72211afebcfbc92f262a16f7d5d9df",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt": "7cf25fdc36d570009611270f0ccc05cc7a6e55a1cfe69c1723885b6bec634c3c",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt": "ec1de41fde2cb4933bfedb0c7dd235efe1f3241fe72309763908d8cf93b2eb65",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt": "f17da802901c6017fcfa992b621ac5bad2a053539def7077335955a10330bd1b",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt": "7aecc2d2f5003fec80da2e45589375ccd064b20aaa70e4eed606d76b41a9be54",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt": "99f49939f884d59c1bf25a8e306de9f9054eb7419e1bd258cc4f24c06e2a6617",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt": "a35e7c46f7fb73f54d329d545fe85678fe72149ded76b3c9a315095498deb873",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt": "b848c9618f7f35215677c1e6e39d75e875634c21170e83d863c1716a2f79849d",
+    "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "b520a6aa836dc5bf9130796573fca0ea8ab6e00e96696ed27dfbd4c44c94b924",
+    "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+    "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "26ced4146836f4fc2ba71c27e4cd5c1c09e1186fae6697377ac755c624d903c2",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "872c34d584552de889557990125eb8aeff9e03e4aef8a7c01e96d2c669b5893f",
+    "apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt": "a8eab51da168c449b0e55c61c5848f44de0ca000a05af70e608144287b9a4e49",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "7756358047a87f94e90c9d157cbfec31c6d2add31daa30309df085dadd87b5f2",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "ef8c987f929b79affed7c09ce0ff2eb1c08daf712fc3e44ed14669fca1d7299b",
+    "apps/ios/.build/evidence.root-generation/generation-Read.json": "7079c5d674773327e7ac82fb86049b162415c9b3c6d49bf377d4c75a985ac88d",
+    "apps/ios/.build/evidence.root-generation/generation-Read.log": "b3da3c89e8874b4a69e8097719b20cf2b97e7259909a51de293aedc79a47ff97",
+    "apps/ios/.build/evidence.root-generation/generation-Write.json": "63dec007ace3ef37a06880eb6f8ae42323a3c68170e69fa56ae888715aa63c68",
+    "apps/ios/.build/evidence.root-generation/generation-Write.log": "b572d162aa98b98805c09d58bed63d8f7fd770eaf286606d6edd8f8aaaec9c64",
+    "apps/ios/.build/evidence.root-generation/generation-build.log": "47408ae5a146998dc9fa479c0fe37e864c8027dcd9ff6a21cc9dd32185c8d102",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "413f8560e34454f8b5369b00760b2533fb34af6be856075180abb5e9d42f9a3e",
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "c9acb4d3f48f2724510b8edd4ac2c8390ee58fea6fa6aed99d049db4aa78e211",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "09a00a3c146b0b4410b3726174fb587c0d59315d29b09fb69812450d7a8e458c",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+    "apps/ios/PennyOfflineDurableProcessTests/DurableProcessTests.swift": "f55e1bf260697cc24089340bbfc59284017ad9a1f84bdcaec4cfafc8fcb557f0",
+    "apps/ios/PennyOfflineTests/ArchiveWorkerTests.swift": "4a2d816b6f285f69688c9272c09a22ab4778c8b426979310edf675b6515b824b",
+    "apps/ios/PennyOfflineTests/AutomaticBackupTests.swift": "69d200162f93e84ca2731d40b99c25c44a3bb9b706e700e7b132c56f0692efb9",
+    "apps/ios/PennyOfflineTests/CaptureTests.swift": "703747bc0c9f9a201e8b4002049af9cafdfb5497fb6f7cb54c684b9c118e53ec",
+    "apps/ios/PennyOfflineTests/CloudTests.swift": "469f0ecfc3d2b72191c42eebd9e23506b48bb35683fcff18f8f7a8486a1102d0",
+    "apps/ios/PennyOfflineTests/DurableStorageTests.swift": "48ffdbc0791f5c1ad8d0b36d9fc23e6deb18498b4f1ac692a6a350163c737ef7",
+    "apps/ios/PennyOfflineTests/FinanceTests.swift": "c8229cb5f5701695c47d6a959f2a4d752500aae1228a66d6f40684a8b75d46c8",
+    "apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift": "b28a6b84d0e206175a318d0e8e1b88fa25a5b47e3aa12732326c0d4dfea8dd47",
+    "apps/ios/PennyOfflineTests/VaultTests.swift": "becf0665de41659718f1278c13c10b6190567a6e5a527743d65b99280a920b61",
+    "apps/ios/project.yml": "0dde29e2af82b3369ca5bbd9408475db8376186196ed2229bc23b524d8cff962",
+    "artifacts/offline/durable-android-build.log": "f625a3c0335bb1165f3b3e220fb25e70e5b6a14af18cb799d6d32f41deca5ec5",
+    "artifacts/offline/durable-cancel-api26.log": "c39e89870a79aa47c85c5b59dc9e484afbfe4ce1baf86934d49e5420857cb07a",
+    "artifacts/offline/durable-cancel-api37.log": "a1d2f93fc426d45b124eee777566f9a1a5d116f3f5ed715b704a5decc2a1ef7b",
+    "artifacts/offline/generation-runner-android/api26-generation-process.json": "e3e3344f31641ea13196845ed4695fad4992f87b6dc9bf50ab732c483ffe4d62",
+    "artifacts/offline/generation-runner-android/api26-generation-reopenPending.log": "dbaacc90d540dc506b8d7a2b1bdb05a44507646e40ef633845d4b95a0c1afd86",
+    "artifacts/offline/generation-runner-android/api26-generation-seedPending.log": "64594f9b90ba1f1f9212708f4e1b346635cf7422ddfee2d66e8900c9aab3ca66",
+    "artifacts/offline/generation-runner-android/api26-runner.log": "c906f5e2b04df13c9df692f7baf5edd5db9469bf644ec629b610faa481dcb12a",
+    "artifacts/offline/generation-runner-android/api37-generation-process.json": "4274ce63818531be845bf74581f76ed0604d9906183a0180730d0c1b88168889",
+    "artifacts/offline/generation-runner-android/api37-generation-reopenPending.log": "cbae1c23ab3d9c12d664dbdeee533e95890f4960f59616c7ee6041543d1b5e71",
+    "artifacts/offline/generation-runner-android/api37-generation-seedPending.log": "bdaa8877fbaf985b9f73ec45b61227084807df5a83d89f54a76cdb9bf8aebef3",
+    "artifacts/offline/generation-runner-android/api37-runner.log": "c906f5e2b04df13c9df692f7baf5edd5db9469bf644ec629b610faa481dcb12a",
+    "packages/offline-contract/fixtures/local-generation-v1/lifecycle.json": "f24ad2c72d0a66b6c76974d579b9634e892a10798a57c3f333bbcc46201cdd7a",
+    "packages/offline-contract/fixtures/local-generation-v1/previous.json": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+    "packages/offline-contract/fixtures/local-generation-v1/replacement.json": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+    "packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+    "scripts/offline/check-android-device.sh": "f76f2ba9bb8075ab805929585d1fe43ac861939c35d3e43337ccd295c3d75385",
+    "scripts/offline/check-android-generation.sh": "12ee38dff68adbcde1f2b436614b501ca10cd5aef8f1da7867b167311e2ceee7",
+    "scripts/offline/check-ios-generation.sh": "f13232d9828f6fda6d825dc986c7acfcce9748dc7f46e15631e21980234347c2",
+    "scripts/offline/check-ios.sh": "720e3227618031664e298d18f438e918130c246bf54b880acfc726a838928e2b"
+  },
+  "limits": [
+    "Not physical power loss or interruption during filesystem writes",
+    "Does not rerun the complete UI/device suites or establish later Drive cancellation behavior",
+    "Existing capacity and portable v1-v3 contracts remain unchanged"
+  ]
+}

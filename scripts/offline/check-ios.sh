@@ -30,3 +30,5 @@ xcodebuild test \
   -resultBundlePath "$PENNY_IOS_EVIDENCE/Tests.xcresult" \
   CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES \
   2>&1 | tee "$PENNY_IOS_EVIDENCE/xcodebuild.log"
+PENNY_IOS_DEVICE="$PENNY_IOS_DEVICE" PENNY_IOS_EVIDENCE="$PENNY_IOS_EVIDENCE" \
+  bash scripts/offline/check-ios-generation.sh

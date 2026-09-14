@@ -1,0 +1,217 @@
+{
+  "scope": "Final local+cloud cancellation integration; previous local-only and28-group/fresh-process runs retained as historical exact-source evidence.",
+  "capturedAt": "2026-09-14T03:27:10.130135+00:00",
+  "sha256": {
+    "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "ef8c987f929b79affed7c09ce0ff2eb1c08daf712fc3e44ed14669fca1d7299b",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "7756358047a87f94e90c9d157cbfec31c6d2add31daa30309df085dadd87b5f2",
+    "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+    "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "26ced4146836f4fc2ba71c27e4cd5c1c09e1186fae6697377ac755c624d903c2",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "0eb48e53c85e4df3dbf37620131c61d3c310df79ab5ab1fce2fd07fd55108ca0",
+    "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "3ffb280e23f78408db7c13790791b9aa691bff0815ce57e1b671bd37bdeaf9db",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt": "a35e7c46f7fb73f54d329d545fe85678fe72149ded76b3c9a315095498deb873",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt": "b848c9618f7f35215677c1e6e39d75e875634c21170e83d863c1716a2f79849d",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt": "ec1de41fde2cb4933bfedb0c7dd235efe1f3241fe72309763908d8cf93b2eb65",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt": "491da2f5a527443fa6e6a8d9af3c79b86a72211afebcfbc92f262a16f7d5d9df",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt": "7aecc2d2f5003fec80da2e45589375ccd064b20aaa70e4eed606d76b41a9be54",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt": "7cf25fdc36d570009611270f0ccc05cc7a6e55a1cfe69c1723885b6bec634c3c",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt": "99f49939f884d59c1bf25a8e306de9f9054eb7419e1bd258cc4f24c06e2a6617",
+    "apps/android/app/build/outputs/apk/debug/app-debug.apk": "271e06dd39194d1437151f51a41b62c275ca33a464e0b969534b9e536e01142b",
+    "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "c1bc4fcb7758430012afa67d4b6676b6ecfa59aeb76f7139502478f84753af66",
+    "packages/offline-contract/fixtures/local-generation-v1/previous.json": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+    "packages/offline-contract/fixtures/local-generation-v1/replacement.json": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+    "packages/offline-contract/fixtures/local-generation-v1/lifecycle.json": "f24ad2c72d0a66b6c76974d579b9634e892a10798a57c3f333bbcc46201cdd7a",
+    "packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+    "apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt": "a8eab51da168c449b0e55c61c5848f44de0ca000a05af70e608144287b9a4e49",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt": "f17da802901c6017fcfa992b621ac5bad2a053539def7077335955a10330bd1b",
+    "artifacts/offline/durable-android-build.log": "f625a3c0335bb1165f3b3e220fb25e70e5b6a14af18cb799d6d32f41deca5ec5",
+    "artifacts/offline/durable-cancel-api26.log": "c39e89870a79aa47c85c5b59dc9e484afbfe4ce1baf86934d49e5420857cb07a",
+    "artifacts/offline/durable-cancel-api37.log": "a1d2f93fc426d45b124eee777566f9a1a5d116f3f5ed715b704a5decc2a1ef7b",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/CloudDeviceTest.kt": "15da4aaa1a7dede10434c957d45106c91faa158a345c68fbb9e633dbbd6fc162",
+    "artifacts/offline/durable-cloud-cancel-build.log": "0e0530068dc7425d264946775bae37ef99ffa01bcd28364522e9b5c5c971c704",
+    "artifacts/offline/durable-cloud-cancel-api26.log": "7351b73ae1c8cb70a2b1e8474f1a692b6aecf4e78ba82f0986418d87cd3a87c1",
+    "artifacts/offline/durable-cloud-cancel-api37.log": "87287fc8ac04262f1249eebc4cc3b255dd74cdfb42b44984a94c3e4aca0b72b7"
+  },
+  "runs": [
+    {
+      "api": 26,
+      "functionalGroups": 3,
+      "failed": 0,
+      "seconds": 2.334,
+      "log": "artifacts/offline/durable-cloud-cancel-api26.log"
+    },
+    {
+      "api": 37,
+      "functionalGroups": 3,
+      "failed": 0,
+      "seconds": 2.322,
+      "log": "artifacts/offline/durable-cloud-cancel-api37.log"
+    }
+  ],
+  "commands": {
+    "build": "ANDROID_HOME=/Users/sarathfrancis/Library/Android/sdk apps/android/gradlew -p apps/android -PpennyTestSandbox=true :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug",
+    "test": "adb -s SERIAL shell am instrument -w -r -e class CLASS_SELECTION ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner",
+    "processSeed": "adb -s SERIAL shell am instrument -w -r -e pennyGenerationProcess true -e class ca.penny.offline.VaultGenerationProcessTest#seedPending ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner",
+    "betweenProcesses": "adb -s SERIAL shell am force-stop ca.penny.offline.dev.test",
+    "processReopen": "adb -s SERIAL shell am instrument -w -r -e pennyGenerationProcess true -e class ca.penny.offline.VaultGenerationProcessTest#reopenPending ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner"
+  },
+  "classSelection": "ca.penny.offline.RestoreCancellationDeviceTest,ca.penny.offline.CloudDeviceTest#controllerPublicationRetryKeyRotationAndGuardedRestore",
+  "scenarioEvidence": {
+    "prepare_only": "preparationFailureAndStaleRevisionPreserveOldGeneration: injected FILES_READY/ROWS_READY failures, current instance old snapshot and generation count retained",
+    "cancel_before_publish": "RestoreCancellationDeviceTest.realLocalPreviewCancelStopsBeforePublicationAndLateCancelDoesNotLie: actual ViewModel file preview and replace, pause FILES_READY, Cancel on main thread, old durable/UI ledger retained; also cancel after pointer commit leaves truthful success; same method also injects REOPENED failure after publication, confirms preview is consumed/Cancel dismisses and neutral error is shown, then authenticates the pending replacement. Actual fake-Drive authorized discover/select/preview commit callback now receives the same RestoreOperation, preserving a local edit when cancelled at FILES_READY and completing source data when cancellation loses after POINTER_COMMITTED; existing account/key/revision/session/expiry guards also pass.",
+    "stale_revision": "same test plus ExpenseMutationDeviceTest: second connection edit rejects old revision",
+    "stale_incarnation": "same test: previous state digest rejected with current revision after replacement",
+    "candidate_tamper": "RestoreCancellationDeviceTest.candidateTamperBeforePointerKeepsPreviousLedger: corrupt staged candidate rows at ROWS_READY; final authenticated read rejects before publication, old ledger/revision retained",
+    "crash_before_publish": "Pre-publication checkpoint failure covered; actual process termination during preparation not executed",
+    "crash_after_publish_valid": "VaultGenerationProcessTest: seed pending pointer, host force-stop, different-PID authenticated reopen on API26/37",
+    "crash_after_publish_invalid": "pendingPublicationReopensAndInvalidPendingRollsBackOnlyRecordedPredecessor: tamper while pending, rollback then old snapshot/revision/incarnation; same process",
+    "crash_after_verified": "migratesAllLegacyDomainsAndReopensDetachedReceipts: successful finalized migration reopened in new store instance; no additional fresh-process finalized transition",
+    "established_corruption": "same pending/established test locks repeatedly; missing both markers regression preserves rows",
+    "pinned_previous": "Read/install are serialized by database lease through Snapshot hydration; atomic checkpoint second-connection test passes. Independent long-lived exporter/file lease is not exposed/tested",
+    "foreign_cleanup": "7 foundation groups preserve foreign/collision/replacement paths; new catalog GC foreign-entry injection not separately executed",
+    "missing_device_key": "keyLossRequiresVerifiedRestoreAndMissingStateNeverInitializesEmptyVault plus four RowKeyMigration regressions",
+    "legacy_migration": "Shared all-domain schema3 and old direct-Keystore 2MiB receipt migration; schema2 finance migration regression"
+  },
+  "publicationLinearization": "One-shot admission suppresses duplicate Replace. CAS preparing->publishing inside pointer transaction after authenticated candidate read, immediately before setState; Cancel wins before CAS. No cancellation checks after successful pointer publication. ViewModel finally settles token and consumes preview on success/failure; post-publication exceptions use neutral verification guidance, never an assertion that the old vault was kept.",
+  "historicalBeforeCancellation": {
+    "scope": "Local schema4 integration at existing capacity, unchanged portable v1-v3; focused local evidence, not completed lifecycle/release/performance gate",
+    "capturedAt": "2026-09-14T03:00:22.584983+00:00",
+    "sha256": {
+      "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "ac5b5298a6275f148a4a7cb9b27daf0060ef1e71fac87fdd8b6efc45b9bc8813",
+      "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "0ebd3920e444e493e8fa843e3aa3299f40ba92a1a885c40b48a4ccb40418f3b2",
+      "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+      "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "26ced4146836f4fc2ba71c27e4cd5c1c09e1186fae6697377ac755c624d903c2",
+      "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "012975182f4290ae2570573fedd28a92c021d05a83ee01779cee0f6bb3fd8017",
+      "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "b520a6aa836dc5bf9130796573fca0ea8ab6e00e96696ed27dfbd4c44c94b924",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt": "a35e7c46f7fb73f54d329d545fe85678fe72149ded76b3c9a315095498deb873",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt": "b848c9618f7f35215677c1e6e39d75e875634c21170e83d863c1716a2f79849d",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt": "ec1de41fde2cb4933bfedb0c7dd235efe1f3241fe72309763908d8cf93b2eb65",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt": "491da2f5a527443fa6e6a8d9af3c79b86a72211afebcfbc92f262a16f7d5d9df",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt": "7aecc2d2f5003fec80da2e45589375ccd064b20aaa70e4eed606d76b41a9be54",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt": "7cf25fdc36d570009611270f0ccc05cc7a6e55a1cfe69c1723885b6bec634c3c",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt": "99f49939f884d59c1bf25a8e306de9f9054eb7419e1bd258cc4f24c06e2a6617",
+      "apps/android/app/build/outputs/apk/debug/app-debug.apk": "f417fadaf94bb845f1b88037ddc9b6e1b4d75a2cf9f4d3e8528541d6937a5094",
+      "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "b6333ae40f51be0be45611b489f25509bb6d407ab540f13ef8391f9ec5ab46e2",
+      "packages/offline-contract/fixtures/local-generation-v1/previous.json": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+      "packages/offline-contract/fixtures/local-generation-v1/replacement.json": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+      "packages/offline-contract/fixtures/local-generation-v1/lifecycle.json": "f24ad2c72d0a66b6c76974d579b9634e892a10798a57c3f333bbcc46201cdd7a",
+      "packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+      "artifacts/offline/durable-android-build.log": "f5db8a851f3b921e5557d83b74f774d7732f1cbb2da9b732f4eec2f719e966c1",
+      "artifacts/offline/durable-android-api26.log": "40cb6273811589bff0c7c579af1d363ba055b20203839a8b7c2b505f84bad4db",
+      "artifacts/offline/durable-process-api26-seed.log": "2839d508d682d920ed9e7cdf5a069e81ccaff3b88a42eccd63fbf1cdbebb1ef5",
+      "artifacts/offline/durable-process-api26-reopen.log": "c48fa56347385efa69d4ec687787a618f7a67124abd8de376f90a58785a3b3c0",
+      "artifacts/offline/durable-process-api26.json": "3718eef7b8373bffb16b250ff14e44a6cd0f36574d45bbfb651b332d9cec045e",
+      "artifacts/offline/durable-android-api37.log": "d12d510f2a3780fb2fa8102542798f3fc44de75fec06e34fc3f8cef40f98f284",
+      "artifacts/offline/durable-process-api37-seed.log": "176463b1dc635ddb8262d916aadec4409558a3022f63f23ba866accffb924d29",
+      "artifacts/offline/durable-process-api37-reopen.log": "cbae1c23ab3d9c12d664dbdeee533e95890f4960f59616c7ee6041543d1b5e71",
+      "artifacts/offline/durable-process-api37.json": "09346cd046da56f5beade5885f5efdb0b9f42fc5de77135431c25439eb3e4ba9"
+    },
+    "runs": [
+      {
+        "api": 26,
+        "serial": "emulator-5562",
+        "abi": "arm64-v8a",
+        "pageBytes": 4096,
+        "functionalGroups": 28,
+        "failed": 0,
+        "seconds": 7.519,
+        "freshProcess": {
+          "pid": 4309,
+          "seedPid": 4270,
+          "phase": "authenticated-new-generation"
+        }
+      },
+      {
+        "api": 37,
+        "serial": "emulator-5560",
+        "abi": "arm64-v8a",
+        "pageBytes": 16384,
+        "functionalGroups": 28,
+        "failed": 0,
+        "seconds": 7.752,
+        "freshProcess": {
+          "pid": 6726,
+          "seedPid": 6687,
+          "phase": "authenticated-new-generation"
+        }
+      }
+    ],
+    "sourceLimits": [
+      "Current Snapshot hydration retains base64 allocations.",
+      "all/finance/attachments/vaultId hydrate complete snapshot; revision reads metadata.",
+      "Each receipt is verified during durable reopen then read again; mutation repeats old-row read and post-write full validation. No performance improvement claimed.",
+      "GC deletes authenticated complete unreferenced groups and preserves ambiguous/partial/foreign entries; physical staging-space retention is not comprehensively bounded.",
+      "No portable v4 integration. No real disk-full, power-loss, kill-during-syscall or signed-release proof."
+    ],
+    "scenarioEvidence": {
+      "prepare_only": "preparationFailureAndStaleRevisionPreserveOldGeneration: injected FILES_READY/ROWS_READY failures, current instance old snapshot and generation count retained",
+      "cancel_before_publish": "Checkpoint failure only; no new asynchronous cancellation injection",
+      "stale_revision": "same test plus ExpenseMutationDeviceTest: second connection edit rejects old revision",
+      "stale_incarnation": "same test: previous state digest rejected with current revision after replacement",
+      "candidate_tamper": "Pending published tamper covered; distinct pre-publication candidate tamper injection not executed",
+      "crash_before_publish": "Pre-publication checkpoint failure covered; actual process termination during preparation not executed",
+      "crash_after_publish_valid": "VaultGenerationProcessTest: seed pending pointer, host force-stop, different-PID authenticated reopen on API26/37",
+      "crash_after_publish_invalid": "pendingPublicationReopensAndInvalidPendingRollsBackOnlyRecordedPredecessor: tamper while pending, rollback then old snapshot/revision/incarnation; same process",
+      "crash_after_verified": "migratesAllLegacyDomainsAndReopensDetachedReceipts: successful finalized migration reopened in new store instance; no additional fresh-process finalized transition",
+      "established_corruption": "same pending/established test locks repeatedly; missing both markers regression preserves rows",
+      "pinned_previous": "Read/install are serialized by database lease through Snapshot hydration; atomic checkpoint second-connection test passes. Independent long-lived exporter/file lease is not exposed/tested",
+      "foreign_cleanup": "7 foundation groups preserve foreign/collision/replacement paths; new catalog GC foreign-entry injection not separately executed",
+      "missing_device_key": "keyLossRequiresVerifiedRestoreAndMissingStateNeverInitializesEmptyVault plus four RowKeyMigration regressions",
+      "legacy_migration": "Shared all-domain schema3 and old direct-Keystore 2MiB receipt migration; schema2 finance migration regression"
+    },
+    "commands": {
+      "build": "ANDROID_HOME=/Users/sarathfrancis/Library/Android/sdk apps/android/gradlew -p apps/android -PpennyTestSandbox=true :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug",
+      "test": "adb -s SERIAL shell am instrument -w -r -e class CLASS_SELECTION ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner",
+      "processSeed": "adb -s SERIAL shell am instrument -w -r -e pennyGenerationProcess true -e class ca.penny.offline.VaultGenerationProcessTest#seedPending ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner",
+      "betweenProcesses": "adb -s SERIAL shell am force-stop ca.penny.offline.dev.test",
+      "processReopen": "adb -s SERIAL shell am instrument -w -r -e pennyGenerationProcess true -e class ca.penny.offline.VaultGenerationProcessTest#reopenPending ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner"
+    },
+    "classSelection": "ca.penny.offline.VaultGenerationDeviceTest,ca.penny.offline.LocalReceiptBlobDeviceTest,ca.penny.offline.ExpenseMutationDeviceTest,ca.penny.offline.RowKeyMigrationDeviceTest,ca.penny.offline.FinanceDeviceTest,ca.penny.offline.VaultDeviceTest#largeReceiptReopensBeyondCursorWindowSize,ca.penny.offline.VaultDeviceTest#receiptRestoreIsEncryptedCompleteAndRollsBackOnStorageFailure,ca.penny.offline.VaultDeviceTest#ciphertextPersistsAndConfirmedBackupRecoversLostKey,ca.penny.offline.AutomaticSafetyDeviceTest#checkpointKeepsDataAndRevisionAtomicAcrossTwoConnections,ca.penny.offline.CloudDeviceTest#controllerPublicationRetryKeyRotationAndGuardedRestore"
+  },
+  "historicalLocalCancellation": {
+    "capturedAt": "2026-09-14T03:16:35.261584+00:00",
+    "sha256": {
+      "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "ef8c987f929b79affed7c09ce0ff2eb1c08daf712fc3e44ed14669fca1d7299b",
+      "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "7756358047a87f94e90c9d157cbfec31c6d2add31daa30309df085dadd87b5f2",
+      "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+      "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "26ced4146836f4fc2ba71c27e4cd5c1c09e1186fae6697377ac755c624d903c2",
+      "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "872c34d584552de889557990125eb8aeff9e03e4aef8a7c01e96d2c669b5893f",
+      "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "b520a6aa836dc5bf9130796573fca0ea8ab6e00e96696ed27dfbd4c44c94b924",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt": "a35e7c46f7fb73f54d329d545fe85678fe72149ded76b3c9a315095498deb873",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt": "b848c9618f7f35215677c1e6e39d75e875634c21170e83d863c1716a2f79849d",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt": "ec1de41fde2cb4933bfedb0c7dd235efe1f3241fe72309763908d8cf93b2eb65",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/ExpenseMutationDeviceTest.kt": "491da2f5a527443fa6e6a8d9af3c79b86a72211afebcfbc92f262a16f7d5d9df",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt": "7aecc2d2f5003fec80da2e45589375ccd064b20aaa70e4eed606d76b41a9be54",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/FinanceDeviceTest.kt": "7cf25fdc36d570009611270f0ccc05cc7a6e55a1cfe69c1723885b6bec634c3c",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt": "99f49939f884d59c1bf25a8e306de9f9054eb7419e1bd258cc4f24c06e2a6617",
+      "apps/android/app/build/outputs/apk/debug/app-debug.apk": "04936f089e750b4104e37358752cb9cc44ceea875488caf2f863cdaac35c333e",
+      "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "d45d9b0d803c14d7e5973d322b16e99ad057cf0ba43c2e1f85343f99402fbf2c",
+      "packages/offline-contract/fixtures/local-generation-v1/previous.json": "e28cd62b3391d15658b555292bddabf540726d02c9e9430555c59ca6e2d0d232",
+      "packages/offline-contract/fixtures/local-generation-v1/replacement.json": "b70e3bbebc640a6f07e68e888f9f3f331444323371a8b0ec324983ba65547a68",
+      "packages/offline-contract/fixtures/local-generation-v1/lifecycle.json": "f24ad2c72d0a66b6c76974d579b9634e892a10798a57c3f333bbcc46201cdd7a",
+      "packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+      "apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt": "a8eab51da168c449b0e55c61c5848f44de0ca000a05af70e608144287b9a4e49",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt": "f17da802901c6017fcfa992b621ac5bad2a053539def7077335955a10330bd1b",
+      "artifacts/offline/durable-android-build.log": "f625a3c0335bb1165f3b3e220fb25e70e5b6a14af18cb799d6d32f41deca5ec5",
+      "artifacts/offline/durable-cancel-api26.log": "c39e89870a79aa47c85c5b59dc9e484afbfe4ce1baf86934d49e5420857cb07a",
+      "artifacts/offline/durable-cancel-api37.log": "a1d2f93fc426d45b124eee777566f9a1a5d116f3f5ed715b704a5decc2a1ef7b"
+    },
+    "runs": [
+      {
+        "api": 26,
+        "functionalGroups": 3,
+        "failed": 0,
+        "seconds": 2.334,
+        "log": "artifacts/offline/durable-cloud-cancel-api26.log"
+      },
+      {
+        "api": 37,
+        "functionalGroups": 3,
+        "failed": 0,
+        "seconds": 2.322,
+        "log": "artifacts/offline/durable-cloud-cancel-api37.log"
+      }
+    ],
+    "classSelection": "ca.penny.offline.RestoreCancellationDeviceTest,ca.penny.offline.CloudDeviceTest#controllerPublicationRetryKeyRotationAndGuardedRestore"
+  },
+  "cloudCancellationBinding": "PennyViewModel invokes suspend(RestoreOperation)->Unit cloud callback with its preview token. DriveController checks that token before/after confirmBinding and forwards it into VaultStore.replace. No independently created storage cancellation token on the cloud confirmation path."
+}

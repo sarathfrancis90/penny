@@ -51,7 +51,7 @@ class FinanceDeviceTest {
         store.saveFinance(initial.finance.budgets.first().copy(limitMinor=54321))
         assertTrue(runCatching { store.replace(before,expectedRevision=revision) }.isFailure)
         assertEquals(54321,store.finance().budgets.first { it.id==initial.finance.budgets.first().id }.limitMinor.toInt())
-        store.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_finance_post BEFORE INSERT ON expenses BEGIN SELECT RAISE(ABORT,'injected finance write failure'); END")
+        store.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_finance_post BEFORE INSERT ON vault_rows WHEN NEW.domain='expenses' BEGIN SELECT RAISE(ABORT,'injected finance write failure'); END")
         val count=store.all().size
         assertTrue(runCatching { store.postRecurring(template.id,"2026-03-31") }.isFailure)
         assertEquals(count,store.all().size)
@@ -63,16 +63,17 @@ class FinanceDeviceTest {
     }
     @Test fun schemaTwoDatabaseMigratesWithoutLosingExpense() = isolated { store,name,alias ->
         val expense=Expense(merchant="Preserved old vault",amountMinor=1234,expenseDate="2026-02-28")
-        store.save(expense)
+        val legacyStore=LegacyVaultRows(context,name,alias)
+        legacyStore.save(expense)
         val legacy=expense.json().apply { remove("description");remove("recurringTemplateId");remove("recurringOccurrenceDate") }
         val secret=KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.getKey(alias,null)
         val cipher=javax.crypto.Cipher.getInstance("AES/GCM/NoPadding").apply { init(javax.crypto.Cipher.ENCRYPT_MODE,secret);updateAAD(expense.id.toByteArray()) }
         val sealed=cipher.iv+cipher.doFinal(StrictJson.bytes(legacy))
-        store.writableDatabase.execSQL("UPDATE expenses SET sealed=? WHERE id=?",arrayOf(sealed,expense.id))
+        legacyStore.writableDatabase.execSQL("UPDATE expenses SET sealed=? WHERE id=?",arrayOf(sealed,expense.id))
         // A real schema-two vault predates wrapped row keys; retain its direct
         // Keystore ciphertext and remove only newer-format fixture metadata.
-        store.writableDatabase.execSQL("DELETE FROM metadata WHERE key IN ('dataKey','dataKeyFormat')")
-        FinanceData.limits.keys.forEach { store.writableDatabase.execSQL("DROP TABLE $it") };store.writableDatabase.version=2;store.close()
+        legacyStore.writableDatabase.execSQL("DELETE FROM metadata WHERE key IN ('dataKey','dataKeyFormat')")
+        FinanceData.limits.keys.forEach { legacyStore.writableDatabase.execSQL("DROP TABLE $it") };legacyStore.writableDatabase.version=2;legacyStore.close()
         VaultStore(context,name,alias).use { migrated -> assertEquals(expense,migrated.all().single());assertTrue(migrated.finance().domains().values.all { it.isEmpty() });migrated.saveFinance(Budget(month="2026-02",limitMinor=10000));assertEquals(expense,migrated.all().single()) }
     }
 }

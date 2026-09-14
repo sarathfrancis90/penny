@@ -52,7 +52,7 @@ class CloudDeviceTest {
     @Test fun controllerPublicationRetryKeyRotationAndGuardedRestore() = runBlocking {
         val id=Wire.id();val dbName="cloud-vault-$id.db";val vaultAlias="penny.cloud.vault.$id";val stateAlias="penny.cloud.state.$id";val keyAlias="penny.cloud.recovery.$id"
         val vault=VaultStore(context,dbName,vaultAlias);val settings=CloudSettingsStore(context,"cloud-$id",stateAlias);val recovery=RecoveryKeyStore(context,"cloud-key-$id",keyAlias)
-        val worker=CoroutineScope(SupervisorJob()+Dispatchers.Default);val fake=Fake();var clock=0L;var commit: (suspend ()->Unit)?=null;var selected: Snapshot?=null
+        val worker=CoroutineScope(SupervisorJob()+Dispatchers.Default);val fake=Fake();var clock=0L;var commit: (suspend (RestoreOperation)->Unit)?=null;var selected: Snapshot?=null
         val controller=DriveController(context,vault,worker,{s,_,action->selected=s;commit=action},{_,_->fake},true,settings,recovery,{}, {clock})
         try {
             val original=Backup.decrypt(fixture("cloud-snapshot-v1.pennybackup"),key);ReceiptImage.validate(original.attachments);vault.replace(original)
@@ -70,19 +70,36 @@ class CloudDeviceTest {
             action("discover",key);await {!controller.state.value.busy};assertEquals(3,controller.state.value.candidates.size)
             controller.select(last);await {commit!=null && !controller.state.value.busy};assertEquals(original.expenses.toSet(),selected!!.expenses.toSet())
             fake.tag=CloudContract.accountTag("drive","different-account")
-            assertTrue(runCatching {commit!!.invoke()}.isFailure);assertEquals(original.expenses.toSet(),vault.all().toSet())
+            assertTrue(runCatching {commit!!.invoke(RestoreOperation())}.isFailure);assertEquals(original.expenses.toSet(),vault.all().toSet())
             fake.tag=last.accountTag;controller.cancel();commit=null
             action("discover",key);await {!controller.state.value.busy};controller.select(last);await {commit!=null && !controller.state.value.busy}
             val rotatedKey=Backup.recoveryKey();recovery.confirm(rotatedKey,rotatedKey)
-            assertTrue(runCatching {commit!!.invoke()}.isFailure)
+            assertTrue(runCatching {commit!!.invoke(RestoreOperation())}.isFailure)
             controller.cancel();val rotated=DriveController(context,vault,worker,{_,_,_->},{_,_->fake},true,settings,recovery,{})
             await {rotated.state.value.ready};assertFalse(rotated.state.value.enabled);assertNull(rotated.state.value.lastGood);rotated.cancel()
             recovery.confirm(key,key);commit=null;action("discover",key);await {!controller.state.value.busy};controller.select(last);await {commit!=null && !controller.state.value.busy}
             val changed=original.expenses.first().copy(merchant="New local data after preview",updatedAt=Wire.now());vault.save(changed)
-            assertTrue(runCatching {commit!!.invoke()}.isFailure);assertEquals(changed,vault.all().single {it.id==changed.id})
+            assertTrue(runCatching {commit!!.invoke(RestoreOperation())}.isFailure);assertEquals(changed,vault.all().single {it.id==changed.id})
             controller.cancel();commit=null;action("discover",key);await {!controller.state.value.busy};controller.select(last);await {commit!=null && !controller.state.value.busy}
-            val incarnation=vault.incarnation();commit!!.invoke();assertNotEquals(incarnation,vault.incarnation());assertEquals(original.expenses.toSet(),vault.all().toSet())
+            val incarnation=vault.incarnation();commit!!.invoke(RestoreOperation());assertNotEquals(incarnation,vault.incarnation());assertEquals(original.expenses.toSet(),vault.all().toSet())
             controller.vaultRestored();assertFalse(controller.state.value.enabled)
+            // Actual fake-Drive discovery/preview callback receives the same cancellation
+            // token used by the ViewModel. Account/session guards stay on this path.
+            for(point in listOf(VaultGenerations.Point.FILES_READY,VaultGenerations.Point.POINTER_COMMITTED)) {
+                controller.cancel();commit=null
+                val current=original.expenses.first().copy(merchant="Current before cancellation $point")
+                vault.save(current)
+                action("discover",key);await {!controller.state.value.busy};controller.select(last);await {commit!=null && !controller.state.value.busy}
+                val operation=RestoreOperation();val staged=CompletableDeferred<Unit>();val proceed=java.util.concurrent.CountDownLatch(1)
+                vault.generations.fault={if(it==point) {staged.complete(Unit);check(proceed.await(10,java.util.concurrent.TimeUnit.SECONDS))}}
+                val candidate=checkNotNull(commit)
+                val result=async(Dispatchers.IO) {runCatching {candidate(operation)}}
+                withTimeout(10000) {staged.await()}
+                val cancelled=operation.cancel();assertEquals(point==VaultGenerations.Point.FILES_READY,cancelled)
+                proceed.countDown();val outcome=withTimeout(10000) {result.await()};vault.generations.fault={}
+                if(cancelled) {assertTrue(outcome.exceptionOrNull() is RestoreCancelled);controller.cancel();assertEquals(current,vault.all().first {it.id==current.id})}
+                else {assertTrue(outcome.isSuccess);assertEquals(original.expenses.toSet(),vault.all().toSet());controller.vaultRestored()}
+            }
             // A bounded operation expires even if a provider callback completes later.
             action("enable");await {!controller.state.value.busy};fake.gate=CompletableDeferred();fake.entered=CompletableDeferred();val beforeExpiry=settings.load().lastGood
             action("publish");fake.entered!!.await();clock+=600001;fake.gate!!.complete(Unit);await {!controller.state.value.busy}

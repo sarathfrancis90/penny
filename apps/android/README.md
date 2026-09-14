@@ -90,4 +90,4 @@ P6 primary references checked 2026-09-13: [Android 17 setup](https://developer.a
 
 ## Detached receipt foundation
 
-The unused `LocalReceiptBlob` foundation implements the shared local receipt envelope and an owned, unactivated receipt-generation lifecycle. It keeps the existing 2 MiB/100 receipt/8 MiB limits and has no live store call sites or migration. Sandbox device tests pass on API 26 and API 37/16 KiB; exact fixture, filesystem failure and durability scope is recorded in [evidence/local-receipt-foundation.md](evidence/local-receipt-foundation.md).
+`LocalReceiptBlob` now supports durable reopen and receipt leases used by the local schema 4 `VaultGenerations` store. The existing 2 MiB/100 receipt/8 MiB limits and portable v1–v3 formats remain unchanged. The original foundation checkpoint is recorded in [evidence/local-receipt-foundation.md](evidence/local-receipt-foundation.md); current integration, exact API 26/API 37 evidence and outstanding lifecycle/performance scope are in [evidence/durable-generations.md](evidence/durable-generations.md).

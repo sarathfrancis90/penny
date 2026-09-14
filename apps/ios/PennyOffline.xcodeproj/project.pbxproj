@@ -27,6 +27,7 @@
 		55DEC02B4A8F2CB7EA819858 /* ReceiptPreparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22100BC7E2A2DD78509A3A81 /* ReceiptPreparation.swift */; };
 		56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C22B18EDED088A9F987FB /* Expense.swift */; };
 		59F47763FF3C89EA37B7749C /* FinanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */; };
+		5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */; };
 		5EFFDCDD33296BF4CE23EFB4 /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
 		69CD5E278915D744623FBB76 /* CloudKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D63928F747E05013AEC16F /* CloudKitTransport.swift */; };
 		6B116BF2AE6768A1323FB844 /* FinanceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E46C25CD198B4864A458AAF /* FinanceEngine.swift */; };
@@ -34,12 +35,14 @@
 		73EF78AE25719F9098AA38F0 /* BackupArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */; };
 		73F5E74FFD0627203285399F /* LocalReceiptFileProtection.c in Sources */ = {isa = PBXBuildFile; fileRef = 851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */; };
 		804B7F402D12960813722249 /* AutomaticBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */; };
+		81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */; };
 		84060300EC023E819FB8ACDC /* PreparedVaultWrite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FE3A1B95BD1D58C5D42093 /* PreparedVaultWrite.swift */; };
 		8D7358F749B6947081A66DFE /* StrictJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE5A6D270ABD680B645296F /* StrictJSON.swift */; };
 		8FF9758ED48B10509A5B0EB3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */; };
 		9D55ED213E0F715D96E20E9A /* CloudFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */; };
 		9F5CF59940F6EA12C2C323EF /* LocalAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD1EFF58A75FF36D2C0AC21 /* LocalAssistant.swift */; };
 		A8EBECDBB1852C98FA131C2D /* CloudPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8359A21263DD7094D573273 /* CloudPublication.swift */; };
+		ABD98FB4B5D5A4D812A6AECE /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
 		AE6E0742CCE8A75890C69F9A /* ReceiptCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */; };
 		AF674AA6F3B611C7F1B49E83 /* ReceiptAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */; };
 		B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167DD103EA432460F89A98FD /* ExpensesView.swift */; };
@@ -56,6 +59,7 @@
 		DF169F25C5DA9400568873DA /* FinanceFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */; };
 		E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */; };
 		E4BA1BDF7D383FF67EFD341D /* VisualFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */; };
+		E929317B8B704F22BD3DACB7 /* DurableProcessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A25C8C6049BF58364B4802DC /* DurableProcessTests.swift */; };
 		EAF01FDD2EB88E8D3C9C5D32 /* CloudManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +72,13 @@
 			remoteInfo = PennyOffline;
 		};
 		5779DE40F609A5253040DEFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2B4832DCF0FE085E161B7BA;
+			remoteInfo = PennyOffline;
+		};
+		950B32E150E52F93B545FEAB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
 			proxyType = 1;
@@ -119,8 +130,10 @@
 		5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArchive.swift; sourceTree = "<group>"; };
 		60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBackup.swift; sourceTree = "<group>"; };
 		61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptAttachment.swift; sourceTree = "<group>"; };
+		6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableStorageTests.swift; sourceTree = "<group>"; };
 		6C2CE221C9BD854F0C3E4D58 /* Categories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Categories.swift; sourceTree = "<group>"; };
 		6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceView.swift; sourceTree = "<group>"; };
+		723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableVaultStorage.swift; sourceTree = "<group>"; };
 		82EB561A258A5147019AA6C9 /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
 		8416389EE9D9C67FA8EF492D /* VaultStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultStore.swift; sourceTree = "<group>"; };
 		851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LocalReceiptFileProtection.c; sourceTree = "<group>"; };
@@ -128,6 +141,7 @@
 		9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualFlowTests.swift; sourceTree = "<group>"; };
 		9E6F3897D621228F0D8DCCB6 /* ArchiveWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveWorker.swift; sourceTree = "<group>"; };
 		A066CE638380BFBDAC4B47EB /* VaultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultTests.swift; sourceTree = "<group>"; };
+		A25C8C6049BF58364B4802DC /* DurableProcessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableProcessTests.swift; sourceTree = "<group>"; };
 		A305C5FD5BB71084EB05BB4E /* CloudBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackupView.swift; sourceTree = "<group>"; };
 		A58464F07153EEC739A6B0C8 /* ReceiptReviewDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptReviewDraft.swift; sourceTree = "<group>"; };
 		A945BF33915077F7792709B1 /* ExpenseFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseFlowTests.swift; sourceTree = "<group>"; };
@@ -143,6 +157,7 @@
 		D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestCloudTransport.swift; sourceTree = "<group>"; };
 		D36CF0323E66F126F8596E71 /* ReceiptParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptParser.swift; sourceTree = "<group>"; };
 		D44CB52D861B99F6131FE703 /* LocalReceiptBlob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalReceiptBlob.swift; sourceTree = "<group>"; };
+		D73D818CC67FE534E764B6D7 /* PennyOfflineDurableProcessTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineDurableProcessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAA63E36E052AE292586EDCA /* LocalReceiptFileProtection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalReceiptFileProtection.h; sourceTree = "<group>"; };
 		DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceFlowTests.swift; sourceTree = "<group>"; };
 		DE03DE482052A1981E646D02 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -191,6 +206,7 @@
 				E1D63928F747E05013AEC16F /* CloudKitTransport.swift */,
 				2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */,
 				C8359A21263DD7094D573273 /* CloudPublication.swift */,
+				723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */,
 				C96C22B18EDED088A9F987FB /* Expense.swift */,
 				167DD103EA432460F89A98FD /* ExpensesView.swift */,
 				50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */,
@@ -230,6 +246,7 @@
 				53A844A58A9FECB4BB26E17F /* AutomaticBackupTests.swift */,
 				1237EA66D63CF1A8814D217B /* CaptureTests.swift */,
 				23DE085B368DC456F5429CC0 /* CloudTests.swift */,
+				6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */,
 				3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */,
 				1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */,
 				A066CE638380BFBDAC4B47EB /* VaultTests.swift */,
@@ -242,11 +259,20 @@
 			children = (
 				08BA9C228599043FF806890A /* PennyOffline.app */,
 				249A9EA05F693951BEFAECDA /* PennyOfflineAccessibilityTests.xctest */,
+				D73D818CC67FE534E764B6D7 /* PennyOfflineDurableProcessTests.xctest */,
 				11B37F33049EB1A6186CE539 /* PennyOfflinePerformanceTests.xctest */,
 				3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */,
 				507B21C459E45BD05AFEC912 /* PennyOfflineUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DC312DC9B293EEA248F1B308 /* PennyOfflineDurableProcessTests */ = {
+			isa = PBXGroup;
+			children = (
+				A25C8C6049BF58364B4802DC /* DurableProcessTests.swift */,
+			);
+			path = PennyOfflineDurableProcessTests;
 			sourceTree = "<group>";
 		};
 		E38B22FE1302B9011BF9A8EE = {
@@ -255,6 +281,7 @@
 				0C8E1DC4DDCFC630466B9A3F /* fixtures */,
 				AA6AC6372CB48C8ED80B28A2 /* PennyOffline */,
 				625A87F61A6B250FE8B5E4C6 /* PennyOfflineAccessibilityTests */,
+				DC312DC9B293EEA248F1B308 /* PennyOfflineDurableProcessTests */,
 				446F9DE62F39B0449E818012 /* PennyOfflinePerformanceTests */,
 				BB4B63380BF88FE609ECE16C /* PennyOfflineTests */,
 				568E8FE96FB6D9DD35AE47FE /* PennyOfflineUITests */,
@@ -265,6 +292,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2E5AB43EA7FCAD580E4386E8 /* PennyOfflineDurableProcessTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E91F3716FD780B8B6CF12CB /* Build configuration list for PBXNativeTarget "PennyOfflineDurableProcessTests" */;
+			buildPhases = (
+				89098778FBFCBD1CD1C65A9C /* Sources */,
+				01DB68B6D757296F676F436B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15DE1F66C7A83D63FD5AD25A /* PBXTargetDependency */,
+			);
+			name = PennyOfflineDurableProcessTests;
+			packageProductDependencies = (
+			);
+			productName = PennyOfflineDurableProcessTests;
+			productReference = D73D818CC67FE534E764B6D7 /* PennyOfflineDurableProcessTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		36D806DDA5738D21F94F666C /* PennyOfflineAccessibilityTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1D90ADB83047A42A78DF57C8 /* Build configuration list for PBXNativeTarget "PennyOfflineAccessibilityTests" */;
@@ -365,6 +411,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					2E5AB43EA7FCAD580E4386E8 = {
+						ProvisioningStyle = Automatic;
+					};
 					36D806DDA5738D21F94F666C = {
 						ProvisioningStyle = Automatic;
 						TestTargetID = D2B4832DCF0FE085E161B7BA;
@@ -400,6 +449,7 @@
 			targets = (
 				D2B4832DCF0FE085E161B7BA /* PennyOffline */,
 				36D806DDA5738D21F94F666C /* PennyOfflineAccessibilityTests */,
+				2E5AB43EA7FCAD580E4386E8 /* PennyOfflineDurableProcessTests */,
 				E49FD1BFD378C8B66CF28D5F /* PennyOfflinePerformanceTests */,
 				7D55690958FA98B0692FD097 /* PennyOfflineTests */,
 				D2E1723FBF7138F8395C6E73 /* PennyOfflineUITests */,
@@ -408,6 +458,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		01DB68B6D757296F676F436B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABD98FB4B5D5A4D812A6AECE /* fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A7E6445CD2FD675AD57BC3C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -440,6 +498,7 @@
 				69CD5E278915D744623FBB76 /* CloudKitTransport.swift in Sources */,
 				EAF01FDD2EB88E8D3C9C5D32 /* CloudManifest.swift in Sources */,
 				A8EBECDBB1852C98FA131C2D /* CloudPublication.swift in Sources */,
+				81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */,
 				56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */,
 				B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */,
 				41B145070CC0D6E47CCF15FF /* FinanceEditor.swift in Sources */,
@@ -480,6 +539,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		89098778FBFCBD1CD1C65A9C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E929317B8B704F22BD3DACB7 /* DurableProcessTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9372DB40F91DD409B1821145 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -496,6 +563,7 @@
 				CBDF68442E48D9BEE3E983CA /* AutomaticBackupTests.swift in Sources */,
 				0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */,
 				1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */,
+				5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */,
 				D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */,
 				E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */,
 				B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */,
@@ -513,6 +581,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		15DE1F66C7A83D63FD5AD25A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
+			targetProxy = 950B32E150E52F93B545FEAB /* PBXContainerItemProxy */;
+		};
 		32AF3B58A49F9D1EA08310FF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
@@ -827,6 +900,22 @@
 			};
 			name = Debug;
 		};
+		D52C107EA2DF4C002804EE2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineDurableProcessTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Release;
+		};
 		E8971C41322BCC7534DA4873 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -837,6 +926,22 @@
 					"@loader_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Debug;
+		};
+		FF92F1B8A8E9288D518B9006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineDurableProcessTests;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
@@ -869,6 +974,15 @@
 			buildConfigurations = (
 				B558027D72DFB9F75DC32B94 /* Debug */,
 				8490C982FE9EBDFEEFBFA6DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5E91F3716FD780B8B6CF12CB /* Build configuration list for PBXNativeTarget "PennyOfflineDurableProcessTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF92F1B8A8E9288D518B9006 /* Debug */,
+				D52C107EA2DF4C002804EE2B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

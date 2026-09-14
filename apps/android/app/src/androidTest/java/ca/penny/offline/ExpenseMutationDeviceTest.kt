@@ -35,6 +35,8 @@ class ExpenseMutationDeviceTest {
         (listOf("expenses","attachments")+FinanceData.limits.keys).forEach {table ->
             store.readableDatabase.rawQuery("SELECT id,hex(sealed) FROM $table",null).use {while(it.moveToNext())put("$table/${it.getString(0)}",it.getString(1))}
         }
+        store.readableDatabase.rawQuery("SELECT generationId,domain,id,hex(sealed) FROM vault_rows",null).use {while(it.moveToNext())put("row/${it.getString(0)}/${it.getString(1)}/${it.getString(2)}",it.getString(3))}
+        store.readableDatabase.rawQuery("SELECT id,hex(wrappedKey),hex(sealedHeader) FROM vault_generations",null).use {while(it.moveToNext())put("generation/${it.getString(0)}",it.getString(1)+":"+it.getString(2))}
         store.readableDatabase.rawQuery("SELECT key,value FROM metadata",null).use {while(it.moveToNext())put("metadata/${it.getString(0)}",it.getString(1))}
     }
     @Test fun returnedViewsMatchFullValidationAndReadSecondConnectionChanges()=isolated {store,name,alias ->
@@ -77,11 +79,11 @@ class ExpenseMutationDeviceTest {
     }
     @Test fun warmedStoreStillRejectsCorruptAndMissingKeys()=isolated {store,_,alias ->
         store.replace(golden());val expense=store.all().first();val before=sealedState(store)
-        store.writableDatabase.execSQL("UPDATE metadata SET value='damaged' WHERE key='dataKey'")
+        store.writableDatabase.execSQL("UPDATE metadata SET value='damaged' WHERE key='activeState'")
         val damaged=sealedState(store)
         assertTrue(runCatching {store.save(expense)}.isFailure)
         assertTrue(runCatching {store.delete(expense.id)}.isFailure);assertEquals(damaged,sealedState(store))
-        store.writableDatabase.execSQL("UPDATE metadata SET value=? WHERE key='dataKey'",arrayOf(before.getValue("metadata/dataKey")))
+        store.writableDatabase.execSQL("UPDATE metadata SET value=? WHERE key='activeState'",arrayOf(before.getValue("metadata/activeState")))
         val keys=KeyStore.getInstance("AndroidKeyStore").apply {load(null);deleteEntry(alias)}
         assertTrue(runCatching {store.save(expense)}.isFailure)
         assertTrue(runCatching {store.delete(expense.id)}.isFailure)

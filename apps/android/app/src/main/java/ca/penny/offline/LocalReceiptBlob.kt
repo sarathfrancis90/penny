@@ -42,12 +42,12 @@ internal object LocalReceiptBlob {
     class Handle internal constructor(val descriptor: Descriptor)
 
     class Operation(context: Context, rootKey: ByteArray, val vaultId: String,
-                    private val cancellation: Cancellation = Cancellation(), faults: Faults = Faults { _, _ -> }) : Closeable {
-        val generationId = Wire.id()
+                    private val cancellation: Cancellation = Cancellation(), faults: Faults = Faults { _, _ -> },
+                    val generationId: String = Wire.id()) : Closeable {
         private var open = true
         private val core: Core
         init {
-            Wire.requireId(vaultId); require(rootKey.size == 32); cancellation.check()
+            Wire.requireId(vaultId); Wire.requireId(generationId); require(rootKey.size == 32); cancellation.check()
             core = Core(context, generationId, Codec.key(rootKey, vaultId, generationId), cancellation, faults)
         }
         @Synchronized fun seal(descriptor: Descriptor, bytes: ByteArray): Handle = work {
@@ -73,18 +73,27 @@ internal object LocalReceiptBlob {
         }
     }
     /** Unactivated owned files. Closing discards them; there is no live-install API. */
-    class ReceiptGeneration internal constructor(private val core: Core) : Closeable {
+    class ReceiptGeneration internal constructor(private val core: Core, private val durable: Boolean = false) : Closeable {
         private var open = true
         val handles: List<Handle> = java.util.Collections.unmodifiableList(core.handles())
         @Synchronized fun read(handle: Handle): ByteArray {
             check(open)
             try { return core.read(handle) } catch (failure: Throwable) {
                 open = false
-                try { core.close() } catch (cleanup: Throwable) { failure.addSuppressed(cleanup) }
+                try { if (durable) core.release() else core.close() } catch (cleanup: Throwable) { failure.addSuppressed(cleanup) }
                 throw failure
             }
         }
-        @Synchronized override fun close() { if (open) { open = false; core.close() } }
+        /** Database ownership transfer or read lease release: ciphertext stays durable. */
+        @Synchronized internal fun release() { if (open) { open = false; core.release() } }
+        @Synchronized internal fun discard() { if (open) { open = false; core.close() } }
+        @Synchronized override fun close() { if (open) { open = false; if (durable) core.release() else core.close() } }
+    }
+    internal fun reopen(context: Context, root: ByteArray, vault: String, generation: String, descriptors: List<Descriptor>): ReceiptGeneration {
+        require(descriptors.size <= 100 && descriptors.sumOf { it.byteCount } <= Attachment.maxTotalBytes)
+        require(descriptors.all { it.vaultId == vault && it.generationId == generation })
+        require(descriptors.map { it.id }.toSet().size == descriptors.size)
+        return ReceiptGeneration(Core(context, generation, Codec.key(root, vault, generation), Cancellation(), Faults { _, _ -> }, descriptors), true)
     }
 
     internal object Codec {
@@ -126,7 +135,7 @@ internal object LocalReceiptBlob {
     private data class Identity(val device: Long, val inode: Long) {
         companion object { fun of(stat: StructStat) = Identity(stat.st_dev, stat.st_ino) }
     }
-    internal class Core(context: Context, private val operationName: String, private val key: ByteArray, private val cancellation: Cancellation, private val faults: Faults) : Closeable {
+    internal class Core(context: Context, private val operationName: String, private val key: ByteArray, private val cancellation: Cancellation, private val faults: Faults, existing: List<Descriptor>? = null) : Closeable {
         // A read-only descriptor pins each inode until cleanup. Without a pin,
         // unlink/recreate can reuse st_ino and trick ownership-based deletion.
         private data class Entry(val handle: Handle, val name: String, val identity: Identity, val pin: FileDescriptor)
@@ -144,14 +153,22 @@ internal object LocalReceiptBlob {
                 try { Os.mkdir(root.path, 448) } catch (error: ErrnoException) { if (error.errno != OsConstants.EEXIST) throw error }
                 parent = openDirectory(root.path)
                 val selected = parentPath() + "/" + operationName
-                Os.mkdir(selected, 448) // Exclusive, no overwrite and no caller-supplied path.
+                if (existing == null) Os.mkdir(selected, 448) // Exclusive internally selected generation.
                 directoryIdentity = Identity.of(Os.lstat(selected))
                 faults.hit(Point.DIRECTORY_OPEN, File(selected)); cancellation.check()
                 directory = openDirectory(selected)
                 check(directoryIdentity == Identity.of(Os.fstat(checkNotNull(directory).fileDescriptor)))
+                existing?.forEach { d ->
+                    val name = d.id + ".pennyreceipt"
+                    val pin = openFile(path(name), OsConstants.O_RDONLY or OsConstants.O_NOFOLLOW, 0)
+                    try { entries += Entry(Handle(d), name, Identity.of(Os.fstat(pin)), pin) }
+                    catch (failure: Throwable) { try { Os.close(pin) } catch (cleanup: Throwable) { failure.addSuppressed(cleanup) }; throw failure }
+                }
+                if (existing != null) verifyAll()
             } catch (failure: Throwable) {
                 key.fill(0)
-                if (parent != null && directoryIdentity != null) try {
+                entries.forEach { try { Os.close(it.pin) } catch (cleanup: Throwable) { failure.addSuppressed(cleanup) } }; entries.clear()
+                if (existing == null && parent != null && directoryIdentity != null) try {
                     val selected = parentPath() + "/" + operationName
                     val stat = Os.lstat(selected)
                     if (OsConstants.S_ISDIR(stat.st_mode) && Identity.of(stat) == directoryIdentity) Os.remove(selected)
@@ -255,13 +272,15 @@ internal object LocalReceiptBlob {
             hit(Point.DIRECTORY_SYNC); Os.fsync(checkNotNull(directory).fileDescriptor)
             Os.fsync(checkNotNull(parent).fileDescriptor); cancellation.check(); inventory()
         }
-        override fun close() {
+        fun release() = dispose(false)
+        override fun close() = dispose(true)
+        private fun dispose(delete: Boolean) {
             if (closed) return
             closed = true; key.fill(0)
             var failure: Throwable? = null
             fun attempt(work: () -> Unit) { try { work() } catch (error: Throwable) { if (failure == null) failure = error else failure!!.addSuppressed(error) } }
             entries.forEach { entry ->
-                attempt {
+                if (delete) attempt {
                     check(Identity.of(Os.fstat(entry.pin)) == entry.identity)
                     val file = path(entry.name)
                     val stat = try { Os.lstat(file) } catch (error: ErrnoException) { if (error.errno == OsConstants.ENOENT) return@attempt else throw error }
@@ -270,7 +289,7 @@ internal object LocalReceiptBlob {
                 attempt { Os.close(entry.pin) }
             }
             entries.clear()
-            attempt {
+            if (delete) attempt {
                 val name = parentPath() + "/" + operationName
                 val stat = Os.lstat(name)
                 if (OsConstants.S_ISDIR(stat.st_mode) && Identity.of(stat) == directoryIdentity) Os.remove(name) // Empty directory only.

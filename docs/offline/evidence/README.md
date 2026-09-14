@@ -23,3 +23,6 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Hosted native e3d6dc5 checkpoint](hosted-native-e3d6dc5.json): iOS64/64, both Android33/39 with six explicit skips and separate process recovery; native aggregate passed. Retained Flutter iOS and overall required gate are separate.
 - [Independent local receipt vector](local-receipt-independent.json): exact key derivation, AAD and ciphertext independently reproduced with Python standard HMAC and cryptography AESGCM. Native file lifecycle evidence remains in the platform reports.
+- [Final required checks at e3d6dc5](hosted-required-e3d6dc5.json): retained Flutter iOS passed; aggregate-only retry passed after the first attempt timed out waiting for it. All 23 listed checks succeeded, before the later native storage changes.
+
+- [Durable recovery runner checkpoint](durable-process-runners.json): separate writer/reader processes on iOS and Android API26/37, with exact source and log hashes. This precedes the subsequent Drive cancellation correction. Full generation and cancellation coverage remains in each native app report.

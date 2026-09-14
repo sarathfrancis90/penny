@@ -62,7 +62,7 @@ class VaultDeviceTest {
             assertFalse(String(raw, Charsets.ISO_8859_1).contains("Café Toronto"))
             assertFalse(String(raw, Charsets.ISO_8859_1).contains(incoming.attachments.single().dataBase64))
             val old = store.snapshot()
-            store.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_replace BEFORE INSERT ON expenses BEGIN SELECT RAISE(ABORT, 'injected write failure'); END")
+            store.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_replace BEFORE INSERT ON vault_rows WHEN NEW.domain='expenses' BEGIN SELECT RAISE(ABORT, 'injected write failure'); END")
             assertTrue(runCatching { store.replace(incoming.copy(expenses = incoming.expenses.map { it.copy(merchant = "Replacement") })) }.isFailure)
             store.writableDatabase.execSQL("DROP TRIGGER fail_replace")
             assertEquals(old.expenses, store.all()); assertEquals(old.attachments, store.attachments()); assertEquals(old.vaultId, store.vaultId())

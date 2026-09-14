@@ -55,7 +55,7 @@
     {
       "id": "crash_after_publish_valid",
       "visibleAfterRecovery": "new",
-      "previousRetention": "old",
+      "previousRetention": "until-new-verified",
       "requirement": "A pending valid new generation is authenticated on restart before it is exposed."
     },
     {
@@ -67,25 +67,25 @@
     {
       "id": "crash_after_verified",
       "visibleAfterRecovery": "new",
-      "previousRetention": "old",
+      "previousRetention": "until-new-verified",
       "requirement": "A verified new generation remains active after restart."
     },
     {
       "id": "established_corruption",
       "visibleAfterRecovery": "locked",
-      "previousRetention": "old",
+      "previousRetention": "no-automatic-rollback",
       "requirement": "Corruption without a pending transition locks the vault; it does not silently select old history."
     },
     {
       "id": "pinned_previous",
       "visibleAfterRecovery": "new",
-      "previousRetention": "old",
+      "previousRetention": "while-leased",
       "requirement": "An exporter lease retains old receipt files while the replacement is active."
     },
     {
       "id": "foreign_cleanup",
       "visibleAfterRecovery": "new",
-      "previousRetention": "old",
+      "previousRetention": "until-new-verified",
       "requirement": "Candidate or garbage cleanup preserves foreign files and replacement names."
     },
     {
@@ -97,7 +97,7 @@
     {
       "id": "legacy_migration",
       "visibleAfterRecovery": "old",
-      "previousRetention": "old",
+      "previousRetention": "until-new-verified",
       "requirement": "Migrating local storage alone preserves every domain, identifier, amount and receipt byte."
     }
   ]

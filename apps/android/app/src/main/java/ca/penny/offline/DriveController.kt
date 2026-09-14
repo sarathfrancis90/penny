@@ -23,7 +23,7 @@ object DriveConfiguration {
 data class DriveUiState(val configured: Boolean=false,val ready: Boolean=false,val enabled: Boolean=false,val automaticEnabled: Boolean=false,val automaticStatus: String="off",val busy: Boolean=false,val message: String="Drive backup is disabled.",val lastGood: CloudManifest?=null,val candidates: List<CloudManifest> = emptyList())
 
 /** Tokens, recovery text and discovery bytes never enter SavedState, SQLite or logs. */
-class DriveController(private val app: Context,private val vault: VaultStore,private val scope: CoroutineScope,private val preview: (Snapshot,Long,suspend ()->Unit)->Unit,private val transportFactory: (String,()->Unit)->CloudTransport = {token,guard->DriveTransport(token,guard)},private val configured: Boolean=DriveConfiguration.available(app),private val settings: CloudSettingsStore=CloudSettingsStore(app),private val recoveryStore: RecoveryKeyStore=RecoveryKeyStore(app),private val clearCredential: (String)->Unit = { value -> Identity.getAuthorizationClient(app).clearToken(ClearTokenRequest.builder().setToken(value).build());Unit },private val elapsed: ()->Long = android.os.SystemClock::elapsedRealtime) {
+class DriveController(private val app: Context,private val vault: VaultStore,private val scope: CoroutineScope,private val preview: (Snapshot,Long,suspend (RestoreOperation)->Unit)->Unit,private val transportFactory: (String,()->Unit)->CloudTransport = {token,guard->DriveTransport(token,guard)},private val configured: Boolean=DriveConfiguration.available(app),private val settings: CloudSettingsStore=CloudSettingsStore(app),private val recoveryStore: RecoveryKeyStore=RecoveryKeyStore(app),private val clearCredential: (String)->Unit = { value -> Identity.getAuthorizationClient(app).clearToken(ClearTokenRequest.builder().setToken(value).build());Unit },private val elapsed: ()->Long = android.os.SystemClock::elapsedRealtime) {
     private val epoch=CloudCoordinator.epoch
     private val lock=CloudCoordinator.lock
     private var job: Job?=null
@@ -102,10 +102,10 @@ class DriveController(private val app: Context,private val vault: VaultStore,pri
     fun select(manifest: CloudManifest): Unit = synchronized(lock) {
         val id=epoch.get();val ops=operations ?: return;val found=discovery ?: return;val key=discoveryKey ?: return
         if(mutable.value.busy) return
-        val revision=vault.revision()
+        val revision=vault.revision();val restoreBinding=vault.restoreBinding()
         mutable.value=mutable.value.copy(busy=true,message="Downloading and verifying your selected snapshot…")
         job=scope.launch(Dispatchers.IO) {
-            try {val snapshot=ops.restore(found,manifest,key);check(isCurrent(id));withContext(Dispatchers.Main) {check(isCurrent(id));preview(snapshot,revision) { ops.confirmBinding(); synchronized(lock) { check(isCurrent(id)); ops.requireActive(); vault.replace(snapshot,revision) } }}
+            try {val snapshot=ops.restore(found,manifest,key);check(isCurrent(id));withContext(Dispatchers.Main) {check(isCurrent(id));preview(snapshot,revision) { operation -> operation.check();ops.confirmBinding();operation.check();synchronized(lock) { check(isCurrent(id)); ops.requireActive(); vault.replace(snapshot,revision,restoreBinding,operation) } }}
                 synchronized(lock) {check(isCurrent(id));discovery=null;discoveryKey=null;operations=null;mutable.value=mutable.value.copy(busy=false,candidates=emptyList(),message="Selected Drive backup verified. Review all records before replacing this vault.")}}
             catch(e: Exception) {if(isCurrent(id)) cancel("Restore preview failed (${safeReason(e)}). Your local vault is unchanged.")}
         };CloudCoordinator.attach(id,checkNotNull(job))

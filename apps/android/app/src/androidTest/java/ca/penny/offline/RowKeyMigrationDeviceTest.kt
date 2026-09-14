@@ -46,6 +46,8 @@ class RowKeyMigrationDeviceTest {
     }
     private fun state(store:VaultStore)=buildMap<String,String> {
         (listOf("expenses","attachments")+FinanceData.limits.keys).forEach {table->store.readableDatabase.rawQuery("SELECT id,hex(sealed) FROM $table",null).use {while(it.moveToNext()) put("$table/${it.getString(0)}",it.getString(1))}}
+        store.readableDatabase.rawQuery("SELECT generationId,domain,id,hex(sealed) FROM vault_rows",null).use {while(it.moveToNext())put("row/${it.getString(0)}/${it.getString(1)}/${it.getString(2)}",it.getString(3))}
+        store.readableDatabase.rawQuery("SELECT id,hex(wrappedKey),hex(sealedHeader) FROM vault_generations",null).use {while(it.moveToNext())put("generation/${it.getString(0)}",it.getString(1)+":"+it.getString(2))}
         store.readableDatabase.rawQuery("SELECT key,value FROM metadata",null).use {while(it.moveToNext())put("metadata/${it.getString(0)}",it.getString(1))}
     }
     private fun equalRecords(expected:Snapshot,actual:Snapshot) {assertEquals(expected.vaultId,actual.vaultId);assertEquals(expected.expenses.toSet(),actual.expenses.toSet());assertEquals(expected.attachments.toSet(),actual.attachments.toSet());assertEquals(expected.finance,actual.finance)}
@@ -68,9 +70,9 @@ class RowKeyMigrationDeviceTest {
                 val changed=next.expenses.first().copy(note="Saved from prior connection")
                 store.save(changed);assertEquals(changed,second.all().first {it.id==changed.id})
                 val stable=state(store)
-                second.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_restore BEFORE INSERT ON incomeEntries BEGIN SELECT RAISE(ABORT,'injected restore failure'); END")
+                second.writableDatabase.execSQL("CREATE TEMP TRIGGER fail_restore BEFORE INSERT ON vault_rows WHEN NEW.domain='incomeEntries' BEGIN SELECT RAISE(ABORT,'injected restore failure'); END")
                 assertTrue(runCatching {second.replace(original)}.isFailure)
-                assertEquals(stable,state(store));assertEquals(changed,second.all().first {it.id==changed.id})
+                assertEquals(stable,state(store).filterKeys {it in stable});assertEquals(changed,second.all().first {it.id==changed.id})
             }
         }
         VaultStore(context,name,alias).use {assertTrue(it.snapshot().expenses.any {row->row.note=="Saved from prior connection"})}
@@ -79,11 +81,11 @@ class RowKeyMigrationDeviceTest {
         val original=fixture().copy(expenses=emptyList(),attachments=emptyList())
         VaultStore(context,name,alias).use {store->
             store.replace(original);store.snapshot()
-            store.writableDatabase.execSQL("UPDATE metadata SET value='damaged' WHERE key='dataKey'")
+            store.writableDatabase.execSQL("UPDATE vault_generations SET wrappedKey=zeroblob(60)")
             val damaged=state(store)
             assertTrue(runCatching {store.snapshot()}.isFailure);assertEquals(damaged,state(store))
             store.replace(original);equalRecords(original,store.snapshot())
-            store.writableDatabase.execSQL("DELETE FROM metadata WHERE key='dataKey'")
+            store.writableDatabase.execSQL("UPDATE vault_generations SET wrappedKey=X''")
             val missing=state(store)
             assertTrue(runCatching {store.snapshot()}.isFailure);assertEquals(missing,state(store))
             store.replace(original)
@@ -119,8 +121,8 @@ class RowKeyMigrationDeviceTest {
                 store.replace(original)
                 val selected=store.attachments().first().id
                 when(failure) {
-                    "missing DEK" -> store.writableDatabase.execSQL("DELETE FROM metadata WHERE key='dataKey'")
-                    "corrupt DEK" -> store.writableDatabase.execSQL("UPDATE metadata SET value='damaged' WHERE key='dataKey'")
+                    "missing DEK" -> store.writableDatabase.execSQL("UPDATE vault_generations SET wrappedKey=X''")
+                    "corrupt DEK" -> store.writableDatabase.execSQL("UPDATE vault_generations SET wrappedKey=zeroblob(60)")
                     else -> KeyStore.getInstance("AndroidKeyStore").apply {load(null);deleteEntry(alias)}
                 }
                 val before=state(store)

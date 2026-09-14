@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1264
+- Total source-visible files: 1282
 
 | Path | Area |
 |---|---|
@@ -81,8 +81,11 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/PolishFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ProcessPersistenceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptFlowTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt` | native-android |
 | `apps/android/app/src/main/AndroidManifest.xml` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/Attachment.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/AutomaticBackup.kt` | native-android |
@@ -100,6 +103,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/main/java/ca/penny/offline/FinanceMath.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/FinanceModels.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/FinanceScreen.kt` | native-android |
+| `apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/LocalIntelligence.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/MainActivity.kt` | native-android |
@@ -111,7 +115,9 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/main/java/ca/penny/offline/ReceiptParser.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/RecoveryDialog.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/RecoveryKeyStore.kt` | native-android |
+| `apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/StrictJson.kt` | native-android |
+| `apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt` | native-android |
 | `apps/android/app/src/main/res/drawable/ic_add.xml` | native-android |
 | `apps/android/app/src/main/res/drawable/ic_expenses.xml` | native-android |
@@ -143,6 +149,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/P5b.md` | native-android |
 | `apps/android/evidence/P6.md` | native-android |
 | `apps/android/evidence/capacity-v4-assessment.md` | native-android |
+| `apps/android/evidence/durable-generations.json` | native-android |
+| `apps/android/evidence/durable-generations.md` | native-android |
 | `apps/android/evidence/interoperability/android-cloud-runtime.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/android-cloud-runtime.pennymanifest` | native-android |
 | `apps/android/evidence/interoperability/android-runtime-v2.pennybackup` | native-android |
@@ -239,6 +247,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOffline.xcodeproj/project.xcworkspace/contents.xcworkspacedata` | native-ios |
 | `apps/ios/PennyOffline.xcodeproj/xcshareddata/xcschemes/PennyOffline.xcscheme` | native-ios |
 | `apps/ios/PennyOffline.xcodeproj/xcshareddata/xcschemes/PennyOfflineAccessibility.xcscheme` | native-ios |
+| `apps/ios/PennyOffline.xcodeproj/xcshareddata/xcschemes/PennyOfflineDurableProcess.xcscheme` | native-ios |
 | `apps/ios/PennyOffline.xcodeproj/xcshareddata/xcschemes/PennyOfflinePerformance.xcscheme` | native-ios |
 | `apps/ios/PennyOffline/ArchiveWorker.swift` | native-ios |
 | `apps/ios/PennyOffline/Assets.xcassets/AppIcon.appiconset/Contents.json` | native-ios |
@@ -251,6 +260,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOffline/CloudKitTransport.swift` | native-ios |
 | `apps/ios/PennyOffline/CloudManifest.swift` | native-ios |
 | `apps/ios/PennyOffline/CloudPublication.swift` | native-ios |
+| `apps/ios/PennyOffline/DurableVaultStorage.swift` | native-ios |
 | `apps/ios/PennyOffline/Expense.swift` | native-ios |
 | `apps/ios/PennyOffline/ExpensesView.swift` | native-ios |
 | `apps/ios/PennyOffline/FinanceEditor.swift` | native-ios |
@@ -280,11 +290,13 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOffline/VaultStore.swift` | native-ios |
 | `apps/ios/PennyOffline/VaultView.swift` | native-ios |
 | `apps/ios/PennyOfflineAccessibilityTests/AccessibilityAuditTests.swift` | native-ios |
+| `apps/ios/PennyOfflineDurableProcessTests/DurableProcessTests.swift` | native-ios |
 | `apps/ios/PennyOfflinePerformanceTests/NativePerformanceTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/ArchiveWorkerTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/AutomaticBackupTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/CaptureTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/CloudTests.swift` | native-ios |
+| `apps/ios/PennyOfflineTests/DurableStorageTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/FinanceTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/VaultTests.swift` | native-ios |
@@ -294,6 +306,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineUITests/FinanceFlowTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/VisualFlowTests.swift` | native-ios |
 | `apps/ios/README.md` | native-ios |
+| `apps/ios/evidence/durable-storage.json` | native-ios |
+| `apps/ios/evidence/durable-storage.md` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.json` | native-ios |
 | `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
 | `apps/ios/project.yml` | native-ios |
@@ -406,10 +420,12 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-performance.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
+| `docs/offline/evidence/durable-process-runners.json` | docs |
 | `docs/offline/evidence/hosted-crypto-3414197.json` | docs |
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
 | `docs/offline/evidence/hosted-native-e3d6dc5.json` | docs |
+| `docs/offline/evidence/hosted-required-e3d6dc5.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
 | `docs/offline/evidence/ios-accessibility-disposition.md` | docs |
 | `docs/offline/evidence/ios-accessibility-recheck.json` | docs |
@@ -993,8 +1009,10 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/mobile/check-api-only.ts` | script |
 | `scripts/offline/benchmark-contract.mjs` | script |
 | `scripts/offline/check-android-device.sh` | script |
+| `scripts/offline/check-android-generation.sh` | script |
 | `scripts/offline/check-avd-metadata.py` | script |
 | `scripts/offline/check-boundaries.py` | script |
+| `scripts/offline/check-ios-generation.sh` | script |
 | `scripts/offline/check-ios.sh` | script |
 | `scripts/offline/migrate-finance.mjs` | script |
 | `scripts/offline/migrate-finance.test.mjs` | script |

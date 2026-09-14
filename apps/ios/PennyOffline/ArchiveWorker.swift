@@ -21,8 +21,15 @@ actor ArchiveWorker {
         let id = UUID(); exports[id] = staged
         return PreparedArchive(id: id, url: staged.url, bytes: staged.bytes, snapshot: staged.verifiedSnapshot)
     }
-    func prepareVault(_ next: VaultSnapshot, key: SymmetricKey, revision: Int, writerId: String, restoreEpoch: String, restoring: Bool) throws -> PreparedVaultWrite {
-        try PreparedVaultWrite.prepare(next, key: key, revision: revision, writerId: writerId, restoreEpoch: restoreEpoch, restoring: restoring)
+    func prepareVault(_ next: VaultSnapshot, key: SymmetricKey, revision: Int, writerId: String, restoreEpoch: String, restoring: Bool, sourceDigest: String?, sourceStoreId: String) throws -> PreparedVaultWrite {
+        try PreparedVaultWrite.prepare(next, key: key, revision: revision, writerId: writerId, restoreEpoch: restoreEpoch, restoring: restoring, sourceDigest: sourceDigest, sourceStoreId: sourceStoreId)
+    }
+    func commitVault(_ prepared: PreparedVaultWrite, directory: URL, receipts: [LocalReceiptDescriptor], checkpoint: (@Sendable (VaultStore.CommitStage) throws -> Void)?) throws -> (DurableLoaded, String?) {
+        let storage = try DurableVaultStorage(directory)
+        return try storage.leased {
+            let loaded = try storage.commit(prepared, sourceDigest: prepared.sourceDigest, storeId: prepared.sourceStoreId, receipts: receipts, checkpoint: checkpoint)
+            return (loaded, try storage.liveBytes().map(DurableVaultStorage.digest))
+        }
     }
     func cancel(_ archive: PreparedArchive) { exports.removeValue(forKey: archive.id)?.cancel() }
     func decode(_ bytes: Data, key: String) throws -> VaultSnapshot {

@@ -14,3 +14,4 @@ if [[ -n "${PENNY_EXPECTED_PAGE_SIZE:-}" ]]; then
 fi
 ./gradlew --no-daemon -PpennyTestSandbox=true connectedDebugAndroidTest
 bash verify-process-persistence.sh
+bash ../../scripts/offline/check-android-generation.sh
