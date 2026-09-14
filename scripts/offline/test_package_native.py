@@ -3,6 +3,7 @@ import importlib.util
 import os
 from pathlib import Path
 import sys
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -107,7 +108,7 @@ class PackagingTests(unittest.TestCase):
                       "uploadCertificateSha256": "ab" * 32, "driveSigningSha256": "cd" * 32,
                       "apksigner": "/trusted/apksigner", "apkanalyzer": "/trusted/apkanalyzer",
                       "java": "/trusted/java", "bundletool": "/trusted/bundletool.jar"}
-            with patch.object(packaging, "run") as run:
+            with patch.dict(os.environ, {"ANDROID_HOME": "/trusted/sdk"}), patch.object(packaging, "run") as run:
                 products, args = packaging.android_build(config, output, output / "build.log", root)
             self.assertEqual([p.suffix for p in products], [".aab", ".apk"])
             self.assertEqual([p.read_bytes() for p in products], [aab.read_bytes(), apk.read_bytes()])
@@ -116,6 +117,32 @@ class PackagingTests(unittest.TestCase):
             self.assertIn(config["java"], args)
             self.assertIn("assembleRelease", run.call_args.args[0])
             self.assertIn("bundleRelease", run.call_args.args[0])
+            self.assertIn(f"-PpennySodiumOutput={output / 'crypto/native'}", run.call_args.args[0])
+
+    def test_isolated_snapshot_includes_shared_crypto_and_failed_preparation_stops_build(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            names = ["apps/ios/PennyOffline/Expense.swift", "packages/offline-crypto/apple/module/Reader.swift",
+                     "packages/offline-crypto/source-manifest.json", "packages/offline-crypto/LICENSE.libsodium",
+                     "scripts/offline/prepare-app-crypto.py"]
+            for name in names:
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("public synthetic source")
+            (root / ".gitignore").write_text(".build/\n")
+            ignored = root / "packages/offline-crypto/.build"
+            ignored.mkdir()
+            (ignored / "not-source.a").write_bytes(b"generated")
+            with patch.object(packaging, "ROOT", root):
+                self.assertEqual(set(packaging.sources()), set(names))
+            output = root / "output"
+            output.mkdir()
+            with patch.object(packaging, "run", side_effect=ValueError("unverified dependency")) as run, self.assertRaisesRegex(ValueError, "unverified dependency"):
+                packaging.ios_build({}, output, output / "build.log", root)
+            self.assertEqual(run.call_count, 1)
+            self.assertIn("prepare-app-crypto.py", run.call_args.args[0][1])
+            self.assertEqual(list(output.iterdir()), [])
 
     def test_ios_profile_only_exports_and_does_not_mutate_source_plist(self):
         import plistlib

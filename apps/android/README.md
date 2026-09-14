@@ -4,11 +4,19 @@ Independent Kotlin / Jetpack Compose development app. Application ID `ca.penny.o
 
 ## Build and run
 
-Requires JDK 17+, Android SDK 37.0 and an Android 8+ device or emulator. Open this directory in Android Studio, or run:
+Requires JDK 17+, Android SDK 37.0, NDK 28.2.13676358, CMake 3.22.1 and an Android 8+ device or emulator. Open this directory in Android Studio, or run:
 
 ```sh
-cd apps/android
+# From the repository root; Node 22 is required for source authentication.
 export ANDROID_HOME="$HOME/Library/Android/sdk"
+mkdir -p packages/offline-crypto/.build
+python3 scripts/offline/prepare-app-crypto.py android \
+  --output "$PWD/packages/offline-crypto/.build/app-android-local" \
+  --ndk "$ANDROID_HOME/ndk/28.2.13676358" --with-test-assets
+export PENNY_SODIUM_OUTPUT="$PWD/packages/offline-crypto/.build/app-android-local/native"
+export PENNY_V4_TEST_ASSETS="$PWD/packages/offline-crypto/.build/app-android-local/test-assets"
+export ORG_GRADLE_PROJECT_pennyV4TestAssets="$PENNY_V4_TEST_ASSETS"
+cd apps/android
 ./gradlew :app:assembleDebug :app:testDebugUnitTest
 ./gradlew -PpennyTestSandbox=true :app:connectedDebugAndroidTest :app:lintDebug
 sh verify-process-persistence.sh
@@ -93,3 +101,7 @@ P6 primary references checked 2026-09-13: [Android 17 setup](https://developer.a
 `LocalReceiptBlob` now supports durable reopen and receipt leases used by the local schema 4 `VaultGenerations` store. The existing 2 MiB/100 receipt/8 MiB limits and portable v1–v3 formats remain unchanged. The original foundation checkpoint is recorded in [evidence/local-receipt-foundation.md](evidence/local-receipt-foundation.md); current integration, exact API 26/API 37 evidence and outstanding lifecycle/performance scope are in [evidence/durable-generations.md](evidence/durable-generations.md).
 
 Snapshot hydration consumes each authenticated, fully decoded receipt once per read through an internal scoped callback. Borrowed bytes are wiped and final inventory/snapshot validation still gates return. [Single-pass hydration evidence](evidence/receipt-hydration.md) records focused API 26/API 37 regressions and a pinned before/after benchmark at the existing limits.
+
+## V4 reader module
+
+The app and prototype compile the same Kotlin/JNI codec sources. The internal reader applies the current ledger limits and validates authenticated logical input; it is not yet connected to restore, export or cloud actions. [App-reader evidence](evidence/v4-app-reader.md) records exact tests and boundaries. Native dependency preparation authenticates and builds pinned source into a new output directory; choose a new path for a fresh preparation. Normal app builds need only `PENNY_SODIUM_OUTPUT`; instrumentation additionally requires the generated corpus above. The exact ISC license is bundled as an app asset.

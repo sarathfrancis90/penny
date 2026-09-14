@@ -7,13 +7,23 @@ Independent SwiftUI development app, bundle `ca.penny.offline.dev`, deployment t
 Requires Xcode 26 and XcodeGen. The checked-in project is generated from `project.yml`.
 
 ```sh
+# From the repository root; Node 22 is required for source authentication.
+mkdir -p packages/offline-crypto/.build
+python3 scripts/offline/prepare-app-crypto.py ios \
+  --output "$PWD/packages/offline-crypto/.build/app-ios-local" --with-test-assets
+export PENNY_SODIUM_OUTPUT="$PWD/packages/offline-crypto/.build/app-ios-local/native"
+export PENNY_SODIUM_SOURCE="$PWD/packages/offline-crypto/.build/app-ios-local/source"
+export PENNY_V4_TEST_ASSETS="$PWD/packages/offline-crypto/.build/app-ios-local/test-assets"
 cd apps/ios
 xcodegen generate
 # Seed the public synthetic receipt into your booted test simulator.
 xcrun simctl addmedia booted ../../packages/offline-contract/fixtures/receipt.png
 xcodebuild -project PennyOffline.xcodeproj -scheme PennyOffline \
   -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4.1' \
-  -derivedDataPath .build -parallel-testing-enabled NO test
+  -derivedDataPath .build -parallel-testing-enabled NO \
+  "PENNY_SODIUM_OUTPUT=$PENNY_SODIUM_OUTPUT" \
+  "PENNY_SODIUM_SOURCE=$PENNY_SODIUM_SOURCE" \
+  "PENNY_V4_TEST_ASSETS=$PENNY_V4_TEST_ASSETS" test
 ```
 
 Keep normal simulator ad hoc signing enabled: `CODE_SIGNING_ALLOWED=NO` removes the simulated entitlement needed by Keychain and the app correctly refuses to open its vault. Device builds require a signing team.
@@ -109,3 +119,7 @@ The device-only configuration branch also compiles in an unsigned generic iPhone
 - The production bundle/listing transition must be settled with migration evidence. The development bundle intentionally coexists with the installed app.
 
 Apple references checked for this implementation: [Liquid Glass adoption](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass), [custom glass guidance](https://developer.apple.com/documentation/SwiftUI/Applying-Liquid-Glass-to-custom-views), [Foundation Models availability](https://developer.apple.com/documentation/foundationmodels/adding-intelligent-app-features-with-generative-models).
+
+## V4 reader module
+
+The static `PennyV4` target compiles the existing frame/logical codecs and actual stateless app validators. Its public facade owns bounded input and returns a validated summary; it cannot install data or write backups. The app adapter adds current expense/receipt limits. [App-module evidence](evidence/v4-app-module.md) records simulator, device compilation and authenticated malformed-input checks. Dependency preparation requires a new output directory. App builds need the authenticated source and native output settings; instrumentation also requires the generated corpus. Xcode verifies source, both static slices and installed header inventories before linking; the exact ISC notice is bundled.

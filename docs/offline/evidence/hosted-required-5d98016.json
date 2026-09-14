@@ -1,0 +1,144 @@
+{
+  "capturedAt": "2026-09-14T05:42:53.311164+00:00",
+  "scope": "Final hosted retained Flutter iOS and required aggregate for5d98016 only; later metadata/candidate/packaging commits not covered.",
+  "headSha": "5d98016148321a8d2e029b6c65f8c7bfe074a8f1",
+  "runs": [
+    {
+      "attempt": 1,
+      "conclusion": "success",
+      "createdAt": "2026-09-14T04:11:22Z",
+      "headSha": "5d98016148321a8d2e029b6c65f8c7bfe074a8f1",
+      "status": "completed",
+      "updatedAt": "2026-09-14T05:34:37Z",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112807",
+      "runId": 34805112807
+    },
+    {
+      "attempt": 1,
+      "conclusion": "success",
+      "createdAt": "2026-09-14T04:11:22Z",
+      "headSha": "5d98016148321a8d2e029b6c65f8c7bfe074a8f1",
+      "status": "completed",
+      "updatedAt": "2026-09-14T05:35:10Z",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34805112830",
+      "runId": 34805112830
+    }
+  ],
+  "checks": [
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103859519892",
+      "name": "native-offline-gate",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://vercel.com/github",
+      "name": "Vercel Preview Comments",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112799/job/103855539440",
+      "name": "security-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112807/job/103855369674",
+      "name": "mobile-ios-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370389",
+      "name": "native-offline-ios-simulator",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112799/job/103855369784",
+      "name": "dependency-security",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112869/job/103855369845",
+      "name": "mobile-shared-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370168",
+      "name": "native-offline-contract",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112863/job/103855370051",
+      "name": "firebase-rules-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112799/job/103855369944",
+      "name": "osv-scan",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112864/job/103855369919",
+      "name": "mobile-android-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112830/job/103855369843",
+      "name": "Penny Required Gate",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112902/job/103855369896",
+      "name": "sast-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112800/job/103855369733",
+      "name": "api-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370285",
+      "name": "native-offline-android-build",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112843/job/103855369842",
+      "name": "Flutter Analyze + Unit Tests",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112831/job/103855369732",
+      "name": "docs-contract-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112812/job/103855369778",
+      "name": "ci-policy-guard",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370308",
+      "name": "native-offline-android-api-26",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112934/job/103855370294",
+      "name": "native-offline-android-api-37.0",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112811/job/103855369722",
+      "name": "backend-tests",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34805112838/job/103855369805",
+      "name": "Generated Agent Docs",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://vercel.com/sarath-francis-projects/penny/2PgJT4sBwhWnTLWc4xRY53p1LYaQ",
+      "name": "Vercel",
+      "state": "SUCCESS"
+    }
+  ]
+}

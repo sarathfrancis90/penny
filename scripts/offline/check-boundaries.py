@@ -17,6 +17,12 @@ for relative in ("apps/ios/PennyOffline/Categories.swift", "apps/android/app/src
 sources = list((ROOT / "apps/ios/PennyOffline").glob("*.swift"))
 sources += list((ROOT / "apps/android/app/src/main/java").rglob("*.kt"))
 sources += [ROOT / "apps/android/app/build.gradle.kts"]
+sources += list((ROOT / "packages/offline-crypto/android/codec").rglob("*.kt"))
+sources += list((ROOT / "packages/offline-crypto/apple/module").rglob("*.swift"))
+# PennyV4 compiles these implementation files directly, not frozen prototype models.
+sources += [ROOT / "packages/offline-crypto/prototypes/apple" / name for name in (
+    "Sources/V4FrameCodec.swift", "LogicalSources/V4LogicalGate.swift",
+    "LogicalSources/V4NativeValidationSink.swift", "LogicalSupport/V4RecordJSON.swift")]
 for source in sources:
     text = source.read_text()
     if re.search(r'^\s*(?:import|implementation|api)\b.*(?:[Ff]irebase|[Ff]lutter|[Dd]io\b|com\.google\.genai|generativeai|PrivateCloudCompute)', text, re.M):

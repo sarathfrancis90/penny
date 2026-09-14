@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 : "${PENNY_IOS_DEVICE:?Select the isolated booted iOS test simulator}"
+: "${PENNY_SODIUM_OUTPUT:?Supply authenticated Apple libraries}"
+: "${PENNY_SODIUM_SOURCE:?Supply authenticated libsodium source}"
 mkdir -p apps/ios/.build
 PENNY_IOS_EVIDENCE="${PENNY_IOS_EVIDENCE:-$(mktemp -d "$PWD/apps/ios/.build/evidence.XXXXXX")}"
 mkdir -p "$PENNY_IOS_EVIDENCE"
@@ -11,6 +13,8 @@ PENNY_PROCESS_ARGS=(
   -destination "platform=iOS Simulator,id=$PENNY_IOS_DEVICE"
   -parallel-testing-enabled NO
   -derivedDataPath apps/ios/.build/DurableProcessDerivedData
+  "PENNY_SODIUM_OUTPUT=$PENNY_SODIUM_OUTPUT"
+  "PENNY_SODIUM_SOURCE=$PENNY_SODIUM_SOURCE"
   CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES
 )
 xcodebuild build-for-testing "${PENNY_PROCESS_ARGS[@]}" \

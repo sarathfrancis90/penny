@@ -32,8 +32,8 @@ and all 290 enabled pre-push Flutter tests.
 [Hosted native run34805112934](evidence/hosted-native-5d98016.json)
 passed all native jobs: iOS81/81 (72 unit and nine UI), both Android runtimes
 48/56 with eight explicit skips, and separate process persistence/recovery
-phases. Retained Flutter iOS and the repository required aggregate are still
-pending at this snapshot. This result covers5d98016 only.
+phases. Retained Flutter iOS and the repository required aggregate subsequently passed;
+[all23 exact-head checks succeeded](evidence/hosted-required-5d98016.json). This result covers5d98016 only.
 
 The durable storage milestone is pushed as `8815d04247fff3843fe82954f79622adf11cc263`.
 [Local integration gates](evidence/durable-integration-8815d04.json) passed: 88 Node
@@ -77,14 +77,21 @@ recorded below. Hosted results for the base commit do not cover this delta.
 
 ## Streamed backup work in progress
 
-The accepted local source is committed as `6d3e22d` (metadata/raw migration)
-and `c633fb9` (owned candidates/exported IPA), after hosted base5d98016.
-The next validated slice adds guarded installation of those raw-receipt
-candidates. iOS and Android each have a12k soft implementation checkpoint;
-shared acceptance has4k. Installation captures actual target/key identity, rejects intervening
-edits/restores and reuses the existing publication/recovery protocol. It remains internal, with no new UI, cloud or v4 integration.
+The accepted candidate-install checkpoint is pushed as `b22b4f6`, following
+`6d3e22d` (metadata/raw migration) and `c633fb9` (owned candidates/exported IPA).
+Guarded installation captures actual target/key identity, rejects intervening
+edits/restores and reuses the existing publication/recovery protocol. Exact
+AAB and IPA packaging preflights are in place. The latest head has its own
+hosted run; earlier green results do not establish its acceptance.
 
-After that, the locally achievable work is v4 app linkage and a logical writer,
+V4 readers now compile into both native apps, sharing the existing codec
+implementations. Focused app tests passed: iOS6/6 plus unsigned device
+compilation, Android4/4 on API26 and API37 plus JVM/build/lint. These internal
+readers validate archives and current limits; they are not connected to
+restore/export/provider actions. See [iOS evidence](../../apps/ios/evidence/v4-app-module.md)
+and [Android evidence](../../apps/android/evidence/v4-app-reader.md).
+
+Next, the locally achievable work is v4 candidate integration and a logical writer,
 incremental storage/reads, file-based provider transfer, measured Profile A
 capacity, complete legacy reconciliation and signed packaging. Real provider
 recovery, physical AI/security/accessibility and store gates remain separate.

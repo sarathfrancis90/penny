@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1347
+- Total source-visible files: 1364
 
 | Path | Area |
 |---|---|
@@ -87,6 +87,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/androidTest/java/ca/penny/offline/ReceiptFlowTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/RestoreCancellationDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/RowKeyMigrationDeviceTest.kt` | native-android |
+| `apps/android/app/src/androidTest/java/ca/penny/offline/V4AppReaderDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationDeviceTest.kt` | native-android |
 | `apps/android/app/src/androidTest/java/ca/penny/offline/VaultGenerationProcessTest.kt` | native-android |
@@ -121,6 +122,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/app/src/main/java/ca/penny/offline/RecoveryKeyStore.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/StrictJson.kt` | native-android |
+| `apps/android/app/src/main/java/ca/penny/offline/V4BackupReader.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt` | native-android |
 | `apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt` | native-android |
 | `apps/android/app/src/main/res/drawable/ic_add.xml` | native-android |
@@ -198,6 +200,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/receipt-candidate.md` | native-android |
 | `apps/android/evidence/receipt-hydration.json` | native-android |
 | `apps/android/evidence/receipt-hydration.md` | native-android |
+| `apps/android/evidence/v4-app-reader.json` | native-android |
+| `apps/android/evidence/v4-app-reader.md` | native-android |
 | `apps/android/gradle.properties` | native-android |
 | `apps/android/gradle/wrapper/gradle-wrapper.jar` | native-android |
 | `apps/android/gradle/wrapper/gradle-wrapper.properties` | native-android |
@@ -278,6 +282,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOffline/FinanceEditor.swift` | native-ios |
 | `apps/ios/PennyOffline/FinanceEngine.swift` | native-ios |
 | `apps/ios/PennyOffline/FinanceModels.swift` | native-ios |
+| `apps/ios/PennyOffline/FinanceSnapshotValidation.swift` | native-ios |
 | `apps/ios/PennyOffline/FinanceStore.swift` | native-ios |
 | `apps/ios/PennyOffline/FinanceView.swift` | native-ios |
 | `apps/ios/PennyOffline/Info.plist` | native-ios |
@@ -299,6 +304,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOffline/RecoveryExport.swift` | native-ios |
 | `apps/ios/PennyOffline/StrictJSON.swift` | native-ios |
 | `apps/ios/PennyOffline/UITestCloudTransport.swift` | native-ios |
+| `apps/ios/PennyOffline/V4ReadOnlyAdapter.swift` | native-ios |
 | `apps/ios/PennyOffline/VaultStore.swift` | native-ios |
 | `apps/ios/PennyOffline/VaultView.swift` | native-ios |
 | `apps/ios/PennyOfflineAccessibilityTests/AccessibilityAuditTests.swift` | native-ios |
@@ -312,6 +318,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineTests/FinanceTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/InactiveGenerationTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/LocalReceiptBlobTests.swift` | native-ios |
+| `apps/ios/PennyOfflineTests/V4AppModuleTests.swift` | native-ios |
 | `apps/ios/PennyOfflineTests/VaultTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CaptureFlowTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/CloudFlowTests.swift` | native-ios |
@@ -337,6 +344,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/local-receipt-foundation.md` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.json` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.md` | native-ios |
+| `apps/ios/evidence/v4-app-module.json` | native-ios |
+| `apps/ios/evidence/v4-app-module.md` | native-ios |
 | `apps/ios/project.yml` | native-ios |
 | `assets/offline/README.md` | repo |
 | `assets/offline/penny-offline-foreground.svg` | repo |
@@ -447,6 +456,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/android-p6-api37-summary.json` | docs |
 | `docs/offline/evidence/android-p6-performance.json` | docs |
 | `docs/offline/evidence/android-receipt-input-readiness.json` | docs |
+| `docs/offline/evidence/app-codec-integration.json` | docs |
 | `docs/offline/evidence/candidate-install-integration.json` | docs |
 | `docs/offline/evidence/candidate-ipa-integration.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
@@ -461,6 +471,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-native-6cdf304.json` | docs |
 | `docs/offline/evidence/hosted-native-8815d04.json` | docs |
 | `docs/offline/evidence/hosted-native-e3d6dc5.json` | docs |
+| `docs/offline/evidence/hosted-required-5d98016.json` | docs |
 | `docs/offline/evidence/hosted-required-e3d6dc5.json` | docs |
 | `docs/offline/evidence/hosted-security-25a776c.json` | docs |
 | `docs/offline/evidence/ios-accessibility-disposition.md` | docs |
@@ -918,10 +929,18 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-crypto/android/VALIDATION.md` | shared-package |
 | `packages/offline-crypto/android/build.py` | shared-package |
 | `packages/offline-crypto/android/check_consumer.py` | shared-package |
+| `packages/offline-crypto/android/codec/README.md` | shared-package |
+| `packages/offline-crypto/android/codec/cpp/CMakeLists.txt` | shared-package |
+| `packages/offline-crypto/android/codec/cpp/frame_jni.cpp` | shared-package |
+| `packages/offline-crypto/android/codec/kotlin/ca/penny/v4frameprobe/FrameCodec.kt` | shared-package |
+| `packages/offline-crypto/android/codec/kotlin/ca/penny/v4frameprobe/LogicalCodec.kt` | shared-package |
 | `packages/offline-crypto/apple/LinkProbe.swift` | shared-package |
 | `packages/offline-crypto/apple/README.md` | shared-package |
 | `packages/offline-crypto/apple/build.py` | shared-package |
+| `packages/offline-crypto/apple/check_build_verification.py` | shared-package |
 | `packages/offline-crypto/apple/check_rejections.py` | shared-package |
+| `packages/offline-crypto/apple/module/PennyV4Reader.swift` | shared-package |
+| `packages/offline-crypto/apple/verify_build.py` | shared-package |
 | `packages/offline-crypto/libsodium-1.0.22.tar.gz.minisig` | shared-package |
 | `packages/offline-crypto/prepare_source.py` | shared-package |
 | `packages/offline-crypto/prototypes/android/.gitignore` | shared-package |
@@ -931,11 +950,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `packages/offline-crypto/prototypes/android/app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/androidTest/java/ca/penny/v4frameprobe/LogicalCodecDeviceTest.kt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/AndroidManifest.xml` | shared-package |
-| `packages/offline-crypto/prototypes/android/app/src/main/cpp/CMakeLists.txt` | shared-package |
-| `packages/offline-crypto/prototypes/android/app/src/main/cpp/frame_jni.cpp` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/offline/BackupExporter.kt` | shared-package |
-| `packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt` | shared-package |
-| `packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/v4frameprobe/LogicalCodec.kt` | shared-package |
 | `packages/offline-crypto/prototypes/android/app/src/main/res/xml/data_extraction_rules.xml` | shared-package |
 | `packages/offline-crypto/prototypes/android/build.gradle.kts` | shared-package |
 | `packages/offline-crypto/prototypes/android/evidence/logical-validation.json` | shared-package |
@@ -1082,6 +1097,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/migrate-raw-evidence.mjs` | script |
 | `scripts/offline/migrate-raw-evidence.test.mjs` | script |
 | `scripts/offline/package-native.py` | script |
+| `scripts/offline/prepare-app-crypto.py` | script |
 | `scripts/offline/release-preflight.py` | script |
 | `scripts/offline/requirements.txt` | script |
 | `scripts/offline/test_aab_artifact.py` | script |
@@ -1089,6 +1105,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `scripts/offline/test_avd_metadata.py` | script |
 | `scripts/offline/test_ipa_artifact.py` | script |
 | `scripts/offline/test_package_native.py` | script |
+| `scripts/offline/test_prepare_app_crypto.py` | script |
 | `scripts/offline/test_release_preflight.py` | script |
 | `sentry.client.config.ts` | repo |
 | `sentry.edge.config.ts` | repo |

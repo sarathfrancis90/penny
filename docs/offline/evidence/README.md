@@ -50,3 +50,7 @@ Later integration evidence includes hosted security checks at 25a776c and the iO
 
 - [Guarded local candidate installation and AAB integration](candidate-install-integration.json): paired local source/runtime gates, independent review and exact scope; no v4/capacity/store acceptance.
 - [AAB helper validation](aab-preflight.json): actual JDK/bundletool synthetic positives and rejections, pinned tool/source, no production signing.
+
+- [Hosted required5d98016](hosted-required-5d98016.json): all23 checks eventually succeeded on that exact earlier source, including retained Flutter iOS.
+- [iOS v4 app module](../../../apps/ios/evidence/v4-app-module.md) and [Android v4 app reader](../../../apps/android/evidence/v4-app-reader.md): actual app-linked validation at current limits; restore/export integration remains separate.
+- [V4 app-link integration](app-codec-integration.json): bounded app gates, independent metadata-limit correction, fresh authenticated Apple dependency preparation and root provenance checks.

@@ -1,0 +1,115 @@
+{
+  "scope": "App-linked v4 read-only validators and authenticated build orchestration at current caps; no restore/export/provider integration or increased-capacity acceptance",
+  "baseCommit": "b22b4f6391f471b1f650edae9f1b358652f570db",
+  "portableValidation": {
+    "nodeTests": 119,
+    "scriptPythonTests": 57,
+    "cryptoPythonTests": 5,
+    "failures": 0,
+    "skips": 0,
+    "staticBoundaryFiles": 76,
+    "categories": 38,
+    "log": "artifacts/offline/app-codec-offline-check.log"
+  },
+  "android": {
+    "report": "apps/android/evidence/v4-app-reader.json",
+    "rootVerifiedPins": 68,
+    "appTestsEachApi26And37": 4,
+    "prototypeApi37Smoke": 2,
+    "jvmTests": 25,
+    "buildAndLint": "passed",
+    "newJni16KiBAlignment": "all4ABIs; existing32bitOCR4KiB limitation remains"
+  },
+  "ios": {
+    "report": "apps/ios/evidence/v4-app-module.json",
+    "rootVerifiedFinalSourceAndProductPins": 26,
+    "originalFocusedRun": {
+      "passed": 6,
+      "skipped": 0
+    },
+    "metadataCapCorrectionOverlay": {
+      "passed": 2,
+      "skipped": 0
+    },
+    "deviceCompile": "passed before metadata-policy overlay; no final device binary or hardware inference claim"
+  },
+  "dependencyPreparation": {
+    "status": "passed",
+    "report": "/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/app-crypto-orchestrator/.build/ios-run-01/preparation-report.json",
+    "reportSha256": "fad6acbc6e1ceccb8a57576f968a57849130840a9eae32f4ab113493e1263bc0",
+    "nativeLibraries": [
+      {
+        "path": "/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/app-crypto-orchestrator/.build/ios-run-01/native/ios-arm64/install/lib/libsodium.a",
+        "sha256": "193916b750799d6170688fc3fb94aba335c18a450d88cd7b3a3e04aeb9321d29",
+        "bytes": 441832
+      },
+      {
+        "path": "/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/app-crypto-orchestrator/.build/ios-run-01/native/ios-simulator-arm64/install/lib/libsodium.a",
+        "sha256": "47ba1db511d97be34e97158bd6c66277fde75845fac4dae9e293b5df03fd5804",
+        "bytes": 454504
+      }
+    ],
+    "referenceLibrary": {
+      "path": "/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/app-crypto-orchestrator/.build/ios-run-01/reference/install/lib/libsodium.26.dylib",
+      "sha256": "01b6c257239c55eabb51f6a242ff6752cf68b5ca1afebda217e2774de80cd54a",
+      "bytes": 321280
+    },
+    "upstreamCheck": {
+      "run": true,
+      "total": 87,
+      "pass": 87,
+      "skip": 0,
+      "xfail": 0,
+      "fail": 0,
+      "xpass": 0,
+      "error": 0
+    },
+    "testAssets": {
+      "frameManifest": {
+        "path": "/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/app-crypto-orchestrator/.build/ios-run-01/test-assets/v4-frame-negatives/negative-manifest.json",
+        "sha256": "7d7c1f5f85e20e410d28784298c43ff7b5f09e5e6f5974057967f432e01e9c3b",
+        "bytes": 10748
+      },
+      "logicalManifest": {
+        "path": "/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/app-crypto-orchestrator/.build/ios-run-01/test-assets/v4-logical-materialized/fixture-manifest.json",
+        "sha256": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32",
+        "bytes": 50979
+      },
+      "frameNegatives": 28,
+      "logicalPositives": 10,
+      "logicalNegatives": 60
+    },
+    "sourcePins": {
+      "manifestSha256": "0bc9e3168db182dffdb0c81d0de0ff7809e3023de2bd2e0bfee406eb322ae8e5",
+      "archiveSha256": "adbdd8f16149e81ac6078a03aca6fc03b592b89ef7b5ed83841c086191be3349",
+      "sourceTreeSha256": "2871798a902683da8f5767ab32920d5e04ee7fc89cf8eedeeb7e2fe48e8e9407"
+    },
+    "scope": "Fresh complete iOS dependency preparation and optional test assets; not app runtime/build or Android orchestrator proof",
+    "node": "v22.15.0",
+    "helperSha256": "7dad035a574219ac2cb193e50314f59ecb593278ed5be823301f692127d5f580"
+  },
+  "independentReview": {
+    "metadataParityFinding": "iOS cap omission corrected with actual encrypted long-metadata regression; early and final metadata caps now enforced",
+    "rootWiring": "New orchestrator logs retained by CI; Android process rebuilds inherit generated test corpus; isolated release source snapshot includes shared crypto",
+    "additionalFindings": []
+  },
+  "remaining": [
+    "Candidate linkage and logical writer",
+    "Incremental metadata/storage and measured larger capacity",
+    "Real account provider/device recovery",
+    "Physical AI/security/accessibility and signed store artifacts"
+  ],
+  "integrationValidation": {
+    "reviewDocsTests": 104,
+    "changedSourceSast": {
+      "requestedPaths": 21,
+      "scannedPaths": 21,
+      "findings": 0,
+      "errors": 0,
+      "report": "artifacts/offline/app-codec-review-sast.json"
+    },
+    "protectedUnrelatedLegacyFiles": {
+      "verifiedUnchanged": 18
+    }
+  }
+}

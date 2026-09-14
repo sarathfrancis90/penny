@@ -2,6 +2,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 command -v xcodebuild >/dev/null
+: "${PENNY_SODIUM_OUTPUT:?Prepare authenticated Apple libraries before running app tests}"
+: "${PENNY_SODIUM_SOURCE:?Supply the authenticated libsodium source directory}"
+: "${PENNY_V4_TEST_ASSETS:?Prepare the required v4 app test corpus}"
+test -f "$PENNY_V4_TEST_ASSETS/v4-frame-negatives/negative-manifest.json"
+test -f "$PENNY_V4_TEST_ASSETS/v4-logical-materialized/fixture-manifest.json"
 PENNY_IOS_DEVICE="${PENNY_IOS_DEVICE:-$(xcrun simctl list devices available --json | python3 -c '
 import json,sys
 devices=json.load(sys.stdin)["devices"]
@@ -28,6 +33,9 @@ xcodebuild test \
   -parallel-testing-enabled NO \
   -derivedDataPath apps/ios/.build/DerivedData \
   -resultBundlePath "$PENNY_IOS_EVIDENCE/Tests.xcresult" \
+  "PENNY_SODIUM_OUTPUT=$PENNY_SODIUM_OUTPUT" \
+  "PENNY_SODIUM_SOURCE=$PENNY_SODIUM_SOURCE" \
+  "PENNY_V4_TEST_ASSETS=$PENNY_V4_TEST_ASSETS" \
   CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=YES \
   2>&1 | tee "$PENNY_IOS_EVIDENCE/xcodebuild.log"
 PENNY_IOS_DEVICE="$PENNY_IOS_DEVICE" PENNY_IOS_EVIDENCE="$PENNY_IOS_EVIDENCE" \

@@ -24,7 +24,7 @@ def run(command, directory, log):
 
 def sources():
     names = subprocess.check_output(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--",
-                                     "apps/ios", "apps/android", "packages/offline-contract", "assets/offline", "scripts/offline"], cwd=ROOT)
+                                     "apps/ios", "apps/android", "packages/offline-contract", "packages/offline-crypto", "assets/offline", "scripts/offline"], cwd=ROOT)
     return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
             for name in sorted(set(names.decode().split("\0")) - {""}) if (ROOT / name).is_file()}
 
@@ -95,8 +95,23 @@ def configuration(value, platform, store_max):
     return value
 
 
+def prepare_crypto(platform, output, log, workspace):
+    """Build pinned dependencies inside this isolated packaging evidence tree."""
+    destination = output / "crypto"
+    command = [sys.executable, str(workspace / "scripts/offline/prepare-app-crypto.py"),
+               platform, "--output", str(destination)]
+    if platform == "android":
+        sdk = os.environ.get("ANDROID_HOME")
+        if not sdk or not Path(sdk).is_absolute():
+            raise ValueError("Android packaging requires explicit absolute ANDROID_HOME")
+        command += ["--ndk", str(Path(sdk) / "ndk/28.2.13676358")]
+    run(command, workspace, log)
+    return destination
+
+
 def ios_build(config, output, log, workspace=None):
     workspace = workspace or ROOT
+    crypto = prepare_crypto("ios", output, log, workspace)
     bundle = "com.penny.pennyMobile"
     with (workspace / "apps/ios/PennyOffline/Info.plist").open("rb") as stream:
         info = plistlib.load(stream)
@@ -119,6 +134,7 @@ def ios_build(config, output, log, workspace=None):
     run(["xcodebuild", "archive", "-project", "apps/ios/PennyOffline.xcodeproj", "-scheme", "PennyOffline",
          "-configuration", "Release", "-destination", "generic/platform=iOS", "-archivePath", str(archive),
          "-derivedDataPath", str(output / "DerivedData"), f"PRODUCT_BUNDLE_IDENTIFIER={bundle}",
+         f"PENNY_SODIUM_OUTPUT={crypto / 'native'}", f"PENNY_SODIUM_SOURCE={crypto / 'source'}",
          f"MARKETING_VERSION={config['version']}", f"CURRENT_PROJECT_VERSION={config['build']}",
          "CODE_SIGN_STYLE=Manual", "CODE_SIGNING_ALLOWED=YES", f"DEVELOPMENT_TEAM={config['teamId']}",
          f"CODE_SIGN_IDENTITY={config['signingIdentity']}", f"PROVISIONING_PROFILE_SPECIFIER={config['profileUUID']}",
@@ -137,7 +153,9 @@ def ios_build(config, output, log, workspace=None):
 
 def android_build(config, output, log, workspace=None):
     workspace = workspace or ROOT
+    crypto = prepare_crypto("android", output, log, workspace)
     run(["./gradlew", "--no-daemon", "--no-configuration-cache", "-PpennyRelease=true",
+         f"-PpennySodiumOutput={crypto / 'native'}",
          f"-PpennyVersionName={config['version']}", f"-PpennyVersionCode={config['build']}",
          f"-PpennyDriveAndroidClientId={config['driveClientId']}", f"-PpennyDriveSigningSha256={config['driveSigningSha256']}",
          "assembleRelease", "bundleRelease"], workspace / "apps/android", log)

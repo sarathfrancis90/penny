@@ -13,37 +13,9 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[3]
 
 
-def safe_path(value):
-    path = Path(value).absolute()
-    if not re.fullmatch(r"[A-Za-z0-9_./-]+", str(path)):
-        raise ValueError("unsupported path characters: " + str(path))
-    resolved = path.resolve()
-    if not re.fullmatch(r"[A-Za-z0-9_./-]+", str(resolved)):
-        raise ValueError("unsupported resolved path characters: " + str(resolved))
-    return resolved
-
-
-def digest(path):
-    with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
-
-
-def verify_header_inventory(slice_path, artifacts):
-    """Reject include-path shadowing and symlink escapes before invoking Xcode."""
-    include = slice_path / "install/include"
-    if include.is_symlink() or not include.is_dir():
-        raise ValueError("Apple include directory must be a regular directory")
-    actual = set()
-    for path in include.rglob("*"):
-        if path.is_symlink():
-            raise ValueError("symlink in Apple include directory")
-        if path.is_file():
-            actual.add(path.relative_to(slice_path).as_posix())
-        elif not path.is_dir():
-            raise ValueError("non-regular Apple include entry")
-    expected = {name for name in artifacts if name.startswith("install/include/")}
-    if not expected or actual != expected:
-        raise ValueError("Apple installed header inventory mismatch")
+# Share the compiler-input checks with the app target; no copied verifier.
+sys.path.insert(0, str(REPO / "packages/offline-crypto/apple"))
+from verify_build import safe_path, digest, verify_header_inventory, verify_build
 
 
 def run(argv, cwd=None):
@@ -87,20 +59,9 @@ def main():
     if args.simulator in ("730A6A04-3E7B-4B48-928C-7FE76873010F", "ADAF1F4D-A375-4DB2-85E7-9A1AA76F3D82"):
         raise ValueError("reserved simulator")
     report = json.loads((build / "build-report.json").read_text())
-    pin = json.loads((REPO / "packages/offline-crypto/source-manifest.json").read_text())
-    if report["status"] != "passed" or report["deploymentTarget"] != "26.0":
-        raise ValueError("Apple build was not validated at deployment target 26.0")
-    verified = report["sourceVerification"]
-    if verified["version"] != pin["version"] or verified["sourceTreeSha256"] != pin["sourceTree"]["sha256"] or verified["archiveSha256"] != pin["archive"]["sha256"]:
-        raise ValueError("Apple build source pin mismatch")
-    slice_report = next(row for row in report["slices"] if row["name"] == "ios-simulator-arm64")
+    verification = verify_build(build, safe_path(report["source"]))
+    verified = verification["sourceVerification"]
     slice_path = build / "ios-simulator-arm64"
-    verify_header_inventory(slice_path, slice_report["artifacts"])
-    for name, expected in slice_report["artifacts"].items():
-        if not re.fullmatch(r"install/[A-Za-z0-9_./-]+", name) or ".." in Path(name).parts:
-            raise ValueError("invalid build artifact name")
-        if digest(slice_path / name) != expected:
-            raise ValueError("Apple artifact mismatch: " + name)
     install = slice_path / "install"
     files = fixtures(REPO / "packages/offline-contract/fixtures/v4-frames/fixture-manifest.json", "positives")
     files += fixtures(negatives / "negative-manifest.json", "cases")

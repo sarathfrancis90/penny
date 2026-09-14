@@ -1,4 +1,15 @@
+import java.io.File
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
+
 plugins { id("com.android.application"); id("org.jetbrains.kotlin.plugin.compose") }
+val sodiumOutput = providers.gradleProperty("pennySodiumOutput").orElse(providers.environmentVariable("PENNY_SODIUM_OUTPUT")).orNull
+    ?: error("Supply -PpennySodiumOutput or PENNY_SODIUM_OUTPUT with the absolute authenticated Android sodium build output")
+require(File(sodiumOutput).isAbsolute && file("$sodiumOutput/build-result.json").isFile) { "Verified sodium build report is required" }
 val pennyRelease = providers.gradleProperty("pennyRelease").orNull == "true"
 val pennySandbox = providers.gradleProperty("pennyTestSandbox").orNull == "true"
 require(!(pennyRelease && pennySandbox)) { "Production and test sandbox profiles cannot be combined" }
@@ -8,8 +19,11 @@ require(signingValues.all { it.isNullOrEmpty() } || signingValues.all { !it.isNu
 android {
     namespace = "ca.penny.offline"
     compileSdk = 37
+    ndkVersion = "28.2.13676358"
     defaultConfig {
         applicationId = if(pennyRelease) "com.penny.penny_mobile" else if(pennySandbox) "ca.penny.offline.dev.test" else "ca.penny.offline.dev"
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64") }
+        externalNativeBuild { cmake { arguments += listOf("-DPENNY_SODIUM_OUTPUT=$sodiumOutput", "-DANDROID_STL=c++_static", "-DANDROID_PLATFORM=android-26") } }
         minSdk = 26
         targetSdk = 37
         versionCode = if(pennyRelease) checkNotNull(providers.gradleProperty("pennyVersionCode").orNull) { "Production profile requires an explicit fresh version code" }.also { require(Regex("[1-9][0-9]*").matches(it)) }.toInt().also { require(it in 1..2100000000) } else 1
@@ -33,6 +47,7 @@ android {
         buildTypes.getByName("release").signingConfig = configured
     }
     buildFeatures { compose = true; buildConfig = true }
+    externalNativeBuild { cmake { path = file("../../../packages/offline-crypto/android/codec/cpp/CMakeLists.txt"); version = "3.22.1" } }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     testOptions { unitTests.isReturnDefaultValues = true }
     sourceSets.getByName("test").resources.srcDir("../../../packages/offline-contract/fixtures")
@@ -63,4 +78,38 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("androidx.compose.ui:ui-tooling")
+}
+
+androidComponents.onVariants { variant -> variant.sources.kotlin?.addStaticSourceDirectory("../../../packages/offline-crypto/android/codec/kotlin") }
+
+abstract class SodiumLicenseAssets : DefaultTask() {
+    @get:InputFile abstract val license: RegularFileProperty
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+    @TaskAction fun prepare() { project.sync { from(license); into(outputDirectory) } }
+}
+val sodiumLicenseAssets by tasks.registering(SodiumLicenseAssets::class) {
+    license.set(file("../../../packages/offline-crypto/LICENSE.libsodium"))
+    outputDirectory.set(layout.buildDirectory.dir("sodium-license-assets"))
+}
+abstract class V4ReaderTestAssets : DefaultTask() {
+    @get:InputDirectory abstract val sourceDirectory: DirectoryProperty
+    @get:OutputDirectory abstract val outputDirectory: DirectoryProperty
+    @TaskAction fun prepare() { project.sync {
+        from(sourceDirectory) {
+            include("v4-frame-negatives/negative-manifest.json", "v4-frame-negatives/*.pennyframe",
+                "v4-logical-materialized/fixture-manifest.json", "v4-logical-materialized/*.pennylogical")
+        }
+        into(outputDirectory)
+    } }
+}
+val v4TestSource = providers.gradleProperty("pennyV4TestAssets").orNull
+val v4ReaderAssets = v4TestSource?.let { source ->
+    require(File(source).isAbsolute && file(source).isDirectory)
+    tasks.register<V4ReaderTestAssets>("prepareV4ReaderTestAssets") {
+        sourceDirectory.set(file(source)); outputDirectory.set(layout.buildDirectory.dir("v4-reader-test-assets"))
+    }
+}
+androidComponents.onVariants { variant ->
+    variant.sources.assets?.addGeneratedSourceDirectory(sodiumLicenseAssets) { it.outputDirectory }
+    v4ReaderAssets?.let { task -> variant.androidTest?.sources?.assets?.addGeneratedSourceDirectory(task) { it.outputDirectory } }
 }

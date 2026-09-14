@@ -30,11 +30,9 @@ class RunnerBoundaries(unittest.TestCase):
                 "slices": [{"name": "ios-simulator-arm64", "artifacts": {"install/include/sodium.h": hashlib.sha256(header.read_bytes()).hexdigest()}}]}
             (build / "build-report.json").write_text(json.dumps(report))
             output = root / "output"
-            args = ["run.py", "--apple-build", str(build), "--negative-fixtures", "/nonexistent", "--output", str(output),
-                    "--simulator", "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088", "--preflight-only"]
-            with patch.object(sys, "argv", args), patch.object(runner, "run", side_effect=AssertionError("process must not run")):
+            with patch.object(runner, "run", side_effect=AssertionError("process must not run")):
                 with self.assertRaisesRegex(ValueError, "header inventory mismatch"):
-                    runner.main()
+                    runner.verify_header_inventory(install.parent, report["slices"][0]["artifacts"])
             self.assertFalse(output.exists())
 
     def test_header_file_and_directory_symlinks_rejected(self):

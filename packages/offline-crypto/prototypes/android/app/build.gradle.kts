@@ -68,7 +68,7 @@ android {
         ndk { abiFilters += listOf("arm64-v8a","armeabi-v7a","x86","x86_64") }
         externalNativeBuild { cmake { arguments += listOf("-DPENNY_SODIUM_OUTPUT=$sodiumOutput","-DANDROID_STL=c++_static","-DANDROID_PLATFORM=android-26") } }
     }
-    externalNativeBuild { cmake { path=file("src/main/cpp/CMakeLists.txt");version="3.22.1" } }
+    externalNativeBuild { cmake { path=file("../../../android/codec/cpp/CMakeLists.txt");version="3.22.1" } }
     compileOptions { sourceCompatibility=JavaVersion.VERSION_17;targetCompatibility=JavaVersion.VERSION_17 }
     sourceSets.getByName("androidTest").assets.srcDir("../../../../offline-contract/fixtures/v4-frames")
     sourceSets.getByName("androidTest").assets.srcDir(peerFixtures)
@@ -83,3 +83,5 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("junit:junit:4.13.2")
 }
+
+androidComponents.onVariants { variant -> variant.sources.kotlin?.addStaticSourceDirectory("../../../android/codec/kotlin") }

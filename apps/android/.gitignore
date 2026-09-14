@@ -9,3 +9,5 @@ evidence/*.xml
 evidence/*.log
 evidence/**/*.log
 evidence/generation-process.json
+
+.cxx/

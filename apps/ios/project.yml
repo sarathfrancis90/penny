@@ -11,11 +11,55 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     GENERATE_INFOPLIST_FILE: YES
     CODE_SIGN_STYLE: Automatic
+    ARCHS: arm64
+    PENNY_SODIUM_OUTPUT: $(SRCROOT)/../../packages/offline-crypto/.build/apple
+    PENNY_SODIUM_SOURCE: ""
+    "PENNY_SODIUM_SLICE[sdk=iphoneos*]": ios-arm64
+    "PENNY_SODIUM_SLICE[sdk=iphonesimulator*]": ios-simulator-arm64
+    SWIFT_INCLUDE_PATHS: $(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/include
 targets:
+  PennyV4:
+    type: library.static
+    platform: iOS
+    sources:
+      - ../../packages/offline-crypto/apple/module
+      - ../../packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift
+      - ../../packages/offline-crypto/prototypes/apple/LogicalSources/V4LogicalGate.swift
+      - ../../packages/offline-crypto/prototypes/apple/LogicalSources/V4NativeValidationSink.swift
+      - ../../packages/offline-crypto/prototypes/apple/LogicalSupport/V4RecordJSON.swift
+      - PennyOffline/Expense.swift
+      - PennyOffline/FinanceModels.swift
+      - PennyOffline/FinanceSnapshotValidation.swift
+      - PennyOffline/FinanceEngine.swift
+      - PennyOffline/ReceiptAttachment.swift
+      - PennyOffline/PNGIntegrity.swift
+      - PennyOffline/Categories.swift
+    settings:
+      base:
+        DEFINES_MODULE: YES
+        HEADER_SEARCH_PATHS: $(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/include
+    preBuildScripts:
+      - name: Verify pinned Apple crypto inputs
+        basedOnDependencyAnalysis: false
+        script: |
+          set -eu
+          test "${ARCHS}" = arm64
+          test "${IPHONEOS_DEPLOYMENT_TARGET}" = 26.0
+          case "${PLATFORM_NAME}:${PENNY_SODIUM_SLICE}" in
+            iphoneos:ios-arm64|iphonesimulator:ios-simulator-arm64) ;;
+            *) exit 1 ;;
+          esac
+          test -n "${PENNY_SODIUM_SOURCE}"
+          python3 "${SRCROOT}/../../packages/offline-crypto/apple/verify_build.py" --build "${PENNY_SODIUM_OUTPUT}" --source "${PENNY_SODIUM_SOURCE}"
   PennyOffline:
     type: application
     platform: iOS
-    sources: [PennyOffline]
+    sources:
+      - PennyOffline
+      - path: ../../packages/offline-crypto/LICENSE.libsodium
+        buildPhase: resources
+    dependencies:
+      - target: PennyV4
     info:
       path: PennyOffline/Info.plist
       properties:
@@ -26,6 +70,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ca.penny.offline.dev
+        OTHER_LDFLAGS: $(inherited) $(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/lib/libsodium.a
         SWIFT_OBJC_BRIDGING_HEADER: PennyOffline/LocalReceiptFileProtection.h
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_NSCameraUsageDescription: Capture a receipt on this device for your encrypted expense vault. Penny does not save camera captures to your photo library.
@@ -46,6 +91,16 @@ targets:
         buildPhase: resources
     dependencies:
       - target: PennyOffline
+    preBuildScripts:
+      - name: Copy verified v4 test corpus
+        basedOnDependencyAnalysis: false
+        script: |
+          set -eu
+          test -n "${PENNY_V4_TEST_ASSETS}"
+          test -f "${PENNY_V4_TEST_ASSETS}/v4-frame-negatives/negative-manifest.json"
+          test -f "${PENNY_V4_TEST_ASSETS}/v4-logical-materialized/fixture-manifest.json"
+          mkdir -p "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/V4TestAssets"
+          cp -R "${PENNY_V4_TEST_ASSETS}/v4-frame-negatives" "${PENNY_V4_TEST_ASSETS}/v4-logical-materialized" "${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/V4TestAssets/"
   PennyOfflineDurableProcessTests:
     type: bundle.unit-test
     platform: iOS

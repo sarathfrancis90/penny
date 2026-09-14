@@ -4,6 +4,8 @@
 
 The command requires a freshly observed store maximum and rejects an existing output directory. The generated report must match the requested version and exact build. A source change during snapshot/build or a failed artifact preflight prevents a successful report. Build logs and generated provider configuration stay in the owner-only output; do not publish that directory indiscriminately. Source digests identify this working-tree snapshot; they do not prove hosted CI or lock every transitive dependency.
 
+The isolated source inventory includes `packages/offline-crypto`, its pins, license and build helpers. Before either native build, packaging authenticates a fresh libsodium source download and builds the required static libraries under the owned output's `crypto/` directory. Node 22 and network access are build prerequisites; the installed app does not download these libraries. Android additionally requires NDK 28.2.13676358 and CMake 3.22.1 under the absolute `ANDROID_HOME` SDK. Release packaging does not generate or include the test corpus. A dependency-preparation failure stops before native archive/bundle creation.
+
 ## iOS profile
 
 Create a protected local JSON file with exactly these fields:
@@ -30,7 +32,7 @@ Xcode can re-sign during export, so packaging now checks the app inside the expo
 
 ## Android profile
 
-Create a protected local JSON file with exactly `version`, `build`, `driveClientId`, `uploadCertificateSha256`, `driveSigningSha256`, `apksigner`, `apkanalyzer`, `java` and `bundletool`. Version/build rules match iOS. The SDK tools and JDK17+ `java` are absolute executable paths. `bundletool` is the absolute path to an independently trusted standalone JAR; the dependency JAR in Gradle caches is insufficient. No runtime download occurs. Both certificates use 64 lowercase hexadecimal characters and come from independent signing records.
+Create a protected local JSON file with exactly `version`, `build`, `driveClientId`, `uploadCertificateSha256`, `driveSigningSha256`, `apksigner`, `apkanalyzer`, `java` and `bundletool`. Version/build rules match iOS. The SDK tools and JDK17+ `java` are absolute executable paths. `bundletool` is the absolute path to an independently trusted standalone JAR; the dependency JAR in Gradle caches is insufficient. The bundletool JAR is never downloaded by preflight. Both certificates use 64 lowercase hexadecimal characters and come from independent signing records.
 
 `uploadCertificateSha256` identifies the key signing the locally built APK/AAB. `driveSigningSha256` identifies the certificate on the intended installed app and must match that package's `driveClientId` registration. With Play App Signing these certificates can differ. The local upload-signed APK will not authorize Drive when its embedded guard correctly expects Play's different installed certificate; test that path using a Play-delivered artifact. Do not replace the installed certificate with the upload fingerprint merely to make local authorization work.
 
