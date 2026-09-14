@@ -1,0 +1,138 @@
+{
+  "sourceCommit": "6cdf3044da564c3e8f69a3ec96ea737a90367214",
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34792285794",
+  "nativeGate": "success",
+  "android": [
+    {
+      "runtime": "26",
+      "suite": {
+        "tests": "39",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "6",
+        "time": "116.159",
+        "timestamp": "2026-09-14T00:26:21",
+        "hostname": "localhost"
+      },
+      "discovered": 39,
+      "passed": 33,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        }
+      ],
+      "processCreate": "passed",
+      "processVerify": "passed",
+      "processRestart": "Starting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nThisTime: 1719\nTotalTime: 2113\nWaitTime: 1816\nComplete\nStarting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nThisTime: 1702\nTotalTime: 1702\nWaitTime: 1724\nComplete\nProcess before force-stop: 6463\nNew process after restart: 6510\nPASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record.\n",
+      "xmlSha256": "974e68d284fb8b485b14efc570601799ba654dc6f69cb096337cef411cfb2ebc"
+    },
+    {
+      "runtime": "37.0",
+      "suite": {
+        "tests": "39",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "6",
+        "time": "137.406",
+        "timestamp": "2026-09-14T00:26:48",
+        "hostname": "localhost"
+      },
+      "discovered": 39,
+      "passed": 33,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        }
+      ],
+      "processCreate": "passed",
+      "processVerify": "passed",
+      "processRestart": "Starting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nLaunchState: COLD\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nTotalTime: 2142\nWaitTime: 2144\nComplete\nStarting: Intent { cmp=ca.penny.offline.dev.test/ca.penny.offline.MainActivity }\nStatus: ok\nLaunchState: COLD\nActivity: ca.penny.offline.dev.test/ca.penny.offline.MainActivity\nTotalTime: 2291\nWaitTime: 2293\nComplete\nProcess before force-stop: 6500\nNew process after restart: 6548\nPASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record.\n",
+      "xmlSha256": "b67ec217c09c248699588a22abc5bed16454e6bececd09c6100e04efb2f59781"
+    }
+  ],
+  "ios": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+          "deviceName": "iPhone 17 Pro",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 64,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789346311.897,
+    "passedTests": 64,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789345297.621,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "42% of duration",
+        "text": "1 longest test run with outlier durations exceeding 1.15s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 64
+  },
+  "scope": "Hosted native checkpoint only. Retained Flutter iOS and overall required gate remain separate. Prototype crypto work is not in this commit."
+}

@@ -1,0 +1,304 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-09-14T01:14:15.441100+00:00",
+  "scope": "Experimental frame authentication interoperability only; no ledger, restore, capacity, cloud or production admission",
+  "source": {
+    "version": "1.0.22",
+    "upstreamCommit": "77e1ce5d6dee871c49ef211222ba18ef0c486bda",
+    "archiveSha256": "adbdd8f16149e81ac6078a03aca6fc03b592b89ef7b5ed83841c086191be3349",
+    "sourceTreeSha256": "2871798a902683da8f5767ab32920d5e04ee7fc89cf8eedeeb7e2fe48e8e9407"
+  },
+  "reference": {
+    "sourceHashes": {
+      "build_reference.py": "88222d01ab433f87e86973f4bc44a9e5c91d7d5e9d6b7068267c399d65874dad",
+      "fixtures.py": "d95c4d2eee8310e6c2b55b4370c7b13fbad14348208624a9f6605403eb9545c9",
+      "frame_oracle.py": "c8c5ad9399a802e45e9540bf0fc9a459280aec025310bd75b9214877ed2de100",
+      "test_oracle.py": "e4e4fe6454ed8add822876a7eea69873f2fb89beb9673d6760ec2c60a288eb09"
+    },
+    "fixtureManifestSha256": "352874d4ce6374123a489cc3129abdde380be882b19c4ec93618356afa431d1f",
+    "hostBuildReport": "packages/offline-crypto/prototypes/reference/.build/host-with-check/build-result.json",
+    "hostBuildReportSha256": "59df987f843fe914dc8170941c0d3ea3c52a9a8aa291a6a81e4bed96b4cde761",
+    "librarySha256": "0692ff82c3452c0cff29fcf7026ddef8c61a6d75e6d8fe14fd418733a027acee",
+    "upstreamCheck": {
+      "run": true,
+      "total": 87,
+      "pass": 87,
+      "skip": 0,
+      "xfail": 0,
+      "fail": 0,
+      "xpass": 0,
+      "error": 0
+    },
+    "reproducibleGoldenVerification": {
+      "positives": 4,
+      "negativeRecipes": 28,
+      "committedCiphertextBytes": 3148369,
+      "passed": true
+    },
+    "unitTests": {
+      "methods": 6,
+      "passed": 6,
+      "failed": 0,
+      "buildReport": "packages/offline-crypto/prototypes/reference/.build/host/build-result.json",
+      "buildReportSha256": "e4ee1c8ccb2b1327d3169435e82bd1b200c8f11e3852419bb6f74fb85f4d7b0b",
+      "librarySha256": "f5b688a6c20f3f5e160f2d02564b7a633cf7c4877af03113caacdcd0a1d54fd4"
+    },
+    "sast": {
+      "tool": "semgrep",
+      "version": "1.165.0",
+      "configs": [
+        "p/owasp-top-ten",
+        "p/typescript"
+      ],
+      "findings": 0,
+      "errors": 0,
+      "scannedFiles": [
+        "packages/offline-crypto/prototypes/reference/build_reference.py",
+        "packages/offline-crypto/prototypes/reference/fixtures.py",
+        "packages/offline-crypto/prototypes/reference/frame_oracle.py",
+        "packages/offline-crypto/prototypes/reference/test_oracle.py"
+      ],
+      "narrowSuppression": "build_reference.py verified-source subprocess argv only; shell=False, restricted absolute paths and explicit child environment"
+    }
+  },
+  "nativeToReference": [
+    {
+      "platform": "iOS Simulator arm64 26.4.1",
+      "nativeManifestSha256": "1f0d5f36be2259d2027788563949d66ef424becad5ddb6c6855f58690c414c0d",
+      "nativeProvenance": "packages/offline-crypto/prototypes/apple/.build/validation-01/provenance.json",
+      "nativeProvenanceSha256": "7c2888aa05d668e8f991a3eedda98846a366f08214420a12ec25739ff7c6ba69",
+      "nativeTestSummarySha256": "7ea9599078e4e8bb80d9e47b50d505d3d6ec1de8871f204b41a393233f5ec3e5",
+      "nativeTests": {
+        "total": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0
+      },
+      "sharedFixtureAcceptance": {
+        "positives": 4,
+        "negativeRejections": 28,
+        "source": "native agent runtime suite and retained test source/result"
+      },
+      "verifiedExports": [
+        {
+          "file": "packages/offline-crypto/prototypes/apple/.build/validation-01/native-exports/native-full-final.pennyframe",
+          "scope": "frame-only; no logical ledger admission",
+          "frames": 1,
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+          "ciphertextBytes": 1048679,
+          "ciphertextSha256": "99cf5a5dc377f82d86213a16b0d910421c02e40e78c4c65509dea8807fa0f0b6"
+        },
+        {
+          "file": "packages/offline-crypto/prototypes/apple/.build/validation-01/native-exports/native-multi.pennyframe",
+          "scope": "frame-only; no logical ledger admission",
+          "frames": 3,
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+          "ciphertextBytes": 2097358,
+          "ciphertextSha256": "bcf9deec58c60709ff37258c02e3c9e850893462cafcd90ed1ed9f0e33029ccf"
+        }
+      ]
+    },
+    {
+      "platform": "Android API 37 arm64-v8a 16 KiB pages",
+      "nativeManifestSha256": "57853c07ab40dcee179f33b618835f61551bf5e4397fffb680c863d788f7cb9d",
+      "nativeProvenance": "packages/offline-crypto/prototypes/android/.build/validation-api37-01/provenance.json",
+      "nativeProvenanceSha256": "5c447a8669c84046d861cbb376fa61bfe9738309ae96d090c09fe331e4fc0f2a",
+      "instrumentationSha256": "5e000634c7cd33d72eaf61c2b0ea0b2d18352376ae4e701ff0957d13c92a9263",
+      "nativeTests": {
+        "total": 11,
+        "passed": 11,
+        "failed": 0,
+        "skipped": 0
+      },
+      "sharedFixtureAcceptance": {
+        "positives": 4,
+        "negativeRejections": 28,
+        "source": "native runtime test groups and retained source/log"
+      },
+      "nativeCapacityBoundary": {
+        "plaintextBytes": 671088640,
+        "pipeBytes": 65536,
+        "exactMaximumRoundtrip": true,
+        "maximumPlusOneRejected": true,
+        "scope": "native frame pipe test; not logical profile qualification or host oracle maximum test"
+      },
+      "verifiedExports": [
+        {
+          "file": "packages/offline-crypto/prototypes/android/.build/validation-api37-01/native-exports/native-full-final.pennyframe",
+          "scope": "frame-only; no logical ledger admission",
+          "frames": 1,
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+          "ciphertextBytes": 1048679,
+          "ciphertextSha256": "652369e1f99f762aae3f63c3953e01d831d1d48c5231e03cae8123e04bf47ad4"
+        },
+        {
+          "file": "packages/offline-crypto/prototypes/android/.build/validation-api37-01/native-exports/native-multi.pennyframe",
+          "scope": "frame-only; no logical ledger admission",
+          "frames": 3,
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+          "ciphertextBytes": 2097358,
+          "ciphertextSha256": "4cce4c01a5122a4a3e89aa172d6789347eb0dabb09615cb47498ca27b13b44b2"
+        }
+      ]
+    },
+    {
+      "platform": "Android API 26 arm64-v8a 4 KiB pages",
+      "nativeManifestSha256": "20bd9472291e6c439156b314f08f581cb430bd2341d6e325c3302f4ab2b87290",
+      "nativeProvenance": "packages/offline-crypto/prototypes/android/.build/validation-api26-01/provenance.json",
+      "nativeProvenanceSha256": "76db4796022786c464334998148fd0170f0da9bd10797a5ecd7953de4fa67842",
+      "instrumentationSha256": "186bf41377b85e0a9ae49f9697b8db44d7418de8f9a8ca78ae8dc9fe18230ec3",
+      "nativeTests": {
+        "total": 12,
+        "passed": 12,
+        "failed": 0,
+        "skipped": 0
+      },
+      "sharedFixtureAcceptance": {
+        "positives": 4,
+        "negativeRejections": 28,
+        "source": "native runtime test groups and retained source/log"
+      },
+      "nativeCapacityBoundary": {
+        "plaintextBytes": 671088640,
+        "pipeBytes": 65536,
+        "exactMaximumRoundtrip": true,
+        "maximumPlusOneRejected": true,
+        "scope": "native frame pipe test; not logical profile qualification or host oracle maximum test"
+      },
+      "verifiedExports": [
+        {
+          "file": "packages/offline-crypto/prototypes/android/.build/validation-api26-01/native-exports/native-full-final.pennyframe",
+          "scope": "frame-only; no logical ledger admission",
+          "frames": 1,
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+          "ciphertextBytes": 1048679,
+          "ciphertextSha256": "5cdeb13e32b794cb24fe36fa4e066b33d82cae8d9161cdc24dadb2435c914f8a"
+        },
+        {
+          "file": "packages/offline-crypto/prototypes/android/.build/validation-api26-01/native-exports/native-multi.pennyframe",
+          "scope": "frame-only; no logical ledger admission",
+          "frames": 3,
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+          "ciphertextBytes": 2097358,
+          "ciphertextSha256": "cbbed7260222f9a30244fadf366e9a3aedc4d69c97c7788d624e5a0b2b1a144c"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "scope": "Bounded read of draft framing, ABI sizes/buffer bounds, finality and cancellation/native state lifetime",
+    "files": {
+      "packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift": "7cdebf355eeaf2c5be570443adad09c0b6f2d457914a44a7968dc1e61c2a9bca",
+      "packages/offline-crypto/prototypes/android/app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "42ab54c736ed060cc1c2df7b4957af1ec81c4b62319c7bd10f5936eda6771210",
+      "packages/offline-crypto/prototypes/android/app/src/main/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad"
+    },
+    "additionalConcreteFindings": [],
+    "alreadyFixedByRootReview": "Swift checks cancellation after output.finish and candidate.finishFrames",
+    "limits": [
+      "Reference oracle corpus does not exercise a valid maximum 640 MiB stream; native pipe boundary tests are recorded separately",
+      "No complete logical validation or atomic restore guarantee",
+      "Generic Kotlin OutputStream isolated candidate rollback remains a caller obligation"
+    ]
+  },
+  "nativeExchanges": [
+    {
+      "writer": "Android API 37 arm64-v8a",
+      "reader": "Swift iOS Simulator arm64 26.4.1",
+      "inputs": [
+        {
+          "file": "native-full-final.pennyframe",
+          "ciphertextSha256": "652369e1f99f762aae3f63c3953e01d831d1d48c5231e03cae8123e04bf47ad4",
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769"
+        },
+        {
+          "file": "native-multi.pennyframe",
+          "ciphertextSha256": "4cce4c01a5122a4a3e89aa172d6789347eb0dabb09615cb47498ca27b13b44b2",
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873"
+        }
+      ],
+      "inputManifestSha256": "57853c07ab40dcee179f33b618835f61551bf5e4397fffb680c863d788f7cb9d",
+      "readerProvenance": "packages/offline-crypto/prototypes/apple/.build/interchange-01/provenance.json",
+      "readerProvenanceSha256": "ce86915d73a9897ad2b27c0021f53ef31e196672d11a245c7de6bab9a26ca919",
+      "readerTestSummarySha256": "3e0a0830943629c1638a4e6bf04cb71f1965f0e3677f29da64edcd202fb87dae",
+      "tests": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "writer": "Swift iOS Simulator arm64 26.4.1",
+      "reader": "Android API 26 arm64-v8a",
+      "inputs": [
+        {
+          "file": "native-full-final.pennyframe",
+          "ciphertextSha256": "99cf5a5dc377f82d86213a16b0d910421c02e40e78c4c65509dea8807fa0f0b6",
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769"
+        },
+        {
+          "file": "native-multi.pennyframe",
+          "ciphertextSha256": "bcf9deec58c60709ff37258c02e3c9e850893462cafcd90ed1ed9f0e33029ccf",
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873"
+        }
+      ],
+      "inputManifestSha256": "1f0d5f36be2259d2027788563949d66ef424becad5ddb6c6855f58690c414c0d",
+      "exactInputsVerifiedInsideTestApk": true,
+      "testApkSha256": "7499307563e66190c2dc3e903928181f7f21f0b8661fcd0a346250f591437821",
+      "appApkSha256": "034de02568b25ac194c00ca8bb599b1890e204d96628d06749d3a48b221cf6ab",
+      "readerProvenance": "packages/offline-crypto/prototypes/android/.build/validation-api26-01/provenance.json",
+      "readerProvenanceSha256": "76db4796022786c464334998148fd0170f0da9bd10797a5ecd7953de4fa67842",
+      "instrumentationSha256": "186bf41377b85e0a9ae49f9697b8db44d7418de8f9a8ca78ae8dc9fe18230ec3",
+      "tests": {
+        "suiteTotal": 12,
+        "suitePassed": 12,
+        "failed": 0,
+        "skipped": 0,
+        "directInterchangeGroups": 1
+      }
+    },
+    {
+      "writer": "Swift iOS Simulator arm64 26.4.1",
+      "reader": "Android API 37 arm64-v8a",
+      "inputs": [
+        {
+          "file": "native-full-final.pennyframe",
+          "ciphertextSha256": "99cf5a5dc377f82d86213a16b0d910421c02e40e78c4c65509dea8807fa0f0b6",
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769"
+        },
+        {
+          "file": "native-multi.pennyframe",
+          "ciphertextSha256": "bcf9deec58c60709ff37258c02e3c9e850893462cafcd90ed1ed9f0e33029ccf",
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873"
+        }
+      ],
+      "inputManifestSha256": "1f0d5f36be2259d2027788563949d66ef424becad5ddb6c6855f58690c414c0d",
+      "exactInputsVerifiedInsideTestApk": true,
+      "testApkSha256": "7499307563e66190c2dc3e903928181f7f21f0b8661fcd0a346250f591437821",
+      "appApkSha256": "034de02568b25ac194c00ca8bb599b1890e204d96628d06749d3a48b221cf6ab",
+      "readerProvenance": "packages/offline-crypto/prototypes/android/.build/validation-api37-peer-01/provenance.json",
+      "readerProvenanceSha256": "c2c6d99f42d82a9b316e0398d56f4dd87a6398645e3a3dddd582a5c91dc63c04",
+      "instrumentationSha256": "0ec85340a7bec1c6be842ed7f7700cd9b007ecd8420b63026366acfd70db80a0",
+      "tests": {
+        "suiteTotal": 1,
+        "suitePassed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "directInterchangeGroups": 1
+      }
+    }
+  ],
+  "hostedNewSteps": "Configured by root; pending execution at this local evidence checkpoint"
+}

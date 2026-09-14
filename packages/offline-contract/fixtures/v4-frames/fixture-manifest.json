@@ -1,0 +1,466 @@
+{
+  "schemaVersion": 1,
+  "scope": "Experimental v4 FRAME ONLY; not complete ledger admission or frozen format",
+  "generator": "packages/offline-crypto/prototypes/reference/fixtures.py",
+  "source": {
+    "version": "1.0.22",
+    "upstreamCommit": "77e1ce5d6dee871c49ef211222ba18ef0c486bda",
+    "archiveSha256": "adbdd8f16149e81ac6078a03aca6fc03b592b89ef7b5ed83841c086191be3349",
+    "sourceTreeSha256": "2871798a902683da8f5767ab32920d5e04ee7fc89cf8eedeeb7e2fe48e8e9407"
+  },
+  "randomness": "PUBLIC deterministic test RNG via upstream randombytes_set_implementation; never use in applications",
+  "positives": [
+    {
+      "name": "empty-ledger",
+      "file": "empty-ledger.pennyframe",
+      "plaintext": {
+        "kind": "layout",
+        "name": "empty"
+      },
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "scope": "frame-only; no logical ledger admission",
+      "frames": 1,
+      "plaintextBytes": 716,
+      "plaintextSha256": "cdbf0e10ed818732c486bf9e3e1d756961fe4f518e6391f3353755fa8e7b403f",
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "81c7f6c57b00d901d32742bff9b1dc31e4815f877dd4fa3dada7d103371d52d1"
+    },
+    {
+      "name": "one-receipt",
+      "file": "one-receipt.pennyframe",
+      "plaintext": {
+        "kind": "layout",
+        "name": "one-expense-one-receipt"
+      },
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "scope": "frame-only; no logical ledger admission",
+      "frames": 1,
+      "plaintextBytes": 1410,
+      "plaintextSha256": "c55d7c989df37181ee5ef75217b857c2a62ca3aefc7d768bd445681d72000965",
+      "ciphertextBytes": 1513,
+      "ciphertextSha256": "03be5d50f32677b5b1eef4557da34354a3ed74bc237855d5019e5a5a354911a8"
+    },
+    {
+      "name": "full-final",
+      "file": "full-final.pennyframe",
+      "plaintext": {
+        "kind": "pattern-mod-251",
+        "bytes": 1048576
+      },
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "scope": "frame-only; no logical ledger admission",
+      "frames": 1,
+      "plaintextBytes": 1048576,
+      "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+      "ciphertextBytes": 1048679,
+      "ciphertextSha256": "68a762330d8e2158b5752fa6159ee431302ac8ecde34bd33f76c9430b6ef039d"
+    },
+    {
+      "name": "multi-frame",
+      "file": "multi-frame.pennyframe",
+      "plaintext": {
+        "kind": "pattern-mod-251",
+        "bytes": 2097189
+      },
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "scope": "frame-only; no logical ledger admission",
+      "frames": 3,
+      "plaintextBytes": 2097189,
+      "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+      "ciphertextBytes": 2097358,
+      "ciphertextSha256": "6d36e9ff1976335aa5baa1da8746f7140eeccfa28309eb30e9f6868ffb28b7c6"
+    }
+  ],
+  "negativeRecipes": [
+    {
+      "name": "wrong-key",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "reader-key",
+        "base": "empty-ledger"
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "81c7f6c57b00d901d32742bff9b1dc31e4815f877dd4fa3dada7d103371d52d1",
+      "recoveryKey": "pny1-0808080808080808080808080808080808080808080808080808080808080808"
+    },
+    {
+      "name": "wrong-aad",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "encrypt-invalid",
+        "chunks": [
+          {
+            "bytes": 37,
+            "tag": 3
+          }
+        ],
+        "aadHex": "50454e4e592d4f46464c494e452d4241434b55503a343a4652414d4521"
+      },
+      "ciphertextBytes": 140,
+      "ciphertextSha256": "f27f50c9cceda26accb68fb27afe0bd9aaee40c664e00ac4c6ff4e918c63f77a",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "salt-tamper",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 14,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "72ccba4abd4ad781ec7c201ba90f838fb9e16002305bdeea225758554882c17f",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "stream-header-tamper",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 46,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "a0dafedbe705e24692b61a6d99c4b3dae3f8a28e100bd41adf84df4533c661af",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "ciphertext-tamper",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 86,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "0d7e2935cda096fe5599d3f7f60fb05a9627ebff18fa987a5b0eead3a8526085",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "tag-tamper",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 818,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "200a36eef3aa45ee3fa662d3ec4d72ec80f854d7515e87c31e9076455768557f",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "truncated-ciphertext",
+      "expectedError": "truncated-ciphertext",
+      "recipe": {
+        "op": "truncate",
+        "base": "empty-ledger",
+        "bytes": 818
+      },
+      "ciphertextBytes": 818,
+      "ciphertextSha256": "50a2909bdecc009b1a5a05bf72a16941f525009f6a4446e03e3256ae9453a10c",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "missing-final",
+      "expectedError": "missing-final-or-frame-header",
+      "recipe": {
+        "op": "blocks",
+        "base": "multi-frame",
+        "order": [
+          0,
+          1
+        ]
+      },
+      "ciphertextBytes": 2097288,
+      "ciphertextSha256": "46a4a58fb742d24bc65a4f9cc4b9b4f495670be0449b8e07c77e3e71bc41aac5",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "reordered",
+      "expectedError": "sequence",
+      "recipe": {
+        "op": "blocks",
+        "base": "multi-frame",
+        "order": [
+          1,
+          0,
+          2
+        ]
+      },
+      "ciphertextBytes": 2097358,
+      "ciphertextSha256": "9f5cf17b309d9992730725db347f26ad44d0683c878a86dd9a3244b161ed2cea",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "duplicated",
+      "expectedError": "sequence",
+      "recipe": {
+        "op": "blocks",
+        "base": "multi-frame",
+        "order": [
+          0,
+          0,
+          1,
+          2
+        ]
+      },
+      "ciphertextBytes": 3145967,
+      "ciphertextSha256": "c03bf0cd49d40f3e7c4dedde57428262b13609bea5a1e48be58d45d9faa4ae03",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "spliced",
+      "expectedError": "authentication",
+      "recipe": {
+        "op": "splice",
+        "base": "multi-frame",
+        "donor": "full-final",
+        "index": 0,
+        "donorIndex": 0
+      },
+      "ciphertextBytes": 2097358,
+      "ciphertextSha256": "f0015e1b50e903f8dc50924363b3db0d88f19532612136f3ae04ab9d8be9d681",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "trailing-data",
+      "expectedError": "trailing-data",
+      "recipe": {
+        "op": "append",
+        "base": "full-final",
+        "hex": "00"
+      },
+      "ciphertextBytes": 1048680,
+      "ciphertextSha256": "a9388de182b786455f719c00c764ca2e82baf00956ae46075a1664730b8fd120",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "push-tag",
+      "expectedError": "unsupported-tag",
+      "recipe": {
+        "op": "encrypt-invalid",
+        "chunks": [
+          {
+            "bytes": 1048576,
+            "tag": 1
+          }
+        ]
+      },
+      "ciphertextBytes": 1048679,
+      "ciphertextSha256": "0949ad545551e94db63fbd113d794d613c5293f68e2098ebe48f79691893c2cc",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "rekey-tag",
+      "expectedError": "unsupported-tag",
+      "recipe": {
+        "op": "encrypt-invalid",
+        "chunks": [
+          {
+            "bytes": 1048576,
+            "tag": 2
+          }
+        ]
+      },
+      "ciphertextBytes": 1048679,
+      "ciphertextSha256": "944270a0ee3f8c56ec7d101968f0769bfebde86ecfdeb436747069cb9d050f77",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "short-message",
+      "expectedError": "short-message",
+      "recipe": {
+        "op": "encrypt-invalid",
+        "chunks": [
+          {
+            "bytes": 37,
+            "tag": 0
+          },
+          {
+            "bytes": 23,
+            "tag": 3
+          }
+        ]
+      },
+      "ciphertextBytes": 196,
+      "ciphertextSha256": "e397805b206ea1eb0174b53e366f6bfe4b86f08472d711ee62521f53b328709f",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "empty-final",
+      "expectedError": "ciphertext-length",
+      "recipe": {
+        "op": "encrypt-invalid",
+        "chunks": [
+          {
+            "bytes": 0,
+            "tag": 3
+          }
+        ]
+      },
+      "ciphertextBytes": 103,
+      "ciphertextSha256": "c74014ab1d23b53b582f62738b3b35af58526304671ae2cc21d4e74f4455ef75",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "full-message-without-final",
+      "expectedError": "missing-final-or-frame-header",
+      "recipe": {
+        "op": "encrypt-invalid",
+        "chunks": [
+          {
+            "bytes": 1048576,
+            "tag": 0
+          }
+        ]
+      },
+      "ciphertextBytes": 1048679,
+      "ciphertextSha256": "7977a5429309c05e7684dc7e1bf95a1e81799ca307f4a4ace8e7d71f84f29246",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "oversize-sequence",
+      "expectedError": "sequence",
+      "recipe": {
+        "op": "set-u64",
+        "base": "empty-ledger",
+        "offset": 70,
+        "value": "640"
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "63d22f4539458a6fdea1fd88623dd188e2467649d3df033b6d05655e684fe439",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "unsigned-sequence-overflow",
+      "expectedError": "sequence",
+      "recipe": {
+        "op": "set-u64",
+        "base": "empty-ledger",
+        "offset": 70,
+        "value": "18446744073709551615"
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "c453d9cc842f74635158e1b7fc4dfc8c601e67a4eb54fe51517635e82cd87b9d",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "oversize-ciphertext",
+      "expectedError": "ciphertext-length",
+      "recipe": {
+        "op": "set-u64",
+        "base": "empty-ledger",
+        "offset": 78,
+        "value": "1048594"
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "bbc75ab5af916d3926b80c682227e18bd9923f5d689559a64c4509b05664cbe7",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "unsigned-length-overflow",
+      "expectedError": "ciphertext-length",
+      "recipe": {
+        "op": "set-u64",
+        "base": "empty-ledger",
+        "offset": 78,
+        "value": "18446744073709551615"
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "eebf8d2d8d441e7f4abac66f7ec13f3085fd9edae1de20b81b67255b989505c7",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "below-minimum-ciphertext",
+      "expectedError": "ciphertext-length",
+      "recipe": {
+        "op": "set-u64",
+        "base": "empty-ledger",
+        "offset": 78,
+        "value": "17"
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "82a8fdc7ecb232828dbbdba580f3cdd4bb77e1ba6a2824bbeaf253812ba4719f",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "wrong-envelope-version",
+      "expectedError": "header-constant",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 9,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "3d17473ce00e10a1a37dc3ac8b70f01312aa444f78dfd4e1bbe8ecf73fe14315",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "wrong-chunk-limit",
+      "expectedError": "header-constant",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 13,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "17f48104d6080b9c8a4f747ff2ec293356690a99f392a4610f74d448ed8bfc6a",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "reserved-magic-version",
+      "expectedError": "reserved-prefix",
+      "recipe": {
+        "op": "flip",
+        "base": "empty-ledger",
+        "offset": 6,
+        "xor": 1
+      },
+      "ciphertextBytes": 819,
+      "ciphertextSha256": "d7d009e3092bb5c1c9343577cb8c453484c5ff129a07ae8d034b766357997ee9",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "truncated-magic",
+      "expectedError": "reserved-prefix",
+      "recipe": {
+        "op": "truncate",
+        "base": "empty-ledger",
+        "bytes": 5
+      },
+      "ciphertextBytes": 5,
+      "ciphertextSha256": "7f1c3859d8ef2de418c53babade22dc1e20dd6252ff19732838eddcbd5351488",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "truncated-header",
+      "expectedError": "truncated-header",
+      "recipe": {
+        "op": "truncate",
+        "base": "empty-ledger",
+        "bytes": 69
+      },
+      "ciphertextBytes": 69,
+      "ciphertextSha256": "d0a05b1def5c372bd869f9be23265fb359a640b5ef4e94e863b15d13b1fcf629",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    },
+    {
+      "name": "truncated-frame-header",
+      "expectedError": "missing-final-or-frame-header",
+      "recipe": {
+        "op": "truncate",
+        "base": "empty-ledger",
+        "bytes": 85
+      },
+      "ciphertextBytes": 85,
+      "ciphertextSha256": "02b279945f0e562fe973980bcdac1a516169bf8608862ee1a800f1f3f2f07b3b",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
-# Compact local evidence
+# Compact validation evidence
 
-These are copied machine-readable reports from the local native validation recorded in the platform READMEs and `../STATUS.md`. They contain synthetic workloads, aggregate test results and compiled build metadata. They do not establish hosted CI, physical-device behavior or store eligibility.
+These reports record synthetic workloads, aggregate test results and compiled build metadata. Each report identifies its source and checkpoint. Local results do not establish hosted CI, physical-device behavior or store eligibility. Explicit hosted reports apply only to their recorded commit and job scope.
 
 - `ios-p6-functional-summary.json`: full 60-test functional run before the last UI callback correction.
 - `ios-p6-final-fix-summary.json`: five focused checks on the final callback fix; 61 distinct normal tests across both runs, not a new full 61-test run.
@@ -13,3 +13,5 @@ The separate iOS accessibility diagnostic has 13 unresolved findings and is not 
 
 
 Later integration evidence includes hosted security checks at 25a776c and the iOS hosted-consent harness/44pt action correction. The new phone/smallphone summaries each cover two focused UI methods; the accessibility recheck remains failed. `native-source-provenance.json` retains original accepted hashes and separately records the Android launcher comment and iOS button changes, along with the current installed demo executables. Historical full-suite and unsigned-device evidence must not be relabeled as a fresh run after those changes.
+
+`hosted-native-6cdf304.json` records the later passing native suite: iOS 64/64, both Android runtimes 33/39 with six explicit skips, separate fresh-process recovery and the native aggregate. The retained Flutter iOS check and repository aggregate remain separate. `crypto-build-tooling.json` records authenticated source, local native library builds and seven maintained CMake consumer checks, with source revisions and limitations. It does not establish app linkage, v4 ledger admission or raised capacity.

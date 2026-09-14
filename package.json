@@ -25,7 +25,7 @@
     "api:parity": "tsx scripts/api/compare-old-new.ts",
     "api:smoke": "tsx scripts/api/smoke-api.ts",
     "mobile:api-only:check": "tsx scripts/mobile/check-api-only.ts",
-    "offline:check": "node --test packages/offline-contract/*.test.mjs scripts/offline/*.test.mjs && python3 -m unittest discover -s scripts/offline -p 'test_*.py' && python3 scripts/offline/check-boundaries.py",
+    "offline:check": "node --test packages/offline-contract/*.test.mjs packages/offline-crypto/*.test.mjs scripts/offline/*.test.mjs && python3 -m unittest discover -s scripts/offline -p 'test_*.py' && python3 -m unittest discover -s packages/offline-crypto -p 'test_*.py' && python3 scripts/offline/check-boundaries.py",
     "offline:benchmark": "node scripts/offline/benchmark-contract.mjs",
     "offline:release:preflight": "python3 scripts/offline/release-preflight.py",
     "offline:ios:check": "bash scripts/offline/check-ios.sh",
