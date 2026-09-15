@@ -21,5 +21,12 @@ echo "✅ Generated docs and OpenAPI are current"
 
 echo "🧪 Running pre-push unit tests..."
 cd mobile
-flutter test test/ --reporter compact
+# Git exports checkout-specific variables to hooks. Flutter probes its own SDK
+# repository, so those variables must not redirect its Git commands into Penny.
+(
+  while IFS= read -r penny_git_var; do
+    unset "$penny_git_var"
+  done < <(git rev-parse --local-env-vars)
+  flutter test test/ --reporter compact
+)
 echo "✅ Unit tests passed"

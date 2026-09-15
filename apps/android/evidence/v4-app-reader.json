@@ -1,0 +1,120 @@
+{
+  "capturedAt": "2026-09-14T05:44:48.253557+00:00",
+  "scope": "Actual app APK read-only v4 logical admission; no UI/export/provider/candidate installation or increasedcaps",
+  "sourceSha256": {
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceModels.kt": "c2b6f24beee88f7fd77eb418c1e6def5d30708200f857706944d08ecd9d1e08a",
+    "apps/android/app/src/main/java/ca/penny/offline/RecoveryDialog.kt": "09b680c5ef06869092f8fcc879c61bc717008cdf83328f85315e8ce4a01e948f",
+    "apps/android/app/src/main/java/ca/penny/offline/StrictJson.kt": "0b61d55be110cb588d9dd84db682edaa46f8ce183d377b5d6d758e19d97d31a4",
+    "apps/android/app/src/main/java/ca/penny/offline/MainActivity.kt": "c6c07bf7d9cafb5b999a8591a15196da3e547a33aabcc1621a0f86a1e9c69291",
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceScreen.kt": "4af696d8d42fe9af56255d3c507e4c933c72037ebed8ee67905bc08ae2fad56b",
+    "apps/android/app/src/main/java/ca/penny/offline/RecoveryKeyStore.kt": "ee78e48e8d5364a7b32aebcd33137433a902957dd7ce9c156bce86914a6536f8",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptImage.kt": "977bd205b8e6f7da26101f3f63029975e12f49c260828348e3a95dbd18cf9b27",
+    "apps/android/app/src/main/java/ca/penny/offline/Attachment.kt": "55b1f095ee2ced7fa73e2ba7e977fd125708b637e4f21115091f497b03d5508b",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "554dd1eb74aa9319e20388ef84f39a8d6755f7cda2212b26011ffc51dced6952",
+    "apps/android/app/src/main/java/ca/penny/offline/DrivePanel.kt": "937dbfe5238ee16f294ff9db30abd7baf32c33274526cdd596111041ee95a35f",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudCoordinator.kt": "84ec5b406603244b65dc4baeb0a3e2b1ade7ee687322743760d724e93a88588e",
+    "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "a2c9aef6f691f721f008c4f2f5dbba88f72908cc862cfd024c05ff657a0603e1",
+    "apps/android/app/src/main/java/ca/penny/offline/VaultStore.kt": "871d1c313e044ae211ea7d74f454beb1b790ffc6477b8b9b9450ec7eca51ce77",
+    "apps/android/app/src/main/java/ca/penny/offline/RestoreOperation.kt": "a8eab51da168c449b0e55c61c5848f44de0ca000a05af70e608144287b9a4e49",
+    "apps/android/app/src/main/java/ca/penny/offline/DriveTransport.kt": "eccdb803f0dcef445693d7d42ef50b9c4d85b7d717b95d5b30a1ea28c43182b8",
+    "apps/android/app/src/main/java/ca/penny/offline/LegacyVaultRows.kt": "289da76243de22ec7b40c32b06a550bef0f95a17f90d4c12d7ab667f1d21165a",
+    "apps/android/app/src/main/java/ca/penny/offline/BackupExporter.kt": "6d7dba3c84094d4c1699b5a503a68764825d8af364f52c388b7fc2f766964a1d",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyViewModel.kt": "0eb48e53c85e4df3dbf37620131c61d3c310df79ab5ab1fce2fd07fd55108ca0",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptParser.kt": "db7c01431cee2d1d28cfba43bf5c681f392e9d584400183991196e7545c9d0e8",
+    "apps/android/app/src/main/java/ca/penny/offline/V4BackupReader.kt": "98ef5764fab8d2b426b56006199f87c26a1ecd9865a0abaa6c013b9acf665714",
+    "apps/android/app/src/main/java/ca/penny/offline/Backup.kt": "3b679eb3bce15faa7ebe6436c940d56823c4c9cb72d67d5bd6db0405964621c1",
+    "apps/android/app/src/main/java/ca/penny/offline/Expense.kt": "fc6d6f8ef1fd23027ffd2df31842b48098c216e7480b345cf8baab225c162f77",
+    "apps/android/app/src/main/java/ca/penny/offline/AutomaticBackup.kt": "a67c6559bd106287799a03f0f7527596a0521cdf3ea05670b0b22e1dfb4d6c65",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptCamera.kt": "6cd1d029ff142acfcdcbaaca504def970e505be4f0ac6ff49d4cc4ed066449b7",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudContract.kt": "ff15348bb1acbc49d31d524d8752b5691df299eb1e321eb88af8f08534a66cce",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudPublication.kt": "eb9b5c6e3f32bcf2a0e551bdcb9e1e9587e5fa843084985cb8bf7f12006f8464",
+    "apps/android/app/src/main/java/ca/penny/offline/LocalIntelligence.kt": "c4c06113c94ebdd0a510d27d557a12218a64f53609b32c865f28e08a61f0406d",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyApp.kt": "ffa5c738d4376069f37a3ab4c8e9c090851ceb283b0ed14a22d7998da0442710",
+    "apps/android/app/src/main/java/ca/penny/offline/PennyTheme.kt": "2d97a0657f93481b6589ad8b96f49e7a04849cd544f66a18d968d33b75e7f288",
+    "apps/android/app/src/main/java/ca/penny/offline/FinanceMath.kt": "52674e1bb36684ea5f3668285c4e67a36c828ec0532e094bfbc21ba214bb9d25",
+    "apps/android/app/src/main/java/ca/penny/offline/Categories.kt": "25b6defb9197cd81b2a41250c763ebf685b027499bd07cee2e3f439c3772f00f",
+    "apps/android/app/src/main/java/ca/penny/offline/CloudSettingsStore.kt": "e2880c34e9cc17533359071aac846ffc1523a37ecd5b4c0cd10a7aed7c04bbd2",
+    "apps/android/app/src/main/java/ca/penny/offline/DriveController.kt": "3ffb280e23f78408db7c13790791b9aa691bff0815ce57e1b671bd37bdeaf9db",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/V4AppReaderDeviceTest.kt": "47b018c608685419996462535b022eb1b0233e2523245883bb74b5af19a9a57b",
+    "apps/android/app/build.gradle.kts": "ca61a3d0897d298c92e34f45f1898c254fc56b7afb8ac0e911c9085d57972c7a",
+    "apps/android/.gitignore": "bbd94a9b8947e7e3d8e135c3184d007f86f503fdb523db0de44153ebfe90586f",
+    "packages/offline-crypto/prototypes/android/app/build.gradle.kts": "32266b98ed0da94c6ab7438bc57dbf7ee4f8ae5a6e072fc6f118297a40e80dc1",
+    "packages/offline-crypto/android/codec/kotlin/ca/penny/v4frameprobe/FrameCodec.kt": "0e009906583624fdb43cd65a7be4213591b51cda6cee4cd01e1145fb23d02513",
+    "packages/offline-crypto/android/codec/kotlin/ca/penny/v4frameprobe/LogicalCodec.kt": "09ab9dc63a2d9dd70feab2796b36221226a41538b567febc154e1a480c5b70ca",
+    "packages/offline-crypto/android/codec/cpp/CMakeLists.txt": "c88e880447400d6b9025a3166ba835962c77282040ef82bcdb7f43e800bd1aef",
+    "packages/offline-crypto/android/codec/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad"
+  },
+  "byteIdenticalMovedImplementations": {
+    "packages/offline-crypto/android/codec/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad",
+    "packages/offline-crypto/android/codec/kotlin/ca/penny/v4frameprobe/FrameCodec.kt": "0e009906583624fdb43cd65a7be4213591b51cda6cee4cd01e1145fb23d02513",
+    "packages/offline-crypto/android/codec/kotlin/ca/penny/v4frameprobe/LogicalCodec.kt": "09ab9dc63a2d9dd70feab2796b36221226a41538b567febc154e1a480c5b70ca"
+  },
+  "artifactsSha256": {
+    "artifacts/offline/v4-app-reader/runtime/emulator-5560.log": "e5d0eb6bf37db34693c71031607c20714c48d1645082c888d27158d69a78e57c",
+    "artifacts/offline/v4-app-reader/runtime/emulator-5560-commands.json": "fdb85c3d2b514c046223fed41fbd6ed673342ac86364b7f789de88dbe55da25f",
+    "artifacts/offline/v4-app-reader/runtime/emulator-5562.log": "06197be187b6f1eb1608c4e2554c4673998a1bd37d634c91445f932eb5be4b2d",
+    "artifacts/offline/v4-app-reader/runtime/app.apk": "93db9c9954d090aa9ce99f4f88f6ba915a340f65bb014542cf1beccd256c4837",
+    "artifacts/offline/v4-app-reader/runtime/zipalign.log": "993f8f9c085ef22e45cb12dc1851e9542d21de80aa94fbb26d461d0f91a515e5",
+    "artifacts/offline/v4-app-reader/runtime/test.apk": "2d69496c6af0868bde441865807ce29f16443babb74300bd52c2f34290ea919a",
+    "artifacts/offline/v4-app-reader/runtime/elf.json": "c293ee8d26c9b6de544ee98a275db9d8615ae795714e258edd63e85f47a8362f",
+    "artifacts/offline/v4-app-reader/runtime/emulator-5562-commands.json": "37115db2c25fd0e66eb8f520b22538ff0c3920dcd9735ceefc5fb5ca7d55f6ad",
+    "artifacts/offline/v4-app-reader/prototype/smoke.log": "042bf791363b64209174a55c02a34a4d76966c11e523ba69bc994bba99ded799",
+    "artifacts/offline/v4-app-reader/prototype/app.apk": "dae90aa1e4b13563fb121cb0c6038b32ba91e4a69573f77997f0d0b0f09c0e2e",
+    "artifacts/offline/v4-app-reader/prototype/commands.json": "f24787e8b1202d8b5f332d7a41f4fed3cccd1ff64d2ed90354fcf54eb80e604e",
+    "artifacts/offline/v4-app-reader/prototype/test.apk": "9564f27a4db3b6c43c368d75b3abf10560ffee35eff23f6ebe2b59a28abd0367",
+    "artifacts/offline/v4-app-reader/build-final.log": "66910751d594d815219a81821eff14460112cd11fbe4e997f5ca3077edd19d3e",
+    "artifacts/offline/v4-app-reader/prototype-build-final.log": "8fddb41e8c098930dc75803cdef4fa1942647609b45067ca7ac6ce2c6a70f8e0"
+  },
+  "reportsSha256": {
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.DriveTransportTest.xml": "1e58b11923e14df1e985ed5224cb337b5c82a774abf255627aa2dc5739f4599e",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.FinanceContractTest.xml": "686b0f8bac681cbde6475e9bc7f772f17e76140764eccc67bcec14c71a555a31",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.OfflineContractTest.xml": "dfd55f92e8193c6d30753550ccf85b0830adff85c801d63c06abe66685e96753",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.CloudContractTest.xml": "cfa18ac47e3945050f515287729ce52ceabd5f199833a2869479a1fcfd50bcd0",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.CaptureContractTest.xml": "e425af91e74d4d2ef62b9332caad3fd3e39b981cab6840585556116e4ecdf717",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.StrictNumberTest.xml": "e02d3d3f8b4e09534acbbf1e66179ed016c0314eb35962316161a3e443cf3536",
+    "apps/android/app/build/test-results/testDebugUnitTest/TEST-ca.penny.offline.AutomaticBackupPolicyTest.xml": "068784ac6cb736348c4a202dd5733d2459bfbbcf63f23d379aeeef4fcc7e98c3",
+    "apps/android/app/build/reports/lint-results-debug.xml": "354b9a0296d0fee029bb5368b5695b7f2a012a2d9950e9cf738ca38c34dc1f7e"
+  },
+  "fixtureManifestSha256": {
+    "packages/offline-contract/fixtures/v4-frames/fixture-manifest.json": "352874d4ce6374123a489cc3129abdde380be882b19c4ec93618356afa431d1f",
+    "packages/offline-contract/fixtures/v4-logical/fixture-manifest.json": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32",
+    "packages/offline-contract/fixtures/png-integrity-corpus.json": "e2728df1e7c45b119ca5a70d288de1c3bf7280f2b98c3ee6b7a8476fa17b7e5c",
+    "artifacts/offline/v4-app-reader/v4-frame-negatives/negative-manifest.json": "7d7c1f5f85e20e410d28784298c43ff7b5f09e5e6f5974057967f432e01e9c3b",
+    "artifacts/offline/v4-app-reader/v4-logical-materialized/fixture-manifest.json": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32"
+  },
+  "sodiumBuildReport": {
+    "path": "artifacts/offline/crypto-android-build-validation/build-all-abis/build-result.json",
+    "sha256": "ba69bccbc0282728d17c105c48fda8ef6aab965c292c038ba5cfc44b4e3156af",
+    "scope": "Existing authenticated all4ABI static build reused; current CMake consumer verified archives/header inventory before linking. No new upstream compilation claimed."
+  },
+  "licenseSha256": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683",
+  "runtime": {
+    "emulator-5560": {
+      "api": "37",
+      "fingerprint": "google/sdk_gphone16k_arm64/emu64a16k:17/CE2A.260420.019/15611780:userdebug/dev-keys"
+    },
+    "emulator-5562": {
+      "api": "26",
+      "fingerprint": "google/sdk_gphone_arm64/generic_arm64:8.0.0/OSR1.180418.028.A3/10734686:userdebug/dev-keys"
+    }
+  },
+  "appDeviceTestsPerApi": 4,
+  "prototypeApi37SmokeTests": 2,
+  "jvmTests": 25,
+  "coverage": [
+    "2 exact encrypted logical goldens; IDs/counts/time/receipt bytes and sink cleanup",
+    "28 exact shared frame negatives;2 frame-pattern goldens rejected as logical input",
+    "7 authenticated logical/cap negatives including current10001expense rejection and ENDinMESSAGE",
+    "Malformed CRC-valid PNG recomputed descriptor/transcript, actual composed ReceiptImage.decode rejection",
+    "Close/finish/receipt/record failure and cancellation discard, borrowed buffers wiped, zero JNI handles",
+    "Separate live fixture vault+authenticated state unchanged after every app test"
+  ],
+  "packaging": "all4JNI LOAD>=16384;20 packagedELFs inspected; existing32-bit MLKitOCR LOAD4096 only, all64-bit LOAD>=16384; APK zipalign -P16 passes; license exactbytes present",
+  "limits": [
+    "Current metadata guard is15MiB logicalmetadata; exact schema3 backup capacity belongs to candidate admission. No successful archive/preview/candidate/install claim.",
+    "Prototype smoke2 targeted tests only; historical fullprototype matrices notrerun or inherited for currentAPK.",
+    "Normaldemo untouched; sandbox andprototype processes stopped. API26 remains available.",
+    "Managed buffer wiping is best effort; no memory/performance/capacity claim."
+  ],
+  "buildCommand": "PENNY_SODIUM_OUTPUT=/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/crypto-android-build-validation/build-all-abis ANDROID_HOME=/Users/sarathfrancis/Library/Android/sdk apps/android/gradlew -p apps/android -PpennyTestSandbox=true -PpennyV4TestAssets=/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/v4-app-reader :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug"
+}

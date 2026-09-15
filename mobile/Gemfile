@@ -1,8 +1,11 @@
 source "https://rubygems.org"
 
-# Pin fastlane to the version used to ship the app from Sarath's MacBook,
-# so CI builds match local builds bit-for-bit. Bump this deliberately.
-gem "fastlane", "2.232.2"
+# Fastlane 2.239.0 still restricts rubyzip to vulnerable 2.x releases.
+# Pin the official upstream Rubyzip 3 migration until a release includes it:
+# https://github.com/fastlane/fastlane/pull/30176
+# This is an unreleased upstream commit, not a local dependency override.
+gem "fastlane", git: "https://github.com/fastlane/fastlane.git",
+  ref: "3a4fc36716dec206b3f5441f19f0a5193733c828"
 
 # Required by fastlane's `cocoapods` action in the iOS ship lane. Even though
 # CocoaPods is pre-installed on the macos-14 runner via Homebrew, `bundle

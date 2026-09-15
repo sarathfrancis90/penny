@@ -1,0 +1,236 @@
+name: Penny Offline Native CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-offline-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: native-offline-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Portable format and native dependency gates
+        run: |
+          python3 -m pip install --require-hashes --only-binary=:all: -r scripts/offline/requirements.txt
+          npm run offline:check
+      - name: Authenticate source and verify the experimental frame corpus
+        run: |
+          mkdir -p packages/offline-crypto/.build
+          python3 packages/offline-crypto/prepare_source.py --download --output "$PWD/packages/offline-crypto/.build/source"
+          python3 packages/offline-crypto/prototypes/reference/build_reference.py --source "$PWD/packages/offline-crypto/.build/source" --output "$PWD/packages/offline-crypto/prototypes/reference/.build/host" --check
+          python3 packages/offline-crypto/prototypes/reference/fixtures.py verify
+          python3 -m unittest discover -s packages/offline-crypto/prototypes/reference -p 'test_*.py'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-crypto-reference
+          path: |
+            packages/offline-crypto/prototypes/reference/.build/host/build-result.json
+            packages/offline-crypto/prototypes/reference/.build/host/*.log
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: native-offline-android-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android command-line tools
+        uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+      - name: Verify pinned crypto source and all Android ABI builds
+        run: |
+          sdkmanager 'ndk;28.2.13676358' 'cmake;3.22.1'
+          mkdir -p packages/offline-crypto/.build
+          python3 scripts/offline/prepare-app-crypto.py android --output "$PWD/packages/offline-crypto/.build/app-android" --ndk "$ANDROID_HOME/ndk/28.2.13676358"
+          python3 packages/offline-crypto/android/check_consumer.py --built "$PWD/packages/offline-crypto/.build/app-android/native" --output "$PWD/packages/offline-crypto/.build/consumer" --cmake "$ANDROID_HOME/cmake/3.22.1/bin/cmake" --ndk "$ANDROID_HOME/ndk/28.2.13676358"
+      - name: Unit tests, lint and development APK
+        working-directory: apps/android
+        env:
+          PENNY_SODIUM_OUTPUT: ${{ github.workspace }}/packages/offline-crypto/.build/app-android/native
+        run: |
+          sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+          ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-android-development
+          path: |
+            apps/android/app/build/outputs/apk/debug/*.apk
+            apps/android/app/build/reports/
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-crypto-android-build
+          path: |
+            packages/offline-crypto/.build/app-android/preparation-report.json
+            packages/offline-crypto/.build/app-android/*.log
+            packages/offline-crypto/.build/app-android/native/build-result.json
+            packages/offline-crypto/.build/app-android/native/*.log
+            packages/offline-crypto/.build/app-android/native/*-elf.txt
+            packages/offline-crypto/.build/consumer/consumer-results.json
+            packages/offline-crypto/.build/consumer/*.log
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  ios:
+    name: native-offline-ios-simulator
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Verify pinned crypto source and Apple slices
+        run: |
+          mkdir -p packages/offline-crypto/.build
+          python3 scripts/offline/prepare-app-crypto.py ios --output "$PWD/packages/offline-crypto/.build/app-ios" --with-test-assets
+          python3 packages/offline-crypto/apple/check_rejections.py --source "$PWD/packages/offline-crypto/.build/app-ios/source"
+      - name: Native unit and UI tests
+        env:
+          PENNY_SODIUM_OUTPUT: ${{ github.workspace }}/packages/offline-crypto/.build/app-ios/native
+          PENNY_SODIUM_SOURCE: ${{ github.workspace }}/packages/offline-crypto/.build/app-ios/source
+          PENNY_V4_TEST_ASSETS: ${{ github.workspace }}/packages/offline-crypto/.build/app-ios/test-assets
+        run: bash scripts/offline/check-ios.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-ios-simulator-evidence
+          path: apps/ios/.build/evidence.*/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-crypto-apple-build
+          path: |
+            packages/offline-crypto/.build/app-ios/preparation-report.json
+            packages/offline-crypto/.build/app-ios/*.log
+            packages/offline-crypto/.build/app-ios/reference/build-result.json
+            packages/offline-crypto/.build/app-ios/reference/*.log
+            packages/offline-crypto/.build/app-ios/native/build-report.json
+            packages/offline-crypto/.build/app-ios/native/*/build.log
+            packages/offline-crypto/.build/app-ios/native/*/probe-platform.txt
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  android-device:
+    name: native-offline-android-api-${{ matrix.runtime }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runtime: '26'
+            api: '26'
+            target: google_apis
+            page_size: '4096'
+          - runtime: '37.0'
+            api: '37'
+            target: google_apis_ps16k
+            page_size: '16384'
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407
+        with:
+          packages: platform-tools
+      - name: Prepare authenticated app libraries and required v4 test corpus
+        run: |
+          sdkmanager 'ndk;28.2.13676358' 'cmake;3.22.1'
+          mkdir -p packages/offline-crypto/.build
+          python3 scripts/offline/prepare-app-crypto.py android --output "$PWD/packages/offline-crypto/.build/app-android-device" --ndk "$ANDROID_HOME/ndk/28.2.13676358" --with-test-assets
+      - name: Allow this runner to use KVM
+        run: sudo setfacl -m u:"$(id -un)":rw /dev/kvm
+      - name: Native UI, OCR, encrypted storage and process persistence
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        env:
+          ANDROID_SERIAL: emulator-5554
+          PENNY_EXPECTED_ANDROID_API: ${{ matrix.api }}
+          PENNY_EXPECTED_PAGE_SIZE: ${{ matrix.page_size }}
+          PENNY_SODIUM_OUTPUT: ${{ github.workspace }}/packages/offline-crypto/.build/app-android-device/native
+          PENNY_V4_TEST_ASSETS: ${{ github.workspace }}/packages/offline-crypto/.build/app-android-device/test-assets
+        with:
+          api-level: '37.0'
+          system-image-api-level: ${{ matrix.runtime }}
+          arch: x86_64
+          profile: pixel_2
+          target: ${{ matrix.target }}
+          pre-emulator-launch-script: python3 scripts/offline/check-avd-metadata.py --name test --expected-api "$PENNY_EXPECTED_ANDROID_API" --expected-profile pixel_2
+          disable-animations: true
+          script: bash scripts/offline/check-android-device.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: penny-offline-android-api-${{ matrix.runtime }}-evidence
+          path: |
+            apps/android/app/build/reports/androidTests/
+            apps/android/app/build/outputs/androidTest-results/
+            apps/android/evidence/
+            packages/offline-crypto/.build/app-android-device/preparation-report.json
+            packages/offline-crypto/.build/app-android-device/*.log
+            packages/offline-crypto/.build/app-android-device/reference/build-result.json
+            packages/offline-crypto/.build/app-android-device/reference/*.log
+            packages/offline-crypto/.build/app-android-device/native/build-result.json
+            packages/offline-crypto/.build/app-android-device/native/*.log
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  native-gate:
+    name: native-offline-gate
+    if: always()
+    needs: [contract, android, ios, android-device]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every native platform and contract check
+        env:
+          NATIVE_JOB_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, sys
+          jobs = json.loads(os.environ['NATIVE_JOB_RESULTS'])
+          failed = [name for name, job in jobs.items() if job['result'] != 'success']
+          if failed:
+              sys.exit('Native checks did not pass: ' + ', '.join(failed))
+          print('All native platform and contract checks passed.')
+          PYTHON

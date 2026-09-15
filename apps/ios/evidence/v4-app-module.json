@@ -1,0 +1,290 @@
+{
+  "schemaVersion": 1,
+  "scope": "Internal read-only v4 app module; no UI/legacy dispatch/candidate installation/export/provider integration; existing caps unchanged",
+  "sourceHashes": {
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "f79b305e1094f170eb8b5b60c4cbb568ebf03b8d4ef48b4fc6053cd209681b03",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceSnapshotValidation.swift": "1033469d088e1f68de4fe2e753c638ee9c0724d71be325f345a749824d9d959a",
+    "apps/ios/PennyOffline/FinanceStore.swift": "a50f18c6071df42aa7f62af0439d7c8263ff9775c8b701240570c477999fecc7",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/V4ReadOnlyAdapter.swift": "827c7392d2c8091e1eb6a3e2e0eaa2ccdb5ba546fb26f7e6e8ef5b184742b3bb",
+    "apps/ios/PennyOfflineTests/V4AppModuleTests.swift": "c2c39fd4217c2b6f30ddb967b03ef62cbcabebe48e4f1593039b1da503d002a2",
+    "apps/ios/project.yml": "a71b6b9424163a716c9a02a8288b3bc784538b8ceec15491e9fc17db60547d9d",
+    "packages/offline-crypto/apple/check_build_verification.py": "3e8811aff784d4015ca794b73d50cabeaf3d9ad8fed79daf9c52669713e5fe9d",
+    "packages/offline-crypto/apple/module/PennyV4Reader.swift": "2f6087041c9dfa63dcf5c28b22c36a76fccdefbc0d0264beacada63c82e14d44",
+    "packages/offline-crypto/apple/verify_build.py": "04995c475197a9a4b00d087768b147f3a1a00f99a40b1c937bb8c10a43f6cdeb",
+    "packages/offline-crypto/prototypes/apple/LogicalSources/V4LogicalGate.swift": "2301f5f22dac28d7f417eac5a1da9b5a88ce43a6f6d8369966f399505ac369be",
+    "packages/offline-crypto/prototypes/apple/LogicalSources/V4NativeValidationSink.swift": "35ca217c9ffc772009091274e34682d64756fd20a709fcd901d3707534b74108",
+    "packages/offline-crypto/prototypes/apple/LogicalSupport/V4RecordJSON.swift": "84edfa487d88324f316e01b302dc076eebe56eafddc6379b8a18242238c6adb0",
+    "packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift": "7cdebf355eeaf2c5be570443adad09c0b6f2d457914a44a7968dc1e61c2a9bca",
+    "packages/offline-crypto/prototypes/apple/check_runner.py": "864224cda3758b46a23b8df140dc9c5fffa432e639a2fd5e8228a40e11e69d9c",
+    "packages/offline-crypto/prototypes/apple/run.py": "ee05c45fedc857012d3de0543177cda3e5c81a02bd842ea3cf5e780b272315ea"
+  },
+  "compiledModuleSources": [
+    "packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift",
+    "packages/offline-crypto/prototypes/apple/LogicalSources/V4LogicalGate.swift",
+    "packages/offline-crypto/prototypes/apple/LogicalSources/V4NativeValidationSink.swift",
+    "packages/offline-crypto/prototypes/apple/LogicalSupport/V4RecordJSON.swift",
+    "apps/ios/PennyOffline/Expense.swift",
+    "apps/ios/PennyOffline/FinanceModels.swift",
+    "apps/ios/PennyOffline/FinanceSnapshotValidation.swift",
+    "apps/ios/PennyOffline/FinanceEngine.swift",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift",
+    "apps/ios/PennyOffline/PNGIntegrity.swift",
+    "apps/ios/PennyOffline/Categories.swift",
+    "packages/offline-crypto/apple/module/PennyV4Reader.swift"
+  ],
+  "products": {
+    "simulator/PennyOffline.app/PennyOffline": {
+      "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline",
+      "sha256": "ba20cca3491dba854ca902c6c09794d625f15c64eeb8f6b3e45e09122a8365c9"
+    },
+    "simulator/PennyOffline.app/PennyOffline.debug.dylib": {
+      "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib",
+      "sha256": "3e3b00553f36aad7b12754942f4c13588b653aa9d7c0d2cfa7d0c042b4388cbe"
+    },
+    "simulator/PennyOffline.app/LICENSE.libsodium": {
+      "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/LICENSE.libsodium",
+      "sha256": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683"
+    },
+    "simulator/libPennyV4.a": {
+      "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/libPennyV4.a",
+      "sha256": "94b3d91b6746c5c9521524e65246af73cff0442161d67d7c1377b13edd6b4d5f"
+    },
+    "testExecutable": {
+      "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests",
+      "sha256": "edfc259649a7957417113161b99bf50769f0b19c83755741d2adc5a54ae265f2"
+    }
+  },
+  "testResult": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "device": {
+      "architecture": "arm64",
+      "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+      "deviceName": "Penny A11y System Sizes",
+      "modelName": "iPhone 16e",
+      "osBuildNumber": "23E254a",
+      "osVersion": "26.4.1",
+      "platform": "iOS Simulator"
+    },
+    "xcresult": "apps/ios/.build/v4-app-module/Tests03Metadata.xcresult",
+    "scope": "metadata cap overlay plus encrypted-positive/license control; prior six methods retained separately"
+  },
+  "coverage": {
+    "logicalEncryptedGoldens": 2,
+    "frameOnlyPatternRejected": 2,
+    "frameNegatives": 28,
+    "materializedLogical": 70,
+    "beyondLegacyCount": "reject",
+    "nativeInvalidImage": "valid PNG CRCs, descriptor/hash/transcript and AEAD; rejected by native ReceiptError",
+    "sourceFailures": [
+      "close throws",
+      "cancellation during close",
+      "cancellation during read",
+      "oversized read",
+      "read throws"
+    ],
+    "isolation": "existing directory file hashes and all-domain snapshot unchanged; fresh store reopen equality; no keychain access API exposed"
+  },
+  "buildChecks": {
+    "status": "passed",
+    "positive": 1,
+    "rejections": [
+      "extra-header",
+      "header-symlink",
+      "changed-library",
+      "wrong-platform",
+      "wrong-deployment"
+    ]
+  },
+  "prototypeRunnerTests": 5,
+  "prototypePreflight": {
+    "status": "preflight-passed",
+    "simulator": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "outputCreated": false
+  },
+  "libraryBuildReport": {
+    "path": "apps/ios/.build/crypto-build-validation/apple/build-report.json",
+    "sha256": "0e37d43a09ec8ecf6565d2348935e55d431040d3d057b3de6d8e15aa0cf7c2f2"
+  },
+  "libraryArchives": {
+    "ios-arm64": "0c6c3c857af105996c050f76da5d117bbc997b2bf31f88402f2075b8f79165c8",
+    "ios-simulator-arm64": "fc5bf957e4d857a492af799a26328ceaa06754681d9590deee66aa0bdf58b549"
+  },
+  "sourcePin": {
+    "schemaVersion": 1,
+    "name": "libsodium",
+    "version": "1.0.22",
+    "upstreamCommit": "77e1ce5d6dee871c49ef211222ba18ef0c486bda",
+    "archive": {
+      "url": "https://github.com/jedisct1/libsodium/releases/download/1.0.22-RELEASE/libsodium-1.0.22.tar.gz",
+      "sha256": "adbdd8f16149e81ac6078a03aca6fc03b592b89ef7b5ed83841c086191be3349",
+      "sizeBytes": 2008529,
+      "topLevel": "libsodium-1.0.22"
+    },
+    "sourceTree": {
+      "algorithm": "penny-tree-v1",
+      "sha256": "2871798a902683da8f5767ab32920d5e04ee7fc89cf8eedeeb7e2fe48e8e9407",
+      "fileCount": 678
+    },
+    "signature": {
+      "algorithm": "minisign-ED",
+      "publicKey": "RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3",
+      "publicKeySource": "https://doc.libsodium.org/installation",
+      "file": "libsodium-1.0.22.tar.gz.minisig",
+      "sha256": "c0186d6cf8c9c2ec5c6dbb6d4ff4f701e5592376490e8ad97a4ceeecabbff0f3"
+    },
+    "build": {
+      "androidApi": 26,
+      "androidNdk": "28.2.13676358",
+      "iosDeploymentTarget": "26.0"
+    },
+    "license": {
+      "spdx": "ISC",
+      "file": "LICENSE.libsodium",
+      "sha256": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683"
+    }
+  },
+  "fixtureManifests": {
+    "packages/offline-contract/fixtures/v4-frames/fixture-manifest.json": "352874d4ce6374123a489cc3129abdde380be882b19c4ec93618356afa431d1f",
+    "packages/offline-contract/fixtures/v4-logical/fixture-manifest.json": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32",
+    "packages/offline-contract/fixtures/png-integrity-corpus.json": "e2728df1e7c45b119ca5a70d288de1c3bf7280f2b98c3ee6b7a8476fa17b7e5c"
+  },
+  "history": "Tests01 passed5/6 methods; two unordered-JSON byte-comparison assertions failed in isolation method. Stable sorted-key test comparison fixed; persisted-file hashes had already matched. Runtime source unchanged for Tests02.",
+  "financeExtensionMove": {
+    "unchanged": true,
+    "sha256": "1033469d088e1f68de4fe2e753c638ee9c0724d71be325f345a749824d9d959a"
+  },
+  "limitations": [
+    "iPhoneOS compile/link only; no physical execution",
+    "Synthetic/local fixtures; no untrusted provider transport or live import dispatch",
+    "No storage candidate, restore authorization, writer exposure, capacity increase or performance claim",
+    "Swift metadata and one bounded receipt may be materialized; no constant-memory claim",
+    "Build report is local provenance, not third-party binary authentication; use authenticated source + controlled builder; do not mutate compiler inputs concurrently"
+  ],
+  "estimatedAgentTokens": 13600,
+  "priorSixMethodCheckpoint": {
+    "sourceHashes": {
+      "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "f79b305e1094f170eb8b5b60c4cbb568ebf03b8d4ef48b4fc6053cd209681b03",
+      "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+      "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+      "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+      "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+      "apps/ios/PennyOffline/FinanceSnapshotValidation.swift": "1033469d088e1f68de4fe2e753c638ee9c0724d71be325f345a749824d9d959a",
+      "apps/ios/PennyOffline/FinanceStore.swift": "a50f18c6071df42aa7f62af0439d7c8263ff9775c8b701240570c477999fecc7",
+      "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+      "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+      "apps/ios/PennyOffline/V4ReadOnlyAdapter.swift": "6745fc3640f5db67fe60e3780ce915d0cef8ea19b007252959173d788b007099",
+      "apps/ios/PennyOfflineTests/V4AppModuleTests.swift": "66c784c30f46a65fdd12603c5a4ae6c358621059eebe9ceb192a080b827ae1cb",
+      "apps/ios/project.yml": "a71b6b9424163a716c9a02a8288b3bc784538b8ceec15491e9fc17db60547d9d",
+      "packages/offline-crypto/apple/check_build_verification.py": "3e8811aff784d4015ca794b73d50cabeaf3d9ad8fed79daf9c52669713e5fe9d",
+      "packages/offline-crypto/apple/module/PennyV4Reader.swift": "2f6087041c9dfa63dcf5c28b22c36a76fccdefbc0d0264beacada63c82e14d44",
+      "packages/offline-crypto/apple/verify_build.py": "04995c475197a9a4b00d087768b147f3a1a00f99a40b1c937bb8c10a43f6cdeb",
+      "packages/offline-crypto/prototypes/apple/LogicalSources/V4LogicalGate.swift": "2301f5f22dac28d7f417eac5a1da9b5a88ce43a6f6d8369966f399505ac369be",
+      "packages/offline-crypto/prototypes/apple/LogicalSources/V4NativeValidationSink.swift": "35ca217c9ffc772009091274e34682d64756fd20a709fcd901d3707534b74108",
+      "packages/offline-crypto/prototypes/apple/LogicalSupport/V4RecordJSON.swift": "84edfa487d88324f316e01b302dc076eebe56eafddc6379b8a18242238c6adb0",
+      "packages/offline-crypto/prototypes/apple/Sources/V4FrameCodec.swift": "7cdebf355eeaf2c5be570443adad09c0b6f2d457914a44a7968dc1e61c2a9bca",
+      "packages/offline-crypto/prototypes/apple/check_runner.py": "864224cda3758b46a23b8df140dc9c5fffa432e639a2fd5e8228a40e11e69d9c",
+      "packages/offline-crypto/prototypes/apple/run.py": "ee05c45fedc857012d3de0543177cda3e5c81a02bd842ea3cf5e780b272315ea"
+    },
+    "products": {
+      "simulator/PennyOffline.app/PennyOffline": {
+        "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline",
+        "sha256": "f7cb3b5de0974ff99fd1c07daf12a69a93cb593bf57f39bfcdf5ca911ce8c30b"
+      },
+      "simulator/PennyOffline.app/PennyOffline.debug.dylib": {
+        "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib",
+        "sha256": "5957dbb85bfec0670e59166d9bc3b6d55893b01dd219039c7abeecec2b0999b7"
+      },
+      "simulator/PennyOffline.app/LICENSE.libsodium": {
+        "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/LICENSE.libsodium",
+        "sha256": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683"
+      },
+      "simulator/libPennyV4.a": {
+        "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/libPennyV4.a",
+        "sha256": "94b3d91b6746c5c9521524e65246af73cff0442161d67d7c1377b13edd6b4d5f"
+      },
+      "device/PennyOffline.app/PennyOffline": {
+        "path": "apps/ios/.build/v4-app-module/DeviceDerivedData/Build/Products/Debug-iphoneos/PennyOffline.app/PennyOffline",
+        "sha256": "a32e0c1cccd6c4db704ae0b86d0fcaec484e14a7400dd837562c4c6db2f019a3"
+      },
+      "device/PennyOffline.app/PennyOffline.debug.dylib": {
+        "path": "apps/ios/.build/v4-app-module/DeviceDerivedData/Build/Products/Debug-iphoneos/PennyOffline.app/PennyOffline.debug.dylib",
+        "sha256": "3000c485e40493abfbafe62b8f559a344780afe3dfbf5a8a79a360f5797d7f18"
+      },
+      "device/PennyOffline.app/LICENSE.libsodium": {
+        "path": "apps/ios/.build/v4-app-module/DeviceDerivedData/Build/Products/Debug-iphoneos/PennyOffline.app/LICENSE.libsodium",
+        "sha256": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683"
+      },
+      "device/libPennyV4.a": {
+        "path": "apps/ios/.build/v4-app-module/DeviceDerivedData/Build/Products/Debug-iphoneos/libPennyV4.a",
+        "sha256": "a57b8eb4aafb7c0a4e3a256f94228e2716f80aa96cb30ee441a0f795716c8d1e"
+      },
+      "testExecutable": {
+        "path": "apps/ios/.build/v4-app-module/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests",
+        "sha256": "09087ed6a3676a7d66f780ab7311cc00ba4c5fde4b4eb3cd62e3e0e83ea7aa62"
+      }
+    },
+    "testResult": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "deviceName": "Penny A11y System Sizes",
+        "modelName": "iPhone 16e",
+        "osBuildNumber": "23E254a",
+        "osVersion": "26.4.1",
+        "platform": "iOS Simulator"
+      },
+      "xcresult": "apps/ios/.build/v4-app-module/Tests02.xcresult"
+    },
+    "coverage": {
+      "logicalEncryptedGoldens": 2,
+      "frameOnlyPatternRejected": 2,
+      "frameNegatives": 28,
+      "materializedLogical": 70,
+      "beyondLegacyCount": "reject",
+      "nativeInvalidImage": "valid PNG CRCs, descriptor/hash/transcript and AEAD; rejected by native ReceiptError",
+      "sourceFailures": [
+        "close throws",
+        "cancellation during close",
+        "cancellation during read",
+        "oversized read",
+        "read throws"
+      ],
+      "isolation": "existing directory file hashes and all-domain snapshot unchanged; fresh store reopen equality; no keychain access API exposed"
+    },
+    "deviceBuildScope": "Both SDK builds belong to this preceding six-method checkpoint. Simulator output paths were rebuilt for the metadata overlay; historical digests retained here."
+  },
+  "metadataPolicyOverlay": {
+    "appMaximumMetadataBytes": 15727872,
+    "guards": [
+      "BEGIN nonReceiptBytes",
+      "final policyMetadataBytes including BEGIN/END"
+    ],
+    "fullyValidEncryptedStreams": [
+      {
+        "expenses": 4000,
+        "bodyBytes": 15727873,
+        "core": "accept",
+        "app": "vaultCapacity"
+      },
+      {
+        "expenses": 4000,
+        "bodyBytes": 15727744,
+        "core": "accept",
+        "app": "vaultCapacity"
+      }
+    ],
+    "exactSchema3ExportabilityClaim": false,
+    "estimatedAdditionalAgentTokens": 2600
+  }
+}

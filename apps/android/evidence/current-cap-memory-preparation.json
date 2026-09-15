@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-15",
+  "scope": "Test-only memory observation preparation; no new physical run",
+  "testSource": "apps/android/app/src/androidTest/java/ca/penny/offline/CurrentCapDeviceTest.kt",
+  "sourceSha256": "c28a59848a4f66d69431ebd548a9614017d8f40a7e31ca984a0d70fadb49bc1b",
+  "observations": [
+    "VmRSS kernel process resident memory in KiB",
+    "VmHWM cumulative process RSS high-water in KiB"
+  ],
+  "semantics": "Includes startup, fixture and oracle allocations; not per-operation peak, app-only allocation, physical p95 or decoded-pixel stress. Missing/read/parse errors are explicit diagnostics and do not alter functional assertions.",
+  "validation": {
+    "targetedBuild": "passed",
+    "productionApkUnchanged": true,
+    "independentReview": "Missing-field diagnostic finding corrected; final diff inspected by integrator.",
+    "physicalExecution": "pending; Samsung absent from fresh USB inventory"
+  },
+  "artifactPins": {
+    "scope": "Missing RSS metric diagnostics only; functional test result remains independent. Build only, no runtime/physical test. validation01 preserved.",
+    "sourceSha256": "c28a59848a4f66d69431ebd548a9614017d8f40a7e31ca984a0d70fadb49bc1b",
+    "files": {
+      "app.apk": "8fd47b9640953d166c664ab4b679866676a24096c61ad2e8ebf9f267f76e04c5",
+      "test.apk": "f11160624148127aa4d2f1d69e8d73968dbb0c2715e05ed55db5987f1e52b294",
+      "build.log": "5c3141941b29254bee8824579945dcd0c6dce58791472fb56c8429db69149902",
+      "source.json": "f6adc760255a018b5b17483f78e90f8734face553e2d0a194fadc11dc237ee4e"
+    }
+  }
+}

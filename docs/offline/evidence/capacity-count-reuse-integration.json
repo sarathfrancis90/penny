@@ -1,0 +1,47 @@
+{
+  "baseCommit": "59304d718835b0a3844b3c2429322c600584acf8",
+  "scope": "Remove one duplicate body-capacity encoding within each authenticated iOS metadata read. No persisted format, limits, authentication, shape/model/receipt validation or reopen changes.",
+  "ios": {
+    "report": "apps/ios/evidence/capacity-count-reuse.json",
+    "reportSha256": "562293c5154a01f860ee9edda134a5225e91e04dc6e8d70c66e0aad4b8873adf",
+    "focusedPassed": 32,
+    "resourceRuns": 1,
+    "resourcePassed": 1,
+    "resourceCases": 3,
+    "skipped": 0,
+    "sourceEvidence": "Root verified69Debug and69Release source/binary pins and independently extracted both xcresult summaries.",
+    "review": "Independent review confirmed immutable validated body/count binding, unchanged fresh-path order and unchanged security/capacity checks. No confirmed P1/P2."
+  },
+  "shared": {
+    "nodePassed": 127,
+    "scriptPythonPassed": 57,
+    "cryptoPythonPassed": 5,
+    "skipped": 0,
+    "staticFiles": 90,
+    "categories": 38,
+    "sastFiles": 2,
+    "sastFindings": 0,
+    "sastErrors": 0,
+    "goldenFixtures": "Unchanged; existing closed-shape, Unicode/duplicate-member, receipt size parity and durable recovery/retention cases exercised."
+  },
+  "limits": [
+    "Single post-change Release observations do not establish comparative improvement, p95 or physical acceptance.",
+    "Latest10k observed save1547.60ms, legacy export480.63ms and restore1709.64ms; save77.41ms/export224.21ms MainActor heartbeat gaps remain.",
+    "No MainActor restructuring, cross-read metadata cache, larger capacity,100-receipt/combined-maximum, memory, energy or real-provider proof.",
+    "Android runtime/data validation unchanged. Separate current hosted API26 UI readiness defects are tracked independently; no passing full-native claim."
+  ],
+  "androidUiOverlay": {
+    "report": "apps/android/evidence/ui-readiness-59304d7.json",
+    "reportSha256": "f2251bcb89ddce1978c2c91ef469628497a66fd874b6c6e8908110d4ecfd68a5",
+    "eachApiPassed": 2,
+    "productionChanged": false,
+    "rootReview": "Root reviewed both affirmative readiness deltas; original camera/save/archive and blocked-dismissal assertions preserved. Source/artifact pins independently matched."
+  },
+  "rootIntegration": {
+    "documentationOriginalPassed": 105,
+    "documentationReviewPassed": 104,
+    "protectedLegacyPathsUnchanged": 18,
+    "diffCheck": "passed",
+    "androidUiPinsMatched": 119
+  }
+}

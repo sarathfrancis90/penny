@@ -1,0 +1,30 @@
+{
+  "commit": "7ba951285f90a515448d84843f82154046c46695",
+  "runId": 34820351651,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34820351651",
+  "conclusion": "cancelled",
+  "jobs": {
+    "native-offline-ios-simulator": "cancelled",
+    "native-offline-android-api-26": "success",
+    "native-offline-android-build": "success",
+    "native-offline-contract": "success",
+    "native-offline-android-api-37.0": "success",
+    "native-offline-gate": "failure"
+  },
+  "scope": "Android26/37, native contract and Android build passed. Before cancellation iOS completed131 unit tests with one failed revision assertion; partial UI suites ran. Successor2114c61 cancelled the job via workflow concurrency; native aggregate failed. No full native pass.",
+  "runMetadataSha256": "a2e54219cf66f2fbffee3b48eee8cbb3adc8dba49c4099d0759835b70de839b0",
+  "limits": [
+    "Historical live-state source only; does not establish subsequent repair or retention.",
+    "Cancellation does not erase the observed unit assertion failure. Retained Flutter iOS and repository aggregate are separate."
+  ],
+  "partialIos": {
+    "unitTotal": 131,
+    "unitPassed": 130,
+    "unitFailed": 1,
+    "failedMethod": "InactiveGenerationTests.testBoundInstallConsumesStaleOwnerRevisionIncarnationAndRoot",
+    "failure": "Line329, incarnation setup expected revision1 but observed2. Root and independent review confirmed eager legacy migration already advances0 to1; redundant test-only replacement advanced to2. Remove that replacement while retaining same-revision, different-epoch and stale-install assertions. Final corrected-source test result is recorded by the retention checkpoint.",
+    "log": "artifacts/offline/hosted-7ba9512-ios-cancelled.log",
+    "logSha256": "44b9c023856e25f625670fed683a81bc99d6c8358f6fb630fdae120e77797719",
+    "ui": "Partial suites passed before cancellation; no full UI completion claim."
+  }
+}

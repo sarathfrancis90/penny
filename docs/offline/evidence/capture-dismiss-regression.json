@@ -1,0 +1,48 @@
+{
+  "scope": "Native UI test synchronization change; no production app change",
+  "hostedFailure": {
+    "commit": "341419768ad911ef9c9ce6853d5262abf5fa3662",
+    "run": 34795728145,
+    "job": 103828330079,
+    "test": "CaptureFlowTest.actualCameraDenialKeepsManualExpenseAvailable",
+    "location": "CaptureFlowTest.kt:49",
+    "failure": "Condition still not satisfied after 10000 ms",
+    "observation": "The composite predicate combined committed-save/editor/list state with snackbar lifetime. Logs do not isolate which predicate was false.",
+    "logSha256": "3cb5622c5024f3472896b9ca19f267ae64a99536d4aee4aa4b5f6dbadbf604b3"
+  },
+  "change": "Wait for validated committed expense and editor dismissal, dismiss the saved snackbar through its public accessibility action, then scroll/tap/reopen/assert exact amount and delete through the UI. No ViewModel clearing or longer timeout.",
+  "localRuns": [
+    {
+      "api": 26,
+      "passed": true,
+      "apkSha256": "46c6576f5fd6fa4b6932f9f5299047540c6a7bb2de7a096d42fd8e9168a1a9a3",
+      "testApkSha256": "7a784706b524774de6c8e435a7e59ad81d5ccf891c70c3588c8a25fdf3e6fc61",
+      "captureTestSha256": "b9ca0ace6be146b1b977fbb458fdf3b8c2d66af8556b086a868380fb40c96188"
+    },
+    {
+      "scope": "Camera denial/manual save UI with explicit accessibility snackbar dismissal",
+      "api": 37,
+      "pageSize": "16384",
+      "originalSettings": {
+        "accessibility_non_interactive_ui_timeout_ms": "null",
+        "accessibility_interactive_ui_timeout_ms": "null"
+      },
+      "apkSha256": "46c6576f5fd6fa4b6932f9f5299047540c6a7bb2de7a096d42fd8e9168a1a9a3",
+      "testApkSha256": "7a784706b524774de6c8e435a7e59ad81d5ccf891c70c3588c8a25fdf3e6fc61",
+      "captureTestSha256": "b9ca0ace6be146b1b977fbb458fdf3b8c2d66af8556b086a868380fb40c96188",
+      "testSettings": {
+        "accessibility_non_interactive_ui_timeout_ms": "60000",
+        "accessibility_interactive_ui_timeout_ms": "60000"
+      },
+      "passed": true,
+      "restoredSettings": {
+        "accessibility_non_interactive_ui_timeout_ms": "null",
+        "accessibility_interactive_ui_timeout_ms": "null"
+      }
+    }
+  ],
+  "hostedCorrection": "Pending fresh commit CI",
+  "normalDemoUntouched": true,
+  "api26After": "Shutdown",
+  "sourceReference": "https://github.com/androidx/androidx/blob/androidx-main/compose/material3/material3/src/commonMain/kotlin/androidx/compose/material3/SnackbarHost.kt"
+}

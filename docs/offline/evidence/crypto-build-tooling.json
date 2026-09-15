@@ -1,0 +1,144 @@
+{
+  "date": "2026-09-13",
+  "scope": "Local dependency preparation/build checks; no production app linkage or v4 capacity acceptance",
+  "signature": {
+    "version": "1.0.22",
+    "archiveSha256": "adbdd8f16149e81ac6078a03aca6fc03b592b89ef7b5ed83841c086191be3349",
+    "signature": "verified",
+    "trustedComment": "timestamp:1775774745\tfile:libsodium-1.0.22.tar.gz\thashed"
+  },
+  "sourceManifestSha256": "0bc9e3168db182dffdb0c81d0de0ff7809e3023de2bd2e0bfee406eb322ae8e5",
+  "apple": {
+    "status": "passed",
+    "toolchain": {
+      "xcode": "Xcode 26.6\nBuild version 17F113",
+      "developerDirectory": "/Applications/Xcode.app/Contents/Developer"
+    },
+    "deploymentTarget": "26.0",
+    "elapsedSeconds": 40.351,
+    "slices": [
+      {
+        "name": "ios-arm64",
+        "target": "arm64-apple-ios26.0",
+        "architecture": "arm64",
+        "artifacts": {
+          "install/LICENSE": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683",
+          "install/include/module.modulemap": "85413e4f80d784c5c1f2c03bca315dc113b4d2de8611b4a46a15080dba31b864",
+          "install/include/sodium/version.h": "91c61a41931eb9c24fc463048816c2ca83760b6f1de5dbc7394c6d5c2c68e0b4",
+          "install/include/sodium.h": "cbf41361b000163b341b9cccfc693f0247bd3fc04f3ffe206fbe1a5e4c309ec5",
+          "install/lib/libsodium.a": "0c6c3c857af105996c050f76da5d117bbc997b2bf31f88402f2075b8f79165c8"
+        },
+        "probeSha256": "be9e1075334d90a599a7af6f767ff4bf59eb4e312ba439b01054d21e3aa1c2a7"
+      },
+      {
+        "name": "ios-simulator-arm64",
+        "target": "arm64-apple-ios26.0-simulator",
+        "architecture": "arm64",
+        "artifacts": {
+          "install/LICENSE": "508a76d186356c0dd807a670ef510964f8724557024796a2c426c6c0e19ab683",
+          "install/include/module.modulemap": "85413e4f80d784c5c1f2c03bca315dc113b4d2de8611b4a46a15080dba31b864",
+          "install/include/sodium/version.h": "91c61a41931eb9c24fc463048816c2ca83760b6f1de5dbc7394c6d5c2c68e0b4",
+          "install/include/sodium.h": "cbf41361b000163b341b9cccfc693f0247bd3fc04f3ffe206fbe1a5e4c309ec5",
+          "install/lib/libsodium.a": "fc5bf957e4d857a492af799a26328ceaa06754681d9590deee66aa0bdf58b549"
+        },
+        "probeSha256": "15a26d6d2e389b701ce0903ef3c89594f12e2c81269050d7b0a54383321a2c94"
+      }
+    ],
+    "boundary": "Build predates path guards and explicit shell=False. Both-slice positive preflight and six rejection checks passed after guards; fresh hosted build required."
+  },
+  "android": {
+    "ndk": "28.2.13676358",
+    "api": 26,
+    "originalBuildScriptSha256": "8ad32492f8d8666505cda0505eb4df655126e210647a9699cadaa3957ccf6a0a",
+    "builds": [
+      {
+        "abi": "arm64-v8a",
+        "archiveSha256": "31990d7bdfc69d13f6b39509f2e6a71bfe91ee09c90e6c2ee87039f7be805800",
+        "linkCheckSha256": "0167a04716d06587e7886c66672bd088a40e7524baa92c85035624ca898d0307",
+        "elfLoadMinimumAlignment": 16384
+      },
+      {
+        "abi": "armeabi-v7a",
+        "archiveSha256": "af0f752f0af5fca91918c2617f8298e93a0274d2c2391671ceed7e0d9d574ee0",
+        "linkCheckSha256": "dc6a531dbddd01f475c68e40b35766fd452369e6a2953d6f9628ab168a064fe4",
+        "elfLoadMinimumAlignment": 16384
+      },
+      {
+        "abi": "x86",
+        "archiveSha256": "875f93293b0c1ec51daea4c4637f83b7250a879e23f3a3fccbac3b01a312242a",
+        "linkCheckSha256": "a3d81ba528c96359127f1352caa0beb36c9162d5f13db5a258ceacd68d09096e",
+        "elfLoadMinimumAlignment": 16384
+      },
+      {
+        "abi": "x86_64",
+        "archiveSha256": "ef0b3be8ada8805b8bc99152d6ee09fca80f15fe73d6b16f0e9b83bec30010d6",
+        "linkCheckSha256": "7fd7eedfd8d056548a6112ede9519df4d12d2e1e606b0888e9288c79a173b47e",
+        "elfLoadMinimumAlignment": 16384
+      }
+    ],
+    "boundary": "Original compiled archives retained; exported headers independently compared to verified source before adding header attestation. Final helper/build script have not yet run on hosted CI."
+  },
+  "consumer": {
+    "status": "passed",
+    "helperSha256": "7628e458559f22975d56b78212ab1f0ef4171715e183bbb73c3c134df0e7e3eb",
+    "runnerSha256": "924cfd1d29305c9993d0d9ba77665741a9d9ef336aa56f39b8f8209ff73aa6f6",
+    "checks": [
+      {
+        "name": "consumer-arm64-v8a",
+        "configureExit": 0,
+        "linked": true,
+        "expectedRejection": null
+      },
+      {
+        "name": "consumer-armeabi-v7a",
+        "configureExit": 0,
+        "linked": true,
+        "expectedRejection": null
+      },
+      {
+        "name": "consumer-x86",
+        "configureExit": 0,
+        "linked": true,
+        "expectedRejection": null
+      },
+      {
+        "name": "consumer-x86_64",
+        "configureExit": 0,
+        "linked": true,
+        "expectedRejection": null
+      },
+      {
+        "name": "preexisting",
+        "configureExit": 1,
+        "linked": false,
+        "expectedRejection": "pre-existing penny_sodium"
+      },
+      {
+        "name": "altered-header",
+        "configureExit": 1,
+        "linked": false,
+        "expectedRejection": "Installed header digest mismatch"
+      },
+      {
+        "name": "altered-archive",
+        "configureExit": 1,
+        "linked": false,
+        "expectedRejection": "Static archive digest mismatch"
+      }
+    ]
+  },
+  "deterministicTests": {
+    "node": 74,
+    "python": 27,
+    "nativeStaticBoundary": "passed"
+  },
+  "sast": {
+    "tool": "Semgrep 1.165.0",
+    "configs": [
+      "p/owasp-top-ten",
+      "p/typescript"
+    ],
+    "unsuppressedFindings": 0,
+    "coverage": "Focused maintained source/build utilities and consumer checker. Five exact argv-rule annotations explain verified executables/paths and shell=False; no directory or rule-wide exclusions."
+  }
+}

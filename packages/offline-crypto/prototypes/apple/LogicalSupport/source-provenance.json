@@ -1,0 +1,37 @@
+{
+  "FinanceModels.swift": {
+    "source": "apps/ios/PennyOffline/FinanceModels.swift",
+    "sourceSha256": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "frozenSha256": "9fb8320ee853bc3a99c8cbb020b7f6134a664d7c642e0561226a25b6d22a1731"
+  },
+  "Categories.swift": {
+    "source": "apps/ios/PennyOffline/Categories.swift",
+    "sourceSha256": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "frozenSha256": "be9492de7581b312354c15cea040fe82841bd7171e47e98dcbafb55a01deeef7"
+  },
+  "ReceiptAttachment.swift": {
+    "source": "apps/ios/PennyOffline/ReceiptAttachment.swift",
+    "sourceSha256": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "frozenSha256": "d001f13076c3cdba22ae59a475cbc93cb96d0e5d9a470debfd6f2018e3e3253c"
+  },
+  "PNGIntegrity.swift": {
+    "source": "apps/ios/PennyOffline/PNGIntegrity.swift",
+    "sourceSha256": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "frozenSha256": "7d1c2544875fd53c75ac3a00f3d20aba7ff5f29e744c07724527f796cc8cc61d"
+  },
+  "Expense.swift": {
+    "source": "apps/ios/PennyOffline/Expense.swift",
+    "sourceSha256": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "frozenSha256": "f88322064e9a4ee1fe440662e82464d4da585d9733e95317f66bcacabbd19071"
+  },
+  "GregorianDay.swift": {
+    "source": "apps/ios/PennyOffline/FinanceEngine.swift",
+    "sourceSha256": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "frozenSha256": "aced2f247355edf12e812416a0b0ab91f4029b69520e04b7740a7a98d89cf741"
+  },
+  "V4RecordJSON.swift": {
+    "source": "apps/ios/PennyOffline/StrictJSON.swift",
+    "sourceSha256": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "frozenSha256": "84edfa487d88324f316e01b302dc076eebe56eafddc6379b8a18242238c6adb0"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "scope": "Unused detached receipt typed descriptor, binary codec and unactivated generation/file lifecycle; no serialized candidate metadata decoder or live vault integration",
+  "capturedAt": "2026-09-14T02:18:44.196772+00:00",
+  "sourceAndArtifactSha256": {
+    "apps/android/app/src/main/java/ca/penny/offline/LocalReceiptBlob.kt": "b32af79348b7bad619f3f01fec02f374bb21110a4c31cb2e766fa406d493a52a",
+    "apps/android/app/src/androidTest/java/ca/penny/offline/LocalReceiptBlobDeviceTest.kt": "ec1de41fde2cb4933bfedb0c7dd235efe1f3241fe72309763908d8cf93b2eb65",
+    "apps/android/app/src/main/java/ca/penny/offline/Attachment.kt": "55b1f095ee2ced7fa73e2ba7e977fd125708b637e4f21115091f497b03d5508b",
+    "apps/android/app/src/main/java/ca/penny/offline/ReceiptImage.kt": "977bd205b8e6f7da26101f3f63029975e12f49c260828348e3a95dbd18cf9b27",
+    "apps/android/app/src/main/java/ca/penny/offline/Expense.kt": "fc6d6f8ef1fd23027ffd2df31842b48098c216e7480b345cf8baab225c162f77",
+    "apps/android/app/build/outputs/apk/debug/app-debug.apk": "2c0f29416c4e089b392bef8bfe38b9139f713a910296ec543f634ee421d39cdb",
+    "apps/android/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "c023091700cf73d918ffd0d7ceeb90c0270969214fb6da2391ef54f203c207f7",
+    "packages/offline-contract/fixtures/local-receipt-v1/fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+    "packages/offline-contract/fixtures/local-receipt-v1/receipt.pennyreceipt": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623",
+    "packages/offline-contract/fixtures/local-receipt-v1/receipt.png": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+    "artifacts/offline/local-receipt-android-build.log": "947cde98e87177dc2ffdc17afb7bbc299427099a49a07e790cae72639d922688",
+    "artifacts/offline/local-receipt-api26.log": "10e8b8ee206e32720574d08b783e56e441a3c73bf68fca6ac0c3c934fd1091bb",
+    "artifacts/offline/local-receipt-api37.log": "788f1ae4df0fc483ad7fb02f2a366e538b2760ecb8527b21744f9a1878cf9925"
+  },
+  "testPackage": "ca.penny.offline.dev.test",
+  "instrumentationPackage": "ca.penny.offline.dev.test.test",
+  "commands": {
+    "build": "ANDROID_HOME=/Users/sarathfrancis/Library/Android/sdk ./gradlew -PpennyTestSandbox=true :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug",
+    "workingDirectory": "apps/android",
+    "installPerDevice": [
+      "adb -s SERIAL install -r app/build/outputs/apk/debug/app-debug.apk",
+      "adb -s SERIAL install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
+    ],
+    "testPerDevice": "adb -s SERIAL shell am instrument -w -r -e class ca.penny.offline.LocalReceiptBlobDeviceTest ca.penny.offline.dev.test.test/androidx.test.runner.AndroidJUnitRunner",
+    "releasePerDevice": "adb -s SERIAL shell am force-stop ca.penny.offline.dev.test"
+  },
+  "runs": [
+    {
+      "serial": "emulator-5562",
+      "api": 26,
+      "abi": "arm64-v8a",
+      "pageBytes": 4096,
+      "pageEvidence": "adb shell cat /proc/self/smaps: KernelPageSize and MMUPageSize 4 kB; getconf unavailable",
+      "testGroupsPassed": 7,
+      "testGroupsFailed": 0,
+      "runtimeSeconds": 0.422
+    },
+    {
+      "serial": "emulator-5560",
+      "api": 37,
+      "abi": "arm64-v8a",
+      "pageBytes": 16384,
+      "pageEvidence": "adb shell getconf PAGE_SIZE = 16384",
+      "testGroupsPassed": 7,
+      "testGroupsFailed": 0,
+      "runtimeSeconds": 0.514
+    }
+  ],
+  "sharedFixtureNegatives": {
+    "authentication": 10,
+    "envelope": 7,
+    "metadata": 15,
+    "content": 1,
+    "image-structure": 2
+  },
+  "sharedFixtureCount": {
+    "positives": 1,
+    "negatives": 35
+  },
+  "bundledTestApkFixtures": {
+    "fixture-manifest.json": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+    "receipt.pennyreceipt": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623",
+    "receipt.png": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5"
+  },
+  "metadataScope": "Unknown/missing fields and JSON number types are rejected by test-only adapter; typed descriptor enforces UUID/media/count/hash validation. No production serialized descriptor decoder claim.",
+  "faultScope": "Checkpoint exceptions at DIRECTORY_OPEN/CREATE/WRITE/SYNC/CLOSE/REOPEN/DIRECTORY_SYNC. Partial write injection occurs before second write after 32768 ciphertext-envelope bytes reached owned file. CLOSE injection is after successful real close; no real close failure, full volume, power-loss or reboot durability proof.",
+  "limits": {
+    "receiptBytes": 2097152,
+    "generationReceipts": 100,
+    "generationReceiptBytes": 8388608,
+    "retainedReadonlyReceiptFds": 100
+  },
+  "normalDemo": "No data clears, settings changes or installation for ca.penny.offline.dev; both sandbox packages force-stopped after tests."
+}

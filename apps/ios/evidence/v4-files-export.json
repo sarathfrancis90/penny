@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "scope": "Actual Files v4 export, current caps, no cloud completion claim",
+  "validated": {
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "groups": {
+      "FilesExportTests": 3,
+      "V4ExportTests": 6,
+      "FilesRestoreTests/legacyCompatibility": 1,
+      "CaptureFlowTests/realFilesCancel": 1
+    }
+  },
+  "sourceHashes": {
+    "apps/ios/PennyOffline/FilesExport.swift": "683619e29429339fa446e51ab8f2aa0c54eb6cc8c28ce06cc38c61f0c23a294d",
+    "apps/ios/PennyOffline/V4Export.swift": "ababc7eced1c35dea02accaa1b978a5a5bf86688060488de16e1d10bd8d6826c",
+    "apps/ios/PennyOffline/VaultView.swift": "9c43151aa20d653140f7a63711282d6bc9c2f534ebbbca09df9e1d26d13840ff",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "77fa3afdb5c28b88c7d663ae0d5306b9ff53aea9d4a5edee1d3c82458cacd588",
+    "apps/ios/PennyOfflineTests/FilesExportTests.swift": "57554b48ca558b23ee5920b05ab0dca8fe42e6459fda6f357413b750a9630502",
+    "apps/ios/PennyOfflineTests/V4ExportTests.swift": "265a00254e0ae4d4a87b0cf5df28527dff8c6d691dc47640cc72727964f47b12"
+  },
+  "ordinaryProvenance": "artifacts/offline/v4-files-export-ios/validation-01/provenance.json",
+  "ordinaryProvenanceSha256": "33aa475f3e37a39eb7bf15566cf5d561a500afa0fc4049da9db442180050205f",
+  "pickerDiagnostic": "artifacts/offline/v4-files-export-ios/picker-02/provenance.json",
+  "pickerDiagnosticSha256": "0ce6fae8c11efb77bc481bebcdc8016db38099cb7d0ecbdcf73a639020a76d28",
+  "limits": [
+    "No physical device protection or remote upload proof.",
+    "Fault hooks inject errors after real operations, not ENOSPC/hardware faults.",
+    "11 passing methods belong to ordinary source snapshot; diagnostic compile-flag/display-name overlay is separately pinned."
+  ],
+  "estimatedTokens": "Approximately 11k including required implementation, focused11 proof, evidence, and two bounded picker diagnostics; 8k plus2k soft allocation exceeded slightly.",
+  "installedPickerDiagnosis": {
+    "file": "artifacts/offline/v4-files-export-ios/picker-02/installed-diagnosis.json",
+    "sha256": "28670025c54d405e44d3a727f2f83cb27bcb655f47e7c6fed3eccda60398e5ff",
+    "result": "UIFileSharingEnabled absent; LSSupportsOpeningDocumentsInPlace true; current Documents has only empty PennyExportProof folder. No external provider defect established."
+  },
+  "configurationCorrection": {
+    "provenance": "artifacts/offline/v4-files-export-ios/picker-03/provenance.json",
+    "sha256": "f2c1b24e09e5f1c4353b6e3fbc10c6aaedc0271dd50bd08ca34df4e03d201694",
+    "result": "2 failed,0 passed,0 skipped. Configuration exposed Files folder; real Open tapped. Harness query failures prevent success claim.",
+    "installedKeys": {
+      "UIFileSharingEnabled": true,
+      "LSSupportsOpeningDocumentsInPlace": true
+    }
+  },
+  "completedFilesUI": {
+    "provenance": "artifacts/offline/v4-files-export-ios/completed-ui-proof.json",
+    "sha256": "06c08790f5c197712a31deb440b310f427135ecd23ebdd20991011972466d295",
+    "positive": "PASS Picker04 FilesExportFlowTests",
+    "cancel": "PASS Cancel05 CaptureFlowTests",
+    "separateRuns": true,
+    "savedDestination": [
+      {
+        "currentContainerSavedPath": "/Users/sarathfrancis/Library/Developer/CoreSimulator/Devices/F70A4E8F-78ED-4E96-85E6-0EAEB6D34088/data/Containers/Data/Application/49F6648D-0125-4D96-AB08-4ABE0DFC17C8/Documents/Penny-25149695-7f75-4f88-b565-be808cc5cb2c.pennybackup",
+        "selectedFolder": "Own app Documents (file was saved at Documents root, not inside empty PennyExportProof)",
+        "artifact": "artifacts/offline/v4-files-export-ios/picker-04/Penny-25149695-7f75-4f88-b565-be808cc5cb2c.pennybackup",
+        "bytes": 819,
+        "sha256": "676653165ba767194969ddd0e36ac3ad3a8acc2bec0eaf35f5c77107889eed1c",
+        "publicRecoveryKey": "pny1-0101010101010101010101010101010101010101010101010101010101010101"
+      }
+    ]
+  },
+  "preConfigurationDiagnosticOverlay": {
+    "apps/ios/PennyOfflineUITests/FilesExportFlowTests.swift": "9cae890eb2e5aad041c180d064070444f75eb46486f4cda1d13f1015bb18a4b9",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "051673ad1f74ee8c1a4fcbdae02fc8a311743c652cd779e7b5caf638904f9987"
+  },
+  "finalSourceOverlay": {
+    "apps/ios/project.yml": "3732df99d93618071056d563e55886c294b0c49ded6fdd61be357399e15ea266",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "a9a6d16117f6a2812c069da84d39c54ac660365590f9830634ebc802eacb7731",
+    "apps/ios/PennyOfflineUITests/CaptureFlowTests.swift": "a779ad97b448795fd1c3bcec18a39d53a7ac093439fe50e8372fbefabb89c788",
+    "apps/ios/PennyOfflineUITests/FilesExportFlowTests.swift": "24c680256493023b95b9c35eac52c027279dfdc3c6feb75a12004d1774d43652"
+  }
+}

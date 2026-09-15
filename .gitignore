@@ -24,6 +24,8 @@
 # local agent/browser artifacts
 .claude/scheduled_tasks.lock
 .playwright-mcp/
+/artifacts/offline/
+__pycache__/
 
 # misc
 .DS_Store

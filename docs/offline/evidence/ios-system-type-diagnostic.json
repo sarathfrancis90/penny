@@ -1,0 +1,184 @@
+{
+  "scope": "Historical actual-system font captures; not a passing unfiltered accessibility audit",
+  "systemMatrix": {
+    "scope": "Evidence-only actual system Dynamic Type diagnostic; no source edits; no audit filtering",
+    "device": {
+      "name": "Penny A11y System Sizes",
+      "model": "iPhone 16e",
+      "udid": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+      "runtime": "iOS 26.4.1",
+      "portraitPoints": [
+        390,
+        844
+      ]
+    },
+    "source": "Frozen apps/ios/PennyOffline sources referenced by temporary XcodeGen target with original application target settings; no VisualTestTraits override",
+    "originalContentSize": "large",
+    "restoredContentSize": "large",
+    "excludedEvidence": "invalid-compatibility-layout contains earlier temporary project missing launch/scene target settings; all letterboxed captures excluded",
+    "results": [
+      {
+        "systemContentSize": "large",
+        "xcresult": "large.xcresult",
+        "exitCode": 65,
+        "geometryLines": [
+          "SYSTEM_TYPE_GEOMETRY Expense header Attributes: StaticText, 0x107657ac0, {{38.7, 241.7}, {137.0, 15.3}}, label: 'ON YOUR DEVICE'",
+          "SYSTEM_TYPE_GEOMETRY Expense search Attributes: SearchField, 0x117daaa80, {{16.0, 154.0}, {358.0, 44.0}}, label: 'Search your expenses', placeholderValue: 'Search your expenses'",
+          "SYSTEM_TYPE_GEOMETRY Empty title Attributes: StaticText, 0x10c32f200, {{131.3, 543.3}, {127.3, 26.3}}, label: 'A fresh start'",
+          "SYSTEM_TYPE_GEOMETRY Empty explanation Attributes: StaticText, 0x10c32f700, {{36.5, 585.7}, {317.0, 42.3}}, label: 'Add your first expense. Your money story stays with you.'",
+          "SYSTEM_TYPE_GEOMETRY Empty action Attributes: Button, 0x119910b40, {{122.3, 644.0}, {145.7, 58.0}}, identifier: 'emptyAddExpense', label: 'Add an expense'",
+          "SYSTEM_TYPE_GEOMETRY Report net Attributes: StaticText, 0x119921900, {{16.0, 389.0}, {358.0, 52.0}}, identifier: 'reportNet', label: 'Received minus expenses, CA$0.00'",
+          "SYSTEM_TYPE_GEOMETRY Report savings Attributes: StaticText, 0x11a6826c0, {{16.0, 441.0}, {358.0, 52.0}}, identifier: 'reportSavings', label: 'Savings contributions, CA$0.00'",
+          "SYSTEM_TYPE_GEOMETRY Report explanation Attributes: StaticText, 0x11ba33340, {{16.0, 493.0}, {358.0, 116.3}}, label: 'Savings contributions are internal allocations and are not subtracted again. Planned income and unposted templates are excluded.'",
+          "SYSTEM_TYPE_GEOMETRY Backup heading Attributes: StaticText, 0x11baac280, {{16.0, 316.7}, {358.0, 40.3}}, label: 'Encrypted backup'",
+          "SYSTEM_TYPE_GEOMETRY Restore disabled Attributes: Button, 0x11cd67700, {{16.0, 673.7}, {358.0, 52.0}}, label: 'Restore a backup', Disabled",
+          "SYSTEM_TYPE_GEOMETRY Capacity heading Attributes: StaticText, 0x117d80b40, {{16.0, 473.7}, {358.0, 40.3}}, label: 'Vault capacity'"
+        ],
+        "captures": {
+          "Restore input": "large-screens/55730B94-700D-45DF-82F2-9333C5CC34BF.png",
+          "Capacity heading": "large-screens/8174046A-354B-4D03-9FC0-D8A9DB63A94F.png",
+          "Restore disabled": "large-screens/EE875636-1442-44A6-9C9B-E42856FEAF21.png",
+          "Backup heading": "large-screens/53328654-1924-4EC1-8E6F-5D804855C8DC.png",
+          "Report explanation": "large-screens/B4AB7754-847B-4326-A082-7981F1F22835.png",
+          "Report savings": "large-screens/D64D7C22-6951-4E4B-8CB1-1ECAB8CBAF63.png",
+          "Report net": "large-screens/9AED5E98-4522-402F-91DE-FE93AD861667.png",
+          "Empty action": "large-screens/EB79F56B-3D89-4AC7-BCCD-860A6D10E5AB.png",
+          "Empty explanation": "large-screens/9133BD82-189B-4242-A78D-D1290E6AAA0D.png",
+          "Empty title": "large-screens/969AB3DF-07D9-42D4-A12E-52D4798C8462.png",
+          "Expense search": "large-screens/0255887E-018F-4240-AE30-EE7B84986F62.png",
+          "Expense header": "large-screens/0E9307EB-DF54-43C8-9BCD-BE57DE397935.png"
+        },
+        "failure": "Temporary harness queries Recovery key for restore but SwiftUI exposes Enter your recovery key; enabled restore capture not reached."
+      },
+      {
+        "systemContentSize": "extra-extra-extra-large",
+        "xcresult": "extra-extra-extra-large.xcresult",
+        "exitCode": 65,
+        "geometryLines": [
+          "SYSTEM_TYPE_GEOMETRY Expense header Attributes: StaticText, 0x10b7043c0, {{40.0, 257.7}, {188.7, 22.7}}, label: 'ON YOUR DEVICE'",
+          "SYSTEM_TYPE_GEOMETRY Expense search Attributes: SearchField, 0x117186d00, {{16.0, 156.0}, {358.0, 58.0}}, label: 'Search your expenses', placeholderValue: 'Search your expenses'",
+          "SYSTEM_TYPE_GEOMETRY Empty title Attributes: StaticText, 0x11715da40, {{114.2, 602.3}, {161.7, 33.7}}, label: 'A fresh start'",
+          "SYSTEM_TYPE_GEOMETRY Empty explanation Attributes: StaticText, 0x11717db80, {{54.3, 652.0}, {281.3, 56.7}}, label: 'Add your first expense. Your money story stays with you.'",
+          "SYSTEM_TYPE_GEOMETRY Empty action Attributes: Button, 0x118d59f40, {{103.7, 596.7}, {183.0, 58.0}}, identifier: 'emptyAddExpense', label: 'Add an expense'",
+          "SYSTEM_TYPE_GEOMETRY Report net Attributes: StaticText, 0x118d575c0, {{16.0, 412.0}, {358.0, 86.7}}, identifier: 'reportNet', label: 'Received minus expenses, CA$0.00'",
+          "SYSTEM_TYPE_GEOMETRY Report savings Attributes: StaticText, 0x119afd2c0, {{16.0, 499.0}, {358.0, 59.0}}, identifier: 'reportSavings', label: 'Savings contributions, CA$0.00'",
+          "SYSTEM_TYPE_GEOMETRY Report explanation Attributes: StaticText, 0x11ada8640, {{16.0, 558.0}, {358.0, 173.7}}, label: 'Savings contributions are internal allocations and are not subtracted again. Planned income and unposted templates are excluded.'",
+          "SYSTEM_TYPE_GEOMETRY Backup heading Attributes: StaticText, 0x11ae09540, {{16.0, 376.3}, {358.0, 47.7}}, label: 'Encrypted backup'",
+          "SYSTEM_TYPE_GEOMETRY Restore disabled Attributes: Button, 0x118d35a40, {{16.0, 469.0}, {358.0, 59.0}}, label: 'Restore a backup', Disabled",
+          "SYSTEM_TYPE_GEOMETRY Capacity heading Attributes: StaticText, 0x118d343c0, {{16.0, 639.3}, {358.0, 47.7}}, label: 'Vault capacity'"
+        ],
+        "captures": {
+          "Restore input": "xxxl-screens/116390BF-6F00-45C6-9F95-92F7A3B214F6.png",
+          "Capacity heading": "xxxl-screens/85EA02E7-DB33-4392-BACA-3F93272EE0B4.png",
+          "Restore disabled": "xxxl-screens/6A6EEC31-2D6D-4729-A49F-212804C219C3.png",
+          "Backup heading": "xxxl-screens/879DDA5F-895B-4EAC-956B-D7497B3319D8.png",
+          "Report explanation": "xxxl-screens/70D607EE-D1DB-45B1-AE9C-B5F390C066BD.png",
+          "Report savings": "xxxl-screens/11A91C6A-A500-468F-9E60-145E44C76B6D.png",
+          "Report net": "xxxl-screens/0F01F6F0-A6D1-468A-8D2D-34FAC23AA794.png",
+          "Empty action": "xxxl-screens/61CF2B77-35DA-4BBE-8A29-ACD6A965812F.png",
+          "Empty explanation": "xxxl-screens/D8ED5C33-1A4B-4AAE-A4ED-E86425F7D3CC.png",
+          "Empty title": "xxxl-screens/9106363F-FC36-40D2-B266-E260D256C48A.png",
+          "Expense search": "xxxl-screens/DA8934CB-7D96-4273-A7D7-C7B2688C859E.png",
+          "Expense header": "xxxl-screens/EE25F5F3-E949-430A-88F9-35899D5570A2.png"
+        },
+        "failure": "Temporary harness queries Recovery key for restore but SwiftUI exposes Enter your recovery key; enabled restore capture not reached."
+      },
+      {
+        "systemContentSize": "accessibility-extra-extra-extra-large",
+        "xcresult": "accessibility-extra-extra-extra-large.xcresult",
+        "exitCode": 65,
+        "geometryLines": [
+          "SYSTEM_TYPE_GEOMETRY Expense header Attributes: StaticText, 0x10a31c3c0, {{54.0, 343.0}, {258.7, 102.3}}, label: 'ON YOUR DEVICE'",
+          "SYSTEM_TYPE_GEOMETRY Expense search Attributes: SearchField, 0x10a29abc0, {{16.0, 175.0}, {358.0, 124.0}}, label: 'Search your expenses', placeholderValue: 'Search your expenses'",
+          "SYSTEM_TYPE_GEOMETRY Empty title Attributes: StaticText, 0x115d94c80, {{36.3, 336.7}, {317.3, 67.0}}, label: 'A fresh start'",
+          "SYSTEM_TYPE_GEOMETRY Empty explanation Attributes: StaticText, 0x115d86940, {{33.8, 419.7}, {322.3, 311.3}}, label: 'Add your first expense. Your money story stays with you.'",
+          "SYSTEM_TYPE_GEOMETRY Empty action Attributes: Button, 0x10a31fe80, {{78.3, 563.0}, {233.7, 139.3}}, identifier: 'emptyAddExpense', label: 'Add an expense'",
+          "SYSTEM_TYPE_GEOMETRY Report net Attributes: StaticText, 0x1179ad040, {{16.0, 151.7}, {358.0, 286.7}}, identifier: 'reportNet', label: 'Received minus expenses, CA$0.00'",
+          "SYSTEM_TYPE_GEOMETRY Report savings Attributes: StaticText, 0x1179faf80, {{16.0, 438.3}, {358.0, 224.7}}, identifier: 'reportSavings', label: 'Savings contributions, CA$0.00'",
+          "SYSTEM_TYPE_GEOMETRY Report explanation Attributes: StaticText, 0x119651540, {{16.0, 663.0}, {358.0, 713.3}}, label: 'Savings contributions are internal allocations and are not subtracted again. Planned income and unposted templates are excluded.'",
+          "SYSTEM_TYPE_GEOMETRY Backup heading Attributes: StaticText, 0x11878d400, {{16.0, 270.3}, {358.0, 145.3}}, label: 'Encrypted backup'",
+          "SYSTEM_TYPE_GEOMETRY Restore disabled Attributes: Button, 0x11878da40, {{16.0, 553.3}, {358.0, 155.3}}, label: 'Restore a backup', Disabled",
+          "SYSTEM_TYPE_GEOMETRY Capacity heading Attributes: StaticText, 0x115d97980, {{16.0, 249.7}, {358.0, 145.3}}, label: 'Vault capacity'"
+        ],
+        "captures": {
+          "Restore input": "ax5-screens/46669510-2F02-4B22-900E-478E58966C25.png",
+          "Capacity heading": "ax5-screens/CC5C8CE1-6FF5-443F-9B48-64852078BD6B.png",
+          "Restore disabled": "ax5-screens/A63F8748-796D-410A-B9E0-037432B8BA78.png",
+          "Backup heading": "ax5-screens/6A9E8F9F-5292-48AD-B1AB-A9729ACAE428.png",
+          "Report explanation": "ax5-screens/B1D9C08B-3D90-4241-99DD-38434E72BF37.png",
+          "Report savings": "ax5-screens/CBBF6F63-934A-42E7-B8E2-E0C59827D191.png",
+          "Report net": "ax5-screens/EA0755D8-544D-4466-94D0-B1B212FC8A2F.png",
+          "Empty action": "ax5-screens/C78BC9B5-50AD-4A96-B7DB-EAC2F650DE39.png",
+          "Empty explanation": "ax5-screens/6AD60D00-ECA0-45D5-812B-5C29DF2E907C.png",
+          "Empty title": "ax5-screens/51C430C3-CA2A-4CCC-8B46-5085D93E724C.png",
+          "Expense search": "ax5-screens/28D56338-B141-4729-8B20-755543AFFC10.png",
+          "Expense header": "ax5-screens/D93195C9-AD89-4EBC-9441-9BB398C1321F.png"
+        },
+        "failure": "Temporary harness queries Recovery key for restore but SwiftUI exposes Enter your recovery key; enabled restore capture not reached."
+      }
+    ],
+    "conclusion": "No new concrete app-owned clipping or scaling defect established in inspected targets. Existing 13 unfiltered audit findings remain diagnostic failures; these visual checks do not turn the audit green.",
+    "limitations": [
+      "Initial three full captures fail only at temporary restore selector. Authorized narrow follow-on corrected selector and all three restore-only tests pass, asserting disabled then enabled and capturing both states.",
+      "AX5 report explanation is 713.3pt tall and spans viewport; image captures only part, though accessibility geometry retains full label and expands. Its full scrolling visual closure is not established here.",
+      "Capacity heading is visible dark-on-light, but no quantitative contrast ratio measured and no fresh audit executed while heading was in view.",
+      "Light portrait small-phone evidence only, no physical VoiceOver claim."
+    ],
+    "approximateDiagnosticTokens": 15000,
+    "tokenCountMethod": "Estimate including initial harness setup and corrected run; exact per-slice counter unavailable; exceeds 4k + 2k soft scope.",
+    "restoreFollowOn": "restore-only-diagnostic.json",
+    "temporarySimulatorShutdown": true
+  },
+  "restoreOnly": {
+    "runs": [
+      {
+        "size": "large",
+        "exitCode": 0,
+        "captures": {
+          "Restore enabled": "restore-large-screens/6C22ABEA-13AB-49FC-80C5-0BC41F4F735C.png",
+          "Restore input": "restore-large-screens/4830BBE4-2B81-430F-BECF-3DEC7DE1B0D7.png",
+          "Restore disabled": "restore-large-screens/6A54B25A-0464-4608-8369-C775C312584E.png"
+        },
+        "geometry": [
+          "SYSTEM_TYPE_GEOMETRY Restore disabled Attributes: Button, 0x109afca00, {{16.0, 673.7}, {358.0, 52.0}}, label: 'Restore a backup', Disabled",
+          "SYSTEM_TYPE_GEOMETRY Restore input Attributes: SecureTextField, 0x109a69cc0, {{32.0, 637.3}, {326.0, 21.0}}, placeholderValue: 'Enter your recovery key', value: Enter your recover...",
+          "SYSTEM_TYPE_GEOMETRY Restore enabled Attributes: Button, 0x1151ae580, {{16.0, 524.3}, {358.0, 52.0}}, label: 'Restore a backup'"
+        ]
+      },
+      {
+        "size": "extra-extra-extra-large",
+        "exitCode": 0,
+        "captures": {
+          "Restore enabled": "restore-extra-extra-extra-large-screens/86B65A1A-7F64-4AE0-8012-E444099EB697.png",
+          "Restore input": "restore-extra-extra-extra-large-screens/79D95CEB-6507-4159-A41E-6117AF05631E.png",
+          "Restore disabled": "restore-extra-extra-extra-large-screens/9C7B71B9-FA11-4B56-BDBA-E7E65A7CEBA5.png"
+        },
+        "geometry": [
+          "SYSTEM_TYPE_GEOMETRY Restore disabled Attributes: Button, 0x109b5c500, {{16.0, 469.0}, {358.0, 59.0}}, label: 'Restore a backup', Disabled",
+          "SYSTEM_TYPE_GEOMETRY Restore input Attributes: SecureTextField, 0x109b3c780, {{32.0, 425.7}, {326.0, 28.0}}, placeholderValue: 'Enter your recovery key', value: Enter your recover...",
+          "SYSTEM_TYPE_GEOMETRY Restore enabled Attributes: Button, 0x109a3c000, {{16.0, 469.0}, {358.0, 59.0}}, label: 'Restore a backup'"
+        ]
+      },
+      {
+        "size": "accessibility-extra-extra-extra-large",
+        "exitCode": 0,
+        "captures": {
+          "Restore enabled": "restore-accessibility-extra-extra-extra-large-screens/085833DE-494F-491D-BCA4-97B8C82002B6.png",
+          "Restore input": "restore-accessibility-extra-extra-extra-large-screens/C9A72C3D-3DA4-4B3A-B9DD-3C2193BB129A.png",
+          "Restore disabled": "restore-accessibility-extra-extra-extra-large-screens/A567018D-C9B5-4C99-AFBF-75021C5A008E.png"
+        },
+        "geometry": [
+          "SYSTEM_TYPE_GEOMETRY Restore disabled Attributes: Button, 0x109fefc00, {{16.0, 501.0}, {358.0, 155.3}}, label: 'Restore a backup', Disabled",
+          "SYSTEM_TYPE_GEOMETRY Restore input Attributes: SecureTextField, 0x109feda40, {{32.0, 422.0}, {326.0, 64.0}}, placeholderValue: 'Enter your recovery key', value: Enter your recover...",
+          "SYSTEM_TYPE_GEOMETRY Restore enabled Attributes: Button, 0x109e38c80, {{16.0, 502.3}, {358.0, 155.3}}, label: 'Restore a backup'"
+        ]
+      }
+    ],
+    "restoredContentSize": "large",
+    "temporarySimulatorShutdown": true,
+    "fullAuditGreen": false
+  },
+  "restoredSetting": "large",
+  "sourceDirectory": "apps/ios/.build/SystemTypeMatrix",
+  "currentUnfilteredFindings": 13
+}

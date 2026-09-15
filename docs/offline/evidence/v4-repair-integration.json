@@ -1,0 +1,86 @@
+{
+  "baseCommit": "7ba951285f90a515448d84843f82154046c46695",
+  "scope": "Current-cap v4 repair for a missing receiving device key or corrupt encrypted vault state, with full validated preview and guarded explicit replacement. Healthy candidate flow unchanged.",
+  "sharedFixture": {
+    "path": "packages/offline-contract/fixtures/v4-repair-v1/acceptance.json",
+    "sha256": "3875350e58c5b704fdf3e6dc6f16b80a08a52ec2e5cc6861c091966e22bb89b9",
+    "originalNativeTestedSha256": "b588c3f6d0e5ecd7557d886af31625efb59ec65a6c70179519e7e670304a3941",
+    "wordingOnlyChange": "Clarify missing versus inaccessible key, and allow safe removal or retention of exclusively created own key after explicit Replace. No native archive bytes changed."
+  },
+  "android": {
+    "report": "apps/android/evidence/v4-repair.json",
+    "reportSha256": "267b379479d26ff7ab4dfa734865406ed6cc5ec621a4bea48c38791115def650",
+    "earlierEachApi": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalEachApiOverlay": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    "jvmPassed": 25,
+    "buildAndLint": "passed",
+    "maxCompatibility": {
+      "api": 37,
+      "passed": 1,
+      "expenses": 10000,
+      "receipts": 4,
+      "receiptBytes": 8388608,
+      "binary": "Earlier validation02, before final key-creation-only correction",
+      "scope": "Five real changed-save samples per compatibility save/refresh path with exact full Snapshot/original receipt oracle. Not a live edit or before/after app performance claim."
+    },
+    "sourceEvidence": "140 report pins checked: three explicit current prose/test-pin differences (acceptance JSON, README, expected test hash), all other pins match. Final production APK/source unchanged by wording overlay.",
+    "review": "Root independently reviewed source, actual key creation witness/rollback ownership correction and source/namespace binding; no remaining confirmed P1/P2 within recorded scope."
+  },
+  "ios": {
+    "report": "apps/ios/evidence/v4-repair.json",
+    "reportSha256": "de15481b920eb825508557a337b36e686ecc339bc63893a342078b3fb8fb4426",
+    "final": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0
+    },
+    "prior": {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Before independent review identified generic creator race. Final run reran all focused compatibility cases with exclusive creator."
+    },
+    "keyCorrection": "Atomic SecItemAdd create-only repair primitive rejects duplicate, never adopts/deletes an intervening key. Injected appearance-at-create and actual simulator Keychain duplicate tests passed.",
+    "sourceEvidence": "15 current report pins plus82 final provenance pins matched. Root independently extracted27/27 xcresult summary.",
+    "review": "Independent contract agent closed creator P2, with no other confirmed P1/P2 in bounded source/key/inventory/publication review."
+  },
+  "rootChecks": {
+    "nodePassed": 126,
+    "scriptPythonPassed": 57,
+    "cryptoPythonPassed": 5,
+    "skipped": 0,
+    "staticFiles": 90,
+    "categories": 38,
+    "staticEnvironmentCorrection": "Initial combined command reached final boundary script but system Python lacked defusedxml. All preceding126Node/62Python passed. Boundary script alone passed using existing pinned SAST virtualenv; failed initial log retained.",
+    "fixtureWordingOverlayTests": 2,
+    "targetedEslint": "passed",
+    "sast": {
+      "changedRuntimeAndJsFiles": 8,
+      "findings": 0,
+      "errors": 0,
+      "finalIosKeyOverlayFiles": 1,
+      "overlap": true
+    },
+    "documentation": {
+      "originalPassed": 105,
+      "reviewPassed": 104
+    },
+    "protectedLegacyPathsUnchanged": 18,
+    "diffCheck": "passed"
+  },
+  "limits": [
+    "Current expense/receipt/wire caps unchanged. Repair-only complete Snapshot hydration is explicit; ordinary live and healthy v4 paths retain their existing implementation.",
+    "Android requires readable SQLite tables; physically unopenable page/schema damage remains a separate recovery boundary.",
+    "Android key ownership excludes arbitrary nonparticipating multiprocess key writers; Keystore has no atomic cross-process create-if-absent.",
+    "Injected cancellation/failure and new-store reopen do not establish power-loss, physical key behavior, real-provider restore or a new OS-process recovery run.",
+    "Existing raw-source artifacts and earlier failures remain preserved. Later cloud, migration, signing, store, device and iOS metadata-retention gates remain open."
+  ]
+}

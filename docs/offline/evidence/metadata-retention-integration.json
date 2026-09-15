@@ -1,0 +1,87 @@
+{
+  "baseCommit": "2114c61ede2b2e56555ba871d4d8dde15a4b28de",
+  "scope": "Bound ordinary iOS metadata retention after successful guarded publication; matching Android validation without production changes. Current caps unchanged.",
+  "fixture": {
+    "path": "packages/offline-contract/fixtures/live-state-v1/retention.json",
+    "sha256": "e30a5edad1e2a8a06879e395ec1798c765dfa50ef1e0257e56ce97801315f37d",
+    "edits": 50
+  },
+  "ios": {
+    "report": "apps/ios/evidence/metadata-retention.json",
+    "reportSha256": "fadf5cdb4eaebcb39865383b69b880f781850e46a6ed29afd3d88847736f6149",
+    "final": {
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0
+    },
+    "prior": {
+      "passed": 22,
+      "scope": "Before final FIFO and overlapping-reader corrections; preserved separately."
+    },
+    "before": {
+      "edit": 50,
+      "pointerBytes": 19583,
+      "pointerFiles": 50,
+      "recordBytes": 303206,
+      "recordFiles": 51
+    },
+    "after": {
+      "edit": 50,
+      "pointerBytes": 394,
+      "pointerFiles": 1,
+      "recordBytes": 11926,
+      "recordFiles": 2
+    },
+    "sourceEvidence": "69 final source/binary pins matched; root independently extracted final xcresult summary.",
+    "review": "Independent delta review closes FIFO blocking defect and validates preservation-only overlap prepass; no remaining confirmed P1/P2 within scoped review."
+  },
+  "android": {
+    "report": "apps/android/evidence/live-retention.json",
+    "reportSha256": "7c149b3f9268dbd9f0a558a181661113cdecd51f25cfeb6477ee4e703fe0625d",
+    "eachApi": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "productionChanged": false,
+    "retainedGenerations": 1,
+    "retainedRows": 11,
+    "receiptFiles": 1,
+    "receiptCiphertextBytes": 106,
+    "sqliteFileBytes": 118784,
+    "sourceEvidence": "133 source/artifact pins independently matched.",
+    "review": "Root reviewed exact shared sequence, full final golden, ciphertext preservation and retained row/file measurements."
+  },
+  "rootChecks": {
+    "nodePassed": 127,
+    "scriptPythonPassed": 57,
+    "cryptoPythonPassed": 5,
+    "skipped": 0,
+    "staticFiles": 90,
+    "categories": 38,
+    "targetedEslint": "passed",
+    "sast": {
+      "files": 3,
+      "findings": 0,
+      "errors": 0
+    },
+    "protectedLegacyPathsUnchanged": 18,
+    "documentation": {
+      "originalPassed": 105,
+      "reviewPassed": 104
+    },
+    "diffCheck": "passed"
+  },
+  "hostedIncarnationCorrection": {
+    "historicalRun": 34820351651,
+    "method": "InactiveGenerationTests.testBoundInstallConsumesStaleOwnerRevisionIncarnationAndRoot",
+    "problem": "Eager legacy migration already advances revision0 to1; redundant test replacement advances it to2.",
+    "fix": "Remove only redundant replacement. Keep revision equality, epoch inequality, stale candidate and preserved-state assertions.",
+    "validation": "Corrected method passed in final33-test iOS selection; historical hosted failure remains recorded."
+  },
+  "limits": [
+    "Settled file lengths from50 edits, not allocated disk, peak I/O, max-capacity latency, energy or physical storage behavior.",
+    "Current state, immediate recovery predecessor and active owner pins are retained. Unknown, tampered or unreadable files remain quarantined; this history may grow.",
+    "No cap, format, provider, UI or normal demo changes. No fresh process-death, real full-disk, physical key, cloud or store acceptance."
+  ]
+}

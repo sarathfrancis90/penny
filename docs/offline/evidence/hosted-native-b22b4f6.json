@@ -1,0 +1,97 @@
+{
+  "commit": "b22b4f6391f471b1f650edae9f1b358652f570db",
+  "runId": 34810644269,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269",
+  "conclusion": "success",
+  "scope": "Exact pushed candidate-install/AAB checkpoint; no later app-linked v4/candidate/observed-savings claim",
+  "jobs": [
+    {
+      "name": "native-offline-ios-simulator",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T05:43:21Z",
+      "completedAt": "2026-09-14T06:06:44Z"
+    },
+    {
+      "name": "native-offline-contract",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T05:43:15Z",
+      "completedAt": "2026-09-14T05:44:13Z"
+    },
+    {
+      "name": "native-offline-android-build",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T05:43:15Z",
+      "completedAt": "2026-09-14T05:49:34Z"
+    },
+    {
+      "name": "native-offline-android-api-37.0",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T05:43:15Z",
+      "completedAt": "2026-09-14T05:54:54Z"
+    },
+    {
+      "name": "native-offline-android-api-26",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T05:43:15Z",
+      "completedAt": "2026-09-14T05:52:11Z"
+    },
+    {
+      "name": "native-offline-gate",
+      "conclusion": "success",
+      "startedAt": "2026-09-14T06:06:46Z",
+      "completedAt": "2026-09-14T06:06:49Z"
+    }
+  ],
+  "ios": {
+    "totalTestCount": 103,
+    "passedTests": 103,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "separateGenerationPhases": {
+      "generation-Write": {
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      },
+      "generation-Read": {
+        "passedTests": 1,
+        "failedTests": 0,
+        "skippedTests": 0
+      }
+    }
+  },
+  "android": {
+    "26": {
+      "total": 76,
+      "passed": 68,
+      "skipped": [],
+      "junitSha256": "eef970e608c723a3206d61c6ceba1392dbed947345b8c7c9b6bdacb763bdfce0",
+      "externalGenerationResult": {
+        "pid": 6740,
+        "seedPid": 6700,
+        "phase": "authenticated-new-generation"
+      },
+      "separateProcessLogs": "Four one-method process create/verify and generation seed/reopen logs passed"
+    },
+    "37.0": {
+      "total": 76,
+      "passed": 68,
+      "skipped": [],
+      "junitSha256": "05257de90e8af9eb6b078ab2723ce537858b8ccd51c3272c0d0ffd580bd7d650",
+      "externalGenerationResult": {
+        "pid": 6899,
+        "seedPid": 6858,
+        "phase": "authenticated-new-generation"
+      },
+      "separateProcessLogs": "Four one-method process create/verify and generation seed/reopen logs passed"
+    }
+  },
+  "repositoryChecksAtCapture": {
+    "total": 23,
+    "success": 21,
+    "pending": [
+      "mobile-ios-ci",
+      "Penny Required Gate"
+    ]
+  }
+}

@@ -1,0 +1,326 @@
+{
+  "month": "2026-02",
+  "report": {
+    "month": "2026-02",
+    "currencyCode": "CAD",
+    "expenseMinor": 9000,
+    "receivedMinor": 78000,
+    "netMinor": 69000,
+    "savingsContributionMinor": 2000,
+    "expenseCount": 2,
+    "incomeCount": 1,
+    "expenseByCategory": [
+      {
+        "category": "Advertising (Promotion, gift cards etc.)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Meals and entertainment",
+        "amountMinor": 7000
+      },
+      {
+        "category": "Groceries",
+        "amountMinor": 0
+      },
+      {
+        "category": "Insurance (No life insurance)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Interest (and bank charges)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Fees, licences, dues, memberships, and subscriptions",
+        "amountMinor": 0
+      },
+      {
+        "category": "Office expenses",
+        "amountMinor": 2000
+      },
+      {
+        "category": "Supplies (for example PPT kit etc.)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Rent (covers only office rent in industrial area)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Legal, accounting, and other professional fees",
+        "amountMinor": 0
+      },
+      {
+        "category": "Management and administration fees",
+        "amountMinor": 0
+      },
+      {
+        "category": "Sub contracts / consultants paid in Canada",
+        "amountMinor": 0
+      },
+      {
+        "category": "Sub contracts / consultants paid outside Canada",
+        "amountMinor": 0
+      },
+      {
+        "category": "Salaries, wages, and benefits paid to the employees",
+        "amountMinor": 0
+      },
+      {
+        "category": "Withdrawal by Directors",
+        "amountMinor": 0
+      },
+      {
+        "category": "Travel (including transportation fees, accommodations, and meals)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Telephone",
+        "amountMinor": 0
+      },
+      {
+        "category": "Motor vehicle expenses",
+        "amountMinor": 0
+      },
+      {
+        "category": "Other expenses (specify)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Heat (gas, propane, wood, etc.)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Electricity",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Water",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Insurance",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Maintenance",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Mortgage interest or rent",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Property taxes",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Monitoring and internet",
+        "amountMinor": 0
+      },
+      {
+        "category": "Home Office - Office furnishings",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Fuel (gasoline, propane, oil)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Repairs and maintenance (including oil changes)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Lease payments",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Car washes",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Insurance",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Licence and registration",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Interest expense on vehicle purchase loan",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - ETR 407",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - CAA (Canadian Auto Association)",
+        "amountMinor": 0
+      },
+      {
+        "category": "Vehicle - Parking costs (non-prorated)",
+        "amountMinor": 0
+      }
+    ],
+    "incomeByCategory": [
+      {
+        "category": "salary",
+        "amountMinor": 0
+      },
+      {
+        "category": "freelance",
+        "amountMinor": 78000
+      },
+      {
+        "category": "bonus",
+        "amountMinor": 0
+      },
+      {
+        "category": "investment",
+        "amountMinor": 0
+      },
+      {
+        "category": "rental",
+        "amountMinor": 0
+      },
+      {
+        "category": "side_hustle",
+        "amountMinor": 0
+      },
+      {
+        "category": "gift",
+        "amountMinor": 0
+      },
+      {
+        "category": "other",
+        "amountMinor": 0
+      }
+    ]
+  },
+  "budgetUsage": [
+    {
+      "id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      "category": "Meals and entertainment",
+      "month": "2026-02",
+      "limitMinor": 10000,
+      "carryMinor": 4000,
+      "availableMinor": 14000,
+      "spentMinor": 7000,
+      "remainingMinor": 7000,
+      "thresholdReached": true,
+      "overBudget": false
+    }
+  ],
+  "savingsProgress": {
+    "goalId": "88888888-8888-4888-8888-888888888888",
+    "openingMinor": 10000,
+    "contributedMinor": 2000,
+    "currentMinor": 12000,
+    "targetMinor": 100000,
+    "remainingMinor": 88000,
+    "progressBps": 1200
+  },
+  "recurringDues": [
+    {
+      "occurrenceId": "ffffffff-ffff-4fff-8fff-ffffffffffff/2026-02-28",
+      "templateId": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+      "date": "2026-02-28",
+      "amountMinor": 1200
+    }
+  ],
+  "incomeDues": [],
+  "recurrence": [
+    {
+      "schedule": {
+        "frequency": "monthly",
+        "startDate": "2026-01-31",
+        "endDate": null,
+        "dayOfMonth": 31
+      },
+      "from": "2026-01-01",
+      "to": "2026-03-31",
+      "recurring": true,
+      "expected": [
+        "2026-01-31",
+        "2026-02-28",
+        "2026-03-31"
+      ]
+    },
+    {
+      "schedule": {
+        "frequency": "yearly",
+        "startDate": "2024-02-29",
+        "endDate": null,
+        "dayOfMonth": null
+      },
+      "from": "2025-01-01",
+      "to": "2025-12-31",
+      "recurring": true,
+      "expected": [
+        "2025-02-28"
+      ]
+    },
+    {
+      "schedule": {
+        "frequency": "biweekly",
+        "startDate": "2025-12-26",
+        "endDate": "2026-01-23",
+        "dayOfMonth": null
+      },
+      "from": "2025-12-01",
+      "to": "2026-02-01",
+      "recurring": true,
+      "expected": [
+        "2025-12-26",
+        "2026-01-09",
+        "2026-01-23"
+      ]
+    },
+    {
+      "schedule": {
+        "frequency": "monthly",
+        "startDate": "2026-01-31",
+        "endDate": null,
+        "dayOfMonth": 31
+      },
+      "from": "2026-01-01",
+      "to": "2026-03-31",
+      "recurring": false,
+      "expected": [
+        "2026-01-31"
+      ]
+    },
+    {
+      "schedule": {
+        "frequency": "monthly",
+        "startDate": "1500-01-31",
+        "endDate": null,
+        "dayOfMonth": 31
+      },
+      "from": "1500-01-01",
+      "to": "1500-03-31",
+      "recurring": true,
+      "expected": [
+        "1500-01-31",
+        "1500-02-28",
+        "1500-03-31"
+      ]
+    },
+    {
+      "schedule": {
+        "frequency": "weekly",
+        "startDate": "2011-12-30",
+        "endDate": null,
+        "dayOfMonth": null
+      },
+      "from": "2011-12-30",
+      "to": "2012-01-06",
+      "recurring": true,
+      "expected": [
+        "2011-12-30",
+        "2012-01-06"
+      ]
+    }
+  ]
+}

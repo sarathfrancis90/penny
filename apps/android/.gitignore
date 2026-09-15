@@ -1,0 +1,13 @@
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.iml
+.idea/
+evidence/*.png
+evidence/*.xml
+evidence/*.log
+evidence/**/*.log
+evidence/generation-process.json
+
+.cxx/

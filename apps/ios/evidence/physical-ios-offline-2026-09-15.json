@@ -1,0 +1,148 @@
+{
+  "date": "2026-09-15",
+  "sourceReviewCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "scope": "Focused physical owner-offline qualification after replacing development provisioning; runtime source unchanged from sourceReviewCommit. Two added test methods are pinned below.",
+  "device": {
+    "model": "iPhone 13 Pro Max",
+    "productType": "iPhone14,3",
+    "iOS": "26.6",
+    "osBuild": "23G71"
+  },
+  "sourceOverlays": {
+    "apps/ios/PennyOfflineTests/CaptureTests.swift": "62c6c07883c53aa04e749e0c866c1f6b6ef61de0860fc33a7cb3716acb300e78",
+    "apps/ios/PennyOfflineUITests/CaptureFlowTests.swift": "be024ed79a67b8bf1fbe6a311a1bfed2287c14540ba3de08a0dfe5deb16fa0f3"
+  },
+  "signing": {
+    "profileName": "Penny Offline USB QA 2026-09-15",
+    "kind": "Apple Development Offline",
+    "expiresUTC": "2026-09-22 18:31:52",
+    "profileSha256": "65a01d5bddaf612c2b894e4e9d0e361d650a651b74eea82314ab1baae11fbfe1",
+    "PPQCheckPresent": false,
+    "existingCertificateAndRegisteredDeviceMatched": true,
+    "entitlementsUnchanged": true,
+    "products": [
+      {
+        "bundleIdentifier": "ca.penny.offline.dev",
+        "binarySHA256": "3121bce5d3f2ac5d64cb9e50d1f8791ad2fca52d9d1046103adb045101c709ed",
+        "entitlementsUnchanged": true,
+        "deepStrictSignatureVerified": true
+      },
+      {
+        "bundleIdentifier": "ca.penny.offline.PennyOfflineUITests.xctrunner",
+        "binarySHA256": "dbeab88a93a41e81fb674ed039463a8ca80d5316918ee850c4ace0116e8f117d",
+        "entitlementsUnchanged": true,
+        "deepStrictSignatureVerified": true
+      }
+    ],
+    "preResignFrozenProductsPreserved": true,
+    "offlineProfileProductsPreserved": true
+  },
+  "result": {
+    "result": "Passed",
+    "totalTestCount": 4,
+    "passedTests": 4,
+    "failedTests": 0,
+    "skippedTests": 0
+  },
+  "selectedMethods": [
+    "-only-testing:PennyOfflineTests/CaptureTests/testActualModelAvailabilityPreservesDeterministicReceiptFallback",
+    "-only-testing:PennyOfflineTests/VaultTests/testVisionReadsReceiptTextOnDevice",
+    "-only-testing:PennyOfflineUITests/CaptureFlowTests/testActualAvailabilityMessageAndManualEditorRemainUsable",
+    "-only-testing:PennyOfflineUITests/ExpenseFlowTests/testLocalExpenseSurvivesRelaunchThenEditAndDelete"
+  ],
+  "network": {
+    "ownerReported": "Airplane Mode enabled and Wi-Fi disabled; USB connected.",
+    "observedPath": "unsatisfied",
+    "offlineAssertionEnabled": true,
+    "observation": "First NWPathMonitor callback inside physical test host; passive only. No outbound network probe.",
+    "settingsMutatedByAgent": false
+  },
+  "model": {
+    "availability": "unavailable",
+    "reason": "deviceNotEligible",
+    "unavailableSuggestionGuardPassed": true,
+    "deterministicReceiptParsed": {
+      "merchant": "Café Toronto",
+      "amountMinor": 1130,
+      "currencyCode": "CAD",
+      "requiresReview": true
+    },
+    "visibleMessage": "This device does not support Apple Intelligence. Receipt text recognition and manual entry still work offline.",
+    "inferencePerformed": false
+  },
+  "tested": [
+    "Vision OCR recognizes text in a generated synthetic image while the phone has no available network path.",
+    "Actual model-unavailable branch returns before inference; exact shared deterministic receipt proposal is preserved.",
+    "Actual model-availability message is fully visible; a valid manual editor remains usable and cancellation preserves the empty ledger.",
+    "UI create, terminate/relaunch, edit and delete; deleted entry remains absent after another relaunch.",
+    "Both QA bundles install and launch with offline development provisioning; normal QA app launch succeeds after testing."
+  ],
+  "validation": {
+    "passedTests": 4,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "sourcePinsVerified": 318,
+    "frozenProductsPinsVerified": 293,
+    "offlineProfileProductsPinsVerified": 293,
+    "pinMismatches": [],
+    "passivePath": "unsatisfied",
+    "actualModelReason": "deviceNotEligible",
+    "postTestNormalLaunch": "success",
+    "screenshotReviewed": "Complete unavailable message visible; airplane icon visible. This is one screen, not an accessibility matrix."
+  },
+  "priorAttempts": [
+    {
+      "result": "launch_failed_before_test_methods",
+      "artifact": "PhysicalOffline01.xcresult",
+      "reason": "Existing development profile PPQCheck=true; both app and runner refused certificate trust while offline."
+    },
+    {
+      "result": "passed",
+      "artifact": "TrustWarmup01.xcresult",
+      "passedTests": 2,
+      "network": "Owner temporarily enabled Wi-Fi; same frozen products successfully launched. This is not offline proof."
+    },
+    {
+      "result": "launch_failed_before_test_methods",
+      "artifact": "PhysicalOffline02.xcresult",
+      "reason": "Both bundles still refused certificate trust after Wi-Fi was disabled again. Same frozen build; no selected XCTest method ran."
+    }
+  ],
+  "limits": [
+    "Development Offline profile expires after seven days; this is not App Store/TestFlight signing or a supported in-place legacy upgrade.",
+    "Initial physical nine-test products were subsequently rebuilt in DerivedData; their pre-rebuild verification is historical. Final frozen before/after re-sign products are retained separately.",
+    "No generative-model quality/performance inference; this iPhone reports deviceNotEligible.",
+    "Passive network absence plus successful work does not establish a complete SDK/system-service traffic audit or network state throughout every instant of the run.",
+    "Generated receipt image only; physical camera/HEIC, hardware key guarantees, locked-device denial, full-disk/power loss, accessibility/resources and real cloud recovery remain open.",
+    "QA synthetic state only; shipping identifiers and CrowdStrike were untouched."
+  ],
+  "artifactSha256": {
+    "artifacts/offline/physical-2026-09-15/ios/build-tests-03.log": "f081a89a51bd18a0dd07d7ec072e316a2e4874d6ca9a0828ece17a6bb3a2e185",
+    "artifacts/offline/physical-2026-09-15/ios/source-binary-pins-03.json": "f3bcaaa3efc146587cd5ff181477e32546849770375e7998bde60d8be61b3143",
+    "artifacts/offline/physical-2026-09-15/ios/frozen-offline-products-pins.json": "8c574216e1cae66109440e5b9726db2c10993258aecc30f13c4904bad63c0364",
+    "artifacts/offline/physical-2026-09-15/ios/offline-profile-products-pins.json": "5c521a21f21cd4596cafb1fc3190a0b5e510c201d9c8ec4fa0a915dd2d5e7f49",
+    "artifacts/offline/physical-2026-09-15/ios/offline-profile-validation.json": "12bef53247b28b6ef7ed9c5fd2727b55d038786f22e72e1be873218c461823c8",
+    "artifacts/offline/physical-2026-09-15/ios/offline-resign-validation.json": "e0f19319668179d5dba06a3a9a1b08a08d2fdf84db421ac4f9510338a8f841c3",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-root-validation.json": "528cca18e4a6ffb7057c4a87772c5f6fe6701bc11c633db94ca32386928fbd6e",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-summary-03.json": "a52aa28828ebb4c1b11e78f51f5cff6a649dd6f38e467337094ca3b0a70d49fa",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-test-command-03.json": "e3c242b54bd33136a36dbaeb7e625791805b2e05b42793aff99fb35cd52edb56",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-test-03.log": "0f6cb07d07b173fa525c5f989c9f782370e3dfa686c8a7cc1c1107a963bc43ae",
+    "artifacts/offline/physical-2026-09-15/ios/final-offline-launch.json": "4bbf1c33acc32efa9de19faf65780f0623d86214087d3feb8280041e5228d5fb",
+    "artifacts/offline/physical-2026-09-15/ios/install-offline-profile-app.json": "91ce954ca8d399054adbc85c8b1928b3867c2a1b20c2153a86722bf9ec0f81be",
+    "artifacts/offline/physical-2026-09-15/ios/install-offline-profile-runner.json": "423ef2781c3a895e5640df1f308ec7eb6f115a1cd1062dfa86f2ecf32b2b0e7b",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-test-01.log": "e9f9b18e750584d6908928582a6ae55029ff7a46f8d1bfd12d6b8e247be68062",
+    "artifacts/offline/physical-2026-09-15/ios/offline-untrusted-summary.json": "7f6d307cb44eceecb9c32c504b1911a90b6ec808ebd4f4f546a6318253b0fde0",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-test-02.log": "50665ef9f9f4941eb9902e0686c412743f3e20c0eecc8ec67d736c6c8018e34f",
+    "artifacts/offline/physical-2026-09-15/ios/physical-offline-summary-02.json": "2b47e2a6e4c5dc0602c54d1217e66d409b73f82444e3f55a6289b0194aded640",
+    "artifacts/offline/physical-2026-09-15/ios/trust-warmup-01.log": "8ba3c3d53d3c80bdc35cd1b96493c427fbcd287fb4329ecbe956e55750512dca",
+    "artifacts/offline/physical-2026-09-15/ios/trust-warmup-summary.json": "e390984a839be6be501957b449242bfe96d0611483b704fbc32f753e7c25f982",
+    "artifacts/offline/physical-2026-09-15/ios/offline-03-attachments/6B4CB7B9-9AFC-486A-B972-1A21D727D2B4.txt": "25182d3a9c184ddd4ccabf91fbf6efe7202ae2a7487dbc09fb1d76c80f3a33f2",
+    "artifacts/offline/physical-2026-09-15/ios/offline-03-attachments/B4889149-E9A7-4043-954D-99FF4AC709D5.txt": "b31cee3f9b999eb29b4bae14872476ce633fa94d7c4fdf1237626435c89b3b4c",
+    "artifacts/offline/physical-2026-09-15/ios/offline-03-attachments/BCBB4105-F9FC-4672-992A-F2B6B18AE304.txt": "9f1e00e1b3b493a9057d9d12794ec0004d94941c4f077b21f12821d47a929908",
+    "artifacts/offline/physical-2026-09-15/ios/offline-03-attachments/manifest.json": "8c8ee65a22e7e202227f2130880326ee8507acb013830a207794e96ccf8a1191",
+    "artifacts/offline/physical-2026-09-15/ios/offline-03-attachments/5788414A-FF88-4660-AB5A-07DF63875114.png": "a916d060b2400fd6a875d2fb59b1f7ad959678b5dea0d136c3fa38c1311c431f"
+  },
+  "references": [
+    "https://developer.apple.com/help/account/provisioning-profiles/provisioning-profile-updates"
+  ]
+}

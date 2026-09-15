@@ -1,0 +1,19 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <!-- Optional Drive only. Platform TLS is default-deny; see network_security_config. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <application android:label="Penny Offline" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:theme="@style/Theme.PennyOffline"
+        android:networkSecurityConfig="@xml/network_security_config" android:usesCleartextTraffic="false"
+        android:allowBackup="false" android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules" android:supportsRtl="true">
+        <meta-data android:name="ca.penny.offline.DRIVE_ANDROID_CLIENT_ID" android:value="${driveClientId}" />
+        <meta-data android:name="ca.penny.offline.DRIVE_SIGNING_SHA256" android:value="${driveSigningSha256}" />
+        <!-- The launcher must be exported. MainActivity ignores incoming intent data/extras and exposes no privileged intent action. -->
+        <!-- nosemgrep: java.android.security.exported_activity.exported_activity -->
+        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity>
+    </application>
+</manifest>

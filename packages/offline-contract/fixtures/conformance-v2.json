@@ -1,0 +1,155 @@
+{
+  "attachmentMutations": [
+    {
+      "name": "wrong digest",
+      "field": "sha256",
+      "value": "0000000000000000000000000000000000000000000000000000000000000000",
+      "valid": false
+    },
+    {
+      "name": "uppercase digest",
+      "field": "sha256",
+      "value": "4FF6AB670A58C14270E034E2090D9A432CAA263A14E0A25785386B0C12F880B5",
+      "valid": false
+    },
+    {
+      "name": "wrong size",
+      "field": "byteCount",
+      "value": 71,
+      "valid": false
+    },
+    {
+      "name": "empty bytes",
+      "field": "byteCount",
+      "value": 0,
+      "valid": false
+    },
+    {
+      "name": "over capacity bytes",
+      "field": "byteCount",
+      "value": 2097153,
+      "valid": false
+    },
+    {
+      "name": "unsupported media",
+      "field": "mediaType",
+      "value": "image/heic",
+      "valid": false
+    },
+    {
+      "name": "media mismatch",
+      "field": "mediaType",
+      "value": "image/jpeg",
+      "valid": false
+    },
+    {
+      "name": "orphan",
+      "field": "expenseId",
+      "value": "66666666-6666-4666-8666-666666666666",
+      "valid": false
+    },
+    {
+      "name": "path traversal id",
+      "field": "id",
+      "value": "../../receipt.png",
+      "valid": false
+    },
+    {
+      "name": "path field",
+      "field": "path",
+      "value": "../../receipt.png",
+      "valid": false
+    },
+    {
+      "name": "url field",
+      "field": "url",
+      "value": "https://example.invalid/receipt.png",
+      "valid": false
+    },
+    {
+      "name": "noncanonical base64",
+      "field": "dataBase64",
+      "value": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg==\n",
+      "valid": false
+    }
+  ],
+  "snapshotFailures": [
+    "duplicate_attachment_id",
+    "duplicate_path_field",
+    "future_schema",
+    "too_many_attachments",
+    "total_attachment_bytes",
+    "malformed_image_with_matching_digest",
+    "overlarge_image_dimensions"
+  ],
+  "strictJsonFailures": [
+    "{\"note\":\"\\ud800\"}",
+    "{\"note\":\"\\udc00\"}",
+    "{\"\\ud800\":1}"
+  ],
+  "imageFailures": [
+    {
+      "name": "APNG acTL even with one frame",
+      "attachment": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 90,
+        "sha256": "e82fb8fd905d23903be10d6449467901492081f8b72bacbae292036b67fbf734",
+        "dataBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACGFjVEwAAAABAAAAALQt6aAAAAANSURBVHicY/jPwPAfAAUAAf+JmT0dAAAAAElFTkSuQmCC"
+      }
+    },
+    {
+      "name": "trailing data after PNG IEND",
+      "attachment": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 71,
+        "sha256": "28c4fc3120229440caaa3e58946234055e38376bfca135b13c8c424c88ae4958",
+        "dataBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJgggA="
+      }
+    },
+    {
+      "name": "duplicate PNG IHDR",
+      "attachment": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 95,
+        "sha256": "ddda7d813738ebc8c7eb27b092a17390be781fbd11196e96266f26919d9ee4f2",
+        "dataBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlIRFIAAAABAAAAAQgGAAAAHxXEiQAAAA1JREFUeJxj+M/A8B8ABQAB/4mZPR0AAAAASUVORK5CYII="
+      }
+    },
+    {
+      "name": "PNG without image data",
+      "attachment": {
+        "id": "44444444-4444-4444-8444-444444444444",
+        "expenseId": "11111111-1111-4111-8111-111111111111",
+        "mediaType": "image/png",
+        "byteCount": 45,
+        "sha256": "6422564120b76bbc05819b296f96f7e82593e60bb33f3ecf2abaad1cdbf85339",
+        "dataBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAElFTkSuQmCC"
+      }
+    }
+  ],
+  "migration": {
+    "fromSchema": 1,
+    "toSchema": 2,
+    "preserve": "all expense and snapshot fields except schemaVersion",
+    "attachments": []
+  },
+  "limits": {
+    "amountMinor": 99999999999,
+    "totalMinor": 999999999999999,
+    "expenses": 10000,
+    "plaintextBytes": 15728640,
+    "envelopeBytes": 20971520,
+    "envelopeReserve": 1024,
+    "attachments": 100,
+    "attachmentBytes": 2097152,
+    "totalAttachmentBytes": 8388608,
+    "imageDimension": 4096,
+    "imagePixels": 16000000
+  }
+}

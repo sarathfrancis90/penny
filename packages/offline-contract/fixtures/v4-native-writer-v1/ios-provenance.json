@@ -1,0 +1,10 @@
+{
+  "producer": "iOS actual app native v4 writer",
+  "runtime": "iOS26.4.1 simulator",
+  "file": "ios-finance.pennybackup",
+  "snapshotFile": "ios-finance.snapshot.json",
+  "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+  "ciphertextBytes": 5287,
+  "ciphertextSha256": "a8f04fd31473f78aef3a146d25af1edea04fcae1bb3d3f6c4d1cfadaf7ad6565",
+  "snapshotSha256": "67667cc2e87f3896c6a1797e445d591132efb06ee5095c3d35ee857290474d62"
+}

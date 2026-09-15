@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "scope": "Real system Photos picker readiness regression; local simulator proof only",
+  "hostedFailure": {
+    "commit": "341419768ad911ef9c9ce6853d5262abf5fa3662",
+    "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34795728145",
+    "jobId": 103828330138,
+    "result": "63 passed; one failed at the initial five-second system photo-grid readiness assertion",
+    "observation": "The failure debug tree subsequently contained the actual seeded images. Exact appearance time was not independently timestamped."
+  },
+  "correction": "Wait up to 30 seconds for the actual system image, then guard finite/nonempty geometry and an in-app center before tapping. Failure returns before coordinate interaction. Subsequent real receipt assertions remain unchanged.",
+  "localResult": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "deviceName": "Penny A11y System Sizes",
+          "modelName": "iPhone 16e",
+          "osBuildNumber": "23E254a",
+          "osVersion": "26.4.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 1,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1789350401.188,
+    "passedTests": 1,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1789350345.669,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - PennyOffline",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "provenance": {
+    "commands": [
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "boot",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "bootstatus",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-b"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "addmedia",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "/Users/sarathfrancis/work/git/Personal/penny/packages/offline-contract/fixtures/receipt.png"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcodebuild",
+        "test",
+        "-project",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/PennyOffline.xcodeproj",
+        "-scheme",
+        "PennyOffline",
+        "-destination",
+        "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+        "-parallel-testing-enabled",
+        "NO",
+        "-derivedDataPath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/photo-picker-readiness/DerivedData",
+        "-resultBundlePath",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/photo-picker-readiness/Receipt.xcresult",
+        "-only-testing:PennyOfflineUITests/ExpenseFlowTests/testReceiptPhotoSurvivesRelaunchAndCanBeRemoved",
+        "CODE_SIGN_IDENTITY=-",
+        "CODE_SIGNING_ALLOWED=YES"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcresulttool",
+        "get",
+        "test-results",
+        "summary",
+        "--path",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/photo-picker-readiness/Receipt.xcresult"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "xcresulttool",
+        "export",
+        "attachments",
+        "--path",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/photo-picker-readiness/Receipt.xcresult",
+        "--output-path",
+        "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/photo-picker-readiness/attachments"
+      ],
+      [
+        "/usr/bin/xcrun",
+        "simctl",
+        "shutdown",
+        "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+      ]
+    ],
+    "simulator": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "runtimeSourceUnchanged": true,
+    "runtimeSourceHashes": {
+      "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+      "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+      "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+      "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+      "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+      "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+      "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+      "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+      "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+      "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+      "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+      "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+      "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+      "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+      "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+      "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+      "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+      "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+      "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+      "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+      "apps/ios/PennyOffline/PreparedVaultWrite.swift": "ee941d091ae6c84d390b44d15fed7dfa1926726e9a6730b6ee25e0b3d7162e4f",
+      "apps/ios/PennyOffline/PrivacyInfo.xcprivacy": "451f61cd6c2cfa5852c6767a4b126ed7f33d7fc957fa42cd914e3aa21ada9e94",
+      "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+      "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+      "apps/ios/PennyOffline/VaultStore.swift": "ddabc5d8593795546af4d3f0fc368de5b3631486bf1d166ee273698fad5344a4",
+      "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+      "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+      "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+      "apps/ios/PennyOffline/Info.plist": "9a5058ae7c4dfaf87556997a5cffe6ccbd3e97ed65ba2acdd1dd45a0c7b22e72",
+      "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+      "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+      "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+      "apps/ios/PennyOffline/ArchiveWorker.swift": "3f6b1c94de847c916f3f0267481f1657a8c6231ac93d940f44400ecd29641ff8",
+      "apps/ios/PennyOffline/Assets.xcassets/Contents.json": "f5fb0e1f3a8142892ed092efb5955c1c2cc537003a89ad7bbdb9dade7fe8985f",
+      "apps/ios/PennyOffline/Assets.xcassets/AppIcon.appiconset/PennyIcon.png": "09e918397b7077062aab7e3eabac772f744830aee213b4de64eecc42d703819b",
+      "apps/ios/PennyOffline/Assets.xcassets/AppIcon.appiconset/Contents.json": "c9d2231667973855770014e01c646dc250da4481d970983f811634a1f8707e27"
+    },
+    "testSha256": "133655735bd43eef6dc62975a1c06d339d26f644a2837555437d385ca64828e6"
+  },
+  "reportSha256": "b02a69a11d8fc18fd437ff77a484c36dbff76ee8eeff4eca9c15e558ea9dd970",
+  "hostedCorrectionAcceptance": "pending fresh source revision",
+  "limitations": [
+    "Simulator evidence does not reproduce hosted startup load.",
+    "No application runtime source or normal demo state changed."
+  ]
+}

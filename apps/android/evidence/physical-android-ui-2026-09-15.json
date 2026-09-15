@@ -1,0 +1,40 @@
+{
+  "date": "2026-09-15",
+  "device": "Samsung SM-S928U1, Android16/API36, arm64,4KiB",
+  "sourceCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "sameArtifactsAs": "physical-android-2026-09-15.json",
+  "artifactPins": {
+    "app.apk": "8fd47b9640953d166c664ab4b679866676a24096c61ad2e8ebf9f267f76e04c5",
+    "test.apk": "afb9426ce2aeb9f826d2e42f79babbcdf5928d360e52c0ab229ccd754f1bc568"
+  },
+  "method": "OfflineFlowTest.addEditRecreateDelete",
+  "attempts": [
+    {
+      "result": "failed before any record mutation",
+      "reason": "No Compose hierarchy; display dozing, no focused app window",
+      "seconds": 3.539
+    },
+    {
+      "result": "1/1 passed",
+      "seconds": 4.978,
+      "condition": "One authorized KEYCODE_WAKEUP; read-only check secure keyguard false; QA brought foreground."
+    }
+  ],
+  "coverage": "Actual synthetic manual expense add12.34/edit23.45/Activity recreation/confirmed delete. Activity recreation is not process death. Five earlier local tests remain a separate proof.",
+  "observedNanoUi": "Gemini Nano is unavailable on this device. Receipt scanning and manual entry work offline.",
+  "nanoLimit": "Existing checkStatus maps unsupported and caught exceptions to unavailable. No model download or inference invoked; no claim of underlying failure reason, hardware eligibility, or OCR proven by this text.",
+  "finalState": "QA launched, Overview selected, created synthetic record deleted. Shipping app/data unchanged. User screen timeout unchanged.",
+  "artifactSha256": {
+    "artifacts/offline/physical-android-sep15/ui-effect-audit.json": "4f103b43e4541d39d7110673579e7a9bf5fc2f49257e038dd5cca0ef5d9dfee9",
+    "artifacts/offline/physical-android-sep15/ui-command-private.json": "0616610f20baaf7c35d650ba4d0d139bfffe8a26555070b1addec25cb60873d6",
+    "artifacts/offline/physical-android-sep15/ui-attempt01-dozing.log": "134226c24a60f37610c5ba6ebc862c7ef744ba04a20ea0c34a21860d25af35f4",
+    "artifacts/offline/physical-android-sep15/ui-attempt02-awake.log": "ef240b43fa3da625d800fe71645dd47c4df0d946d2060cdd8eb904aee7e62c9a",
+    "artifacts/offline/physical-android-sep15/ui-window-private.log": "50e036e2c2b7418b9fc05e1a11d3ec2e9b3c26ea48c8887bc1c6803877eee36f",
+    "artifacts/offline/physical-android-sep15/ui-power-private.log": "3534f9a2584de38bc1978022cef6a2aa4b399c2f1c6f0204f2239f02a2d057d4",
+    "artifacts/offline/physical-android-sep15/wake-window-private.log": "33b0fdd16c891c8a896bde415efa2dc21392413dd4e9114fd9a43f5cba5a58d9",
+    "artifacts/offline/physical-android-sep15/wake-power-private.log": "8e2f82c4badf0ef13a77f28608a15161d5df9324922b2136ac22785f91ca3d1c",
+    "artifacts/offline/physical-android-sep15/qa-overview.xml": "b4c6b8de03b73c69d4a794d3bf548b9d05ab1eb49eccc309d0e477550c11ce5f",
+    "artifacts/offline/physical-android-sep15/qa-vault.xml": "eca506358849d651ea8d32247f4e9eb76e6d5e9ccd368bbf15d935168354ad58",
+    "artifacts/offline/physical-android-sep15/qa-final-overview.xml": "b4c6b8de03b73c69d4a794d3bf548b9d05ab1eb49eccc309d0e477550c11ce5f"
+  }
+}

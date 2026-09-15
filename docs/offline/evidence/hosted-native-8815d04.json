@@ -1,0 +1,216 @@
+{
+  "sourceCommit": "8815d04247fff3843fe82954f79622adf11cc263",
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34802852476",
+  "nativeGate": "failure",
+  "scope": "Hosted durable storage checkpoint. Fresh result bundle and JUnit evidence; later raw exporter, receipt-read optimization and test readiness corrections are excluded. Retained Flutter and other checks are separate.",
+  "android": [
+    {
+      "runtime": "26",
+      "suite": {
+        "tests": "55",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "8",
+        "time": "119.909",
+        "timestamp": "2026-09-14T03:38:16",
+        "hostname": "localhost"
+      },
+      "discovered": 55,
+      "passed": 47,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "seedPending"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "reopenPending"
+        }
+      ],
+      "failures": [],
+      "xmlSha256": "e380ca16f6c1d1dd5563904f6df13f76487a40e46a1509aa8dbf9a8566391373",
+      "processProof": {
+        "process-create.log": {
+          "sha256": "e43332445460873ae0ed407cff95e169e8be6107b73ba27c5cedf95b3dc5148d",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-verify.log": {
+          "sha256": "4e8802c8b85933ab2c8dda9a2e69f1c9eb5e08054d05b7f2fec4da080b991c8a",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "process-restart.log": {
+          "sha256": "3ec230cb7b66033f5573c178e34bdc9715dbf347cb633db3888326e6e084b69f",
+          "proof": [
+            "Process before force-stop: 6455",
+            "New process after restart: 6502",
+            "PASS: UI-created expense survived external force-stop and fresh-process relaunch; UI verified amount and removed only its own record."
+          ]
+        },
+        "generation-seedPending.log": {
+          "sha256": "25154ef1ef10a445f0789a61717038afcff7f1698408613234df1d768280fa8c",
+          "proof": [
+            "OK (1 test)"
+          ]
+        },
+        "generation-reopenPending.log": {
+          "sha256": "f9133a6e9c80326b50dd9030f319a0d06b9ef4b4558c95c386f0fad4938486e9",
+          "proof": [
+            "OK (1 test)"
+          ]
+        }
+      },
+      "generationProcess": {
+        "pid": 6662,
+        "seedPid": 6622,
+        "phase": "authenticated-new-generation"
+      },
+      "separateProcessPhaseDisposition": "Both CRUD and generation phases passed"
+    },
+    {
+      "runtime": "37.0",
+      "suite": {
+        "tests": "55",
+        "failures": "1",
+        "errors": "0",
+        "skipped": "8",
+        "time": "126.529",
+        "timestamp": "2026-09-14T03:39:00",
+        "hostname": "localhost"
+      },
+      "discovered": 55,
+      "passed": 46,
+      "skipped": [
+        {
+          "class": "ca.penny.offline.ExpenseMutationPerformanceTest",
+          "method": "fiveTenThousandExpenseSaveAndUiRefreshSamples"
+        },
+        {
+          "class": "ca.penny.offline.NetworkBoundaryTest",
+          "method": "platformTlsDefaultDenyAndExactDriveHost"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "tenThousandRecordsAcrossProcessRestart"
+        },
+        {
+          "class": "ca.penny.offline.PerformanceDeviceTest",
+          "method": "nativeVaultScaleAndFullReceiptCapacity"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "verifyAfterForceStopAndDelete"
+        },
+        {
+          "class": "ca.penny.offline.ProcessPersistenceTest",
+          "method": "createBeforeForceStop"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "seedPending"
+        },
+        {
+          "class": "ca.penny.offline.VaultGenerationProcessTest",
+          "method": "reopenPending"
+        }
+      ],
+      "failures": [
+        {
+          "class": "ca.penny.offline.ReceiptFlowTest",
+          "method": "unreadableTextRetainsImageForManualEntryViewAndDelete"
+        }
+      ],
+      "xmlSha256": "cb7fc8cc9667d96435f6b596b702562b2a63dad9133522f9c2378bf3c3ad03d0",
+      "processProof": {},
+      "separateProcessPhaseDisposition": "Not run: ordinary suite failed before both phases"
+    }
+  ],
+  "ios": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "22452A91-4697-4369-8812-53ADB77EB73B",
+          "deviceName": "iPhone 17 Pro",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "passedTests": 78,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "PennyOffline \u00b7 Built with macOS 26.6.2",
+    "expectedFailures": 0,
+    "failedTests": 2,
+    "finishTime": 1789358205.547,
+    "passedTests": 78,
+    "result": "Failed",
+    "skippedTests": 0,
+    "startTime": 1789357049.525,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "PennyOfflineUITests",
+        "testIdentifier": 72,
+        "testIdentifierString": "CaptureFlowTests/testFullRecoveryKeyReentryAndExportCancellation()",
+        "testIdentifierURL": "test://com.apple.xcode/PennyOffline/PennyOfflineUITests/CaptureFlowTests/testFullRecoveryKeyReentryAndExportCancellation",
+        "testName": "testFullRecoveryKeyReentryAndExportCancellation()"
+      },
+      {
+        "failureText": "failed - Explicit automatic backup consent must appear",
+        "targetName": "PennyOfflineUITests",
+        "testIdentifier": 74,
+        "testIdentifierString": "CloudFlowTests/testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable()",
+        "testIdentifierURL": "test://com.apple.xcode/PennyOffline/PennyOfflineUITests/CloudFlowTests/testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable",
+        "testName": "testSyntheticAutomaticConsentCancelEnableRelaunchAndDisable()"
+      }
+    ],
+    "title": "Test - PennyOffline",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "22% of duration",
+        "text": "1 longest test run with outlier durations exceeding 2.45s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 80,
+    "separateGenerationPhases": "Not run: ordinary suite failed before recovery phases",
+    "failureScope": "71 unit tests passed; 7 of9 UI tests passed. Export Files Cancel readiness and automatic-backup consent interaction failed. No retry is counted as success."
+  }
+}

@@ -15,7 +15,7 @@ void main() {
     testWidgets('dashboard renders expenses returned by the standalone API', (
       tester,
     ) async {
-      final harness = PennyIntegrationHarness();
+      final harness = _currentMonthHarness();
 
       await tester.pumpWidget(harness.app);
       await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -39,7 +39,7 @@ void main() {
     testWidgets('expense detail opens from API-backed dashboard data', (
       tester,
     ) async {
-      final harness = PennyIntegrationHarness();
+      final harness = _currentMonthHarness();
 
       await tester.pumpWidget(harness.app);
       await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -57,6 +57,23 @@ void main() {
       expect(find.text('Delete Expense'), findsOneWidget);
     });
   });
+}
+
+PennyIntegrationHarness _currentMonthHarness() {
+  final harness = PennyIntegrationHarness();
+  final now = DateTime.now();
+  // The dashboard opens on this month. Keep these scenario records in that
+  // month instead of depending on the shared fixture's historical June date.
+  for (final expense in harness.api.expenses) {
+    final fixtureDate = DateTime.parse(expense['date'] as String);
+    expense['date'] = DateTime(
+      now.year,
+      now.month,
+      fixtureDate.day,
+      12,
+    ).toUtc().toIso8601String();
+  }
+  return harness;
 }
 
 Future<void> _scrollUntilVisible(WidgetTester tester, String text) async {

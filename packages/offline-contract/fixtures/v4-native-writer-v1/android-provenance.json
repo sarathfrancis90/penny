@@ -1,0 +1,11 @@
+{
+  "producer": "Android actual app native v4 writer",
+  "api": 37,
+  "file": "android-finance.pennybackup",
+  "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+  "ciphertextBytes": 4904,
+  "ciphertextSha256": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+  "snapshotFile": "android-finance.snapshot.json",
+  "snapshotSha256": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3",
+  "transcriptSha256": "a5b38e5d584c156c76d4daacdcb5b54e42a7b3a31a37bac9ffeda9eabf40ce9d"
+}

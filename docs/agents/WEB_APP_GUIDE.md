@@ -1,5 +1,7 @@
 # Web App Guide
 
+Status: retired from feature development as of 2026-09-13. This guide is retained for legacy compatibility and migration. New product work follows `docs/offline/PLAN.md`. Removing web files requires checking retained category/types, API/support routes, deployment and CI dependencies first.
+
 ## Stack
 
 The web app is a Next.js App Router application using TypeScript, React 19, Tailwind CSS 4, Firebase, Firebase Admin, Gemini through `@google/genai`, Sentry, PostHog, Vercel Analytics, Dexie, Radix/shadcn-style UI components, and Vitest.

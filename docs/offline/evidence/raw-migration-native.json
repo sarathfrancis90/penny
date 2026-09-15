@@ -1,0 +1,141 @@
+{
+  "scope": "Root-run synthetic migration fixture proof on native readers and durable stores. Representable expenses/budgets/income-source backup restores and reopens unchanged; configured income creates no cash receipt. Valid AEAD and attachment-hash PNG with invalid scanline filter is rejected before replacing current vault. No real-account/full migration/physical/process-death proof.",
+  "fixtureManifestSha256": "8bb7f65af18f49e5689245f03d1a6da62896b7de132e8ee321afb5f6e20add55",
+  "fixtures": [
+    {
+      "file": "positive.pennybackup",
+      "sha256": "199f9ed2eb89602a8a8b5a019fd5cc1e93fb1c9d963803bbf2c4f45c422aadd8",
+      "bytes": 2411,
+      "nativeExpected": "accept",
+      "snapshotFile": "positive.snapshot.json"
+    },
+    {
+      "file": "invalid-image.pennybackup",
+      "sha256": "cdee9ee4d5928abeccdc28dfb5bff4a42bb65164a99b164f0527a12409cfeab1",
+      "bytes": 2851,
+      "nativeExpected": "reject",
+      "portableExpected": "accept",
+      "reason": "PNG invalid filter with valid chunk CRCs and valid AEAD/attachment hash",
+      "imageSource": "png-integrity-corpus.json#rgba9-plain-invalid_filter",
+      "imageSha256": "675b2b872c0f4594533433bfc5cc0eacabd8f9d5191e237dfd84994d8e6d5b1f"
+    }
+  ],
+  "iosBeforeMetadataRefactor": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "sourceCheckpoint": "After search-prompt correction; before later Swift metadata-only generation refactor",
+    "provenanceSha256": "11672b45d8272f7b2f188c0ac5f2e21c2c75a1074632f88eda94eeacf80c22cc",
+    "binaries": {
+      "artifacts/offline/raw-migration-native/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "4a3ab46facdbece1c27f9f12bc21afe46ac19ccabc1c19ce26fab03ebe4ed2d3",
+      "artifacts/offline/raw-migration-native/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests": "10acafa3474e33d4d28cfd24ca7fdc73f9e89cc78827afc1d0539c7c71bbd98d"
+    },
+    "logSha256": "269777d944fe159659b351ea7f60efb0389aeaf8d6c681c52445a3c7f374f816",
+    "sourceSha256": {
+      "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+      "apps/ios/PennyOffline/DurableVaultStorage.swift": "575bb30d27f1e5bf5fd5e375629fd37bb0f34135275ae363363790bade46a3d9",
+      "apps/ios/PennyOffline/ExpensesView.swift": "f591e9962a8cc864f2cf66c28ed2d1dc04ef613c199db42f9552f1af306cf77a",
+      "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+      "apps/ios/PennyOfflineTests/FinanceTests.swift": "ac3ea1f0755922b81b5057300a37868f62b74dc2b914083c4e7773189b776d18"
+    }
+  },
+  "android": {
+    "API26": {
+      "passed": 2,
+      "failed": 0,
+      "logSha256": "a42be93ee3564d2e2e0df77ed95ac08ce6edc045056e90b21a2d2a8e31099f8a"
+    },
+    "API37": {
+      "passed": 2,
+      "failed": 0,
+      "logSha256": "19391ac597f17da57dd2231760c76ac59d905b5bc8e5f36c8748ee62d67799a8"
+    },
+    "sourceCheckpoint": "Includes metadata-only generation verification seam and both new raw migration tests",
+    "provenanceSha256": "03e550cfe7a5f6104eeb7d1751b74b995a9b712db1ff90876f0ed18596409c9e",
+    "apkSha256": {
+      "app-debug.apk": "0f93c18f5317ac73c3f3eff427178e5d5dde3f19c6d00a22683e98cdf93f7ca4",
+      "app-debug-androidTest.apk": "a7a36f00c96b69fca941e60d5bc597f29b33c632899d9fc9ef2585b2f1f5fc3b"
+    },
+    "sourceSha256": {
+      "apps/android/app/src/main/java/ca/penny/offline/ReceiptImage.kt": "977bd205b8e6f7da26101f3f63029975e12f49c260828348e3a95dbd18cf9b27",
+      "apps/android/app/src/main/java/ca/penny/offline/VaultGenerations.kt": "1c8d8db7012a69cc7b0c2961fa3e36a9595c1731ca2914b1d63cc9fb9ad641c9",
+      "apps/android/app/src/main/java/ca/penny/offline/Backup.kt": "3b679eb3bce15faa7ebe6436c940d56823c4c9cb72d67d5bd6db0405964621c1",
+      "apps/android/app/src/main/java/ca/penny/offline/AutomaticBackup.kt": "a67c6559bd106287799a03f0f7527596a0521cdf3ea05670b0b22e1dfb4d6c65",
+      "apps/android/app/src/androidTest/java/ca/penny/offline/RawMigrationDeviceTest.kt": "1091bcc0b92b957a9e9eb155a9a04f94edc7cdd5f8d49329678e8dd2035bb750"
+    }
+  },
+  "setupCorrections": [
+    "First Android build failed before compilation because ANDROID_HOME was unset; configured SDK build passed. No app/test failure was hidden."
+  ],
+  "iosAfterMetadataRefactor": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "withinFocusedSuite": {
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0,
+      "groups": {
+        "ArchiveWorkerTests": 4,
+        "DurableStorageTests": 12,
+        "FinanceTests": 2,
+        "LocalReceiptBlobTests": 9,
+        "VaultTests": 18
+      },
+      "testMethods": [
+        "ArchiveWorkerTests/testAsyncPreparedWritesRejectStaleCancelledAndRestoreEpochChanges",
+        "ArchiveWorkerTests/testCancelledRestoreCompletionCannotClearNewArchiveAction",
+        "ArchiveWorkerTests/testSpecificRecordCapacityErrorPreservesSavedGeneration",
+        "ArchiveWorkerTests/testWorkerArchiveRoundtripCancellationAndExclusiveDestination",
+        "DurableStorageTests/testAuthenticatedInvalidMetadataFailsBothValidationAndFacade",
+        "DurableStorageTests/testAuthenticatedReceiptStillRequiresFullNativeDecode",
+        "DurableStorageTests/testCancelledPublishedTaskRollsBackAndVerifiedRestoreRepairsReceipt",
+        "DurableStorageTests/testCorruptUnchangedReceiptFailsBeforeStagingAndPreservesPointer",
+        "DurableStorageTests/testMetadataPendingRecoveryAndGarbageCollectionDoNotHydrate",
+        "DurableStorageTests/testMissingKeyRecoveryAndRepeatedRevisionIncarnation",
+        "DurableStorageTests/testPinnedPreviousAndForeignGarbageEntries",
+        "DurableStorageTests/testSharedLegacyMigrationPrepareCancelAndReceiptReuse",
+        "DurableStorageTests/testSharedPendingRecoveryAndEstablishedCorruption",
+        "DurableStorageTests/testSharedSecondInstanceRevisionRestoreIncarnationAndMissingActive",
+        "DurableStorageTests/testTamperedCandidateAndPendingInvalidReceiptPreservePrevious",
+        "DurableStorageTests/testVerifiedMetadataSizeParityAndSingleFinalHydration",
+        "FinanceTests/testRawMigrationAuthenticatedInvalidImageCannotReplaceVault",
+        "FinanceTests/testRawMigrationFixtureRestoresAndReopensWithoutInventingIncome",
+        "LocalReceiptBlobTests/testAllSharedNegativeEnvelopes",
+        "LocalReceiptBlobTests/testCollisionAndSubstitutionPreserveUnownedEntries",
+        "LocalReceiptBlobTests/testCurrentCountAggregateAndDuplicateCapacity",
+        "LocalReceiptBlobTests/testDescriptorAddressedProtectionMode",
+        "LocalReceiptBlobTests/testParentSubstitutionCannotModifyExternalAttributesAndExtraInventoryFails",
+        "LocalReceiptBlobTests/testPostWriteSyncCloseReopenAndCompletionFaultCleanup",
+        "LocalReceiptBlobTests/testPublicParentAndHardlinkedBlobAreRejected",
+        "LocalReceiptBlobTests/testSharedGoldenAndEveryAADFieldSubstitution",
+        "LocalReceiptBlobTests/testTransferReadProtectionAndOneShotCleanup",
+        "VaultTests/testAndroidProducedReceiptBackup",
+        "VaultTests/testBackupRoundtripWrongKeyAndInvalidSnapshot",
+        "VaultTests/testCipherAuthenticationAndNoPlaintext",
+        "VaultTests/testCivilDatesAcrossTimezonesAndGregorianCutover",
+        "VaultTests/testExactMoneyAndCivilDates",
+        "VaultTests/testFailedCommitPreservesCompletePreviousGeneration",
+        "VaultTests/testLocalVaultCapacityAlwaysFitsBackupEnvelope",
+        "VaultTests/testOriginalReceiptPersistenceBackupRestoreAndDeletion",
+        "VaultTests/testPersistenceEditDeleteAndFailedOpenPreservesFile",
+        "VaultTests/testReceiptDecoderAndCapacityRefusal",
+        "VaultTests/testReceiptGoldenV2AndSharedRejections",
+        "VaultTests/testSharedGoldenBackup",
+        "VaultTests/testSharedPNGIntegrityAdmissionPreservesOnlyValidOriginalBytes",
+        "VaultTests/testStaleRestorePreviewCannotOverwriteNewExpense",
+        "VaultTests/testStrictFastPathUnicodeDepthAndClosedSchedule",
+        "VaultTests/testStrictJSONRejectsUnknownAndDuplicateMembers",
+        "VaultTests/testVerifiedRestoreRecoversUnreadableVault",
+        "VaultTests/testVisionReadsReceiptTextOnDevice"
+      ]
+    },
+    "evidence": "apps/ios/evidence/generation-metadata.json",
+    "evidenceSha256": "0ed9c54821a02035ee851035e98091d3995bdc3cc15527127fcfcc3b10a64b72",
+    "sourceSha256": {
+      "apps/ios/PennyOffline/DurableVaultStorage.swift": "7dc005b374b028124f693a44646aae2613df2478875c3a5b3277e76bd0005aa8",
+      "apps/ios/PennyOfflineTests/FinanceTests.swift": "ac3ea1f0755922b81b5057300a37868f62b74dc2b914083c4e7773189b776d18"
+    },
+    "testTreeSha256": "50f6815c84bf697a06ce210f694c6bca17849f9c6450cdb601aa95ded6692c6f"
+  }
+}

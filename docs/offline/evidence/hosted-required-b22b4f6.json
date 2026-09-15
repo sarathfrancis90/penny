@@ -1,0 +1,146 @@
+{
+  "commit": "b22b4f6391f471b1f650edae9f1b358652f570db",
+  "scope": "All recorded check runs plus Vercel commit status at this historical source; not later e7fc1d2 or working tree.",
+  "checkRuns": [
+    {
+      "name": "native-offline-gate",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269/job/103875271455",
+      "completedAt": "2026-09-14T06:06:49Z"
+    },
+    {
+      "name": "Vercel Preview Comments",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/runs/103871569063",
+      "completedAt": "2026-09-14T05:45:37Z"
+    },
+    {
+      "name": "security-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644255/job/103871268323",
+      "completedAt": "2026-09-14T05:44:03Z"
+    },
+    {
+      "name": "sast-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644404/job/103871132962",
+      "completedAt": "2026-09-14T05:43:57Z"
+    },
+    {
+      "name": "native-offline-android-api-26",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269/job/103871132842",
+      "completedAt": "2026-09-14T05:52:11Z"
+    },
+    {
+      "name": "native-offline-android-api-37.0",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269/job/103871132789",
+      "completedAt": "2026-09-14T05:54:54Z"
+    },
+    {
+      "name": "native-offline-android-build",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269/job/103871132786",
+      "completedAt": "2026-09-14T05:49:34Z"
+    },
+    {
+      "name": "native-offline-contract",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269/job/103871132759",
+      "completedAt": "2026-09-14T05:44:13Z"
+    },
+    {
+      "name": "native-offline-ios-simulator",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644269/job/103871132663",
+      "completedAt": "2026-09-14T06:06:44Z"
+    },
+    {
+      "name": "backend-tests",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644241/job/103871132585",
+      "completedAt": "2026-09-14T05:47:11Z"
+    },
+    {
+      "name": "osv-scan",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644255/job/103871132557",
+      "completedAt": "2026-09-14T05:43:27Z"
+    },
+    {
+      "name": "mobile-ios-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644229/job/103871132483",
+      "completedAt": "2026-09-14T06:55:27Z"
+    },
+    {
+      "name": "dependency-security",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644255/job/103871132473",
+      "completedAt": "2026-09-14T05:43:58Z"
+    },
+    {
+      "name": "mobile-shared-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644175/job/103871132470",
+      "completedAt": "2026-09-14T05:44:58Z"
+    },
+    {
+      "name": "firebase-rules-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644236/job/103871132411",
+      "completedAt": "2026-09-14T05:44:12Z"
+    },
+    {
+      "name": "mobile-android-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644213/job/103871132307",
+      "completedAt": "2026-09-14T05:49:33Z"
+    },
+    {
+      "name": "Penny Required Gate",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644240/job/103871132217",
+      "completedAt": "2026-09-14T06:55:30Z"
+    },
+    {
+      "name": "Flutter Analyze + Unit Tests",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644157/job/103871132102",
+      "completedAt": "2026-09-14T05:44:47Z"
+    },
+    {
+      "name": "Generated Agent Docs",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644198/job/103871132048",
+      "completedAt": "2026-09-14T05:44:01Z"
+    },
+    {
+      "name": "docs-contract-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644185/job/103871132021",
+      "completedAt": "2026-09-14T05:43:56Z"
+    },
+    {
+      "name": "ci-policy-guard",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644153/job/103871131991",
+      "completedAt": "2026-09-14T05:43:50Z"
+    },
+    {
+      "name": "api-ci",
+      "conclusion": "success",
+      "url": "https://github.com/sarathfrancis90/penny/actions/runs/34810644148/job/103871131813",
+      "completedAt": "2026-09-14T05:45:05Z"
+    }
+  ],
+  "statuses": [
+    {
+      "name": "Vercel",
+      "state": "success",
+      "url": "https://vercel.com/sarath-francis-projects/penny/E7HbV2savRHX82UDTNuqSCxpfFPj"
+    }
+  ],
+  "totalSuccessfulChecksAndStatuses": 23
+}

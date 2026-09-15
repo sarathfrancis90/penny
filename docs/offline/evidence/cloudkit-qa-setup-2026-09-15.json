@@ -1,0 +1,105 @@
+{
+  "date": "2026-09-15",
+  "scope": "Development provider configuration and opt-in test preparation; no real-provider execution",
+  "appleConfiguration": {
+    "qaBundleIdentifier": "ca.penny.offline.dev",
+    "containerIdentifier": "iCloud.com.penny.pennyMobile",
+    "savedAssociationReopenedAndVerified": true,
+    "productionAppIdChanged": false,
+    "schemaEnvironment": "Development",
+    "recordType": "PennyEncryptedObject",
+    "fields": {
+      "payload": "ASSET",
+      "byteCount": "INT64"
+    },
+    "queryIndex": {
+      "field": "recordName",
+      "exportedField": "___recordID",
+      "type": "QUERYABLE"
+    },
+    "schemaExport": "docs/offline/evidence/cloudkit-development-2026-09-15.ckdb",
+    "productionSchemaDeployed": false,
+    "managementTokenCreated": false,
+    "remoteDataOperationPerformed": false,
+    "securityRoles": "Apple defaults preserved; app uses privateCloudDatabase"
+  },
+  "profile": {
+    "name": "Penny Offline CloudKit QA 2026-09-15",
+    "type": "Development Offline",
+    "expiresUTC": "2026-09-22 19:13:32",
+    "exactQAIdentityAndContainer": true,
+    "existingCertificateAndRegisteredPhoneMatched": true,
+    "PPQCheckPresent": false,
+    "profilePermittedEnvironments": [
+      "Production",
+      "Development"
+    ],
+    "actualAppMustSelectEnvironment": "Development",
+    "profileIsNotSignedAppProof": true
+  },
+  "defaultTestValidation": {
+    "source": "apps/ios/PennyOfflineTests/CloudTests.swift",
+    "sourceSha256": "275a169167d0a49857a44d4874234864d6cc2ed87f8456ab0a9e9c75f5fb1a81",
+    "buildExitCode": 0,
+    "discovered": 1,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 1,
+    "skipReason": "External gate: explicitly opted-in, Development-signed QA phone and available iCloud account required",
+    "providerAccess": false,
+    "fullTestBodyCompiledOnSimulator": true,
+    "physicalAppBranchVerified": false,
+    "independentReview": "No actionable blocker; test guards, real readback, independent discovery, unchanged preview and fresh-key reopen reviewed. This is code review, not provider execution."
+  },
+  "remaining": [
+    "Install/launch the separately signed QA build and execute the explicitly opted-in real-provider test while online.",
+    "Online physical test under the intended iCloud account.",
+    "Clean-install/second-device recovery, account/quota/interruption and transfer resource checks.",
+    "Production association/schema/distribution signing and store validation."
+  ],
+  "artifactSha256": {
+    "docs/offline/evidence/cloudkit-development-2026-09-15.ckdb": "fbbf296014fc42180006bc8e3b4a0d863f0929d576fe7694d02c208d879881e2",
+    "artifacts/offline/cloudkit-qa-sep15/qa-capabilities.json": "6d1e31a0a1acb4405dbff9d3f4cc23402f1d99cc6d009154b54a0af1c9e7d6b1",
+    "artifacts/offline/cloudkit-qa-sep15/CloudKitQA.mobileprovision": "3f6cdbe76c098c0de5a211449a300e00e343789bf0311a0c16acde79894e22d6",
+    "artifacts/offline/cloudkit-qa-sep15/cloud-profile-inspection.json": "0cd80555273e1364d3f42671b8494ec875d323b5fcee235495b4f63f46097f11",
+    "apps/ios/.build/real-cloudkit-default/validation.json": "e4c4681535abce967794dec93a97da8891e8044aa444fc96df94b2a84d665030",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/signing-preflight.json": "51c962d1eba35f5d3e0a26e0d650b914be09849fd5d39bca75591a195a8b4ba2",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/root-preflight-validation.json": "1ddb8782026e3dab966621b1d57d1b8b507f4c32c54ac8cbd22c1650e024cc7b",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/source-fixture-pins.json": "0396d00ce1919a39f515b79e2e54042ce089e2f892006cb5a8ef3676a95f4f95",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/signed-product-pins.json": "8443c9faa8d82a9061886b02e5c7934ca5da74902d05b66062763f906899db43",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/original-product-pins.json": "f281853726dc1cd298b1fcd70323397db8961caac4c37a150eed7e5a317c08cb",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/build-argv.json": "bbc5aac116b9c331209a37f2a29b23a8c698081b23efa93468613b22219a8e7f",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/build-result.json": "775dffc8c8333b5307d06ce58b15d6915a32bd83caf165a15108578d06dc2d4e",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/host-verify-result.json": "775dffc8c8333b5307d06ce58b15d6915a32bd83caf165a15108578d06dc2d4e",
+    "artifacts/offline/cloudkit-qa-sep15/physical-build-01/runner-verify-result.json": "775dffc8c8333b5307d06ce58b15d6915a32bd83caf165a15108578d06dc2d4e"
+  },
+  "physicalBuildPreparation": {
+    "buildForTesting": "passed",
+    "configuration": "DEBUG + PENNY_SIGNED_CLOUDKIT; generic iOS destination; no provisioning updates",
+    "sourceAndFixturePinsVerified": 79,
+    "originalProductPinsVerified": 292,
+    "signedProductPinsVerified": 292,
+    "builtInfo": {
+      "bundle": "ca.penny.offline.dev",
+      "PennyCloudKitSignedBuild": true,
+      "PennyCloudKitContainerIdentifier": "iCloud.com.penny.pennyMobile"
+    },
+    "actualSignedEntitlements": {
+      "applicationIdentity": "H845PX7Q62.ca.penny.offline.dev",
+      "services": [
+        "CloudKit"
+      ],
+      "environment": "Development",
+      "container": "iCloud.com.penny.pennyMobile"
+    },
+    "hostAndRunnerDeepStrictSignatureVerification": "passed",
+    "actualSignerMatchesProfile": true,
+    "runnerOfflineWildcardProfile": true,
+    "runnerEntitlementsUnchangedAndNoCloud": true,
+    "originalProductsPreserved": true,
+    "phoneInstalled": false,
+    "testsExecuted": 0,
+    "providerInvoked": false,
+    "priorFailedAttempt": "Certificate extraction invocation omitted = before its prefix; retained failure. Corrected extraction/verification passed without rebuilding or re-signing."
+  }
+}

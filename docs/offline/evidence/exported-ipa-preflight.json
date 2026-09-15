@@ -1,0 +1,63 @@
+{
+  "capturedAt": "2026-09-14T04:59:30.474435+00:00",
+  "scope": "Exact exported IPA payload tooling and packaging integration; no signed distribution artifact, store processing, upload or real provider claim.",
+  "sourceSha256": {
+    "scripts/offline/ipa-artifact.py": "7552fc508c7406452772d9801a299743d1dd51667b6eb150e8faa1bfe1cd7f2d",
+    "scripts/offline/test_ipa_artifact.py": "fbd7b71515739b38d3f27d81b8226306fdf39e0950befcc4a2ae25f6c2d7ea8a",
+    "scripts/offline/release-preflight.py": "a9492217570f8f41ba37852726cb787767d2c061f7d81167d6f218ebd30bf1cf",
+    "scripts/offline/package-native.py": "1e8ad867656070837fba01f2746d173085e53369e1ebb51e12fdb52d65494b29",
+    "scripts/offline/test_release_preflight.py": "03a40d2d487d1fc82596a38b2b07035cb44004f8d7696140214c1ee916b2b27a",
+    "scripts/offline/test_package_native.py": "5f9bf343efd44464f4ece0be4856dc04b90f1dcaed16af32e481e7243c4b534d"
+  },
+  "tests": {
+    "allScriptsOfflinePythonGroups": 38,
+    "failed": 0,
+    "newArchiveHelperGroups": 13,
+    "logPath": "artifacts/offline/ipa-integration-python.log",
+    "logSha256": "ad1fc5ad9a850d7bb942b0a3bb57abbfd9d78192318dc3d5ee8dbee2a2aa1324",
+    "finalAffectedGroups": 38,
+    "finalLogPath": "artifacts/offline/candidate-ipa-review-python-final.log",
+    "finalLogSha256": "bbc635642454b9db508a9d02544ea9aad189eb6a81bf4fef22f997d2efd56d89"
+  },
+  "review": {
+    "helper": "Root independently reviewed private acquisition, actual decompression/CRC bounds, path/ownership rules and required local/central/descriptor agreement correction.",
+    "integration": "Independent reviewer found no actionable P1/P2 in payload dispatch, signature validation, product hash binding or report privacy."
+  },
+  "negativeRuntime": {
+    "evidencePath": "artifacts/offline/exported-ipa-preflight/evidence-ownercheck.json",
+    "evidenceSha256": "a341118340278b7bbb10903a08aaf3d1768d01bd26af797afc54f5637733ea28",
+    "containerType": "ipa",
+    "artifactSha256": "243e5ae4de7ced53a0b4aa8e08103f97e2ba3cd940426bdcc3c4480dfeddb447",
+    "exitCode": 1,
+    "passed": false,
+    "signatureVerified": false,
+    "failureCount": 18,
+    "limitation": "Final helper after explicit temporary ownership verification. Same synthetic development container and public negative-test identities; not an exported production IPA."
+  },
+  "boundaries": [
+    "Direct .app preflight cannot satisfy the iOS packaging exported-object gate.",
+    "Existing Android APK policy remains in effect; its sibling AAB is not established by that pass.",
+    "Only the exact frozen inspected artifact hash can be recorded as preflighted; later file changes require another check.",
+    "The private temporary/output namespace must not be mutated concurrently.",
+    "No accepted signed production IPA/AAB exists at this checkpoint."
+  ],
+  "priorNegativeRuntime": {
+    "evidencePath": "artifacts/offline/exported-ipa-preflight/evidence.json",
+    "evidenceSha256": "ee6578de4ba0a3940b9d3333b24c5ba58fc3ea820386c1d841e89c1fa683de92",
+    "containerType": "ipa",
+    "artifactSha256": "243e5ae4de7ced53a0b4aa8e08103f97e2ba3cd940426bdcc3c4480dfeddb447",
+    "exitCode": 1,
+    "passed": false,
+    "signatureVerified": false,
+    "failureCount": 18,
+    "limitation": "Synthetic ZIP of the previously frozen simulator development app, not an Xcode exported distribution IPA. Real codesign/metadata path executed and deliberately rejected. Public synthetic expected identity and historical build maximum are negative-test inputs only."
+  },
+  "securityScan": {
+    "rulesRun": 230,
+    "files": 7,
+    "findings": 0,
+    "logPath": "artifacts/offline/candidate-ipa-review-sast-final.log",
+    "logSha256": "6abf573ed13bb230e74c18b9a3f8284a948319169b1b2163c31c2fe6a52285ca",
+    "priorFinding": "Scanner flagged redundant owner-only chmod. It was replaced with explicit temporary-directory type, owner and permission validation; no suppression added. Original scan log retained."
+  }
+}

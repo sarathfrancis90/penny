@@ -1,0 +1,337 @@
+{
+  "mutations": [
+    {
+      "domain": "budgets",
+      "index": 0,
+      "field": "limitMinor",
+      "value": -1,
+      "valid": false
+    },
+    {
+      "domain": "budgets",
+      "index": 0,
+      "field": "month",
+      "value": "2026-2",
+      "valid": false
+    },
+    {
+      "domain": "budgets",
+      "index": 0,
+      "field": "alertThresholdBps",
+      "value": 10001,
+      "valid": false
+    },
+    {
+      "domain": "budgets",
+      "index": 0,
+      "field": "rollover",
+      "value": 1,
+      "valid": false
+    },
+    {
+      "domain": "incomeSources",
+      "index": 0,
+      "field": "netMinor",
+      "value": 100001,
+      "valid": false
+    },
+    {
+      "domain": "incomeSources",
+      "index": 0,
+      "field": "taxable",
+      "value": "true",
+      "valid": false
+    },
+    {
+      "domain": "incomeSources",
+      "index": 0,
+      "field": "category",
+      "value": "unknown",
+      "valid": false
+    },
+    {
+      "domain": "incomeSources",
+      "index": 0,
+      "field": "currencyCode",
+      "value": "USD",
+      "valid": false
+    },
+    {
+      "domain": "incomeEntries",
+      "index": 0,
+      "field": "sourceId",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "valid": false
+    },
+    {
+      "domain": "incomeEntries",
+      "index": 0,
+      "field": "amountMinor",
+      "value": 1.5,
+      "valid": false
+    },
+    {
+      "domain": "savingsGoals",
+      "index": 0,
+      "field": "openingMinor",
+      "value": -1,
+      "valid": false
+    },
+    {
+      "domain": "savingsGoals",
+      "index": 0,
+      "field": "currentMinor",
+      "value": 12000,
+      "valid": false
+    },
+    {
+      "domain": "savingsGoals",
+      "index": 0,
+      "field": "targetMinor",
+      "value": 0,
+      "valid": false
+    },
+    {
+      "domain": "savingsGoals",
+      "index": 0,
+      "field": "status",
+      "value": "complete",
+      "valid": false
+    },
+    {
+      "domain": "savingsEntries",
+      "index": 0,
+      "field": "goalId",
+      "value": "00000000-0000-4000-8000-000000000000",
+      "valid": false
+    },
+    {
+      "domain": "savingsEntries",
+      "index": 0,
+      "field": "amountMinor",
+      "value": -2000,
+      "valid": false
+    },
+    {
+      "domain": "savingsEntries",
+      "index": 0,
+      "field": "currencyCode",
+      "value": "USD",
+      "valid": false
+    },
+    {
+      "domain": "recurringExpenses",
+      "index": 0,
+      "field": "isActive",
+      "value": 1,
+      "valid": false
+    },
+    {
+      "domain": "expenses",
+      "index": 0,
+      "field": "recurringTemplateId",
+      "value": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+      "valid": false
+    },
+    {
+      "domain": "expenses",
+      "index": 0,
+      "field": "description",
+      "value": null,
+      "valid": false
+    }
+  ],
+  "snapshotFailures": [
+    "duplicate_domain_id",
+    "duplicate_budget_category_month",
+    "duplicate_income_occurrence",
+    "duplicate_expense_occurrence",
+    "orphan_after_source_delete",
+    "orphan_after_goal_delete",
+    "orphan_after_template_delete",
+    "array_capacity",
+    "unknown_field",
+    "missing_array",
+    "aggregate_overflow",
+    "invalid_recurrence_date",
+    "range_over_366_days"
+  ],
+  "csvCases": [
+    {
+      "input": "=1+1",
+      "expected": "\"'=1+1\""
+    },
+    {
+      "input": "  +SUM(1,2)",
+      "expected": "\"'  +SUM(1,2)\""
+    },
+    {
+      "input": "@X",
+      "expected": "\"'@X\""
+    },
+    {
+      "input": "-10",
+      "expected": "\"'-10\""
+    },
+    {
+      "input": "\ttext",
+      "expected": "\"'\ttext\""
+    },
+    {
+      "input": "normal \"text\"",
+      "expected": "\"normal \"\"text\"\"\""
+    },
+    {
+      "input": "﻿=1+1",
+      "expected": "\"'﻿=1+1\""
+    },
+    {
+      "input": " =1+1",
+      "expected": "\"' =1+1\""
+    },
+    {
+      "input": " =1+1",
+      "expected": "\"' =1+1\""
+    },
+    {
+      "input": "﻿ @SUM(1,2)",
+      "expected": "\"'﻿ @SUM(1,2)\""
+    }
+  ],
+  "keys": {
+    "expense": [
+      "id",
+      "merchant",
+      "amountMinor",
+      "currencyCode",
+      "expenseDate",
+      "category",
+      "note",
+      "createdAt",
+      "updatedAt",
+      "description",
+      "recurringTemplateId",
+      "recurringOccurrenceDate"
+    ],
+    "budget": [
+      "id",
+      "category",
+      "month",
+      "limitMinor",
+      "rollover",
+      "alertThresholdBps",
+      "notificationsEnabled",
+      "createdAt",
+      "updatedAt"
+    ],
+    "schedule": [
+      "frequency",
+      "startDate",
+      "endDate",
+      "dayOfMonth"
+    ],
+    "incomeSource": [
+      "id",
+      "name",
+      "category",
+      "grossMinor",
+      "netMinor",
+      "currencyCode",
+      "taxable",
+      "isRecurring",
+      "isActive",
+      "description",
+      "schedule",
+      "lastReceivedAt",
+      "createdAt",
+      "updatedAt"
+    ],
+    "incomeEntry": [
+      "id",
+      "sourceId",
+      "receivedDate",
+      "amountMinor",
+      "currencyCode",
+      "note",
+      "occurrenceDate",
+      "createdAt",
+      "updatedAt"
+    ],
+    "savingsGoal": [
+      "id",
+      "name",
+      "category",
+      "targetMinor",
+      "openingMinor",
+      "monthlyContributionMinor",
+      "currencyCode",
+      "status",
+      "isActive",
+      "priority",
+      "description",
+      "emoji",
+      "startDate",
+      "targetDate",
+      "achievedDate",
+      "lastContributionAt",
+      "createdAt",
+      "updatedAt"
+    ],
+    "savingsEntry": [
+      "id",
+      "goalId",
+      "goalName",
+      "date",
+      "amountMinor",
+      "currencyCode",
+      "contributionType",
+      "source",
+      "note",
+      "createdAt",
+      "updatedAt"
+    ],
+    "recurringExpense": [
+      "id",
+      "merchant",
+      "amountMinor",
+      "currencyCode",
+      "category",
+      "description",
+      "note",
+      "isActive",
+      "schedule",
+      "createdAt",
+      "updatedAt"
+    ]
+  },
+  "limits": {
+    "budgets": 1200,
+    "incomeSources": 1000,
+    "incomeEntries": 10000,
+    "savingsGoals": 1000,
+    "savingsEntries": 10000,
+    "recurringExpenses": 1000
+  },
+  "incomeCategories": [
+    "salary",
+    "freelance",
+    "bonus",
+    "investment",
+    "rental",
+    "side_hustle",
+    "gift",
+    "other"
+  ],
+  "savingsCategories": [
+    "emergency_fund",
+    "travel",
+    "education",
+    "health",
+    "house_down_payment",
+    "car",
+    "wedding",
+    "retirement",
+    "investment",
+    "custom"
+  ]
+}

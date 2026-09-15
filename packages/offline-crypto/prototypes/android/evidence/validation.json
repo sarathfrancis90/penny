@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "scope": "Experimental authenticated frame codec only; no logical ledger validation, candidate commit, legacy dispatch or production integration",
+  "source": {
+    ".gitignore": "5eee55be272bc3d0ba63d575986bdb82dc599ac8d4c77b8fdd2b082d59af24d8",
+    "README.md": "5a907939961423ba143d0695823b91f4de65e7825160a237dd47939c8d19c06c",
+    "app/build.gradle.kts": "06b88312e2c0fad2ccfd8cc7396ad36bed21b6561b67f198857f12e74f237ec2",
+    "app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt": "7352484a4a7808b518124f7bd78084fe61d05d89543cef941455840c2a01deaa",
+    "app/src/main/AndroidManifest.xml": "9c94869b6a2724ca7d172b639b0345b6cb92ec351d71ba28373fa44d9da9a46f",
+    "app/src/main/cpp/CMakeLists.txt": "6005b997e6753060519490e5ec0ff2b9e1a15ab4acefc81e04d22edab6731e97",
+    "app/src/main/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad",
+    "app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "42ab54c736ed060cc1c2df7b4957af1ec81c4b62319c7bd10f5936eda6771210",
+    "app/src/main/res/xml/data_extraction_rules.xml": "eda9dddce1e895de1efd716fe75e244187bf8f91a3bb7444c6ea1731e51c74a8",
+    "build.gradle.kts": "ec4ec12f8860565b794fe437a684f461bfd6cc0e98a5dde85d9e0984a9a053ef",
+    "gradle.properties": "85dd8e5a79fd59ed16dc385b8d3e58182161c8d6595fc1908f1d586f98341b54",
+    "gradlew": "909215fcf5013e8644278d072c8bbf4697ffac5d88ad3245646dabc9dfb85233",
+    "settings.gradle.kts": "76e48fdf5808d9cc8f1d451710b462b300a75b4045d0d9ff37ac3e21cdf8f51b"
+  },
+  "dependency": {
+    "manifestSha256": "0bc9e3168db182dffdb0c81d0de0ff7809e3023de2bd2e0bfee406eb322ae8e5",
+    "androidBuildReportSha256": "ba69bccbc0282728d17c105c48fda8ef6aab965c292c038ba5cfc44b4e3156af",
+    "version": "1.0.22",
+    "sourceTreeSha256": "2871798a902683da8f5767ab32920d5e04ee7fc89cf8eedeeb7e2fe48e8e9407",
+    "ndk": "28.2.13676358",
+    "api": 26
+  },
+  "sharedFixtureManifestSha256": "352874d4ce6374123a489cc3129abdde380be882b19c4ec93618356afa431d1f",
+  "swiftInputManifestSha256": "1f0d5f36be2259d2027788563949d66ef424becad5ddb6c6855f58690c414c0d",
+  "swiftInputs": [
+    {
+      "ciphertextBytes": 1048679,
+      "ciphertextSha256": "99cf5a5dc377f82d86213a16b0d910421c02e40e78c4c65509dea8807fa0f0b6",
+      "file": "native-full-final.pennyframe",
+      "frames": 1,
+      "name": "native-full-final",
+      "plaintext": {
+        "bytes": 1048576,
+        "kind": "pattern-mod-251"
+      },
+      "plaintextBytes": 1048576,
+      "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "scope": "frame-only; not a validated ledger"
+    },
+    {
+      "ciphertextBytes": 2097358,
+      "ciphertextSha256": "bcf9deec58c60709ff37258c02e3c9e850893462cafcd90ed1ed9f0e33029ccf",
+      "file": "native-multi.pennyframe",
+      "frames": 3,
+      "name": "native-multi",
+      "plaintext": {
+        "bytes": 2097189,
+        "kind": "pattern-mod-251"
+      },
+      "plaintextBytes": 2097189,
+      "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+      "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+      "scope": "frame-only; not a validated ledger"
+    }
+  ],
+  "runs": {
+    "api37": {
+      "api": 37,
+      "pageBytes": 16384,
+      "tests": 11,
+      "status": "passed",
+      "files": {
+        "app/src/main/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad",
+        "app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "42ab54c736ed060cc1c2df7b4957af1ec81c4b62319c7bd10f5936eda6771210",
+        "app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt": "cda8840748734a0678c5a17e93726e1510b27ead9c805b54fec277e18b521047",
+        "app/build/outputs/apk/debug/app-debug.apk": "b15d6eeea64ca2f2c43b00707289db0efee209ae0846da8d010947b39643a6ea",
+        "app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "998bcb4165319e3157e876c077252a0e00f9c69406e85c5a6e2111174080a4e0"
+      },
+      "evidenceDirectory": ".build/validation-api37-01"
+    },
+    "api37SwiftImport": {
+      "capturedAt": "2026-09-14T01:12:55.358013+00:00",
+      "api": 37,
+      "serial": "emulator-5560",
+      "tests": 1,
+      "status": "passed",
+      "files": {
+        "app/src/main/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad",
+        "app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "42ab54c736ed060cc1c2df7b4957af1ec81c4b62319c7bd10f5936eda6771210",
+        "app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt": "7352484a4a7808b518124f7bd78084fe61d05d89543cef941455840c2a01deaa",
+        "app/build/outputs/apk/debug/app-debug.apk": "034de02568b25ac194c00ca8bb599b1890e204d96628d06749d3a48b221cf6ab",
+        "app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "7499307563e66190c2dc3e903928181f7f21f0b8661fcd0a346250f591437821"
+      },
+      "instrumentationSha256": "0ec85340a7bec1c6be842ed7f7700cd9b007ecd8420b63026366acfd70db80a0",
+      "swiftManifestSha256": "1f0d5f36be2259d2027788563949d66ef424becad5ddb6c6855f58690c414c0d",
+      "evidenceDirectory": ".build/validation-api37-peer-01"
+    },
+    "api26": {
+      "capturedAt": "2026-09-14T01:12:55.143998+00:00",
+      "api": 26,
+      "serial": "emulator-5562",
+      "tests": 12,
+      "status": "passed",
+      "files": {
+        "app/src/main/cpp/frame_jni.cpp": "d4d5735687515029781d2f721c0fa4162797fd6ecdf38235ba2895a2b7b6bcad",
+        "app/src/main/java/ca/penny/v4frameprobe/FrameCodec.kt": "42ab54c736ed060cc1c2df7b4957af1ec81c4b62319c7bd10f5936eda6771210",
+        "app/src/androidTest/java/ca/penny/v4frameprobe/FrameCodecDeviceTest.kt": "7352484a4a7808b518124f7bd78084fe61d05d89543cef941455840c2a01deaa",
+        "app/build/outputs/apk/debug/app-debug.apk": "034de02568b25ac194c00ca8bb599b1890e204d96628d06749d3a48b221cf6ab",
+        "app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk": "7499307563e66190c2dc3e903928181f7f21f0b8661fcd0a346250f591437821"
+      },
+      "instrumentationSha256": "186bf41377b85e0a9ae49f9697b8db44d7418de8f9a8ca78ae8dc9fe18230ec3",
+      "pageBytes": 4096,
+      "evidenceDirectory": ".build/validation-api26-01"
+    }
+  },
+  "nativeExports": {
+    "api37": {
+      "schemaVersion": 1,
+      "scope": "Experimental Kotlin/JNI frame-only public-key interoperability exports",
+      "api": 37,
+      "abis": [
+        "arm64-v8a"
+      ],
+      "pageBytes": 16384,
+      "positives": [
+        {
+          "name": "native-full-final",
+          "file": "native-full-final.pennyframe",
+          "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+          "scope": "frame-only; not logical ledger admission",
+          "plaintext": {
+            "kind": "pattern-mod-251",
+            "bytes": 1048576
+          },
+          "frames": 1,
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+          "ciphertextBytes": 1048679,
+          "ciphertextSha256": "652369e1f99f762aae3f63c3953e01d831d1d48c5231e03cae8123e04bf47ad4"
+        },
+        {
+          "name": "native-multi",
+          "file": "native-multi.pennyframe",
+          "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+          "scope": "frame-only; not logical ledger admission",
+          "plaintext": {
+            "kind": "pattern-mod-251",
+            "bytes": 2097189
+          },
+          "frames": 3,
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+          "ciphertextBytes": 2097358,
+          "ciphertextSha256": "4cce4c01a5122a4a3e89aa172d6789347eb0dabb09615cb47498ca27b13b44b2"
+        }
+      ]
+    },
+    "api26": {
+      "schemaVersion": 1,
+      "scope": "Experimental Kotlin/JNI frame-only public-key interoperability exports",
+      "api": 26,
+      "abis": [
+        "arm64-v8a"
+      ],
+      "pageBytes": 4096,
+      "positives": [
+        {
+          "name": "native-full-final",
+          "file": "native-full-final.pennyframe",
+          "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+          "scope": "frame-only; not logical ledger admission",
+          "plaintext": {
+            "kind": "pattern-mod-251",
+            "bytes": 1048576
+          },
+          "frames": 1,
+          "plaintextBytes": 1048576,
+          "plaintextSha256": "631b84027d6b9e52b539c4e8373622d23032dfadc64d60af87339c9037e4f769",
+          "ciphertextBytes": 1048679,
+          "ciphertextSha256": "5cdeb13e32b794cb24fe36fa4e066b33d82cae8d9161cdc24dadb2435c914f8a"
+        },
+        {
+          "name": "native-multi",
+          "file": "native-multi.pennyframe",
+          "recoveryKey": "pny1-0707070707070707070707070707070707070707070707070707070707070707",
+          "scope": "frame-only; not logical ledger admission",
+          "plaintext": {
+            "kind": "pattern-mod-251",
+            "bytes": 2097189
+          },
+          "frames": 3,
+          "plaintextBytes": 2097189,
+          "plaintextSha256": "d4a6a5c160293ee7f0ac94b89193501ce4f4ca3405a6ee625bace8b1f79fe873",
+          "ciphertextBytes": 2097358,
+          "ciphertextSha256": "cbbed7260222f9a30244fadf366e9a3aedc4d69c97c7788d624e5a0b2b1a144c"
+        }
+      ]
+    }
+  },
+  "apkAudit": {
+    "status": "passed",
+    "apkSha256": "034de02568b25ac194c00ca8bb599b1890e204d96628d06749d3a48b221cf6ab",
+    "abis": [
+      {
+        "abi": "arm64-v8a",
+        "machine": 183,
+        "sha256": "fb2e75ceff9a83173a7c553c3c80805b2552f02e7bbf4989ef98012ca202d6d4",
+        "loadAlignments": [
+          16384,
+          16384,
+          16384
+        ],
+        "textRelocations": false
+      },
+      {
+        "abi": "armeabi-v7a",
+        "machine": 40,
+        "sha256": "e41e62b2d65138564fda8b1d1d92ebd18d60e75fbc00d39f86bb454871031652",
+        "loadAlignments": [
+          16384,
+          16384,
+          16384
+        ],
+        "textRelocations": false
+      },
+      {
+        "abi": "x86",
+        "machine": 3,
+        "sha256": "1b57d6128259db997fe9ed46ba9f1f68cf978a658fc2208af35587dae4916286",
+        "loadAlignments": [
+          16384,
+          16384,
+          16384
+        ],
+        "textRelocations": false
+      },
+      {
+        "abi": "x86_64",
+        "machine": 62,
+        "sha256": "982f41f76d4a44c9ca2e04abbf4d691a3c1987cf33349da3a524d31ad1009e35",
+        "loadAlignments": [
+          16384,
+          16384,
+          16384
+        ],
+        "textRelocations": false
+      }
+    ],
+    "zipalignCommand": [
+      "/Users/sarathfrancis/Library/Android/sdk/build-tools/37.0.0/zipalign",
+      "-c",
+      "-P",
+      "16",
+      "-v",
+      "4",
+      "/Users/sarathfrancis/work/git/Personal/penny/packages/offline-crypto/prototypes/android/app/build/outputs/apk/debug/app-debug.apk"
+    ]
+  },
+  "build": {
+    "command": [
+      "./gradlew",
+      "-PpennySodiumOutput=/Users/sarathfrancis/work/git/Personal/penny/artifacts/offline/crypto-android-build-validation/build-all-abis",
+      "-PpennyNegativeFixtures=/Users/sarathfrancis/work/git/Personal/penny/packages/offline-crypto/prototypes/reference/.build/negative-files",
+      "-PpennyPeerFixtures=/Users/sarathfrancis/work/git/Personal/penny/packages/offline-crypto/prototypes/apple/.build/validation-01/native-exports",
+      ":app:assembleDebug",
+      ":app:assembleDebugAndroidTest",
+      ":app:lintDebug"
+    ],
+    "workingDirectory": "packages/offline-crypto/prototypes/android",
+    "environment": {
+      "ANDROID_HOME": "/Users/sarathfrancis/Library/Android/sdk"
+    },
+    "log": ".build/build-tests.log",
+    "logSha256": "18161e77cfcd9edc68aed0963cc71939f931196742dc84dbf800e8367a3ffbf1",
+    "lintErrors": 0,
+    "lintWarnings": [
+      "MissingApplicationIcon: probe has no launch activity; no launcher icon supplied"
+    ]
+  },
+  "capacity": {
+    "plaintextBytes": 671088640,
+    "frames": 640,
+    "wireBytes": 671109830,
+    "transportPipeBytes": 65536,
+    "acceptedSha256": "152c359a60cc8f22238a15018e40fef383829dac2472e80da6d35cbd5ff6c4e7",
+    "oneExtraPlaintextByte": "rejected",
+    "largeArchiveFileOrArray": false,
+    "rssMeasurement": false
+  },
+  "limits": [
+    "Frame validation is not ledger validation or restore approval.",
+    "Only arm64 emulators were executed; four ABI build/ELF checks are not four ABI runtime coverage.",
+    "API37 ran the original 11 groups plus a separate new Swift import group; API26 ran all 12 together.",
+    "No user vault, network provider, app database, schema, production JNI linkage or current app cap changed.",
+    "Native exports are public fixture-key ciphertext retained under ignored evidence paths.",
+    "Cancellation requires streams whose close can interrupt their blocking IO.",
+    "Managed-runtime wiping is best-effort; this is not a memory erasure guarantee."
+  ],
+  "instrumentationCommands": {
+    "api37": [
+      "/Users/sarathfrancis/Library/Android/sdk/platform-tools/adb",
+      "-s",
+      "emulator-5560",
+      "shell",
+      "am",
+      "instrument",
+      "-w",
+      "-r",
+      "ca.penny.v4frameprobe.test/androidx.test.runner.AndroidJUnitRunner"
+    ],
+    "api37SwiftImport": [
+      "/Users/sarathfrancis/Library/Android/sdk/platform-tools/adb",
+      "-s",
+      "emulator-5560",
+      "shell",
+      "am",
+      "instrument",
+      "-w",
+      "-r",
+      "-e",
+      "class",
+      "ca.penny.v4frameprobe.FrameCodecDeviceTest#readsExactSwiftNativeExportsOnAndroidRuntime",
+      "ca.penny.v4frameprobe.test/androidx.test.runner.AndroidJUnitRunner"
+    ],
+    "api26": [
+      "/Users/sarathfrancis/Library/Android/sdk/platform-tools/adb",
+      "-s",
+      "emulator-5562",
+      "shell",
+      "am",
+      "instrument",
+      "-w",
+      "-r",
+      "ca.penny.v4frameprobe.test/androidx.test.runner.AndroidJUnitRunner"
+    ]
+  }
+}

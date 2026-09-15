@@ -1,0 +1,151 @@
+{
+  "commit": "341419768ad911ef9c9ce6853d5262abf5fa3662",
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/34795728145",
+  "scope": "Hosted library build/reference checks passed; native app aggregate failed, no production linkage or logical parser CI claim",
+  "source": {
+    "archiveSha256": "adbdd8f16149e81ac6078a03aca6fc03b592b89ef7b5ed83841c086191be3349",
+    "fileCount": 678,
+    "name": "libsodium",
+    "sourceTreeSha256": "2871798a902683da8f5767ab32920d5e04ee7fc89cf8eedeeb7e2fe48e8e9407",
+    "version": "1.0.22"
+  },
+  "reference": {
+    "host": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "librarySha256": "117956a3fa6b7a851d1b35997b877910b727041c40ea131ab7735a75b9488f54",
+    "upstreamCheck": {
+      "run": true,
+      "total": 87,
+      "pass": 87,
+      "skip": 0,
+      "xfail": 0,
+      "fail": 0,
+      "xpass": 0,
+      "error": 0
+    }
+  },
+  "android": {
+    "ndk": "28.2.13676358",
+    "api": 26,
+    "builds": [
+      {
+        "abi": "arm64-v8a",
+        "archiveSha256": "b15b14b155888d77d0c164b3d6c7e3ac09cdb72b8338d1fad89b6c0554889692",
+        "linkCheckSha256": "4e67f4d4b4f0e3b59c9de14c834f39f1060070ecc7589d5505e4e0ce760c1948",
+        "elfLoadMinimumAlignment": 16384
+      },
+      {
+        "abi": "armeabi-v7a",
+        "archiveSha256": "bfabe6e04b0a101becac2d17bd5dca31fdfe7ef349ea5b16da22f4527e84cee1",
+        "linkCheckSha256": "5dba7cf43dddf51a14cc17c3dd320fbb5d64dcf133befaeadbe1b216baabc45d",
+        "elfLoadMinimumAlignment": 16384
+      },
+      {
+        "abi": "x86",
+        "archiveSha256": "2ed85477058a29ca22f317f7a78ac5b66017958fd406dc2cfb0cf4f57cd724fd",
+        "linkCheckSha256": "0ae0955278c7c6256f1bdae2527aee60d8b00e698c624cd65dc918a2045ddd1b",
+        "elfLoadMinimumAlignment": 16384
+      },
+      {
+        "abi": "x86_64",
+        "archiveSha256": "a4b6ba640801eeb47c5d161e4b0facc59120f04050ce38eb119284090abee4b8",
+        "linkCheckSha256": "939ecfe3f0c839826dd866b3dad72d48f9ec4a74cf63b78adf3d8bf00ece76e6",
+        "elfLoadMinimumAlignment": 16384
+      }
+    ],
+    "consumer": {
+      "status": "passed",
+      "checks": [
+        {
+          "name": "consumer-arm64-v8a",
+          "configureExit": 0,
+          "linked": true,
+          "expectedRejection": null
+        },
+        {
+          "name": "consumer-armeabi-v7a",
+          "configureExit": 0,
+          "linked": true,
+          "expectedRejection": null
+        },
+        {
+          "name": "consumer-x86",
+          "configureExit": 0,
+          "linked": true,
+          "expectedRejection": null
+        },
+        {
+          "name": "consumer-x86_64",
+          "configureExit": 0,
+          "linked": true,
+          "expectedRejection": null
+        },
+        {
+          "name": "preexisting",
+          "configureExit": 1,
+          "linked": false,
+          "expectedRejection": "pre-existing penny_sodium"
+        },
+        {
+          "name": "altered-header",
+          "configureExit": 1,
+          "linked": false,
+          "expectedRejection": "Installed header digest mismatch"
+        },
+        {
+          "name": "altered-archive",
+          "configureExit": 1,
+          "linked": false,
+          "expectedRejection": "Static archive digest mismatch"
+        }
+      ]
+    }
+  },
+  "apple": {
+    "toolchain": {
+      "xcode": "Xcode 26.6\nBuild version 17F113",
+      "developerDirectory": "/Applications/Xcode_26.6.app/Contents/Developer"
+    },
+    "deploymentTarget": "26.0",
+    "slices": [
+      {
+        "name": "ios-arm64",
+        "sdk": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk",
+        "target": "arm64-apple-ios26.0",
+        "architecture": "arm64",
+        "platform": "/Users/runner/work/penny/penny/packages/offline-crypto/.build/apple/ios-arm64/libPennySodiumLinkProbe.dylib:\nLoad command 10\n      cmd LC_BUILD_VERSION\n  cmdsize 32\n platform IOS\n    minos 26.0\n      sdk 26.0\n   ntools 1\n     tool LD\n  version 1267.0",
+        "probeSha256": "0bd30afb1325afbf906f2a043153c86e38f73d909289d394226e361d61bf383e",
+        "archiveSha256": "0c6c3c857af105996c050f76da5d117bbc997b2bf31f88402f2075b8f79165c8"
+      },
+      {
+        "name": "ios-simulator-arm64",
+        "sdk": "/Applications/Xcode_26.6.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk",
+        "target": "arm64-apple-ios26.0-simulator",
+        "architecture": "arm64",
+        "platform": "/Users/runner/work/penny/penny/packages/offline-crypto/.build/apple/ios-simulator-arm64/libPennySodiumLinkProbe.dylib:\nLoad command 10\n      cmd LC_BUILD_VERSION\n  cmdsize 32\n platform IOSSIMULATOR\n    minos 26.0\n      sdk 26.0\n   ntools 1\n     tool LD\n  version 1267.0",
+        "probeSha256": "263c3022590f51ff940699424e26007fa7ed0531f07d9cede16ebb91927daeff",
+        "archiveSha256": "fc5bf957e4d857a492af799a26328ceaa06754681d9590deee66aa0bdf58b549"
+      }
+    ]
+  },
+  "appResults": {
+    "iOS": {
+      "passed": 63,
+      "failed": 1,
+      "total": 64,
+      "failedTest": "ExpenseFlowTests.testReceiptPhotoSurvivesRelaunchAndCanBeRemoved",
+      "reason": "5-second photo-grid readiness assertion; grid visible in subsequent failure tree and remaining journey completed"
+    },
+    "AndroidAPI37": {
+      "failedTest": "CaptureFlowTest.actualCameraDenialKeepsManualExpenseAvailable",
+      "reason": "10-second composite save/snackbar wait"
+    },
+    "AndroidAPI26Job": "success",
+    "nativeGate": "failure"
+  },
+  "artifactReportHashes": {
+    "penny-offline-crypto-reference/build-result.json": "76daa8199b4834c45a68836cdf92a248f8ac2e65a65c5d3f118873cbf043cb22",
+    "penny-offline-crypto-android-build/android/build-result.json": "25bbea10c84017205a6f88e03619c81f21d1c07cf4ce33575a93ad8aa1dbb334",
+    "penny-offline-crypto-android-build/consumer/consumer-results.json": "c19a585103e91ceba4a7ed6e4c4b797f8340aac5a86cff6cca2f38ff21c8125c",
+    "penny-offline-crypto-apple-build/build-report.json": "aa561593881a9c36c092d7ea62ca41ef0f09cd417e7803e03c3690ed806197cd"
+  }
+}

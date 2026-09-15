@@ -1,0 +1,26 @@
+{
+  "sourceHead": "25a776cba0b652b2df9497091d78c8f28f244f7c",
+  "scope": "Hosted security jobs only; no native release or complete security claim",
+  "checks": [
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34788873025/job/103809397528",
+      "name": "security-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34788872970/job/103809267527",
+      "name": "sast-ci",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34788873025/job/103809267802",
+      "name": "dependency-security",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/sarathfrancis90/penny/actions/runs/34788873025/job/103809267845",
+      "name": "osv-scan",
+      "state": "SUCCESS"
+    }
+  ]
+}

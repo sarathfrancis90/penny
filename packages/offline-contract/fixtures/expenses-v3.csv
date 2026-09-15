@@ -1,0 +1,6 @@
+"id","date","merchant","amount","currency","category","description","note"
+"11111111-1111-4111-8111-111111111111","2026-01-10","Café Toronto ☕","60.00","CAD","Meals and entertainment","Original expense description","Original separate note"
+"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","2026-02-10","Café Toronto ☕","70.00","CAD","Meals and entertainment","","Team lunch
+Receipt reviewed locally."
+"cccccccc-cccc-4ccc-8ccc-cccccccccccc","2026-02-14","'=HYPERLINK(""https://example.invalid"")","20.00","CAD","Office expenses","Quoted ""description""","'  +SUM(1,2)
+Second line"

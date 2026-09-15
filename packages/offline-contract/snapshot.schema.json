@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Penny Offline expense snapshot v1",
+  "description": "Application validators also enforce exact calendar/UTC roundtrip, timestamp ordering, trimmed merchant, unique IDs, total cap, UTF8 byte limits and empty attachments. String lengths count Unicode code points.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "snapshotId",
+    "vaultId",
+    "createdAt",
+    "expenses",
+    "attachments"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "snapshotId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "vaultId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "expenses": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/expense"
+      }
+    },
+    "attachments": {
+      "type": "array",
+      "maxItems": 0
+    }
+  },
+  "$defs": {
+    "expense": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "merchant",
+        "amountMinor",
+        "currencyCode",
+        "expenseDate",
+        "category",
+        "note",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "merchant": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "amountMinor": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 99999999999
+        },
+        "currencyCode": {
+          "const": "CAD"
+        },
+        "expenseDate": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "category": {
+          "enum": [
+            "Advertising (Promotion, gift cards etc.)",
+            "Meals and entertainment",
+            "Groceries",
+            "Insurance (No life insurance)",
+            "Interest (and bank charges)",
+            "Fees, licences, dues, memberships, and subscriptions",
+            "Office expenses",
+            "Supplies (for example PPT kit etc.)",
+            "Rent (covers only office rent in industrial area)",
+            "Legal, accounting, and other professional fees",
+            "Management and administration fees",
+            "Sub contracts / consultants paid in Canada",
+            "Sub contracts / consultants paid outside Canada",
+            "Salaries, wages, and benefits paid to the employees",
+            "Withdrawal by Directors",
+            "Travel (including transportation fees, accommodations, and meals)",
+            "Telephone",
+            "Motor vehicle expenses",
+            "Other expenses (specify)",
+            "Home Office - Heat (gas, propane, wood, etc.)",
+            "Home Office - Electricity",
+            "Home Office - Water",
+            "Home Office - Insurance",
+            "Home Office - Maintenance",
+            "Home Office - Mortgage interest or rent",
+            "Home Office - Property taxes",
+            "Home Office - Monitoring and internet",
+            "Home Office - Office furnishings",
+            "Vehicle - Fuel (gasoline, propane, oil)",
+            "Vehicle - Repairs and maintenance (including oil changes)",
+            "Vehicle - Lease payments",
+            "Vehicle - Car washes",
+            "Vehicle - Insurance",
+            "Vehicle - Licence and registration",
+            "Vehicle - Interest expense on vehicle purchase loan",
+            "Vehicle - ETR 407",
+            "Vehicle - CAA (Canadian Auto Association)",
+            "Vehicle - Parking costs (non-prorated)"
+          ]
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+        }
+      }
+    }
+  }
+}

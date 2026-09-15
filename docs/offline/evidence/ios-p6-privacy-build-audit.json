@@ -1,0 +1,44 @@
+{
+  "scope": "Final unsigned Release generic iPhoneOS compile with PENNY_SIGNED_CLOUDKIT; not entitlement or provider proof",
+  "buildLog": ".build/png-final-device-compile.log",
+  "version": "3.0.0",
+  "build": "1",
+  "ipadOrientations": [
+    "UIInterfaceOrientationPortrait",
+    "UIInterfaceOrientationPortraitUpsideDown",
+    "UIInterfaceOrientationLandscapeLeft",
+    "UIInterfaceOrientationLandscapeRight"
+  ],
+  "appIcons": {
+    "CFBundlePrimaryIcon": {
+      "CFBundleIconFiles": [
+        "AppIcon60x60"
+      ],
+      "CFBundleIconName": "AppIcon"
+    }
+  },
+  "privacy": {
+    "NSPrivacyAccessedAPITypes": [
+      {
+        "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+        "NSPrivacyAccessedAPITypeReasons": [
+          "C617.1",
+          "3B52.1"
+        ]
+      }
+    ]
+  },
+  "directMetadataImports": [
+    "_fstat"
+  ],
+  "debugHarnessStringsAbsent": true,
+  "binarySHA256": "a337dc220cc660c28b23fd52966d7618af23111ecd87d586196a15fb4e1c3a14",
+  "iconMatchesOriginal": true,
+  "requiredReasonUse": "fstat in StrictJSON.boundedRead obtains size/type from opened descriptor before bounded reads. C617.1 app-container vault/staging/CloudKit downloaded files; 3B52.1 explicitly user-selected Files import/export destinations. No timestamp is transmitted. Final signed archive/privacy report and full network/data audit remain separate release gates.",
+  "systemPNGImports": [
+    "_crc32",
+    "_inflate",
+    "_inflateEnd",
+    "_inflateInit_"
+  ]
+}

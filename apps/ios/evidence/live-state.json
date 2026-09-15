@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "scope": "iOS receipt-free live open/list/view-one/expense metadata edit at existing limits",
+  "environment": {
+    "architecture": "arm64",
+    "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "deviceName": "Penny A11y System Sizes",
+    "modelName": "iPhone 16e",
+    "osBuildNumber": "23E254a",
+    "osVersion": "26.4.1",
+    "platform": "iOS Simulator"
+  },
+  "configuration": "Debug; supplied synthetic keys; isolated bundle ca.penny.offline.livestate",
+  "runs": [
+    {
+      "bundle": "apps/ios/.build/live-state/Tests01.xcresult",
+      "passed": 27,
+      "failed": 1,
+      "skipped": 0,
+      "detail": "26 units + real Photos UI pass; sole new legacy roundtrip test failed because expected snapshotId/createdAt did not account for existing export freshness."
+    },
+    {
+      "bundle": "apps/ios/.build/live-state/Tests02.xcresult",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "detail": "Corrected same fixture method asserts fresh export identity/time, exact vaultId/all eight arrays. Runtime unchanged; other 27 passing methods not repeated."
+    }
+  ],
+  "uniqueMethodsPassed": 28,
+  "acceptance": {
+    "open-list-without-hydration": "LiveStateTests/testSharedLiveOpenEditAndExactCompatibilityRoundtrip",
+    "read-one-owned-receipt": "LiveStateTests/testSharedLiveOpenEditAndExactCompatibilityRoundtrip; testOwnedReceiptPinSurvivesRemovalAndGarbageCollection",
+    "edit-retains-ciphertext": "LiveStateTests/testSharedLiveOpenEditAndExactCompatibilityRoundtrip",
+    "reopen-exact-state": "LiveStateTests/testSharedLiveOpenEditAndExactCompatibilityRoundtrip; ExpenseFlowTests/testReceiptPhotoSurvivesRelaunchAndCanBeRemoved",
+    "stale-source-rejected": "LiveStateTests/testStaleFormSecondInstanceKeyLossAndCorruptReceiptFailClosed",
+    "missing-key-corruption-rejected": "LiveStateTests/testStaleFormSecondInstanceKeyLossAndCorruptReceiptFailClosed; DurableStorageTests/testAuthenticatedInvalidMetadataFailsBothValidationAndFacade; testAuthenticatedReceiptStillRequiresFullNativeDecode",
+    "prepublication-failure-preserves-state": "LiveStateTests/testCancelledAndFailedMetadataPublicationPreservePredecessor; DurableStorageTests (12 methods)",
+    "pinned-read-survives-edit-gc": "LiveStateTests/testOwnedReceiptPinSurvivesRemovalAndGarbageCollection",
+    "compatibility-preserves-receipts": "LiveStateTests/testSharedLiveOpenEditAndExactCompatibilityRoundtrip; V4ExportTests (6); CloudTests (2)",
+    "resource-measurement-scoped": "LiveStateTests/testResourceCompatibilityRead; testResourceLiveRead"
+  },
+  "runtimeSources": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "43bc4b44f992d4e270cc882abc60625ee0282dfc77ba452d7d9dd6fccfd8412d",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "b262d3abfb6f4b8fae1c2747301cd0879dbf2b50718a4dc5d6b3a89e26ecc4fe",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/CloudPublication.swift": "d7a09327ddf9ae681524cceb1249a994b6c59f16fed7ca367a4af8ffa796267a",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "968f32f4b9523e934ae0f00b77c2eb179d4fda9150a021ed59884963ff791d44",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/ExpensesView.swift": "4ed9f65843a2a7ad81ef94dfe027e4affb7c88416fef9b46bf7e65d406a8a381",
+    "apps/ios/PennyOffline/FilesExport.swift": "683619e29429339fa446e51ab8f2aa0c54eb6cc8c28ce06cc38c61f0c23a294d",
+    "apps/ios/PennyOffline/FilesRestore.swift": "b5967d4960426cffb3617023c48c4910cc92c5ba9538c083df9d6acc3c6f95f0",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "e264300e818b5ce909d03f43d53c66cb04cc75160403354019562388d5069de2",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/FinanceSnapshotValidation.swift": "1033469d088e1f68de4fe2e753c638ee9c0724d71be325f345a749824d9d959a",
+    "apps/ios/PennyOffline/FinanceStore.swift": "98ac86fb3624b8eafc1071a014d26f067e4f41afd3ca46ef8c3751b74212f01e",
+    "apps/ios/PennyOffline/FinanceView.swift": "9067c9a0a8b3849f877636b998821c752894dcfa10da5bb9d4a88ea52f58ae0f",
+    "apps/ios/PennyOffline/Info.plist": "2a478f0b4d07d8c9fab141624b2c31e5e1b04d7b6b7a45aa4679fe77ccb29ab7",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "a471a19a98826491c079f3c40a029828d14fb9385ce3734d553a94d66ad05889",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/V4CandidateRestore.swift": "184f2227fb36e8c5ad9a8a144c2383132082c04d81f2a82a55101e1e72f5e230",
+    "apps/ios/PennyOffline/V4CiphertextSnapshot.swift": "adbe8bcadc269713e4bb5d5b74f76bb66e7a54b63919805ec3b9b2657ebc33df",
+    "apps/ios/PennyOffline/V4Export.swift": "ababc7eced1c35dea02accaa1b978a5a5bf86688060488de16e1d10bd8d6826c",
+    "apps/ios/PennyOffline/V4LogicalWriter.swift": "f98fa38dbe7eeba5c9fb06e2ce654631719a8825fb22fe4abeeb2346da0878bb",
+    "apps/ios/PennyOffline/V4ReadOnlyAdapter.swift": "ece36b1f69209011ca3daab22b57ffa8233b9a0d2fe004567c05a51e1c052b1f",
+    "apps/ios/PennyOffline/VaultStore.swift": "150748b1a4fc35ddb0f6ac4b0760c813c96ac00fb764d8c81c7427c6de9d6562",
+    "apps/ios/PennyOffline/VaultView.swift": "6a82113787a863d16f683d29126b65c535a7a8296f99c1aa3a89853c48e6c67c"
+  },
+  "tests01Provenance": {
+    "path": "artifacts/offline/live-state-ios/validation-01/provenance.json",
+    "sha256": "9d4da7d11ac4fcc409b8e3d89b0fb40eb7513cbf71b44976e48ad5d1d1d40e78"
+  },
+  "finalOverlay": {
+    "path": "artifacts/offline/live-state-ios/validation-01/final-overlay.json",
+    "sha256": "6c2c7a805e75606259feddaf6a3bdb751ee6fd93cc5e42248f9ad080d0e154ba"
+  },
+  "sharedFixture": {
+    "packages/offline-contract/fixtures/live-state-v1/metadata-edit.json": "71d95161f9f22ac3784a932e1b15a1434034e7d66677eebcc78b7a70a05f75db",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.snapshot.json": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.pennybackup": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd"
+  },
+  "resourceSample": {
+    "comparison": "Explicit full compatibility storage read vs receipt-free storage read in same current binary; not old/new complete application builds",
+    "iterationsEach": 3,
+    "snapshotSha256": "757f1ff7628d0585a4141ab3642af316bacd0e872a87bce5b5c3d1e6aab55af8",
+    "rawReceiptBytes": 6291456,
+    "receipts": 3,
+    "fixtureDescription": "Shared all-domain metadata, three 2MiB valid JPEGs with bounded COM padding and tiny decoded images",
+    "compatibilitySeconds": [
+      0.055528,
+      0.057292,
+      0.057167
+    ],
+    "liveSeconds": [
+      0.022192,
+      0.021375,
+      0.021709
+    ],
+    "compatibilityPeakPhysicalKB": 57919.792,
+    "livePeakPhysicalKB": 53184.816,
+    "retainedPhysicalDeltaKB": 0,
+    "limits": "Debug simulator API sample; warm process/allocator and uncontrolled background host activity, no Release/physical/large decoded-pixel/production-app speedup claim"
+  },
+  "limits": [
+    "Legacy inline startup must hydrate once to migrate through existing authenticated publication. Durable startup remains synchronous with full sequential native receipt verification.",
+    "Receipt additions/removals/deletes, finance mutations, legacy and cloud backup remain explicit complete compatibility operations; v4 candidate installation still final-hydrates once then adopts receipt-free live body.",
+    "No capacity increase, wire/private crypto/CloudKit change, constant-time claim, full UI/a11y rerun, physical-device protection proof or release claim."
+  ],
+  "sourceStable": true,
+  "ownedSimulatorFinalState": "shutdown",
+  "normalDemo": "untouched",
+  "tokenEstimate": "Approximately 18k-20k including inherited pre-compaction implementation; estimate, not tool-metered."
+}

@@ -1,0 +1,15 @@
+{
+  "scope": "Root-authored test-only settle helper review and six selected AutomaticBackupTests; no runtime edits",
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "review": "Actual MainActor isRunning predicate; ContinuousClock5sec deadline; asynchronous5ms sleep; explicit timeout/cancel failure. Existing completion/last-good/expiry/late-callback assertions unchanged. No operation retry.",
+  "evidence": "artifacts/offline/automatic-settle-ios/validation-01",
+  "result": "apps/ios/.build/automatic-settle/Tests01.xcresult",
+  "sourceAndBinaryPins": "artifacts/offline/automatic-settle-ios/validation-01/hashes.json",
+  "testSha256": "336ec32d1a2b17c78a1b18195f0a42f8bf58129da9e75f65d773eb265ae84d67",
+  "drift": [],
+  "runtime": "Debug arm64 Xcode26.6/iOS Simulator26.4.1 F70; ca.penny.offline.countreuse; reused existing unit build directory after rebuilding final source",
+  "limits": "Fake-provider local runtime proof, not physical background execution or hosted-run replacement",
+  "finalState": "F70 shutdown; normaldemo untouched; no further builds/tests or runtime work"
+}

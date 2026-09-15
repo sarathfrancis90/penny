@@ -1,0 +1,86 @@
+{
+  "baseCommit": "59877b1ff31b9869edc504f32420667396594a93",
+  "scope": "Receipt-free authenticated live open/list/view-one/expense metadata edit on both native platforms at existing caps, plus Android hosted picker readiness correction.",
+  "ios": {
+    "report": "apps/ios/evidence/live-state.json",
+    "reportSha256": "b8cc6fd0159f80292db45ebfd2b29fbba88f9631bd45e2019a5a2312f6b7ba81",
+    "initial": {
+      "passed": 27,
+      "failed": 1,
+      "skipped": 0
+    },
+    "testOnlyOverlay": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "uniqueMethodsPassed": 28,
+    "scope": "12 durable, 6 v4 writer, 2 cloud compatibility, 7 live-state/resource methods, real Photos edit/relaunch journey. First run legacy export identity expectation failed; corrected test overlay only, no runtime changes."
+  },
+  "android": {
+    "report": "apps/android/evidence/live-state.json",
+    "reportSha256": "d137b282a47b879fa7a142d852dcaa649c0ab5664dbbe3b3c754c061eede0412",
+    "finalApi37": {
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalApi26": {
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0
+    },
+    "earlierApi37": "18/18 before final stale-form correction; not an additional final suite",
+    "jvmPassed": 25,
+    "buildAndLint": "passed",
+    "readinessOverlay": {
+      "report": "apps/android/evidence/files-hosted-readiness.json",
+      "reportSha256": "533998b0792e5233a10dcad8b307388781e578ee2cd7237d062c3c9e69058728",
+      "eachApiPassed": 1,
+      "skipped": 0,
+      "productionApkUnchanged": true
+    }
+  },
+  "sharedFixture": {
+    "path": "packages/offline-contract/fixtures/live-state-v1/metadata-edit.json",
+    "sha256": "71d95161f9f22ac3784a932e1b15a1434034e7d66677eebcc78b7a70a05f75db",
+    "scope": "Actual captured Android v4 writer input, eight-domain preservation, exact unchanged receipt, totals 15250 overall /6250 January. Fixture consistency test is not native crypto or memory proof."
+  },
+  "rootChecks": {
+    "nodePassed": 125,
+    "scriptPythonPassed": 57,
+    "cryptoPythonPassed": 5,
+    "skipped": 0,
+    "staticFiles": 90,
+    "categories": 38,
+    "sast": {
+      "scannedRuntimeAndJsFiles": 17,
+      "findings": 0,
+      "errors": 0
+    },
+    "targetedEslint": "passed",
+    "independentReview": "No remaining confirmed P1/P2 after stale-form and preflight corrections. Test-only hosted picker readiness patch separately reviewed.",
+    "sourceEvidence": "Android139 final live pins matched, with CaptureFlowTest separately overlaid. iOS68 initial source pins differ only by recorded single test expectation; 47 current runtime/fixture pins match. Readiness production APK matches frozen live APK.",
+    "protectedLegacyPathsUnchanged": 18,
+    "diffCheck": "passed",
+    "documentation": {
+      "originalPassed": 105,
+      "reviewPassed": 104
+    }
+  },
+  "hostedPredecessor": {
+    "commit": "59877b1ff31b9869edc504f32420667396594a93",
+    "run": 34817963139,
+    "androidEach": "106 tests, 1 failure and 6 skips. CaptureFlowTest external picker readiness failure; current correction is locally proven, not a hosted rerun.",
+    "ios": "passed; completed native simulator job",
+    "contractAndAndroidBuild": "passed"
+  },
+  "limits": [
+    "No capacity, private encryption, portable format or cloud protocol change.",
+    "Every live read still authenticates metadata and sequentially validates native images; no constant-time claim.",
+    "Receipt-changing, finance and remaining Snapshot consumers use explicit complete compatibility operations; candidate adoption may hydrate once.",
+    "Android resource comparison not run. iOS three-iteration warm Debug API sample is scoped in native report; no production performance claim.",
+    "Physical hardware, real cloud recovery, migration/signing and accessibility release gates remain open.",
+    "Earlier failed runs and distinct overlays remain preserved. New hosted checks are required for this integration."
+  ]
+}

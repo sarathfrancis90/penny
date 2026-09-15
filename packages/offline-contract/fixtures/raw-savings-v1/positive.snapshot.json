@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 3,
+  "snapshotId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+  "vaultId": "70c9532b-727c-5507-906a-e293bfe8c0b9",
+  "createdAt": "2026-09-13T12:00:00.000Z",
+  "expenses": [
+    {
+      "id": "9f650a60-2b06-5129-b7d0-f6d6eca377ee",
+      "merchant": "Public fixture cafe",
+      "amountMinor": 1234,
+      "currencyCode": "CAD",
+      "expenseDate": "2026-09-12",
+      "category": "Meals and entertainment",
+      "description": "Public description",
+      "note": "Separate public note",
+      "recurringTemplateId": null,
+      "recurringOccurrenceDate": null,
+      "createdAt": "2026-09-13T12:00:00.000Z",
+      "updatedAt": "2026-09-13T12:00:00.000Z"
+    }
+  ],
+  "attachments": [
+    {
+      "id": "ffba5a9b-c2f3-513b-a90d-c66df8120c84",
+      "expenseId": "9f650a60-2b06-5129-b7d0-f6d6eca377ee",
+      "mediaType": "image/png",
+      "byteCount": 70,
+      "sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+      "dataBase64": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=="
+    }
+  ],
+  "budgets": [
+    {
+      "id": "cbb60ae9-da83-50b5-a0b3-0051067b4da3",
+      "createdAt": "2026-09-13T12:00:00.000Z",
+      "updatedAt": "2026-09-13T12:00:00.000Z",
+      "category": "Meals and entertainment",
+      "month": "2026-09",
+      "limitMinor": 10000,
+      "rollover": true,
+      "alertThresholdBps": 8050,
+      "notificationsEnabled": false
+    }
+  ],
+  "incomeSources": [
+    {
+      "id": "37cee099-2def-5872-bc6f-9363089a88b0",
+      "createdAt": "2026-09-13T12:00:00.000Z",
+      "updatedAt": "2026-09-13T12:00:00.000Z",
+      "name": "Public salary",
+      "category": "salary",
+      "grossMinor": 100000,
+      "netMinor": 80000,
+      "currencyCode": "CAD",
+      "taxable": true,
+      "isRecurring": true,
+      "isActive": true,
+      "description": "Configured source only",
+      "schedule": {
+        "frequency": "monthly",
+        "startDate": "2026-01-15",
+        "endDate": null,
+        "dayOfMonth": 15
+      },
+      "lastReceivedAt": null
+    }
+  ],
+  "incomeEntries": [],
+  "savingsGoals": [
+    {
+      "id": "856e9140-da5b-548e-b00d-f5def17a9c46",
+      "name": "Public observed savings",
+      "category": "custom",
+      "targetMinor": 10000,
+      "openingMinor": 1234,
+      "monthlyContributionMinor": 1000,
+      "currencyCode": "CAD",
+      "status": "active",
+      "isActive": true,
+      "priority": "medium",
+      "description": "Recorded balance only; history unknown",
+      "emoji": "💰",
+      "startDate": "2025-12-31",
+      "targetDate": "2027-01-01",
+      "achievedDate": null,
+      "lastContributionAt": null,
+      "createdAt": "2026-09-13T12:00:00.000Z",
+      "updatedAt": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "id": "3c6630ef-3be9-59a1-abc8-6c4c49355765",
+      "name": "Public observed savings",
+      "category": "custom",
+      "targetMinor": 10000,
+      "openingMinor": 12500,
+      "monthlyContributionMinor": 1000,
+      "currencyCode": "CAD",
+      "status": "achieved",
+      "isActive": true,
+      "priority": "medium",
+      "description": "Recorded balance only; history unknown",
+      "emoji": "💰",
+      "startDate": "2025-12-31",
+      "targetDate": "2027-01-01",
+      "achievedDate": "2026-09-13",
+      "lastContributionAt": "2026-09-13T12:00:00.000Z",
+      "createdAt": "2026-09-13T12:00:00.000Z",
+      "updatedAt": "2026-09-13T12:00:00.000Z"
+    },
+    {
+      "id": "bc8f5b06-08ec-5ae6-b22f-bc64539505c8",
+      "name": "Public observed savings",
+      "category": "custom",
+      "targetMinor": 10000,
+      "openingMinor": 0,
+      "monthlyContributionMinor": 1000,
+      "currencyCode": "CAD",
+      "status": "active",
+      "isActive": true,
+      "priority": "medium",
+      "description": "Recorded balance only; history unknown",
+      "emoji": "💰",
+      "startDate": "2025-12-31",
+      "targetDate": "2027-01-01",
+      "achievedDate": null,
+      "lastContributionAt": null,
+      "createdAt": "2026-09-13T12:00:00.000Z",
+      "updatedAt": "2026-09-13T12:00:00.000Z"
+    }
+  ],
+  "savingsEntries": [],
+  "recurringExpenses": []
+}

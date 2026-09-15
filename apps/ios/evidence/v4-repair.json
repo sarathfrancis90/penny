@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "scope": "Explicit in-place Files v4 repair at existing limits, reusing bounded compatibility Snapshot preparation and existing publication",
+  "result": {
+    "passed": 27,
+    "failed": 0,
+    "skipped": 0,
+    "bundle": "apps/ios/.build/v4-repair/Tests02.xcresult"
+  },
+  "device": {
+    "architecture": "arm64",
+    "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+    "deviceName": "Penny A11y System Sizes",
+    "modelName": "iPhone 16e",
+    "osBuildNumber": "23E254a",
+    "osVersion": "26.4.1",
+    "platform": "iOS Simulator"
+  },
+  "provenance": {
+    "path": "artifacts/offline/v4-repair-ios/validation-02/provenance.json",
+    "sha256": "8a7988a12cff10d06418a929b33a5680b3a245b9abacfdf851d35e0bc6bb73e5"
+  },
+  "fixtures": {
+    "packages/offline-contract/fixtures/v4-repair-v1/acceptance.json": "3875350e58c5b704fdf3e6dc6f16b80a08a52ec2e5cc6861c091966e22bb89b9",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.pennybackup": "a236fb4665082ec036454ea7af19fd7a8d6b0fd734f9f0ff1b04969c519952cd",
+    "packages/offline-contract/fixtures/v4-native-writer-v1/android-finance.snapshot.json": "c3e8b0aa3902f2738a22eb30fcb175d4b9c385e3604e8162a57bcfdfa73db3b3"
+  },
+  "ownedSources": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "df703e4a3fd156a2dbedd9763043d750e14be103c3378561fbf280d3f853b5dd",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "c051bd919f57a5f1399bf50b3d9f6c8e7ba90ce31fc387f7a9a39e658924efb5",
+    "apps/ios/PennyOffline/FilesRestore.swift": "bf52d280d1667a794a6e847aa67b0d268195cba2eed5944be6989b8ac3795398",
+    "apps/ios/PennyOffline/V4CandidateRestore.swift": "09165dd6d916cf3817e9cf309f0a577c4812fcb579328918b4abc0ad37b2bd44",
+    "apps/ios/PennyOffline/VaultStore.swift": "2d19b4bae0c36b22736cf2b4474211ce588bdd3b4216f36dab824ba7e96c813e",
+    "apps/ios/PennyOfflineTests/V4RepairTests.swift": "31694c33f3f08ab09a0488333426196e1d05305000a883e8b809059cdc5d210e",
+    "apps/ios/PennyOffline.xcodeproj/project.pbxproj": "de2d26a31704d3072aca457ab591bdbd70f16f08569db7b0e26590508dfe255e"
+  },
+  "executables": {
+    "launcher": {
+      "path": "apps/ios/.build/v4-repair/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline",
+      "sha256": "edc8c230b14a97a119bace9e0c2acf21a9a75526fcd145a8ed13839f05512b53"
+    },
+    "runtime": {
+      "path": "apps/ios/.build/v4-repair/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline.debug.dylib",
+      "sha256": "75a8406bb65911ce5c393df5034902b38f49497f12997d922b1254827c95420d"
+    },
+    "unit": {
+      "path": "apps/ios/.build/v4-repair/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PlugIns/PennyOfflineTests.xctest/PennyOfflineTests",
+      "sha256": "b42a3ec915897224e9baa05815d9cd0dbdd4add2dc63cbd4c7e000f1969c1f16"
+    },
+    "module": {
+      "path": "apps/ios/.build/v4-repair/DerivedData/Build/Products/Debug-iphonesimulator/libPennyV4.a",
+      "sha256": "3164e8760bf333a8279cddc02b4bb7047709b193b9bf4bdcd0b61929ea0b662e"
+    }
+  },
+  "acceptance": {
+    "repair_missing_key": "V4RepairTests/testMissingKeyPreviewDoesNotProvisionAndConfirmedRepairReopensEveryDomain",
+    "repair_corrupt_target": "V4RepairTests/testCorruptPointerAndReceiptCanBeExplicitlyRepairedWithoutNewKey",
+    "wrong_recovery_key": "V4RepairTests/testWrongKeyTruncationCancellationAndInaccessibleKeyPreserveOriginals",
+    "target_changed_after_preview": "V4RepairTests/testTargetKeyAndNamespaceChangesRejectBeforeProvisioning; testAtomicKeyCreationRejectsAppearanceAndExistingPlatformAlias",
+    "cancelled_or_failed_preview": "V4RepairTests/testWrongKeyTruncationCancellationAndInaccessibleKeyPreserveOriginals",
+    "failed_install_ownership": "V4RepairTests/testFailureAfterKeyCreationAndPublicationPreservesUnreadablePredecessor; testTargetKeyAndNamespaceChangesRejectBeforeProvisioning",
+    "healthy_target_unchanged": "V4RepairTests/testHealthyTargetStillUsesExistingCandidateAndPreservesPreviewIsolation; FilesRestoreTests (6); V4CandidateTests (7)"
+  },
+  "compatibilityMethods": [
+    "VaultTests/testOriginalReceiptPersistenceBackupRestoreAndDeletion",
+    "FinanceTests/testReviewedOccurrencesAreAtomicAndIdempotent",
+    "CloudTests/testPublicationVerifiesBothObjectsAndKeepsConcurrentEditsPending",
+    "CloudTests/testMandatoryAndroidCloudRuntimePairRestoresAllDomainsAndReceipts",
+    "V4ExportTests/testFinanceReceiptEscapingExportReadbackInstallAndArtifact",
+    "LiveStateTests/testInvalidAndFullCapacityMetadataEditsKeepVaultUsable",
+    "LocalReceiptBlobTests/testCurrentCountAggregateAndDuplicateCapacity"
+  ],
+  "keyPolicy": "Preview performs reader(false) only; exact missing-key is distinct from inaccessible Keychain errors. Confirmed repair rechecks original observation before atomic create-absent SecItemAdd (no read/return-existing); duplicate alias refuses. Newly created owned key is retained on later failure; unreadable predecessor files remain unchanged and fresh explicit retry is proven. No foreign-key adoption/removal or full key-state rollback claim.",
+  "sourcePolicy": "Pinned actual root, raw pointer digest and original encrypted root/receipt inventory (identity/type/owner/mode/size/timestamps/SHA256). Incremental64KiB hashing; unknown regular entries are bound, unsafe links/deeper directory trees or files above existing32MiB read bound refuse. Recheck before preview return, install/provision and prepublication; only exact owned new names and validated managed rollback copy excluded after staging.",
+  "faultScope": "Injected prepublication/verified/journal-cleared errors and actual Task cancellation at committed checkpoint; original fixture files unchanged after every failed install. No real disk-full, power loss, physical-device Keychain or protection test.",
+  "limitations": [
+    "Repair-only full Snapshot hydration remains within existing capacity; normal healthy v4 candidate and live-state paths remain receipt-free.",
+    "Raw inventory capture/preview recheck is synchronous on current store actor; bulk v4 decode and confirmation preparation/publication run on ArchiveWorker. Metadata history may make inventory expensive; no performance claim.",
+    "Existing publication may retain unactivated encrypted metadata or quarantined receipt files after failed writes. No unrelated cleanup, cap/format/cloud change, a11y sweep, metadata-GC implementation or release claim."
+  ],
+  "tokenEstimate": "Approximately18k-20k including required raw-inventory and atomic-key-creation review corrections; estimate, not tool-metered.",
+  "normalDemo": "untouched",
+  "ownedSimulatorFinalState": "shutdown",
+  "previousRuns": [
+    {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "bundle": "apps/ios/.build/v4-repair/Tests01.xcresult",
+      "provenance": "artifacts/offline/v4-repair-ios/validation-01/provenance.json",
+      "limitation": "Did not cover creation-boundary arrival. Independent review found generic create-or-load could adopt a key arriving after missing observation; fixed before final run."
+    }
+  ],
+  "platformKeychainProof": "On owned simulator only: existing alias loaded, actual DeviceKey.createAbsent SecItemAdd duplicate refused, existing key unchanged. Missing-to-foreign arrival inside creator is separately injected; physical device not run.",
+  "sourceStable": true
+}

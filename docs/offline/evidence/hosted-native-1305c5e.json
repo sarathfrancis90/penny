@@ -1,0 +1,116 @@
+{
+  "commit": "1305c5ef1b1868830309932df6f7b6007f4e96d9",
+  "runId": 34827733068,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34827733068",
+  "conclusion": "failure",
+  "jobs": {
+    "native-offline-contract": "success",
+    "native-offline-ios-simulator": "failure",
+    "native-offline-android-api-26": "success",
+    "native-offline-android-build": "success",
+    "native-offline-android-api-37.0": "success",
+    "native-offline-gate": "failure"
+  },
+  "ios": {
+    "unitTotal": 144,
+    "unitPassed": 143,
+    "unitFailedMethods": [
+      "AutomaticBackupTests.testExpiryDisableCancelAndLateCallbackCompleteOncePreservingLastGood"
+    ],
+    "assertionFailuresInFailedMethod": 3,
+    "uiPassed": 9,
+    "uiFailed": 0,
+    "separateGenerationPhasesPassed": 0,
+    "separateGenerationPhasesDisposition": "Not reached after failed unit/UI xcodebuild command",
+    "failure": "Fixed2000-yield test helper exhausted before worker-backed fake-provider operation completed; disable variant then asserted missing completion and still-enabled settings. Historical run remains failed.",
+    "logSha256": "5644ec4cea92162d7ea114f2b35d8f5bab467a507e23acc10cc6f20bdb9e1dde"
+  },
+  "android": {
+    "penny-offline-android-api-37.0-evidence": {
+      "total": 120,
+      "passed": 112,
+      "skipped": [
+        "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+        "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+        "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+        "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+        "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+        "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+        "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+        "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+      ],
+      "failed": [],
+      "xmlSha256": "cb2b7584064c048684712b00e1b1fcd6e2812779e658a124f59ba554fb361b51",
+      "processPhases": {
+        "process-create.log": {
+          "passed": true,
+          "sha256": "b17f5dc76b4e18777aa90dc2930acf6384e348bd700e3dd1b5188834c0641f32"
+        },
+        "process-verify.log": {
+          "passed": true,
+          "sha256": "fec0bd98e2dacf572d44989e7205b9dc82cc1f45f7f20f91f6be6ec274ced747"
+        },
+        "generation-seedPending.log": {
+          "passed": true,
+          "sha256": "9098797f926d4dfaee195cb2241a09951245fc38dcc5010599d10449309e0109"
+        },
+        "generation-reopenPending.log": {
+          "passed": true,
+          "sha256": "d45112a00e05270d50eedfd9c385c9bf19deaf252963e6fd39acce0ebd6330ed"
+        }
+      }
+    },
+    "penny-offline-android-api-26-evidence": {
+      "total": 120,
+      "passed": 112,
+      "skipped": [
+        "ca.penny.offline.ExpenseMutationPerformanceTest.fiveTenThousandExpenseSaveAndUiRefreshSamples",
+        "ca.penny.offline.NetworkBoundaryTest.platformTlsDefaultDenyAndExactDriveHost",
+        "ca.penny.offline.PerformanceDeviceTest.tenThousandRecordsAcrossProcessRestart",
+        "ca.penny.offline.PerformanceDeviceTest.nativeVaultScaleAndFullReceiptCapacity",
+        "ca.penny.offline.ProcessPersistenceTest.verifyAfterForceStopAndDelete",
+        "ca.penny.offline.ProcessPersistenceTest.createBeforeForceStop",
+        "ca.penny.offline.VaultGenerationProcessTest.seedPending",
+        "ca.penny.offline.VaultGenerationProcessTest.reopenPending"
+      ],
+      "failed": [],
+      "xmlSha256": "87f9221bee4985ccd94853e956aeb8e4dff90b68dd8b5ea9b3b8d811afcc935e",
+      "processPhases": {
+        "process-create.log": {
+          "passed": true,
+          "sha256": "4c7468ca11cb60a530cd0bc7870e14d0891f88d88f27cbac819a9b8a4bf02b87"
+        },
+        "process-verify.log": {
+          "passed": true,
+          "sha256": "7f713d13808a000d330503a2b16350f5b78655428962394f16ab43a84a26ad7c"
+        },
+        "generation-seedPending.log": {
+          "passed": true,
+          "sha256": "1bf45006238010649c16ba79a539586234a76eea55e3ff56ac1c1835adf4255c"
+        },
+        "generation-reopenPending.log": {
+          "passed": true,
+          "sha256": "03cfa5ff0b150eba96ca29660cb47fbc25daa306788b73e8386e145ce86376d6"
+        }
+      }
+    }
+  },
+  "disposition": "Historical native run remains failed. Local current-cap checkpoint d460be1 and passing six-method completion-wait correction are separate successor proofs; next source workflow must rerun all gates.",
+  "limits": [
+    "Results cover1305c5e only, not subsequent combined-cap test harnesses or completion-wait correction.",
+    "Retained Flutter iOS and repository aggregate are separate gates.",
+    "Named Android opt-in/process skips remain separate from four explicitly invoked passing process methods on each runtime."
+  ],
+  "successorLocalCorrection": {
+    "source": "apps/ios/PennyOfflineTests/AutomaticBackupTests.swift",
+    "sourceSha256": "336ec32d1a2b17c78a1b18195f0a42f8bf58129da9e75f65d773eb265ae84d67",
+    "report": "apps/ios/evidence/automatic-settle.json",
+    "reportSha256": "ec59fad3e0db6d11c2484954df793c5dfe829acbe24008e413041132831c43ac",
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "sourceAndBinaryPinsMatched": 48,
+    "rootSummary": "artifacts/offline/automatic-settle-ios-root-summary.json",
+    "scope": "Wait for actual coordinator completion under fixed wall-clock deadline. No operation retry, removed assertion or runtime change."
+  }
+}

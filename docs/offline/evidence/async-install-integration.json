@@ -1,0 +1,90 @@
+{
+  "scope": "Move iOS v4 candidate publication to existing serial worker without changing portable/native storage formats, capacity or validation",
+  "nativeReport": "apps/ios/evidence/async-candidate-install.json",
+  "nativeReportSha256": "e60f4c904c3beb66037170e3756e43669d9a7f9f68c4e924044e82916792fc12",
+  "review": {
+    "root": "Complete six-file delta reviewed; stale-candidate readiness regression corrected before build",
+    "independent": "Contract agent reviewed ownership/publication delta and corrected guard order; clear in recorded scope"
+  },
+  "validation": {
+    "focused": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "rootSummary": "artifacts/offline/async-install-focused-root-summary.json"
+    },
+    "combinedRelease": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "runs": 1,
+      "rootSummary": "artifacts/offline/async-install-resource-root-summary.json"
+    },
+    "sourceAndBinaryPinsMatched": {
+      "debug": 63,
+      "release": 62
+    },
+    "node": 128,
+    "python": 62,
+    "nativeStaticSourceFiles": 90,
+    "matchingCategories": 38,
+    "sast": {
+      "files": 6,
+      "findings": 0,
+      "errors": 0,
+      "report": "artifacts/offline/async-install-sast.json"
+    },
+    "documentationTests": {
+      "original": 105,
+      "review": 104
+    },
+    "protectedLegacyHashesUnchanged": 18,
+    "diffCheck": "passed"
+  },
+  "android": {
+    "scope": "No Android runtime, format or shared fixture change; paired current-cap API37 proof remains the unchanged Android source/binary checkpoint",
+    "report": "apps/android/evidence/current-cap.json",
+    "reportSha256": "90a7b59e8cf92e67b446e8f8157fead2b554bcdfaf9815e2eedb8e6d64d8afda"
+  },
+  "measurements": {
+    "compatibilityExportDecode": {
+      "heartbeatTicks": 230,
+      "maximumHeartbeatGapMs": 316.370417,
+      "milliseconds": 1122.5395
+    },
+    "create": {
+      "heartbeatTicks": 512,
+      "maximumHeartbeatGapMs": 3.641416,
+      "milliseconds": 1550.2314999999999
+    },
+    "exactOraclePassed": true,
+    "expenses": 10000,
+    "imagePixels": 1,
+    "legacyCiphertextBytes": 19373545,
+    "metadataSave": {
+      "heartbeatTicks": 602,
+      "maximumHeartbeatGapMs": 77.214583,
+      "milliseconds": 1902.312042
+    },
+    "receiptBytes": 8388608,
+    "receipts": 100,
+    "reopenMs": 225.446375,
+    "v4CiphertextBytes": 11814682,
+    "v4Export": {
+      "heartbeatTicks": 353,
+      "maximumHeartbeatGapMs": 3.067708,
+      "milliseconds": 1071.128958
+    },
+    "v4ReadInstall": {
+      "heartbeatTicks": 983,
+      "maximumHeartbeatGapMs": 83.751916,
+      "milliseconds": 3069.186291
+    }
+  },
+  "limits": [
+    "One current-cap simulator observation, not physical p95, maximum pixel/longest-field, peak-memory or energy acceptance.",
+    "Actual Files helper paths use async publication; the full hosted UI suite must still run against this source.",
+    "Legacy compatibility hydration/export still shows a316ms MainActor heartbeat gap and is outside this fix.",
+    "Existing synchronous internal installation API remains for compatibility/regression paths. No actual provider/device recovery or signed distribution claim."
+  ]
+}

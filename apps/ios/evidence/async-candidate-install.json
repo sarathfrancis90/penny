@@ -1,0 +1,85 @@
+{
+  "scope": "Move existing candidate installation/publication/final hydration to ArchiveWorker; current Files replacement and combined-cap method use async API. Existing synchronous compatibility API remains. No crypto, format, cap, validation or GC changes.",
+  "focused": {
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "result": "apps/ios/.build/async-candidate-install/Tests01.xcresult",
+    "selection": [
+      "V4CandidateTests (7)",
+      "FilesRestoreTests (6)",
+      "InactiveGenerationTests five bound-install methods converted to async plus one new worker/reservation method"
+    ]
+  },
+  "regressions": "Foreign owner preserves original capability; stale same-owner edit preserves ready current state; stale revision/incarnation/root/empty-root; actual key loss/change before install and publication; injected failures/crash outcomes at all five publication stages; real task cancellation rollback; tamper; worker not MainThread; writer exclusion during await; consumed alias close cannot remove worker-owned candidate.",
+  "reviewCorrection": "Preserved initial reviewed delta and corrected immutable identity/cancellation validation to precede writer reservation; actual key failure remains after entry. Root and contract scoped reviews clear before final builds.",
+  "combined": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "runs": 1,
+    "result": "apps/ios/.build/async-candidate-install/Release01.xcresult",
+    "measurement": {
+      "compatibilityExportDecode": {
+        "heartbeatTicks": 230,
+        "maximumHeartbeatGapMs": 316.370417,
+        "milliseconds": 1122.5395
+      },
+      "create": {
+        "heartbeatTicks": 512,
+        "maximumHeartbeatGapMs": 3.641416,
+        "milliseconds": 1550.2314999999999
+      },
+      "exactOraclePassed": true,
+      "expenses": 10000,
+      "imagePixels": 1,
+      "legacyCiphertextBytes": 19373545,
+      "metadataSave": {
+        "heartbeatTicks": 602,
+        "maximumHeartbeatGapMs": 77.214583,
+        "milliseconds": 1902.312042
+      },
+      "receiptBytes": 8388608,
+      "receipts": 100,
+      "reopenMs": 225.446375,
+      "v4CiphertextBytes": 11814682,
+      "v4Export": {
+        "heartbeatTicks": 353,
+        "maximumHeartbeatGapMs": 3.067708,
+        "milliseconds": 1071.128958
+      },
+      "v4ReadInstall": {
+        "heartbeatTicks": 983,
+        "maximumHeartbeatGapMs": 83.751916,
+        "milliseconds": 3069.186291
+      }
+    }
+  },
+  "priorObservation": {
+    "evidence": "apps/ios/evidence/combined-current-cap.json",
+    "v4ReadInstallMs": 3142.435166,
+    "maximumHeartbeatGapMs": 1277.554584,
+    "scope": "Earlier single normal Release observation; no statistical or physical performance claim"
+  },
+  "publicationSemantics": "MainActor captures immutable receiver identity/key, reserves writer before await, transfers sole private candidate via V4Transfer. Worker invokes unchanged leased install with fresh actual key(false) and original namespace/source/publication checks. Guarded adoption checks actor identity and actual key; no unconditional late cancellation throw after a successful durable result. In-transaction cancellation/rollback/uncertain ownership unchanged.",
+  "sourceHashes": {
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "87ebcb75bed0c375a63c79a84369a4740975e42eedc378298a1ac3f6b49c656e",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "25ec6ef0f573011d99c5612958e6db8579e1c3e441c080ad3a0f95d4fdc6c90f",
+    "apps/ios/PennyOffline/FilesRestore.swift": "694693b91f333b108b2b731ec14cb11ad14eaef19b4e5d53b1b996943d3a44f4",
+    "apps/ios/PennyOffline/VaultStore.swift": "2bfa9e0eb59d8dad3c112218ee3d8ea5f1fca975115285f3041b6918fc3f6c2c",
+    "apps/ios/PennyOfflinePerformanceTests/NativePerformanceTests.swift": "80e63c52936906e816332b8cf1324852fcf36001315fece600f1977a50311fb8",
+    "apps/ios/PennyOfflineTests/InactiveGenerationTests.swift": "59efc7d059261cbe23a0c2373e378f87acc5aa7ff97bf09f4a9fea84dc099de0"
+  },
+  "rawEvidence": "artifacts/offline/async-candidate-install-ios/validation-01",
+  "sourceAndBinaryPins": {
+    "debug": "artifacts/offline/async-candidate-install-ios/validation-01/debug-pins/hashes.json",
+    "release": "artifacts/offline/async-candidate-install-ios/validation-01/release-pins/hashes.json"
+  },
+  "drift": {
+    "debug": [],
+    "release": []
+  },
+  "runtime": "Xcode26.6; SDK26.5; iOS Simulator26.4.1 F70; arm64; focused Debug ca.penny.offline.countreuse; single serial Release -O/whole-module ENABLE_TESTABILITY ca.penny.offline.combinedcap; no competing native workloads.",
+  "limits": "Single simulator samples, not physical p95, memory or energy qualification. Combined 10k expenses/100 padded 1x1 PNGs/8MiB including2MiB/all six finance arrays; no pixel stress. Test retains complete expected Snapshot/Base64 oracle. Receiver fresh directory with same supplied local key, not new-device recovery. Compatibility hydration/export still has a measured316ms MainActor gap and is outside this fix. No UI picker suite rerun; actual Files helper paths tested.",
+  "finalState": "F70 shutdown; normaldemo untouched; source stable, no further native runs."
+}

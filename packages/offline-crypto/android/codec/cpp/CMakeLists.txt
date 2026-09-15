@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.22)
+project(penny_v4_frames LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_library(penny_v4_frames SHARED frame_jni.cpp)
+target_compile_options(penny_v4_frames PRIVATE -Wall -Wextra -Werror -fvisibility=hidden)
+include("${CMAKE_CURRENT_LIST_DIR}/../../PennySodium.cmake")
+penny_link_sodium(penny_v4_frames "${PENNY_SODIUM_OUTPUT}")

@@ -1,0 +1,1366 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02770BB7E1F1898DCD54AC96 /* FinanceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD6DF43A1B12D8665202745A /* FinanceStore.swift */; };
+		02F15618B48F543E51F29F79 /* PennyV4FrameWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE3B227587E571D66F641D20 /* PennyV4FrameWriter.swift */; };
+		0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1237EA66D63CF1A8814D217B /* CaptureTests.swift */; };
+		04944A99EB4CAA278E624E82 /* FinanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8750B4BAD2433AF5B574886 /* FinanceModels.swift */; };
+		08EBAFFF09E743A12A637DF8 /* LocalVaultFrame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */; };
+		0A872256F1885BAAD7F66B0A /* FilesExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C2AF49B11679121F77D3A1 /* FilesExportTests.swift */; };
+		1739A03C0D97C03ABA005355 /* AccessibilityAuditTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4798055FDD88C040803D578B /* AccessibilityAuditTests.swift */; };
+		1B8C203D5A77E6156CB1AED8 /* FinanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8750B4BAD2433AF5B574886 /* FinanceModels.swift */; };
+		1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23DE085B368DC456F5429CC0 /* CloudTests.swift */; };
+		2366120003B8CE8452F0444F /* ArchiveWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44F8BF410E5C1D37173711F /* ArchiveWorkerTests.swift */; };
+		276E3FA30E9C2B1F783E5327 /* ReceiptAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */; };
+		2D766284692897041D4EC0E9 /* VaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8416389EE9D9C67FA8EF492D /* VaultStore.swift */; };
+		2F1D98C785D3DE1821A9FF92 /* ExpenseFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A945BF33915077F7792709B1 /* ExpenseFlowTests.swift */; };
+		2FEE30AF05F6D5AAE1A36059 /* Categories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2CE221C9BD854F0C3E4D58 /* Categories.swift */; };
+		33CBB7F0A47EAEABA830A702 /* libPennyV4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 956C0F98A83DB117490C4366 /* libPennyV4.a */; };
+		35818B8E1533E17CDE203D71 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 280FBD85DF59ADA7D8D64811 /* Assets.xcassets */; };
+		36DC2BE0E103FCEA7FFEB08D /* V4FrameCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58862F5315DC63E712977D46 /* V4FrameCodec.swift */; };
+		3C823C976B5FB5D5420E9C47 /* RecoveryExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B388EBFEE9BDC225510B444 /* RecoveryExport.swift */; };
+		3F6C168D8771649876626F63 /* V4RepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6184113C469E01AF70DAE48E /* V4RepairTests.swift */; };
+		41B145070CC0D6E47CCF15FF /* FinanceEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */; };
+		4646820F00FAA391F1E59852 /* CaptureFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C0A15C81F5BEC890A0545F2 /* CaptureFlowTests.swift */; };
+		4CB66CC5B8BE2B207C2EF002 /* V4ReadOnlyAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */; };
+		506A9C47A7ACC3AFF4464202 /* ReceiptReviewDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = A58464F07153EEC739A6B0C8 /* ReceiptReviewDraft.swift */; };
+		52D52D4F97DE95B9D416A23F /* ArchiveWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E6F3897D621228F0D8DCCB6 /* ArchiveWorker.swift */; };
+		5343D633474668B16C5A441F /* ReceiptParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36CF0323E66F126F8596E71 /* ReceiptParser.swift */; };
+		55DEC02B4A8F2CB7EA819858 /* ReceiptPreparation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22100BC7E2A2DD78509A3A81 /* ReceiptPreparation.swift */; };
+		56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C22B18EDED088A9F987FB /* Expense.swift */; };
+		57E301C5689B7839C3F05365 /* V4LogicalGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171734B2F27E1C8AB1E581ED /* V4LogicalGate.swift */; };
+		58BF53D2F3745DD9F3197DA1 /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
+		59F47763FF3C89EA37B7749C /* FinanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */; };
+		5BFD77B1E6229AE913A8368C /* V4NativeValidationSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE7748F3191C9FFBB2B55DF /* V4NativeValidationSink.swift */; };
+		5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */; };
+		5EFFDCDD33296BF4CE23EFB4 /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
+		69CD5E278915D744623FBB76 /* CloudKitTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D63928F747E05013AEC16F /* CloudKitTransport.swift */; };
+		6B116BF2AE6768A1323FB844 /* FinanceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E46C25CD198B4864A458AAF /* FinanceEngine.swift */; };
+		6D3C47803FF7D586910E1BFD /* NativePerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD1994B4A73E90B0D80C4FA /* NativePerformanceTests.swift */; };
+		6ECAA7AC6C75E1DB0D0C623C /* V4CandidateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */; };
+		6FE3D8D1D49172EEAC3C8752 /* ObservedSavingsMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */; };
+		73EF78AE25719F9098AA38F0 /* BackupArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */; };
+		73F5E74FFD0627203285399F /* LocalReceiptFileProtection.c in Sources */ = {isa = PBXBuildFile; fileRef = 851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */; };
+		7A1DEBC869DD7CDE25E9C9CA /* V4CandidateRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */; };
+		7F8B900BA8399D45EA1B2017 /* Expense.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C22B18EDED088A9F987FB /* Expense.swift */; };
+		802A964B84F9A84C30CA3454 /* FilesRestore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461E4C025B8D1DDF442064EB /* FilesRestore.swift */; };
+		804B7F402D12960813722249 /* AutomaticBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */; };
+		81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */; };
+		84060300EC023E819FB8ACDC /* PreparedVaultWrite.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05FE3A1B95BD1D58C5D42093 /* PreparedVaultWrite.swift */; };
+		8A37EB64320F380994D99FC5 /* V4CiphertextSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */; };
+		8D7358F749B6947081A66DFE /* StrictJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE5A6D270ABD680B645296F /* StrictJSON.swift */; };
+		8FF9758ED48B10509A5B0EB3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */; };
+		9D55ED213E0F715D96E20E9A /* CloudFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */; };
+		9F5CF59940F6EA12C2C323EF /* LocalAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD1EFF58A75FF36D2C0AC21 /* LocalAssistant.swift */; };
+		A0C690887AF00071B71AAA62 /* V4AppModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */; };
+		A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */; };
+		A8EBECDBB1852C98FA131C2D /* CloudPublication.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8359A21263DD7094D573273 /* CloudPublication.swift */; };
+		ABD98FB4B5D5A4D812A6AECE /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 0C8E1DC4DDCFC630466B9A3F /* fixtures */; };
+		AE6E0742CCE8A75890C69F9A /* ReceiptCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */; };
+		AF547DC9F990F174DA89678B /* FinanceSnapshotValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */; };
+		AF674AA6F3B611C7F1B49E83 /* ReceiptAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */; };
+		AFC1CDA3FA52CA3C0350C053 /* LiveStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79E460B86A09FFBFBC5CD2E /* LiveStateTests.swift */; };
+		B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167DD103EA432460F89A98FD /* ExpensesView.swift */; };
+		B367C2AA93EAB70FBF5A098D /* V4LogicalWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32F2178123A3DEAB5AF36B1C /* V4LogicalWriter.swift */; };
+		B384213C765FBBD031FFE791 /* Categories.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2CE221C9BD854F0C3E4D58 /* Categories.swift */; };
+		B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A066CE638380BFBDAC4B47EB /* VaultTests.swift */; };
+		B7B0C3F66F4587F28E91C54A /* FilesRestoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */; };
+		BC133F4DBBC468E07598C279 /* FilesExport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4C3032E61AD809183454A3 /* FilesExport.swift */; };
+		BC50978C550AC6A3A6ADC83C /* UITestCloudTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */; };
+		BCB0ECFC002834735B0016C4 /* V4ExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 424ACA46C91287CE42FA8607 /* V4ExportTests.swift */; };
+		BCC2653CBDEB3410A35F260F /* PennyColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */; };
+		C1B9BDD6DF308EBB756A2CEF /* VaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82EB561A258A5147019AA6C9 /* VaultView.swift */; };
+		C2AAFBF841D597BC7CD5D8FF /* PNGIntegrity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */; };
+		C32A23A5E37D5878BB2E64B9 /* PennyV4Reader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3444B6B77A5502EF8550C9A5 /* PennyV4Reader.swift */; };
+		C5BFF367C3F2686AA9095BC7 /* PennyOfflineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03C8BF31A9ABAD2E31E74BB /* PennyOfflineApp.swift */; };
+		C95AA73B9D3C068D5F9CA08E /* LocalReceiptBlob.swift in Sources */ = {isa = PBXBuildFile; fileRef = D44CB52D861B99F6131FE703 /* LocalReceiptBlob.swift */; };
+		CBDF68442E48D9BEE3E983CA /* AutomaticBackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53A844A58A9FECB4BB26E17F /* AutomaticBackupTests.swift */; };
+		D2ECDF0E0D9DEEA9EFF3F56E /* CloudBackupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A305C5FD5BB71084EB05BB4E /* CloudBackupView.swift */; };
+		D32EF33D48D1D0DAD6A646D8 /* PNGIntegrity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */; };
+		D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */; };
+		DA205FB68306F0DDE453D11B /* FinanceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E46C25CD198B4864A458AAF /* FinanceEngine.swift */; };
+		DA7693FD862FDBD8CEA0A145 /* FilesExportFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4C5AFF0A3EE45BE55D97C5 /* FilesExportFlowTests.swift */; };
+		DA8A85FC14A08149287F22FF /* V4Export.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DE67DCBE934B35385810A5D /* V4Export.swift */; };
+		DF169F25C5DA9400568873DA /* FinanceFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */; };
+		E06D1F0A99BD7E1D492B7A5B /* MetadataRetentionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FBB77C484DFE3DA627159D /* MetadataRetentionTests.swift */; };
+		E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */; };
+		E172A9DC31FFF12E44BA9565 /* FinanceSnapshotValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */; };
+		E233246DF130FA2A8B0C5F51 /* LICENSE.libsodium in Resources */ = {isa = PBXBuildFile; fileRef = 22D2E55D854008B9F7A9758C /* LICENSE.libsodium */; };
+		E4BA1BDF7D383FF67EFD341D /* VisualFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */; };
+		E929317B8B704F22BD3DACB7 /* DurableProcessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A25C8C6049BF58364B4802DC /* DurableProcessTests.swift */; };
+		EAF01FDD2EB88E8D3C9C5D32 /* CloudManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */; };
+		F20F8743205BF40AE5806BCF /* V4RecordJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 185D98257C8BD02301F21C48 /* V4RecordJSON.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		125670B4D56271C09A5DFB04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2B4832DCF0FE085E161B7BA;
+			remoteInfo = PennyOffline;
+		};
+		5779DE40F609A5253040DEFE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2B4832DCF0FE085E161B7BA;
+			remoteInfo = PennyOffline;
+		};
+		950B32E150E52F93B545FEAB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2B4832DCF0FE085E161B7BA;
+			remoteInfo = PennyOffline;
+		};
+		BA2FF285567B42CE5275E4BD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2B4832DCF0FE085E161B7BA;
+			remoteInfo = PennyOffline;
+		};
+		C2DB555724DCAD9207C3B9CA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C76BE15BF4FCDC34ED7B10BF;
+			remoteInfo = PennyV4;
+		};
+		D2C603DDF3CF71B699D9C7AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2B4832DCF0FE085E161B7BA;
+			remoteInfo = PennyOffline;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		05FE3A1B95BD1D58C5D42093 /* PreparedVaultWrite.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreparedVaultWrite.swift; sourceTree = "<group>"; };
+		08BA9C228599043FF806890A /* PennyOffline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PennyOffline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C0A15C81F5BEC890A0545F2 /* CaptureFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFlowTests.swift; sourceTree = "<group>"; };
+		0C8E1DC4DDCFC630466B9A3F /* fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fixtures; path = "../../packages/offline-contract/fixtures"; sourceTree = SOURCE_ROOT; };
+		11B37F33049EB1A6186CE539 /* PennyOfflinePerformanceTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflinePerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1237EA66D63CF1A8814D217B /* CaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureTests.swift; sourceTree = "<group>"; };
+		1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalReceiptBlobTests.swift; sourceTree = "<group>"; };
+		167DD103EA432460F89A98FD /* ExpensesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpensesView.swift; sourceTree = "<group>"; };
+		171734B2F27E1C8AB1E581ED /* V4LogicalGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4LogicalGate.swift; sourceTree = "<group>"; };
+		185D98257C8BD02301F21C48 /* V4RecordJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4RecordJSON.swift; sourceTree = "<group>"; };
+		22100BC7E2A2DD78509A3A81 /* ReceiptPreparation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptPreparation.swift; sourceTree = "<group>"; };
+		22D2E55D854008B9F7A9758C /* LICENSE.libsodium */ = {isa = PBXFileReference; path = LICENSE.libsodium; sourceTree = "<group>"; };
+		23DE085B368DC456F5429CC0 /* CloudTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudTests.swift; sourceTree = "<group>"; };
+		249A9EA05F693951BEFAECDA /* PennyOfflineAccessibilityTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineAccessibilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudFlowTests.swift; sourceTree = "<group>"; };
+		280FBD85DF59ADA7D8D64811 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalVaultFrame.swift; sourceTree = "<group>"; };
+		2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudManifest.swift; sourceTree = "<group>"; };
+		2CE7748F3191C9FFBB2B55DF /* V4NativeValidationSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4NativeValidationSink.swift; sourceTree = "<group>"; };
+		2DE67DCBE934B35385810A5D /* V4Export.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4Export.swift; sourceTree = "<group>"; };
+		2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InactiveGenerationTests.swift; sourceTree = "<group>"; };
+		2E46C25CD198B4864A458AAF /* FinanceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEngine.swift; sourceTree = "<group>"; };
+		32F2178123A3DEAB5AF36B1C /* V4LogicalWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4LogicalWriter.swift; sourceTree = "<group>"; };
+		3444B6B77A5502EF8550C9A5 /* PennyV4Reader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyV4Reader.swift; sourceTree = "<group>"; };
+		39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CandidateRestore.swift; sourceTree = "<group>"; };
+		39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceTests.swift; sourceTree = "<group>"; };
+		424ACA46C91287CE42FA8607 /* V4ExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4ExportTests.swift; sourceTree = "<group>"; };
+		461E4C025B8D1DDF442064EB /* FilesRestore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesRestore.swift; sourceTree = "<group>"; };
+		4798055FDD88C040803D578B /* AccessibilityAuditTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityAuditTests.swift; sourceTree = "<group>"; };
+		50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceEditor.swift; sourceTree = "<group>"; };
+		507B21C459E45BD05AFEC912 /* PennyOfflineUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		53A844A58A9FECB4BB26E17F /* AutomaticBackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBackupTests.swift; sourceTree = "<group>"; };
+		53C2AF49B11679121F77D3A1 /* FilesExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesExportTests.swift; sourceTree = "<group>"; };
+		58862F5315DC63E712977D46 /* V4FrameCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4FrameCodec.swift; sourceTree = "<group>"; };
+		5B388EBFEE9BDC225510B444 /* RecoveryExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryExport.swift; sourceTree = "<group>"; };
+		5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCamera.swift; sourceTree = "<group>"; };
+		5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupArchive.swift; sourceTree = "<group>"; };
+		60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutomaticBackup.swift; sourceTree = "<group>"; };
+		6184113C469E01AF70DAE48E /* V4RepairTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4RepairTests.swift; sourceTree = "<group>"; };
+		61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptAttachment.swift; sourceTree = "<group>"; };
+		67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CiphertextSnapshot.swift; sourceTree = "<group>"; };
+		6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableStorageTests.swift; sourceTree = "<group>"; };
+		6C2CE221C9BD854F0C3E4D58 /* Categories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Categories.swift; sourceTree = "<group>"; };
+		6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceView.swift; sourceTree = "<group>"; };
+		6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4CandidateTests.swift; sourceTree = "<group>"; };
+		723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableVaultStorage.swift; sourceTree = "<group>"; };
+		78FBB77C484DFE3DA627159D /* MetadataRetentionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetadataRetentionTests.swift; sourceTree = "<group>"; };
+		82EB561A258A5147019AA6C9 /* VaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultView.swift; sourceTree = "<group>"; };
+		8416389EE9D9C67FA8EF492D /* VaultStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultStore.swift; sourceTree = "<group>"; };
+		851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LocalReceiptFileProtection.c; sourceTree = "<group>"; };
+		93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceSnapshotValidation.swift; sourceTree = "<group>"; };
+		956C0F98A83DB117490C4366 /* libPennyV4.a */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = archive.ar; path = libPennyV4.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9CD1EFF58A75FF36D2C0AC21 /* LocalAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAssistant.swift; sourceTree = "<group>"; };
+		9D4C3032E61AD809183454A3 /* FilesExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesExport.swift; sourceTree = "<group>"; };
+		9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualFlowTests.swift; sourceTree = "<group>"; };
+		9E6F3897D621228F0D8DCCB6 /* ArchiveWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveWorker.swift; sourceTree = "<group>"; };
+		A066CE638380BFBDAC4B47EB /* VaultTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultTests.swift; sourceTree = "<group>"; };
+		A25C8C6049BF58364B4802DC /* DurableProcessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurableProcessTests.swift; sourceTree = "<group>"; };
+		A305C5FD5BB71084EB05BB4E /* CloudBackupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudBackupView.swift; sourceTree = "<group>"; };
+		A58464F07153EEC739A6B0C8 /* ReceiptReviewDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptReviewDraft.swift; sourceTree = "<group>"; };
+		A945BF33915077F7792709B1 /* ExpenseFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseFlowTests.swift; sourceTree = "<group>"; };
+		AAE5A6D270ABD680B645296F /* StrictJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrictJSON.swift; sourceTree = "<group>"; };
+		AD6DF43A1B12D8665202745A /* FinanceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceStore.swift; sourceTree = "<group>"; };
+		B03C8BF31A9ABAD2E31E74BB /* PennyOfflineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyOfflineApp.swift; sourceTree = "<group>"; };
+		B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservedSavingsMigrationTests.swift; sourceTree = "<group>"; };
+		B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PNGIntegrity.swift; sourceTree = "<group>"; };
+		B79E460B86A09FFBFBC5CD2E /* LiveStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStateTests.swift; sourceTree = "<group>"; };
+		BB4C5AFF0A3EE45BE55D97C5 /* FilesExportFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesExportFlowTests.swift; sourceTree = "<group>"; };
+		BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyColors.swift; sourceTree = "<group>"; };
+		C44F8BF410E5C1D37173711F /* ArchiveWorkerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveWorkerTests.swift; sourceTree = "<group>"; };
+		C8359A21263DD7094D573273 /* CloudPublication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudPublication.swift; sourceTree = "<group>"; };
+		C8750B4BAD2433AF5B574886 /* FinanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceModels.swift; sourceTree = "<group>"; };
+		C96C22B18EDED088A9F987FB /* Expense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Expense.swift; sourceTree = "<group>"; };
+		D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestCloudTransport.swift; sourceTree = "<group>"; };
+		D36CF0323E66F126F8596E71 /* ReceiptParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptParser.swift; sourceTree = "<group>"; };
+		D44CB52D861B99F6131FE703 /* LocalReceiptBlob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalReceiptBlob.swift; sourceTree = "<group>"; };
+		D73D818CC67FE534E764B6D7 /* PennyOfflineDurableProcessTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PennyOfflineDurableProcessTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DAA63E36E052AE292586EDCA /* LocalReceiptFileProtection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalReceiptFileProtection.h; sourceTree = "<group>"; };
+		DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinanceFlowTests.swift; sourceTree = "<group>"; };
+		DE03DE482052A1981E646D02 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E1D63928F747E05013AEC16F /* CloudKitTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitTransport.swift; sourceTree = "<group>"; };
+		E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4AppModuleTests.swift; sourceTree = "<group>"; };
+		EE3B227587E571D66F641D20 /* PennyV4FrameWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PennyV4FrameWriter.swift; sourceTree = "<group>"; };
+		F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V4ReadOnlyAdapter.swift; sourceTree = "<group>"; };
+		FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesRestoreTests.swift; sourceTree = "<group>"; };
+		FFD1994B4A73E90B0D80C4FA /* NativePerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativePerformanceTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2129E3A0B65C89EFD87BDB2E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				33CBB7F0A47EAEABA830A702 /* libPennyV4.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0365EE03A34F96EEE9B4AF03 /* LogicalSupport */ = {
+			isa = PBXGroup;
+			children = (
+				185D98257C8BD02301F21C48 /* V4RecordJSON.swift */,
+			);
+			name = LogicalSupport;
+			path = "../../packages/offline-crypto/prototypes/apple/LogicalSupport";
+			sourceTree = "<group>";
+		};
+		1F02C73688D05D6788D39424 /* offline-crypto */ = {
+			isa = PBXGroup;
+			children = (
+				22D2E55D854008B9F7A9758C /* LICENSE.libsodium */,
+			);
+			name = "offline-crypto";
+			path = "../../packages/offline-crypto";
+			sourceTree = "<group>";
+		};
+		446F9DE62F39B0449E818012 /* PennyOfflinePerformanceTests */ = {
+			isa = PBXGroup;
+			children = (
+				FFD1994B4A73E90B0D80C4FA /* NativePerformanceTests.swift */,
+			);
+			path = PennyOfflinePerformanceTests;
+			sourceTree = "<group>";
+		};
+		568E8FE96FB6D9DD35AE47FE /* PennyOfflineUITests */ = {
+			isa = PBXGroup;
+			children = (
+				0C0A15C81F5BEC890A0545F2 /* CaptureFlowTests.swift */,
+				26AF7D22521ABB7224D7AC2A /* CloudFlowTests.swift */,
+				A945BF33915077F7792709B1 /* ExpenseFlowTests.swift */,
+				BB4C5AFF0A3EE45BE55D97C5 /* FilesExportFlowTests.swift */,
+				DB183CEA1B52769A26377426 /* FinanceFlowTests.swift */,
+				9E48EE9C982E1D306D7748FB /* VisualFlowTests.swift */,
+			);
+			path = PennyOfflineUITests;
+			sourceTree = "<group>";
+		};
+		625A87F61A6B250FE8B5E4C6 /* PennyOfflineAccessibilityTests */ = {
+			isa = PBXGroup;
+			children = (
+				4798055FDD88C040803D578B /* AccessibilityAuditTests.swift */,
+			);
+			path = PennyOfflineAccessibilityTests;
+			sourceTree = "<group>";
+		};
+		643E030255809E37493FE7DB /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				58862F5315DC63E712977D46 /* V4FrameCodec.swift */,
+			);
+			name = Sources;
+			path = "../../packages/offline-crypto/prototypes/apple/Sources";
+			sourceTree = "<group>";
+		};
+		AA6AC6372CB48C8ED80B28A2 /* PennyOffline */ = {
+			isa = PBXGroup;
+			children = (
+				9E6F3897D621228F0D8DCCB6 /* ArchiveWorker.swift */,
+				280FBD85DF59ADA7D8D64811 /* Assets.xcassets */,
+				60D8C4827DF07D94211E24A1 /* AutomaticBackup.swift */,
+				5E4EA20D3CF160DD9859CB5D /* BackupArchive.swift */,
+				6C2CE221C9BD854F0C3E4D58 /* Categories.swift */,
+				A305C5FD5BB71084EB05BB4E /* CloudBackupView.swift */,
+				E1D63928F747E05013AEC16F /* CloudKitTransport.swift */,
+				2AB7B60487A3D0DE16B5B97F /* CloudManifest.swift */,
+				C8359A21263DD7094D573273 /* CloudPublication.swift */,
+				723C25A3828943DEC07FC57F /* DurableVaultStorage.swift */,
+				C96C22B18EDED088A9F987FB /* Expense.swift */,
+				167DD103EA432460F89A98FD /* ExpensesView.swift */,
+				9D4C3032E61AD809183454A3 /* FilesExport.swift */,
+				461E4C025B8D1DDF442064EB /* FilesRestore.swift */,
+				50450F3BBBA855316FCE45E8 /* FinanceEditor.swift */,
+				2E46C25CD198B4864A458AAF /* FinanceEngine.swift */,
+				C8750B4BAD2433AF5B574886 /* FinanceModels.swift */,
+				93AE019EEADF626AE9C08055 /* FinanceSnapshotValidation.swift */,
+				AD6DF43A1B12D8665202745A /* FinanceStore.swift */,
+				6C3D7BBF2EAC2A0C55907D86 /* FinanceView.swift */,
+				DE03DE482052A1981E646D02 /* Info.plist */,
+				9CD1EFF58A75FF36D2C0AC21 /* LocalAssistant.swift */,
+				D44CB52D861B99F6131FE703 /* LocalReceiptBlob.swift */,
+				851D6B5F251E511AB70C08A8 /* LocalReceiptFileProtection.c */,
+				DAA63E36E052AE292586EDCA /* LocalReceiptFileProtection.h */,
+				2902E7B749E1B8EE03036940 /* LocalVaultFrame.swift */,
+				BEEE29E33E4CCF81263FAD53 /* PennyColors.swift */,
+				B03C8BF31A9ABAD2E31E74BB /* PennyOfflineApp.swift */,
+				B4F7FA4DD2D6F340B21D7DB9 /* PNGIntegrity.swift */,
+				05FE3A1B95BD1D58C5D42093 /* PreparedVaultWrite.swift */,
+				39F6325AEDC36065126CBC92 /* PrivacyInfo.xcprivacy */,
+				61CE839A2DA36764BC420ACC /* ReceiptAttachment.swift */,
+				5B3E4086CD08AC935879F534 /* ReceiptCamera.swift */,
+				D36CF0323E66F126F8596E71 /* ReceiptParser.swift */,
+				22100BC7E2A2DD78509A3A81 /* ReceiptPreparation.swift */,
+				A58464F07153EEC739A6B0C8 /* ReceiptReviewDraft.swift */,
+				5B388EBFEE9BDC225510B444 /* RecoveryExport.swift */,
+				AAE5A6D270ABD680B645296F /* StrictJSON.swift */,
+				D334CC4C50CE5A086832399F /* UITestCloudTransport.swift */,
+				39D69D50A217A4FC8AC6A440 /* V4CandidateRestore.swift */,
+				67E480E10DCCE45683F1F6DA /* V4CiphertextSnapshot.swift */,
+				2DE67DCBE934B35385810A5D /* V4Export.swift */,
+				32F2178123A3DEAB5AF36B1C /* V4LogicalWriter.swift */,
+				F79F50C8B2AA684471EC4FD1 /* V4ReadOnlyAdapter.swift */,
+				8416389EE9D9C67FA8EF492D /* VaultStore.swift */,
+				82EB561A258A5147019AA6C9 /* VaultView.swift */,
+			);
+			path = PennyOffline;
+			sourceTree = "<group>";
+		};
+		B88B489913BE38BEA9EB4EDF /* LogicalSources */ = {
+			isa = PBXGroup;
+			children = (
+				171734B2F27E1C8AB1E581ED /* V4LogicalGate.swift */,
+				2CE7748F3191C9FFBB2B55DF /* V4NativeValidationSink.swift */,
+			);
+			name = LogicalSources;
+			path = "../../packages/offline-crypto/prototypes/apple/LogicalSources";
+			sourceTree = "<group>";
+		};
+		BB4B63380BF88FE609ECE16C /* PennyOfflineTests */ = {
+			isa = PBXGroup;
+			children = (
+				C44F8BF410E5C1D37173711F /* ArchiveWorkerTests.swift */,
+				53A844A58A9FECB4BB26E17F /* AutomaticBackupTests.swift */,
+				1237EA66D63CF1A8814D217B /* CaptureTests.swift */,
+				23DE085B368DC456F5429CC0 /* CloudTests.swift */,
+				6A119C15A620E53DF2B23030 /* DurableStorageTests.swift */,
+				53C2AF49B11679121F77D3A1 /* FilesExportTests.swift */,
+				FA592E094FAC31814FB7691C /* FilesRestoreTests.swift */,
+				3FD4F21C9922F8BE916FCE4E /* FinanceTests.swift */,
+				2E0FFE4A66668684893824E8 /* InactiveGenerationTests.swift */,
+				B79E460B86A09FFBFBC5CD2E /* LiveStateTests.swift */,
+				1417CFCAEA8118EED8672BFC /* LocalReceiptBlobTests.swift */,
+				78FBB77C484DFE3DA627159D /* MetadataRetentionTests.swift */,
+				B183C16C2AB5858A106BB200 /* ObservedSavingsMigrationTests.swift */,
+				E73D8F0F65B13CFE7D031FCD /* V4AppModuleTests.swift */,
+				6E4CB0ABD690332EA4A2CD59 /* V4CandidateTests.swift */,
+				424ACA46C91287CE42FA8607 /* V4ExportTests.swift */,
+				6184113C469E01AF70DAE48E /* V4RepairTests.swift */,
+				A066CE638380BFBDAC4B47EB /* VaultTests.swift */,
+			);
+			path = PennyOfflineTests;
+			sourceTree = "<group>";
+		};
+		D6791146AEEB8B75490630A6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				956C0F98A83DB117490C4366 /* libPennyV4.a */,
+				08BA9C228599043FF806890A /* PennyOffline.app */,
+				249A9EA05F693951BEFAECDA /* PennyOfflineAccessibilityTests.xctest */,
+				D73D818CC67FE534E764B6D7 /* PennyOfflineDurableProcessTests.xctest */,
+				11B37F33049EB1A6186CE539 /* PennyOfflinePerformanceTests.xctest */,
+				3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */,
+				507B21C459E45BD05AFEC912 /* PennyOfflineUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D6FA9BA929A3E178453D4695 /* module */ = {
+			isa = PBXGroup;
+			children = (
+				EE3B227587E571D66F641D20 /* PennyV4FrameWriter.swift */,
+				3444B6B77A5502EF8550C9A5 /* PennyV4Reader.swift */,
+			);
+			name = module;
+			path = "../../packages/offline-crypto/apple/module";
+			sourceTree = "<group>";
+		};
+		DC312DC9B293EEA248F1B308 /* PennyOfflineDurableProcessTests */ = {
+			isa = PBXGroup;
+			children = (
+				A25C8C6049BF58364B4802DC /* DurableProcessTests.swift */,
+			);
+			path = PennyOfflineDurableProcessTests;
+			sourceTree = "<group>";
+		};
+		E38B22FE1302B9011BF9A8EE = {
+			isa = PBXGroup;
+			children = (
+				0C8E1DC4DDCFC630466B9A3F /* fixtures */,
+				B88B489913BE38BEA9EB4EDF /* LogicalSources */,
+				0365EE03A34F96EEE9B4AF03 /* LogicalSupport */,
+				D6FA9BA929A3E178453D4695 /* module */,
+				1F02C73688D05D6788D39424 /* offline-crypto */,
+				AA6AC6372CB48C8ED80B28A2 /* PennyOffline */,
+				625A87F61A6B250FE8B5E4C6 /* PennyOfflineAccessibilityTests */,
+				DC312DC9B293EEA248F1B308 /* PennyOfflineDurableProcessTests */,
+				446F9DE62F39B0449E818012 /* PennyOfflinePerformanceTests */,
+				BB4B63380BF88FE609ECE16C /* PennyOfflineTests */,
+				568E8FE96FB6D9DD35AE47FE /* PennyOfflineUITests */,
+				643E030255809E37493FE7DB /* Sources */,
+				D6791146AEEB8B75490630A6 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2E5AB43EA7FCAD580E4386E8 /* PennyOfflineDurableProcessTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5E91F3716FD780B8B6CF12CB /* Build configuration list for PBXNativeTarget "PennyOfflineDurableProcessTests" */;
+			buildPhases = (
+				89098778FBFCBD1CD1C65A9C /* Sources */,
+				01DB68B6D757296F676F436B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15DE1F66C7A83D63FD5AD25A /* PBXTargetDependency */,
+			);
+			name = PennyOfflineDurableProcessTests;
+			packageProductDependencies = (
+			);
+			productName = PennyOfflineDurableProcessTests;
+			productReference = D73D818CC67FE534E764B6D7 /* PennyOfflineDurableProcessTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		36D806DDA5738D21F94F666C /* PennyOfflineAccessibilityTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D90ADB83047A42A78DF57C8 /* Build configuration list for PBXNativeTarget "PennyOfflineAccessibilityTests" */;
+			buildPhases = (
+				F3E07129D3445CDDE68E7218 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				32AF3B58A49F9D1EA08310FF /* PBXTargetDependency */,
+			);
+			name = PennyOfflineAccessibilityTests;
+			packageProductDependencies = (
+			);
+			productName = PennyOfflineAccessibilityTests;
+			productReference = 249A9EA05F693951BEFAECDA /* PennyOfflineAccessibilityTests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		7D55690958FA98B0692FD097 /* PennyOfflineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FF9DD825D8BF934E888A6D12 /* Build configuration list for PBXNativeTarget "PennyOfflineTests" */;
+			buildPhases = (
+				946934E14DC57F92CF09B827 /* Copy verified v4 test corpus */,
+				DEEB75FD0FDAFA074A0A0C4D /* Sources */,
+				96FBC070AF5C591268B46B93 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B674997D2EC2B09F85C9A823 /* PBXTargetDependency */,
+			);
+			name = PennyOfflineTests;
+			packageProductDependencies = (
+			);
+			productName = PennyOfflineTests;
+			productReference = 3FC7AD2A6A6CAF2AF21AAD73 /* PennyOfflineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C76BE15BF4FCDC34ED7B10BF /* PennyV4 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 57C404657AAB8A1FA37C00F9 /* Build configuration list for PBXNativeTarget "PennyV4" */;
+			buildPhases = (
+				A770C5D8581E99FBF3B713A8 /* Verify pinned Apple crypto inputs */,
+				CA3E45A66FDCCE8B6ADF08C9 /* Sources */,
+				8A8FFBE182DD30DC2C89794F /* Copy Swift Objective-C Interface Header */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PennyV4;
+			packageProductDependencies = (
+			);
+			productName = PennyV4;
+			productReference = 956C0F98A83DB117490C4366 /* libPennyV4.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		D2B4832DCF0FE085E161B7BA /* PennyOffline */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D72ED78FDD3AC677C08ED7B /* Build configuration list for PBXNativeTarget "PennyOffline" */;
+			buildPhases = (
+				2D23A9762E5C4E630987C86D /* Sources */,
+				1A7E6445CD2FD675AD57BC3C /* Resources */,
+				2129E3A0B65C89EFD87BDB2E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				893A0F585C0D4A6DFD903501 /* PBXTargetDependency */,
+			);
+			name = PennyOffline;
+			packageProductDependencies = (
+			);
+			productName = PennyOffline;
+			productReference = 08BA9C228599043FF806890A /* PennyOffline.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D2E1723FBF7138F8395C6E73 /* PennyOfflineUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9450C8609BAAFC377C3554D0 /* Build configuration list for PBXNativeTarget "PennyOfflineUITests" */;
+			buildPhases = (
+				4203C26927157A7AD991D138 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				94FBB843CD53C0EA7B2391C7 /* PBXTargetDependency */,
+			);
+			name = PennyOfflineUITests;
+			packageProductDependencies = (
+			);
+			productName = PennyOfflineUITests;
+			productReference = 507B21C459E45BD05AFEC912 /* PennyOfflineUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		E49FD1BFD378C8B66CF28D5F /* PennyOfflinePerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D4552D207788356E2C065FF0 /* Build configuration list for PBXNativeTarget "PennyOfflinePerformanceTests" */;
+			buildPhases = (
+				9372DB40F91DD409B1821145 /* Sources */,
+				2F25FE18AB396906552AD3DB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7A13F9AB4E814694FFD3E219 /* PBXTargetDependency */,
+			);
+			name = PennyOfflinePerformanceTests;
+			packageProductDependencies = (
+			);
+			productName = PennyOfflinePerformanceTests;
+			productReference = 11B37F33049EB1A6186CE539 /* PennyOfflinePerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CDE655C4DA8CA43AC5A51A38 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					2E5AB43EA7FCAD580E4386E8 = {
+						ProvisioningStyle = Automatic;
+					};
+					36D806DDA5738D21F94F666C = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = D2B4832DCF0FE085E161B7BA;
+					};
+					7D55690958FA98B0692FD097 = {
+						ProvisioningStyle = Automatic;
+					};
+					C76BE15BF4FCDC34ED7B10BF = {
+						ProvisioningStyle = Automatic;
+					};
+					D2B4832DCF0FE085E161B7BA = {
+						ProvisioningStyle = Automatic;
+					};
+					D2E1723FBF7138F8395C6E73 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = D2B4832DCF0FE085E161B7BA;
+					};
+					E49FD1BFD378C8B66CF28D5F = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 2B207AD0C07D38081036F14C /* Build configuration list for PBXProject "PennyOffline" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E38B22FE1302B9011BF9A8EE;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D6791146AEEB8B75490630A6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D2B4832DCF0FE085E161B7BA /* PennyOffline */,
+				36D806DDA5738D21F94F666C /* PennyOfflineAccessibilityTests */,
+				2E5AB43EA7FCAD580E4386E8 /* PennyOfflineDurableProcessTests */,
+				E49FD1BFD378C8B66CF28D5F /* PennyOfflinePerformanceTests */,
+				7D55690958FA98B0692FD097 /* PennyOfflineTests */,
+				D2E1723FBF7138F8395C6E73 /* PennyOfflineUITests */,
+				C76BE15BF4FCDC34ED7B10BF /* PennyV4 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		01DB68B6D757296F676F436B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ABD98FB4B5D5A4D812A6AECE /* fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A7E6445CD2FD675AD57BC3C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				35818B8E1533E17CDE203D71 /* Assets.xcassets in Resources */,
+				E233246DF130FA2A8B0C5F51 /* LICENSE.libsodium in Resources */,
+				8FF9758ED48B10509A5B0EB3 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2F25FE18AB396906552AD3DB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				58BF53D2F3745DD9F3197DA1 /* fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		96FBC070AF5C591268B46B93 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5EFFDCDD33296BF4CE23EFB4 /* fixtures in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8A8FFBE182DD30DC2C89794F /* Copy Swift Objective-C Interface Header */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(DERIVED_SOURCES_DIR)/$(SWIFT_OBJC_INTERFACE_HEADER_NAME)",
+			);
+			name = "Copy Swift Objective-C Interface Header";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/include/$(PRODUCT_MODULE_NAME)/$(SWIFT_OBJC_INTERFACE_HEADER_NAME)",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "ditto \"${SCRIPT_INPUT_FILE_0}\" \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+		};
+		946934E14DC57F92CF09B827 /* Copy verified v4 test corpus */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy verified v4 test corpus";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\ntest -n \"${PENNY_V4_TEST_ASSETS}\"\ntest -f \"${PENNY_V4_TEST_ASSETS}/v4-frame-negatives/negative-manifest.json\"\ntest -f \"${PENNY_V4_TEST_ASSETS}/v4-logical-materialized/fixture-manifest.json\"\nmkdir -p \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/V4TestAssets\"\ncp -R \"${PENNY_V4_TEST_ASSETS}/v4-frame-negatives\" \"${PENNY_V4_TEST_ASSETS}/v4-logical-materialized\" \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/V4TestAssets/\"\n";
+		};
+		A770C5D8581E99FBF3B713A8 /* Verify pinned Apple crypto inputs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Verify pinned Apple crypto inputs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -eu\ntest \"${ARCHS}\" = arm64\ntest \"${IPHONEOS_DEPLOYMENT_TARGET}\" = 26.0\ncase \"${PLATFORM_NAME}:${PENNY_SODIUM_SLICE}\" in\n  iphoneos:ios-arm64|iphonesimulator:ios-simulator-arm64) ;;\n  *) exit 1 ;;\nesac\ntest -n \"${PENNY_SODIUM_SOURCE}\"\npython3 \"${SRCROOT}/../../packages/offline-crypto/apple/verify_build.py\" --build \"${PENNY_SODIUM_OUTPUT}\" --source \"${PENNY_SODIUM_SOURCE}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2D23A9762E5C4E630987C86D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				52D52D4F97DE95B9D416A23F /* ArchiveWorker.swift in Sources */,
+				804B7F402D12960813722249 /* AutomaticBackup.swift in Sources */,
+				73EF78AE25719F9098AA38F0 /* BackupArchive.swift in Sources */,
+				2FEE30AF05F6D5AAE1A36059 /* Categories.swift in Sources */,
+				D2ECDF0E0D9DEEA9EFF3F56E /* CloudBackupView.swift in Sources */,
+				69CD5E278915D744623FBB76 /* CloudKitTransport.swift in Sources */,
+				EAF01FDD2EB88E8D3C9C5D32 /* CloudManifest.swift in Sources */,
+				A8EBECDBB1852C98FA131C2D /* CloudPublication.swift in Sources */,
+				81B3F9AC859ECAB5B1C1509E /* DurableVaultStorage.swift in Sources */,
+				56A037CF744AA3BDA3A6928C /* Expense.swift in Sources */,
+				B01CF1DB1DDA9AD04A5103B5 /* ExpensesView.swift in Sources */,
+				BC133F4DBBC468E07598C279 /* FilesExport.swift in Sources */,
+				802A964B84F9A84C30CA3454 /* FilesRestore.swift in Sources */,
+				41B145070CC0D6E47CCF15FF /* FinanceEditor.swift in Sources */,
+				6B116BF2AE6768A1323FB844 /* FinanceEngine.swift in Sources */,
+				04944A99EB4CAA278E624E82 /* FinanceModels.swift in Sources */,
+				E172A9DC31FFF12E44BA9565 /* FinanceSnapshotValidation.swift in Sources */,
+				02770BB7E1F1898DCD54AC96 /* FinanceStore.swift in Sources */,
+				59F47763FF3C89EA37B7749C /* FinanceView.swift in Sources */,
+				9F5CF59940F6EA12C2C323EF /* LocalAssistant.swift in Sources */,
+				C95AA73B9D3C068D5F9CA08E /* LocalReceiptBlob.swift in Sources */,
+				73F5E74FFD0627203285399F /* LocalReceiptFileProtection.c in Sources */,
+				08EBAFFF09E743A12A637DF8 /* LocalVaultFrame.swift in Sources */,
+				D32EF33D48D1D0DAD6A646D8 /* PNGIntegrity.swift in Sources */,
+				BCC2653CBDEB3410A35F260F /* PennyColors.swift in Sources */,
+				C5BFF367C3F2686AA9095BC7 /* PennyOfflineApp.swift in Sources */,
+				84060300EC023E819FB8ACDC /* PreparedVaultWrite.swift in Sources */,
+				AF674AA6F3B611C7F1B49E83 /* ReceiptAttachment.swift in Sources */,
+				AE6E0742CCE8A75890C69F9A /* ReceiptCamera.swift in Sources */,
+				5343D633474668B16C5A441F /* ReceiptParser.swift in Sources */,
+				55DEC02B4A8F2CB7EA819858 /* ReceiptPreparation.swift in Sources */,
+				506A9C47A7ACC3AFF4464202 /* ReceiptReviewDraft.swift in Sources */,
+				3C823C976B5FB5D5420E9C47 /* RecoveryExport.swift in Sources */,
+				8D7358F749B6947081A66DFE /* StrictJSON.swift in Sources */,
+				BC50978C550AC6A3A6ADC83C /* UITestCloudTransport.swift in Sources */,
+				7A1DEBC869DD7CDE25E9C9CA /* V4CandidateRestore.swift in Sources */,
+				8A37EB64320F380994D99FC5 /* V4CiphertextSnapshot.swift in Sources */,
+				DA8A85FC14A08149287F22FF /* V4Export.swift in Sources */,
+				B367C2AA93EAB70FBF5A098D /* V4LogicalWriter.swift in Sources */,
+				4CB66CC5B8BE2B207C2EF002 /* V4ReadOnlyAdapter.swift in Sources */,
+				2D766284692897041D4EC0E9 /* VaultStore.swift in Sources */,
+				C1B9BDD6DF308EBB756A2CEF /* VaultView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4203C26927157A7AD991D138 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4646820F00FAA391F1E59852 /* CaptureFlowTests.swift in Sources */,
+				9D55ED213E0F715D96E20E9A /* CloudFlowTests.swift in Sources */,
+				2F1D98C785D3DE1821A9FF92 /* ExpenseFlowTests.swift in Sources */,
+				DA7693FD862FDBD8CEA0A145 /* FilesExportFlowTests.swift in Sources */,
+				DF169F25C5DA9400568873DA /* FinanceFlowTests.swift in Sources */,
+				E4BA1BDF7D383FF67EFD341D /* VisualFlowTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		89098778FBFCBD1CD1C65A9C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E929317B8B704F22BD3DACB7 /* DurableProcessTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9372DB40F91DD409B1821145 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6D3C47803FF7D586910E1BFD /* NativePerformanceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA3E45A66FDCCE8B6ADF08C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B384213C765FBBD031FFE791 /* Categories.swift in Sources */,
+				7F8B900BA8399D45EA1B2017 /* Expense.swift in Sources */,
+				DA205FB68306F0DDE453D11B /* FinanceEngine.swift in Sources */,
+				1B8C203D5A77E6156CB1AED8 /* FinanceModels.swift in Sources */,
+				AF547DC9F990F174DA89678B /* FinanceSnapshotValidation.swift in Sources */,
+				C2AAFBF841D597BC7CD5D8FF /* PNGIntegrity.swift in Sources */,
+				02F15618B48F543E51F29F79 /* PennyV4FrameWriter.swift in Sources */,
+				C32A23A5E37D5878BB2E64B9 /* PennyV4Reader.swift in Sources */,
+				276E3FA30E9C2B1F783E5327 /* ReceiptAttachment.swift in Sources */,
+				36DC2BE0E103FCEA7FFEB08D /* V4FrameCodec.swift in Sources */,
+				57E301C5689B7839C3F05365 /* V4LogicalGate.swift in Sources */,
+				5BFD77B1E6229AE913A8368C /* V4NativeValidationSink.swift in Sources */,
+				F20F8743205BF40AE5806BCF /* V4RecordJSON.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DEEB75FD0FDAFA074A0A0C4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2366120003B8CE8452F0444F /* ArchiveWorkerTests.swift in Sources */,
+				CBDF68442E48D9BEE3E983CA /* AutomaticBackupTests.swift in Sources */,
+				0475CAE381E6406D00841480 /* CaptureTests.swift in Sources */,
+				1C26A26B761FF321B1E566B6 /* CloudTests.swift in Sources */,
+				5D0A56FB44B8DCE77B77E1D5 /* DurableStorageTests.swift in Sources */,
+				0A872256F1885BAAD7F66B0A /* FilesExportTests.swift in Sources */,
+				B7B0C3F66F4587F28E91C54A /* FilesRestoreTests.swift in Sources */,
+				D511434FCD1AFE5600CB3C8E /* FinanceTests.swift in Sources */,
+				A7F5E256DB4A7B54BC9D53A7 /* InactiveGenerationTests.swift in Sources */,
+				AFC1CDA3FA52CA3C0350C053 /* LiveStateTests.swift in Sources */,
+				E14FD4D0263185C794E9FE56 /* LocalReceiptBlobTests.swift in Sources */,
+				E06D1F0A99BD7E1D492B7A5B /* MetadataRetentionTests.swift in Sources */,
+				6FE3D8D1D49172EEAC3C8752 /* ObservedSavingsMigrationTests.swift in Sources */,
+				A0C690887AF00071B71AAA62 /* V4AppModuleTests.swift in Sources */,
+				6ECAA7AC6C75E1DB0D0C623C /* V4CandidateTests.swift in Sources */,
+				BCB0ECFC002834735B0016C4 /* V4ExportTests.swift in Sources */,
+				3F6C168D8771649876626F63 /* V4RepairTests.swift in Sources */,
+				B658D9A6D126171AFFCE1883 /* VaultTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F3E07129D3445CDDE68E7218 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1739A03C0D97C03ABA005355 /* AccessibilityAuditTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		15DE1F66C7A83D63FD5AD25A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
+			targetProxy = 950B32E150E52F93B545FEAB /* PBXContainerItemProxy */;
+		};
+		32AF3B58A49F9D1EA08310FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
+			targetProxy = BA2FF285567B42CE5275E4BD /* PBXContainerItemProxy */;
+		};
+		7A13F9AB4E814694FFD3E219 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
+			targetProxy = D2C603DDF3CF71B699D9C7AA /* PBXContainerItemProxy */;
+		};
+		893A0F585C0D4A6DFD903501 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C76BE15BF4FCDC34ED7B10BF /* PennyV4 */;
+			targetProxy = C2DB555724DCAD9207C3B9CA /* PBXContainerItemProxy */;
+		};
+		94FBB843CD53C0EA7B2391C7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
+			targetProxy = 5779DE40F609A5253040DEFE /* PBXContainerItemProxy */;
+		};
+		B674997D2EC2B09F85C9A823 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D2B4832DCF0FE085E161B7BA /* PennyOffline */;
+			targetProxy = 125670B4D56271C09A5DFB04 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		13CA42E8DEC1DD15E1647597 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineAccessibilityTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PennyOffline;
+			};
+			name = Release;
+		};
+		1532C021C6F700E877FEFE13 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Release;
+		};
+		5ABA8AEF222EFBA55B6A1462 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflinePerformanceTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Release;
+		};
+		5BAB8D5DE8F47CDEE29A15D2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PennyOffline;
+			};
+			name = Debug;
+		};
+		6C2D99A3D61B257789BD05A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEFINES_MODULE = YES;
+				HEADER_SEARCH_PATHS = "$(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/include";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyV4;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6DE2658E2C025F01296359F1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PennyOffline;
+			};
+			name = Release;
+		};
+		7D5A0B2A0BB1B01058AE30C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineAccessibilityTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = PennyOffline;
+			};
+			name = Debug;
+		};
+		7FA971916A3DC6EA8FB753EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEFINES_MODULE = YES;
+				HEADER_SEARCH_PATHS = "$(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/include";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyV4;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8490C982FE9EBDFEEFBFA6DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = PennyOffline/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Penny Offline";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a receipt on this device for your encrypted expense vault. Penny does not save camera captures to your photo library.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited) $(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/lib/libsodium.a",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.dev;
+				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = PennyOffline/LocalReceiptFileProtection.h;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8610F560E34121162190ACB3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflinePerformanceTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Debug;
+		};
+		87E780C576831FA6C6FB8AEA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 3.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PENNY_SODIUM_OUTPUT = "$(SRCROOT)/../../packages/offline-crypto/.build/apple";
+				"PENNY_SODIUM_SLICE[sdk=iphoneos*]" = "ios-arm64";
+				"PENNY_SODIUM_SLICE[sdk=iphonesimulator*]" = "ios-simulator-arm64";
+				PENNY_SODIUM_SOURCE = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_INCLUDE_PATHS = "$(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/include";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		8B207C5234AC0AC6F05EAAE3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 3.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PENNY_SODIUM_OUTPUT = "$(SRCROOT)/../../packages/offline-crypto/.build/apple";
+				"PENNY_SODIUM_SLICE[sdk=iphoneos*]" = "ios-arm64";
+				"PENNY_SODIUM_SLICE[sdk=iphonesimulator*]" = "ios-simulator-arm64";
+				PENNY_SODIUM_SOURCE = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_INCLUDE_PATHS = "$(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/include";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B558027D72DFB9F75DC32B94 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = PennyOffline/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Penny Offline";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Capture a receipt on this device for your encrypted expense vault. Penny does not save camera captures to your photo library.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited) $(PENNY_SODIUM_OUTPUT)/$(PENNY_SODIUM_SLICE)/install/lib/libsodium.a",
+					"-ObjC",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.dev;
+				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = PennyOffline/LocalReceiptFileProtection.h;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D52C107EA2DF4C002804EE2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineDurableProcessTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Release;
+		};
+		E8971C41322BCC7534DA4873 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Debug;
+		};
+		FF92F1B8A8E9288D518B9006 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = ca.penny.offline.PennyOfflineDurableProcessTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PennyOffline.app/PennyOffline";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1D90ADB83047A42A78DF57C8 /* Build configuration list for PBXNativeTarget "PennyOfflineAccessibilityTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D5A0B2A0BB1B01058AE30C5 /* Debug */,
+				13CA42E8DEC1DD15E1647597 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2B207AD0C07D38081036F14C /* Build configuration list for PBXProject "PennyOffline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8B207C5234AC0AC6F05EAAE3 /* Debug */,
+				87E780C576831FA6C6FB8AEA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2D72ED78FDD3AC677C08ED7B /* Build configuration list for PBXNativeTarget "PennyOffline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B558027D72DFB9F75DC32B94 /* Debug */,
+				8490C982FE9EBDFEEFBFA6DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		57C404657AAB8A1FA37C00F9 /* Build configuration list for PBXNativeTarget "PennyV4" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C2D99A3D61B257789BD05A9 /* Debug */,
+				7FA971916A3DC6EA8FB753EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5E91F3716FD780B8B6CF12CB /* Build configuration list for PBXNativeTarget "PennyOfflineDurableProcessTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF92F1B8A8E9288D518B9006 /* Debug */,
+				D52C107EA2DF4C002804EE2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9450C8609BAAFC377C3554D0 /* Build configuration list for PBXNativeTarget "PennyOfflineUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5BAB8D5DE8F47CDEE29A15D2 /* Debug */,
+				6DE2658E2C025F01296359F1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D4552D207788356E2C065FF0 /* Build configuration list for PBXNativeTarget "PennyOfflinePerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8610F560E34121162190ACB3 /* Debug */,
+				5ABA8AEF222EFBA55B6A1462 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FF9DD825D8BF934E888A6D12 /* Build configuration list for PBXNativeTarget "PennyOfflineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E8971C41322BCC7534DA4873 /* Debug */,
+				1532C021C6F700E877FEFE13 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CDE655C4DA8CA43AC5A51A38 /* Project object */;
+}

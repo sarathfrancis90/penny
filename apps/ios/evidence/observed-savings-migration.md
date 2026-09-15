@@ -1,0 +1,5 @@
+The public observed-savings fixture passed **1/1** focused native iOS test on isolated F70/iPhone16e/iOS26.4.1. The test pinned the manifest/backup hashes, decrypted and validated the v3 archive, restored a unique local store, then freshly reopened it. Every snapshot field/domain and exact receipt bytes matched `positive.snapshot.json`.
+
+The reopened store has three savings goals with openings 1,234, 12,500 and 0 minor units (total 13,734), zero income entries and zero savings entries. This proves the supplied observed balances survive native import; it does not establish original opening balances, complete contribution history or full-account migration.
+
+[Source, fixture, app/test executable hashes and result](observed-savings-migration.json). Raw proof: `apps/ios/.build/observed-savings-migration/Tests01.xcresult`. This overlay added only a test and XcodeGen registration. Candidate runtime/tests were not rerun; their separate proof/binaries remain intact. F70 was shut down; the normal demo was untouched. Approximate additional usage: 1,900 tokens.

@@ -1,0 +1,11 @@
+{
+  "scope": "Independent positive local-receipt vector only; negative and filesystem cases require separate native/reference evidence",
+  "result": "PASS",
+  "implementation": "Python stdlib HMAC/UUID/struct plus cryptography AESGCM; no Penny codec imports",
+  "fixtureManifestSha256": "56677f729bffbb864b6217211c0710a9a89ba42f209c837673025f988d149598",
+  "envelopeSha256": "da18b18dd34b30393356fe55048e5c976b68d73b4b788ac0df535e7cd1d8c623",
+  "plaintextSha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+  "aadBytes": 143,
+  "envelopeBytes": 106,
+  "plaintextBytes": 70
+}

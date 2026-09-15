@@ -1,0 +1,33 @@
+{
+  "capturedAt": "2026-09-14T05:26:20.213824+00:00",
+  "scope": "Local synthetic public AAB/JAR tests only; ephemeral test signer, no real app signing, PKIX, Play processing, delivered signature or sibling APK equivalence.",
+  "tests": {
+    "discovered": 8,
+    "passed": 8,
+    "skipped": 0,
+    "log": "tests.txt",
+    "sha256": "41af9cb1e1a8538e9edf431d9fdf7e9fa61bfa2c400523786638bbe95d083b12"
+  },
+  "command": "PENNY_TEST_JAVA=/opt/homebrew/opt/openjdk@17/bin/java PENNY_TEST_BUNDLETOOL=\"$PWD/artifacts/offline/aab-preflight/bundletool-all-1.18.3.jar\" python3 -m unittest discover -s scripts/offline -p test_aab_artifact.py -v",
+  "jdk": "OpenJDK17.0.16 arm64 Homebrew",
+  "bundletool": {
+    "url": "https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar",
+    "sha256": "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29",
+    "githubAssetDigest": "sha256:a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29",
+    "bytes": 32520401
+  },
+  "sourceSha256": {
+    "scripts/offline/aab-artifact.py": "6e7b0a4c37c505aef44bbba808ec337a00272c9cc0c03fc3e4183188d08d5a3d",
+    "scripts/offline/test_aab_artifact.py": "078d465f92ea31246a7e19595bbec4ba305e65aa1902caa2f63b90e5c1fde7fa"
+  },
+  "unconfiguredTests": "JDK groups explicitly skip when17+ tools unavailable; real bundletool case skips without PENNY_TEST_BUNDLETOOL. Such skipped outcomes are not acceptance.",
+  "rawEvidence": "artifacts/offline/aab-preflight/evidence.json",
+  "rootWiring": {
+    "review": "Independent four-file review found no actionable P1/P2; helper was independently reviewed by root.",
+    "localFocusedTests": {
+      "packaging": 6,
+      "releasePreflight": 17
+    },
+    "limitations": "Wiring tests mock tools/builds; actual synthetic AAB helper proof is separate. No accepted signed Penny AAB or Play result."
+  }
+}

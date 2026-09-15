@@ -1,0 +1,538 @@
+{
+  "scope": "Single native-search prompt copy change; original13 unfiltered findings remain open.",
+  "beforeSourceSha256": {
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/ExpensesView.swift": "b42dbe28165df33bdc3c772eb2dbd62c05bad54d5edaea9edf836db4d2584228",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "575bb30d27f1e5bf5fd5e375629fd37bb0f34135275ae363363790bade46a3d9",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+    "apps/ios/PennyOffline/PrivacyInfo.xcprivacy": "451f61cd6c2cfa5852c6767a4b126ed7f33d7fc957fa42cd914e3aa21ada9e94",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+    "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/Info.plist": "9a5058ae7c4dfaf87556997a5cffe6ccbd3e97ed65ba2acdd1dd45a0c7b22e72",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "09a00a3c146b0b4410b3726174fb587c0d59315d29b09fb69812450d7a8e458c",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866"
+  },
+  "afterSourceSha256": {
+    "apps/ios/PennyOffline/FinanceModels.swift": "e9dc43b4f52990cf1f2dd6982f2979cb942660dbef714136b4d064ce6ffdf352",
+    "apps/ios/PennyOffline/BackupArchive.swift": "840970d2f6858b4011f2a89cb0149a21bac0fe35f8faf9e82c1319d29952b6f3",
+    "apps/ios/PennyOffline/ReceiptReviewDraft.swift": "b841980660e83cf2a974f89dc2d21a2e6f8b20cd4738f999adabfd0b9259a076",
+    "apps/ios/PennyOffline/ReceiptPreparation.swift": "7d086dbd5431fb0fb09c970827c0c0ba997fc6d183f4135b1b641a13863d6755",
+    "apps/ios/PennyOffline/ReceiptCamera.swift": "1674deab05dcd0f861d2ba942f566157129aecdb34fb3f999d9d6f3215d3a37a",
+    "apps/ios/PennyOffline/CloudKitTransport.swift": "894834398c4c136c167ed35f228697b98e5e3f1e3296b5fbbd7afa8a0c4eef7a",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.h": "e91f7ee9c7cf88a892587ceac4e66010bc5b00273853e374a5a6c21c3dc50164",
+    "apps/ios/PennyOffline/ReceiptParser.swift": "eb3cbee37aa7525ab42eab7561608ca303f1d4b4ca47b5036b38e959243edd91",
+    "apps/ios/PennyOffline/StrictJSON.swift": "bf6c7937dc69e0d5de7d853be1a45a81ef31369e4445e7c8ac6b83bf56704fe1",
+    "apps/ios/PennyOffline/UITestCloudTransport.swift": "39e2c3ec477f6e3bf772271d147a5a22ed4ebc3e682587d5a03e139e457a97d2",
+    "apps/ios/PennyOffline/FinanceView.swift": "1d09dbd8452aff899d5f18d01b13edacd97060810a9e7ee28d20048fc0c40a85",
+    "apps/ios/PennyOffline/VaultView.swift": "0e5cc7cf25c3e4aa99e469bfbb56b6c01e2a9b859a2e343c2b5cd18c234ca9d2",
+    "apps/ios/PennyOffline/FinanceEditor.swift": "8e97f2fba5ddbd816934ae9fa09f204f1b3c302f9193d323d84d6f83f6f1f3bf",
+    "apps/ios/PennyOffline/AutomaticBackup.swift": "1b0be7aaa1b9cb372bc0163fb3f044ad8399aed7da9393348703556a33f626db",
+    "apps/ios/PennyOffline/PennyColors.swift": "db6df6088837a3c48f06e2022fe8d5c77d3bda79075970b9b0b6328dd967bb12",
+    "apps/ios/PennyOffline/Categories.swift": "b32f5940085bad01617a4c28fb7fe724c03356094a0ba2e08ef2dde63f028341",
+    "apps/ios/PennyOffline/ExpensesView.swift": "f591e9962a8cc864f2cf66c28ed2d1dc04ef613c199db42f9552f1af306cf77a",
+    "apps/ios/PennyOffline/CloudManifest.swift": "c5697e677f7dfb789eecf85fd4d796740e2b33267112f6be56f421f7c5f9f769",
+    "apps/ios/PennyOffline/ReceiptAttachment.swift": "5ed56c1fd118bfa2b311bc7110c9ad2f1d4f7bcbde4c2896481406b3fd6b7b32",
+    "apps/ios/PennyOffline/DurableVaultStorage.swift": "575bb30d27f1e5bf5fd5e375629fd37bb0f34135275ae363363790bade46a3d9",
+    "apps/ios/PennyOffline/RecoveryExport.swift": "ce6d67a1febab00dae40f31d4057398af69ef7213f402a66fe63cdb095b8503b",
+    "apps/ios/PennyOffline/PennyOfflineApp.swift": "d88071ebe24e0388f14b8998445155010fd1defb309ba51627bcb11787a7fe12",
+    "apps/ios/PennyOffline/PreparedVaultWrite.swift": "8237111d5c9d4dc8bed289c3f2902ad811b0a8258e7c39249cb4791b4de51c65",
+    "apps/ios/PennyOffline/LocalReceiptFileProtection.c": "7e596ad8c6fa1d5d8cbd6be63ed97a65af6060dbc52a545e5467fa4942dc2032",
+    "apps/ios/PennyOffline/PrivacyInfo.xcprivacy": "451f61cd6c2cfa5852c6767a4b126ed7f33d7fc957fa42cd914e3aa21ada9e94",
+    "apps/ios/PennyOffline/FinanceEngine.swift": "2d09560d5611a665610f98ffbf91091046ff30ed423aa3702be09c618f6a08ea",
+    "apps/ios/PennyOffline/CloudBackupView.swift": "c710f5037a940c8a4e3b7c7c0210d2b2e1c0f6e03007369dbf1d4c6066d3bcd9",
+    "apps/ios/PennyOffline/VaultStore.swift": "0f00dca7d5df0438637daa6ec258f436606904a4d0c8110b26e035490b31e2ca",
+    "apps/ios/PennyOffline/FinanceStore.swift": "c3574dd597caacdee83bfda34c093a617cdd9c7ac3eb874c03e8fe3287fd482a",
+    "apps/ios/PennyOffline/LocalVaultFrame.swift": "489126da4d978a5d93b2d31b7b0a51917a74e80f9a69290dc46921ee90be7ca0",
+    "apps/ios/PennyOffline/PNGIntegrity.swift": "02d31fd2100bf5a06c3261ceb9194472abeb96c5aa45124e3b80b2c1b597ffbf",
+    "apps/ios/PennyOffline/Info.plist": "9a5058ae7c4dfaf87556997a5cffe6ccbd3e97ed65ba2acdd1dd45a0c7b22e72",
+    "apps/ios/PennyOffline/Expense.swift": "60345e2167fde29a78f49018ac9bcf79178290a454111763694495d9ce902581",
+    "apps/ios/PennyOffline/CloudPublication.swift": "f84176c61fab514a96e934075b03e47c9ab01529de511ac31b416e51a3f9bacc",
+    "apps/ios/PennyOffline/LocalReceiptBlob.swift": "09a00a3c146b0b4410b3726174fb587c0d59315d29b09fb69812450d7a8e458c",
+    "apps/ios/PennyOffline/LocalAssistant.swift": "294396adffa160553619fa2257b89f0f914fd19d1ff315e9f088f509bbc0b94f",
+    "apps/ios/PennyOffline/ArchiveWorker.swift": "2a0123b5a5fcf172c816e87d671a7a6157397cff2aa86f7337b8b3dd0d006866"
+  },
+  "changedProductionFiles": [
+    "apps/ios/PennyOffline/ExpensesView.swift"
+  ],
+  "beforeBinary": {
+    "app": "e1ede7a68351f843d7cb6d7e52004c2158b993357879aff23bd2360b8c81092a"
+  },
+  "afterBinarySha256": {
+    "apps/ios/.build/a11y-current/DerivedData/Build/Products/Debug-iphonesimulator/PennyOffline.app/PennyOffline": "69e4634a9fd168c7051a1ec9c33a317d9b784f5a723008bf26837b67392b0333",
+    "apps/ios/.build/a11y-current/DerivedData/Build/Products/Debug-iphonesimulator/A11yFocusedTests-Runner.app/PlugIns/A11yFocusedTests.xctest/A11yFocusedTests": "c22409151e23aab5b7d65cd16686a4b09b20f0bc30ef22d7d53938658ebc2f0a"
+  },
+  "destination": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+  "bundleId": "ca.penny.offline.a11y.current",
+  "findings": {
+    "Baseline": {
+      "count": 13,
+      "types": {
+        "65536": 10,
+        "131072": 2,
+        "1": 1
+      },
+      "lines": [
+        "CURRENT_A11Y Expenses 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: Button, 0x108019cc0, {{122.3, 650.0}, {145.7, 58.0}}, identifier: 'emptyAddExpense', label: 'Add an expense'",
+        "CURRENT_A11Y Expenses 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x107beda40, {{131.3, 549.3}, {127.3, 26.3}}, label: 'A fresh start'",
+        "CURRENT_A11Y Expenses 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108254780, {{36.5, 591.7}, {317.0, 42.3}}, label: 'Add your first expense. Your money story stays with you.'",
+        "CURRENT_A11Y Expenses 131072 Text clipped Text of this SwiftUI.AccessibilityNode may be clipped at larger Dynamic Type sizes. Attributes: StaticText, 0x10801a1c0, {{38.7, 247.7}, {137.0, 15.3}}, label: 'ON YOUR DEVICE'",
+        "CURRENT_A11Y Expenses 131072 Text clipped Text of this UISearchBarTextField may be clipped at larger Dynamic Type sizes. Attributes: SearchField, 0x107becdc0, {{16.0, 154.0}, {358.0, 44.0}}, label: 'Search your expenses', placeholderValue: 'Search your expenses'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108256440, {{291.0, 404.8}, {67.0, 20.3}}, label: 'CA$0.00'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x1080208c0, {{16.0, 493.0}, {358.0, 116.3}}, label: 'Savings contributions are internal allocations and are not subtracted again. Planned income and unposted templates are excluded.'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x1166dbd40, {{32.0, 456.8}, {164.3, 20.3}}, label: 'Savings contributions'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108020780, {{291.0, 456.8}, {67.0, 20.3}}, label: 'CA$0.00'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108019a40, {{32.0, 404.8}, {196.3, 20.3}}, label: 'Received minus expenses'",
+        "CURRENT_A11Y Vault 1 Contrast failed Contrast failed for SwiftUI.AccessibilityNode Attributes: StaticText, 0x108020c80, {{16.0, 830.0}, {358.0, 40.3}}, label: 'Vault capacity'",
+        "CURRENT_A11Y Vault 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108255400, {{30.7, 689.5}, {173.7, 20.3}}, label: 'Restore a backup', Disabled",
+        "CURRENT_A11Y Vault 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x107becb40, {{16.0, 316.7}, {358.0, 40.3}}, label: 'Encrypted backup'"
+      ]
+    },
+    "AfterAudit": {
+      "count": 13,
+      "types": {
+        "65536": 10,
+        "131072": 2,
+        "1": 1
+      },
+      "lines": [
+        "CURRENT_A11Y Expenses 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108821b80, {{36.5, 591.7}, {317.0, 42.3}}, label: 'Add your first expense. Your money story stays with you.'",
+        "CURRENT_A11Y Expenses 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x1083f5a40, {{131.3, 549.3}, {127.3, 26.3}}, label: 'A fresh start'",
+        "CURRENT_A11Y Expenses 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: Button, 0x108a64280, {{122.3, 650.0}, {145.7, 58.0}}, identifier: 'emptyAddExpense', label: 'Add an expense'",
+        "CURRENT_A11Y Expenses 131072 Text clipped Text of this SwiftUI.AccessibilityNode may be clipped at larger Dynamic Type sizes. Attributes: StaticText, 0x1088221c0, {{38.7, 247.7}, {137.0, 15.3}}, label: 'ON YOUR DEVICE'",
+        "CURRENT_A11Y Expenses 131072 Text clipped Text of this UISearchBarTextField may be clipped at larger Dynamic Type sizes. Attributes: SearchField, 0x1083f4dc0, {{16.0, 154.0}, {358.0, 44.0}}, label: 'Search', placeholderValue: 'Search'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108a64500, {{32.0, 404.8}, {196.3, 20.3}}, label: 'Received minus expenses'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x1088288c0, {{16.0, 493.0}, {358.0, 116.3}}, label: 'Savings contributions are internal allocations and are not subtracted again. Planned income and unposted templates are excluded.'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x11730bd40, {{32.0, 456.8}, {164.3, 20.3}}, label: 'Savings contributions'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108828dc0, {{291.0, 404.8}, {67.0, 20.3}}, label: 'CA$0.00'",
+        "CURRENT_A11Y Reports 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x11730bd40, {{291.0, 456.8}, {67.0, 20.3}}, label: 'CA$0.00'",
+        "CURRENT_A11Y Vault 1 Contrast failed Contrast failed for SwiftUI.AccessibilityNode Attributes: StaticText, 0x108829400, {{16.0, 830.0}, {358.0, 40.3}}, label: 'Vault capacity'",
+        "CURRENT_A11Y Vault 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x1083f6300, {{16.0, 316.7}, {358.0, 40.3}}, label: 'Encrypted backup'",
+        "CURRENT_A11Y Vault 65536 Dynamic Type font sizes are partially unsupported User will not be able to change the font size of this SwiftUI.AccessibilityNode Attributes: StaticText, 0x108a8a440, {{30.7, 689.5}, {173.7, 20.3}}, label: 'Restore a backup', Disabled"
+      ]
+    }
+  },
+  "results": {
+    "Baseline": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 1,
+          "passedTests": 0,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "A11yCurrent \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 1,
+      "finishTime": 1789359155.241,
+      "passedTests": 0,
+      "result": "Failed",
+      "skippedTests": 0,
+      "startTime": 1789359102.484,
+      "statistics": [],
+      "testFailures": [
+        {
+          "failureText": "Dynamic Type font sizes are partially unsupported",
+          "targetName": "A11yFocusedTests",
+          "testIdentifier": 1,
+          "testIdentifierString": "A11yFocusedTests/testCurrentPagesUnfiltered()",
+          "testIdentifierURL": "test://com.apple.xcode/A11yCurrent/A11yFocusedTests/A11yFocusedTests/testCurrentPagesUnfiltered",
+          "testName": "testCurrentPagesUnfiltered()"
+        }
+      ],
+      "title": "Test - A11yCurrent",
+      "topInsights": [
+        {
+          "category": "Common Failures",
+          "impact": "100% of failures",
+          "text": "10 runs of 1 test failed with Dynamic Type font sizes are partially unsupported"
+        },
+        {
+          "category": "Common Failures",
+          "impact": "100% of failures",
+          "text": "2 runs of 1 test failed with Text clipped"
+        }
+      ],
+      "totalTestCount": 1
+    },
+    "AfterAudit": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 1,
+          "passedTests": 0,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "A11yCurrent \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 1,
+      "finishTime": 1789359285.444,
+      "passedTests": 0,
+      "result": "Failed",
+      "skippedTests": 0,
+      "startTime": 1789359246.961,
+      "statistics": [],
+      "testFailures": [
+        {
+          "failureText": "Dynamic Type font sizes are partially unsupported",
+          "targetName": "A11yFocusedTests",
+          "testIdentifier": 1,
+          "testIdentifierString": "A11yFocusedTests/testCurrentPagesUnfiltered()",
+          "testIdentifierURL": "test://com.apple.xcode/A11yCurrent/A11yFocusedTests/A11yFocusedTests/testCurrentPagesUnfiltered",
+          "testName": "testCurrentPagesUnfiltered()"
+        }
+      ],
+      "title": "Test - A11yCurrent",
+      "topInsights": [
+        {
+          "category": "Common Failures",
+          "impact": "100% of failures",
+          "text": "10 runs of 1 test failed with Dynamic Type font sizes are partially unsupported"
+        },
+        {
+          "category": "Common Failures",
+          "impact": "100% of failures",
+          "text": "2 runs of 1 test failed with Text clipped"
+        }
+      ],
+      "totalTestCount": 1
+    },
+    "AX5Search": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "A11yCurrent \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789359172.353,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789359157.699,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - A11yCurrent",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "AfterSearch": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+            "deviceName": "Penny A11y System Sizes",
+            "modelName": "iPhone 16e",
+            "osBuildNumber": "23E254a",
+            "osVersion": "26.4.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "A11yCurrent \u00b7 Built with macOS 26.6.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1789359299.933,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1789359287.194,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - A11yCurrent",
+      "topInsights": [],
+      "totalTestCount": 1
+    }
+  },
+  "captures": {
+    "before": {
+      "path": "apps/ios/evidence/a11y-search-prompt-before.png",
+      "sha256": "9e272d9d5b2fe8ca4b05e6f7a9656add3c4f16bcd8de458b1a6e9c4ba99a01d7"
+    },
+    "after": {
+      "path": "apps/ios/evidence/a11y-search-prompt-after.png",
+      "sha256": "0508c3ac3618e64521623f158d1a1c4df45a9e76334edfb26bb1a7668c530f3d"
+    }
+  },
+  "harnessSha256": {
+    "A11yFocusedTests.swift": "079d3170855bcdc1e116dba28cc8cc370e6d5e78ae81415b901b7757849e9d7d",
+    "project.yml": "cbe9cb44df86675b4e81b87e4667a5b4924d522212f0990815caa17f9fb2e4b1",
+    "run.py": "97e6c4a78117d554393f9d7b05081741b25ce9f723ebaabbf2451b3e5eb81c20",
+    "run_after.py": "7423e1846a761b6939fac400ae98a647285fa7f3580c5cec09981d463ff3e2ee"
+  },
+  "runs": {
+    "run.json": {
+      "commands": [
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "boot",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "bootstatus",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "-b"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "ui",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "content_size",
+          "large"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "xcodebuild",
+          "-project",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/A11yCurrent.xcodeproj",
+          "-scheme",
+          "A11yCurrent",
+          "-destination",
+          "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "-parallel-testing-enabled",
+          "NO",
+          "-derivedDataPath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/DerivedData",
+          "CODE_SIGN_IDENTITY=-",
+          "CODE_SIGNING_ALLOWED=YES",
+          "test",
+          "-resultBundlePath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/Baseline.xcresult",
+          "-only-testing:A11yFocusedTests/A11yFocusedTests/testCurrentPagesUnfiltered"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "ui",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "content_size",
+          "accessibility-extra-extra-extra-large"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "xcodebuild",
+          "-project",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/A11yCurrent.xcodeproj",
+          "-scheme",
+          "A11yCurrent",
+          "-destination",
+          "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "-parallel-testing-enabled",
+          "NO",
+          "-derivedDataPath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/DerivedData",
+          "CODE_SIGN_IDENTITY=-",
+          "CODE_SIGNING_ALLOWED=YES",
+          "test-without-building",
+          "-resultBundlePath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/AX5Search.xcresult",
+          "-only-testing:A11yFocusedTests/A11yFocusedTests/testAX5SearchKeyboard"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "ui",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "content_size",
+          "unknown"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "shutdown",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+        ]
+      ],
+      "exitCodes": {
+        "Baseline": 65,
+        "AX5Search": 0
+      },
+      "originalContentSize": "unknown"
+    },
+    "after-run.json": {
+      "commands": [
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "boot",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "bootstatus",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "-b"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "ui",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "content_size",
+          "large"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "xcodebuild",
+          "-project",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/A11yCurrent.xcodeproj",
+          "-scheme",
+          "A11yCurrent",
+          "-destination",
+          "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "-parallel-testing-enabled",
+          "NO",
+          "-derivedDataPath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/DerivedData",
+          "CODE_SIGN_IDENTITY=-",
+          "CODE_SIGNING_ALLOWED=YES",
+          "test",
+          "-resultBundlePath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/AfterAudit.xcresult",
+          "-only-testing:A11yFocusedTests/A11yFocusedTests/testCurrentPagesUnfiltered"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "ui",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "content_size",
+          "accessibility-extra-extra-extra-large"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "xcodebuild",
+          "-project",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/A11yCurrent.xcodeproj",
+          "-scheme",
+          "A11yCurrent",
+          "-destination",
+          "platform=iOS Simulator,id=F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "-parallel-testing-enabled",
+          "NO",
+          "-derivedDataPath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/DerivedData",
+          "CODE_SIGN_IDENTITY=-",
+          "CODE_SIGNING_ALLOWED=YES",
+          "test-without-building",
+          "-resultBundlePath",
+          "/Users/sarathfrancis/work/git/Personal/penny/apps/ios/.build/a11y-current/AfterSearch.xcresult",
+          "-only-testing:A11yFocusedTests/A11yFocusedTests/testAX5SearchKeyboard"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "ui",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088",
+          "content_size",
+          "unknown"
+        ],
+        [
+          "/usr/bin/xcrun",
+          "simctl",
+          "shutdown",
+          "F70A4E8F-78ED-4E96-85E6-0EAEB6D34088"
+        ]
+      ],
+      "exitCodes": {
+        "AfterAudit": 65,
+        "AfterSearch": 0
+      },
+      "originalContentSize": "unknown"
+    }
+  },
+  "systemSettingNote": "Initial read while simulator shutdown returned unknown, so original-setting restoration from that value was ineffective. Final booted read confirmed AX5; explicitly set large (previous documented baseline), read back large, then shut down. No claim of a directly observed initial setting.",
+  "finalContentSizeReadback": "large",
+  "finalSimulatorState": "Shutdown",
+  "limitations": [
+    "Diagnostic remains failed:10 Dynamic Type,2 clipping,1 contrast before and after; no category filters or suppression.",
+    "Visual prompt compression is improved; audit search warning persists.",
+    "No new concrete source defect found in remaining flagged elements; historical actual-size wrapping evidence remains partial release evidence, not a clean audit.",
+    "Functional proof is search entry and no-match result at AX5 on simulator; not populated search, full app journey or physical VoiceOver."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "date": "2026-09-15",
+  "device": "Samsung SM-S928U1, Android16/API36, arm64-v8a,4KiB pages",
+  "baseReviewCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "delta": "VaultDeviceTest.kt only: pennyOwnerOffline=true skips all pretest connectivity setters and finally restoration; default mode unchanged. Production source/APK unchanged.",
+  "productionApkSha256": "8fd47b9640953d166c664ab4b679866676a24096c61ad2e8ebf9f267f76e04c5",
+  "testApkSha256": "7da7525f2b24fc42948c84084a835161a21acf7745a050f948b2751f4f43d2b6",
+  "changedTestSha256": "dae3a420edacc17fdab6b4f686c7d6150c9850cb64dec7fe3c619651c90c734d",
+  "result": {
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 5.298,
+    "tests": [
+      "VaultDeviceTest.bundledReceiptOcrWorksWithDeviceNetworksDisabled",
+      "OfflineFlowTest.addEditRecreateDelete"
+    ]
+  },
+  "offlineProof": {
+    "ownerConfirmedOffline": true,
+    "prePostSettings": {
+      "airplane_mode_on": "1",
+      "wifi_on": "0",
+      "mobile_data": "1"
+    },
+    "defaultNetworkBeforeAndAfter": "none",
+    "inTestAssertion": "ConnectivityManager.activeNetwork==null before actual bundled OCR",
+    "noNetworkSettingsMutated": true
+  },
+  "assertions": [
+    "Real bundled ML Kit OCR on generated900x500PNG recognized PENNY and12.34 while activeNetwork null. Synthetic cache image removed.",
+    "Manual UI creates expense12.34, edits23.45, recreates Activity, verifies merchant and deletes created record with confirmation."
+  ],
+  "finalState": "QA left launched; no shipping app/data or account changes; user-owned Airplane Mode and Wi-Fi state preserved.",
+  "limits": [
+    "No model download or Gemini inference; existing unavailable UI observation remains separate.",
+    "No network packet capture, physical power-loss, secure hardware level, process-death or provider completion claim.",
+    "Earlier5localtests and earlierUI awake/dozing results remain unchanged separate reports.",
+    "One safe KEYCODE_WAKEUP; keyguard checked false; no secure lock dismissal or timeout changes."
+  ],
+  "artifactSha256": {
+    "artifacts/offline/physical-android-offline-sep15/run.py": "17cb4f1a4d47c5d8515a33c6eb4bfc89edc7bef6b05ff7dbcc16f184e55c4d3c",
+    "artifacts/offline/physical-android-offline-sep15/settings-after.json": "e9a03721e032198fa9db1160d00e5e554bae2c0916ca6071d39bdb78a1262843",
+    "artifacts/offline/physical-android-offline-sep15/source.json": "f03833a9383a5a2eb5f59468a06a7e7f2077480a5e227db6f5ea0370e088de79",
+    "artifacts/offline/physical-android-offline-sep15/connectivity-before-private.log": "574c6ae0019f2d0719a2c1d35a6091ec716d0ccfa1eec99a43754a299100403c",
+    "artifacts/offline/physical-android-offline-sep15/commands-private.json": "601c66a3cacacc99fdfa5710988216ef766e2d9041ea67401f9fb02d8c4095bc",
+    "artifacts/offline/physical-android-offline-sep15/settings-before.json": "e9a03721e032198fa9db1160d00e5e554bae2c0916ca6071d39bdb78a1262843",
+    "artifacts/offline/physical-android-offline-sep15/wake-window-private.log": "99c63e05be49e159efd0757449b5fe5b6ce686e4b249262f29dec4ae7e84b116",
+    "artifacts/offline/physical-android-offline-sep15/leave-qa-launched.log": "e0777f48d2cd1b7d4aa22ee73422dfc63e6882d7ac56289d812f1ea5d55acf15",
+    "artifacts/offline/physical-android-offline-sep15/app.apk": "8fd47b9640953d166c664ab4b679866676a24096c61ad2e8ebf9f267f76e04c5",
+    "artifacts/offline/physical-android-offline-sep15/tests.log": "81a958abed2ca8aae3b4a77d71643a251cfaaf257cf9441300043e12b6636133",
+    "artifacts/offline/physical-android-offline-sep15/test.apk": "7da7525f2b24fc42948c84084a835161a21acf7745a050f948b2751f4f43d2b6",
+    "artifacts/offline/physical-android-offline-sep15/connectivity-after-private.log": "7ee09a65b28f176f5f8c63665eef6e2d1cc3372047d48c07848bb3884f67f031",
+    "artifacts/offline/physical-android-offline-sep15/install-test.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/physical-android-offline-sep15/build.log": "14af834e093ef250318f34df462e901f96ec5e843fcf32cb4388c147babc1473"
+  }
+}

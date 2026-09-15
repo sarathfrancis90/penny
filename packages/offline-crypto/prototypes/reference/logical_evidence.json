@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-09-14T01:35:27.364615+00:00",
+  "scope": "Public plaintext logical oracle: grammar, strict JSON, schema3 semantics, transcript; image structure only; no authentication/native decoding/restore approval",
+  "sourceHashes": {
+    "packages/offline-crypto/prototypes/reference/logical_fixtures.mjs": "a9bd194feabd463b2ec7c6fec5de900cc0752a0a564cc5a5cc6fc803c3fee723",
+    "packages/offline-crypto/prototypes/reference/logical_oracle.mjs": "803d0c39169035bf1567955c4414ad7b3988408565111d29b1b8ff192e8f44a9",
+    "packages/offline-crypto/prototypes/reference/logical_oracle.test.mjs": "133e04b319f9f3d668ad5223d05ce8a67e696841990b8f8b073c8475d673f23f",
+    "packages/offline-contract/contract.mjs": "12ee69ad99324afadd1b7c4d86614c9c6118b69432656c14d735061a1ccf6a10",
+    "packages/offline-contract/finance.mjs": "4c5a18cdb5797d0fac7ec196ea8dbe1950177b281175712b05012348786e12ef",
+    "packages/offline-contract/snapshot-v3.schema.json": "a56c513efa233e7381399837eab8a19fcee573dea347d16ae602229f55b38dbf",
+    "docs/offline/BACKUP_V4_CONTRACT.md": "593f6598941531f980d243fc248004ca26fc3d6ef4586490d7c4e7620fe11503"
+  },
+  "fixtureManifestSha256": "95a2c085a8b59652f9cb16e38fe3adcee39d1e8e839663cab5d7c97c47de5c32",
+  "fixtures": {
+    "positives": 10,
+    "negativeCases": 60,
+    "structuralNegatives": 45,
+    "semanticNegatives": 15,
+    "committedPlaintextBytes": 6893,
+    "materializedDirectory": "packages/offline-crypto/prototypes/reference/.build/logical-fixtures-v2",
+    "reproducible": true
+  },
+  "localChecks": {
+    "nodeTests": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sast": {
+      "version": "1.165.0",
+      "configs": [
+        "p/owasp-top-ten",
+        "p/typescript"
+      ],
+      "findings": 0,
+      "errors": 0,
+      "suppressions": 0
+    }
+  },
+  "nativeReports": [
+    {
+      "platform": "iOS Simulator arm64 26.4.1",
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "fixtureCases": {
+        "positives": 10,
+        "negatives": 60
+      },
+      "scope": "native agent reports full semantic sink and actual native image decoding; this reference result does not itself implement those native checks",
+      "testSummarySha256": "f4c2bae9bde770528fc7dedf70c4656f612fa6328c331e94ecec11f344557ded",
+      "provenance": "packages/offline-crypto/prototypes/apple/.build/logical-02/provenance.json",
+      "provenanceSha256": "a3ce270ec9998d164762d910c9c2bdffed2022823d68f9bc75085c49102e8e98"
+    }
+  ],
+  "remaining": [
+    "Full native image validation is outside this oracle",
+    "No production candidate transaction, revision/account guards, atomic restore or physical capacity proof",
+    "Android runtime result pending at this checkpoint",
+    "Root normal/hosted integration gates separately reported"
+  ],
+  "effortEstimate": "Approximately 13k-15k model tokens for this slice including added numeric/aggregate corpus coordination; unmetered estimate, not a hard budget claim"
+}

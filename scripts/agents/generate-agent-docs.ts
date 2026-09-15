@@ -36,6 +36,12 @@ const generatedDocPaths = [
 ] as const;
 
 const watchPaths = [
+  'apps/ios/**',
+  'apps/android/**',
+  'packages/offline-contract/**',
+  'assets/offline/**',
+  'scripts/offline/**',
+  'docs/offline/**',
   'mobile/**',
   'apps/api/**',
   'packages/shared/**',
@@ -317,6 +323,9 @@ function renderFileList(files: string[]) {
 }
 
 function fileCategory(file: string) {
+  if (file.startsWith('apps/ios/')) return 'native-ios';
+  if (file.startsWith('apps/android/')) return 'native-android';
+  if (file.startsWith('packages/offline-contract/')) return 'offline-contract';
   if (file.startsWith('mobile/')) return 'mobile';
   if (file.startsWith('apps/api/')) return 'standalone-api';
   if (file.startsWith('src/')) return 'web-next';
@@ -524,6 +533,7 @@ function renderFreshnessManifest(rootDir: string) {
     generatedDocs: generatedDocPaths,
     watchPaths,
     sourceOfTruth: {
+      native: ['apps/ios', 'apps/android', 'packages/offline-contract'],
       mobile: [
         'mobile/lib',
         'mobile/pubspec.yaml',

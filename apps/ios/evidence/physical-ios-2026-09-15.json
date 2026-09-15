@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-15",
+  "sourceReviewCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "scope": "First physical iOS focused local QA; current native runtime, synthetic isolated test state.",
+  "device": {
+    "model": "iPhone 13 Pro Max",
+    "productType": "iPhone14,3",
+    "iOS": "26.6",
+    "osBuild": "23G71"
+  },
+  "artifact": {
+    "sourceCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+    "bundleIdentifier": "ca.penny.offline.dev",
+    "version": "3.0.0",
+    "build": "1",
+    "minimumOS": "26.0",
+    "binarySha256": "0bb13621f51545338737c4e3fc4993b8addcbf559717bfec0503702783c43a20",
+    "codesignVerifyPassed": true,
+    "provisioningIncludesConnectedDevice": true,
+    "getTaskAllow": true,
+    "profileExpiry": "2027-03-18 20:21:06",
+    "signedApplicationIdentifier": "H845PX7Q62.ca.penny.offline.dev"
+  },
+  "qaAbsentBeforeInstall": true,
+  "installation": "Succeeded after developer-image setup; initial locked-device mount and launch failures retained.",
+  "result": {
+    "totalTestCount": 9,
+    "passedTests": 9,
+    "failedTests": 0,
+    "skippedTests": 0
+  },
+  "selectedMethods": [
+    "-only-testing:PennyOfflineTests/VaultTests/testCipherAuthenticationAndNoPlaintext",
+    "-only-testing:PennyOfflineTests/VaultTests/testPersistenceEditDeleteAndFailedOpenPreservesFile",
+    "-only-testing:PennyOfflineTests/VaultTests/testOriginalReceiptPersistenceBackupRestoreAndDeletion",
+    "-only-testing:PennyOfflineTests/VaultTests/testVisionReadsReceiptTextOnDevice",
+    "-only-testing:PennyOfflineTests/LocalReceiptBlobTests/testDescriptorAddressedProtectionMode",
+    "-only-testing:PennyOfflineTests/LocalReceiptBlobTests/testTransferReadProtectionAndOneShotCleanup",
+    "-only-testing:PennyOfflineTests/CaptureTests/testConfirmedRecoveryKeyIsDistinctDeviceOnlyAndMismatchDoesNotOverwrite",
+    "-only-testing:PennyOfflineTests/FilesExportTests/testCoordinatedDestinationRestoresExactFreshBackupAndPreservesExistingFile",
+    "-only-testing:PennyOfflineUITests/ExpenseFlowTests/testLocalExpenseSurvivesRelaunchThenEditAndDelete"
+  ],
+  "validation": {
+    "passedTests": 9,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "pinsVerified": 324,
+    "pinMismatches": []
+  },
+  "tested": [
+    "Device-hosted authenticated encryption, tamper/wrong-key rejection, CRUD/edit/delete/reopen and failed-open preservation.",
+    "Exact original receipt bytes across save/export/restore/delete; Vision OCR on a generated synthetic receipt image.",
+    "Physical file protection class and descriptor readback; isolated device-only recovery-key alias attributes.",
+    "Coordinated v4 destination readback, existing-file preservation, guarded candidate installation and fresh-store reopen.",
+    "Actual UI add/edit/delete with process terminate/relaunch; UI state is the QA app temporary PennyUITests directory."
+  ],
+  "limits": [
+    "Only ca.penny.offline.dev and its test runner were installed. Shipping identifiers were never install/reset/launch targets.",
+    "Network and account settings were unchanged; this run does not establish airplane-mode behavior or absence of network traffic.",
+    "The Keychain test uses its own recovery-key alias; default-key hardware guarantees and locked-device denial remain unproven.",
+    "Vision uses a generated image, not the physical camera. Camera/HEIC quality, cloud providers, device-to-device migration, accessibility/resources and release signing remain open.",
+    "Generative model availability is qualified separately. This run has no inference-quality evidence.",
+    "The 324 source/binary pins were verified before later test-only rebuilds replaced DerivedData products. Original binary hashes and test evidence remain; original bundle bytes were not separately frozen. The later offline report pins separately preserved final products."
+  ],
+  "artifactSha256": {
+    "artifacts/offline/physical-2026-09-15/ios/build-01.log": "d510c382bab7d52490b11aacd94c242946fe69569bace72908958e8a77fb5491",
+    "artifacts/offline/physical-2026-09-15/ios/build-tests-01.log": "ba2ed332944590658c4e8195a157a651f95377ed0a860c071da18fdb99fe0305",
+    "artifacts/offline/physical-2026-09-15/ios/source-binary-pins.json": "e5b039a1992ce2a70945defee61e5f2a30bcc228cab57e28bbb0c516b166f001",
+    "artifacts/offline/physical-2026-09-15/ios/artifact-preflight.json": "18888ad0831fb58de76937f65ca8836a9801fd25efe1acff57317c7506fc11bd",
+    "artifacts/offline/physical-2026-09-15/ios/physical-summary-01.json": "ada8db2e267dd832fd52a07f3f6da637bcf16f648788ac7eb9f5ac9763509b0d",
+    "artifacts/offline/physical-2026-09-15/ios/physical-root-validation.json": "f22073c81afe4b5953a1658abc53bb060fc3a87cfe762d0c3f999e1ae1041547",
+    "artifacts/offline/physical-2026-09-15/ios/physical-test-command.json": "e7bdb7404727260428d904daee5971cee8837ffb269ee4d9d03137fdfdb15099",
+    "artifacts/offline/physical-2026-09-15/ios/physical-test-01.log": "360290d61d0d67766974c6718272d08483f7ecab71ea691efa4af9c32cd4ccec",
+    "artifacts/offline/physical-2026-09-15/ios/install-01.json": "6a14cc20208e672278a7e678a1db8e1668413ea10ef6f573f1241a27ff2d9dba",
+    "artifacts/offline/physical-2026-09-15/ios/launch-01.json": "c016aa67dab7bd119b0938beed45f296148af4ecff83fd0cab208677da4d9339",
+    "artifacts/offline/physical-2026-09-15/ios/qa-inventory-unlocked-01.json": "42d73da57bb668587a468ce0487827d12242632b7cec2208bc25f9d765695337"
+  }
+}

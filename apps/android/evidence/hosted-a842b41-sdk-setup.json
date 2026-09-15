@@ -1,0 +1,101 @@
+{
+  "observedDate": "2026-09-15",
+  "failedCommit": "a842b41",
+  "runId": 35009620211,
+  "runUrl": "https://github.com/sarathfrancis90/penny/actions/runs/35009620211",
+  "jobs": {
+    "104518016000": {
+      "logSha256": "0be4eec77a6197f1c666f15cbd1474a454d864c891c17980a88fde387a1fa661",
+      "evidence": [
+        {
+          "line": 1003,
+          "text": "2026-09-15T18:47:26.9831337Z [command]/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager tools"
+        },
+        {
+          "line": 1019,
+          "text": "2026-09-15T18:47:28.3064514Z Warning: Failed to find package 'tools'"
+        }
+      ]
+    },
+    "104518016091": {
+      "logSha256": "1a65a33e05aabadc2891b13818f6cae123173316ea723f8d099cdbf7ad206c17",
+      "evidence": [
+        {
+          "line": 1004,
+          "text": "2026-09-15T18:47:25.9000411Z [command]/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager tools"
+        },
+        {
+          "line": 1019,
+          "text": "2026-09-15T18:47:27.0269530Z Warning: Failed to find package 'tools'"
+        }
+      ]
+    },
+    "104518016243": {
+      "logSha256": "29f975b996dc3a1d81c409f6b6a6e64cafb04da71c6c796508840cef5befddfa",
+      "evidence": [
+        {
+          "line": 1004,
+          "text": "2026-09-15T18:47:24.7700269Z [command]/usr/local/lib/android/sdk/cmdline-tools/16.0/bin/sdkmanager tools"
+        },
+        {
+          "line": 1020,
+          "text": "2026-09-15T18:47:26.3215443Z Warning: Failed to find package 'tools'"
+        }
+      ]
+    }
+  },
+  "cause": "All three Android jobs fail before build/tests while setup-android requests tools, which SDK Manager cannot find. The pinned action defaults packages to tools platform-tools. No HTTP outage was observed in these failures.",
+  "remediation": "Explicit packages: platform-tools at both setup-android steps. Action SHA, command-line tool version, license behavior and later NDK/CMake/platform/emulator installs/checks unchanged.",
+  "validation": {
+    "yamlParsed": true,
+    "pinnedActionInputVerified": true,
+    "onlyFourAddedLines": true,
+    "jobsConfigured": [
+      "android",
+      "android-device"
+    ]
+  },
+  "workflowSha256": "8877a1d59fc63d9d8dcfd78037cb6f8a55597fc21089e8f1d2ef3efdf939d6f6",
+  "actionDefinitionUrl": "https://github.com/android-actions/setup-android/blob/9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407/action.yml",
+  "actionDefinitionSha256": "40893f2c9bb47b69af5122c35bb3e611fb0c61af5e52773c22020f828e225f89",
+  "hostedRemediation": "pending; no corrected run or retry performed by this task",
+  "limits": "SDK remediation scope only. Historical jobs remain failed; local YAML/input validation does not establish corrected hosted execution. No action pins, build checks or skip policies changed.",
+  "finalHostedRun": {
+    "status": "completed",
+    "conclusion": "failure",
+    "headSha": "a842b4175a652996688ab07a2a47cbabec611cde",
+    "jobs": [
+      {
+        "name": "native-offline-ios-simulator",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "native-offline-android-build",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "native-offline-android-api-37.0",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "native-offline-contract",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "native-offline-android-api-26",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "native-offline-gate",
+        "status": "completed",
+        "conclusion": "failure"
+      }
+    ],
+    "rawSha256": "93a5d25d9d497e458c5ce89673c7f93939aeabe58add8ee5378a3f1ab34b4a3c"
+  }
+}

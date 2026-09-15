@@ -1,0 +1,24 @@
+{
+  "scope": "Bounded representable-subset raw conversion; unsupported nonempty domains block output. No full-account migration or history completeness.",
+  "files": {
+    "scripts/offline/migrate-raw-evidence.mjs": "f9255e415d6626d647672598ed7a1533cb7e416956dcad6111c022e442e183f5",
+    "scripts/offline/migrate-raw-evidence.test.mjs": "53954e9ea6afa02adbfe418332c60632b8a81f8071460bc13c428d13f8095aeb",
+    "scripts/offline/MIGRATE_RAW_EVIDENCE.md": "7dda4b41530acb0f3f8fbd14c92c8051312cfcee269ce05a72e5fc6699c3425c"
+  },
+  "rootValidation": {
+    "command": "node --test scripts/offline/migrate-raw-evidence.test.mjs scripts/offline/migrate-legacy.test.mjs scripts/offline/migrate-finance.test.mjs",
+    "passed": 28,
+    "failed": 0,
+    "logSha256": "5ca5d1e513dff4f0cd9cfbf8df0981b93ff197f0577ae7f77f6a330fc4e99fdd"
+  },
+  "authorValidation": {
+    "fixtureVerify": "passed",
+    "ESLint": "passed",
+    "Semgrep": {
+      "rules": 73,
+      "files": 3,
+      "findings": 0
+    }
+  },
+  "independentReview": "Root and Android worker found no actionable blocker in stable source; root independently reran28 tests. Native fixture acceptance is recorded separately in raw-migration-native.json."
+}

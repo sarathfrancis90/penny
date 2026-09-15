@@ -1,0 +1,22 @@
+{
+  "kind": "paired-current-binary-returned-state-vs-redundant-refresh",
+  "returnedStateMs": [
+    1172.11625,
+    1066.178667,
+    1068.487667,
+    1078.459793,
+    1074.507709
+  ],
+  "redundantRefreshMs": [
+    2086.373459,
+    2061.700209,
+    2058.046126,
+    2074.149542,
+    2065.090626
+  ],
+  "api": 37,
+  "build": "debug instrumented",
+  "recordCount": 10000,
+  "receiptCount": 0,
+  "pid": 4535
+}
