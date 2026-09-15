@@ -21,7 +21,7 @@ class CurrentCapDeviceTest {
         val ins=InstrumentationRegistry.getInstrumentation();val target=ins.targetContext
         assertEquals("ca.penny.offline.dev.test",target.packageName)
         val report=JSONObject().put("api",android.os.Build.VERSION.SDK_INT).put("pid",android.os.Process.myPid())
-            .put("scope","One debug-instrumented sample; padded 1x1 PNGs; boundary memory includes test oracle, not peak/p95 or decoded-pixel stress")
+            .put("scope","One debug-instrumented sample; padded 1x1 PNGs; boundary memory and cumulative kernel RSS high-water include test oracle/startup; not per-operation peak/p95 or decoded-pixel stress")
         val stages=JSONArray();report.put("stages",stages)
         val output=File(target.filesDir,"current-cap.json")
         fun persist()=output.writeText(report.toString(2))
@@ -29,6 +29,18 @@ class CurrentCapDeviceTest {
             val runtime=Runtime.getRuntime();val info=Debug.MemoryInfo();Debug.getMemoryInfo(info)
             return JSONObject().put("javaUsedBytes",runtime.totalMemory()-runtime.freeMemory())
                 .put("nativeAllocatedBytes",Debug.getNativeHeapAllocatedSize()).put("totalPssKiB",info.totalPss)
+                .apply {
+                    // Kernel-reported process high-water, including setup/oracle; never reset per stage.
+                    try {File("/proc/self/status").useLines {lines->
+                        lines.filter {it.startsWith("VmRSS:") || it.startsWith("VmHWM:")}.forEach {line->
+                            val fields=line.trim().split(Regex("\\s+"));check(fields.size==3 && fields[2]=="kB")
+                            put(if(fields[0]=="VmRSS:") "kernelRssKiB" else "kernelRssHighWaterKiB",fields[1].toLong())
+                        }
+                    }
+                        val missing=listOf("kernelRssKiB","kernelRssHighWaterKiB").filterNot {has(it)}
+                        if(missing.isNotEmpty()) put("kernelRssObservationError","Missing fields: "+missing.joinToString())
+                    } catch(e:Exception) {put("kernelRssObservationError",e.javaClass.simpleName)}
+                }
         }
         fun <T> stage(name:String,work:()->T):T {
             val row=JSONObject().put("name",name).put("before",memory());stages.put(row);persist()

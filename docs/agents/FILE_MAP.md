@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1495
+- Total source-visible files: 1501
 
 | Path | Area |
 |---|---|
@@ -175,12 +175,14 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/candidate-install.json` | native-android |
 | `apps/android/evidence/candidate-install.md` | native-android |
 | `apps/android/evidence/capacity-v4-assessment.md` | native-android |
+| `apps/android/evidence/current-cap-memory-preparation.json` | native-android |
 | `apps/android/evidence/current-cap.json` | native-android |
 | `apps/android/evidence/durable-generations.json` | native-android |
 | `apps/android/evidence/durable-generations.md` | native-android |
 | `apps/android/evidence/files-hosted-readiness.json` | native-android |
 | `apps/android/evidence/generation-metadata.json` | native-android |
 | `apps/android/evidence/generation-metadata.md` | native-android |
+| `apps/android/evidence/hosted-a842b41-sdk-setup.json` | native-android |
 | `apps/android/evidence/interoperability/android-cloud-runtime.pennybackup` | native-android |
 | `apps/android/evidence/interoperability/android-cloud-runtime.pennymanifest` | native-android |
 | `apps/android/evidence/interoperability/android-runtime-v2.pennybackup` | native-android |
@@ -378,6 +380,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/PennyOfflineUITests/FinanceFlowTests.swift` | native-ios |
 | `apps/ios/PennyOfflineUITests/VisualFlowTests.swift` | native-ios |
 | `apps/ios/README.md` | native-ios |
+| `apps/ios/evidence/a11y-current-2026-09-15.json` | native-ios |
+| `apps/ios/evidence/a11y-current-2026-09-15.md` | native-ios |
 | `apps/ios/evidence/a11y-search-prompt-after.png` | native-ios |
 | `apps/ios/evidence/a11y-search-prompt-before.png` | native-ios |
 | `apps/ios/evidence/a11y-search-prompt.json` | native-ios |
@@ -543,6 +547,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/candidate-ipa-integration.json` | docs |
 | `docs/offline/evidence/capacity-count-reuse-integration.json` | docs |
 | `docs/offline/evidence/capture-dismiss-regression.json` | docs |
+| `docs/offline/evidence/cloudkit-development-2026-09-15.ckdb` | docs |
+| `docs/offline/evidence/cloudkit-qa-setup-2026-09-15.json` | docs |
 | `docs/offline/evidence/combined-current-cap-integration.json` | docs |
 | `docs/offline/evidence/crypto-build-tooling.json` | docs |
 | `docs/offline/evidence/current-native-demo.json` | docs |

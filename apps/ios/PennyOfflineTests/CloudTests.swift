@@ -285,3 +285,123 @@ import XCTest
         XCTAssertThrowsError(try CloudKitTransport()) { XCTAssertEqual($0 as? CloudFailure, .unavailable) }
     }
 }
+
+/// External gate: run only this class on the explicitly provisioned QA phone.
+/// The host must verify Development CloudKit entitlements on the installed build
+/// before setting the preflight marker. The marker is not entitlement proof itself.
+/// Each successful run leaves two encrypted synthetic objects in the QA private
+/// database. No remote cleanup or persisted recovery key is introduced here.
+@MainActor final class RealCloudKitDeviceTests: XCTestCase {
+    private enum Failure: Error { case requirement }
+    private func require(_ condition: Bool) throws {
+        guard condition else { throw Failure.requirement }
+    }
+    private func isolatedVault(_ directory: URL, key: SymmetricKey) -> VaultStore {
+        VaultStore(directory: directory, key: key,
+                   deviceKeyReader: { _ in throw Failure.requirement },
+                   deviceKeyCreator: { throw Failure.requirement })
+    }
+    // Publication refreshes the archive identity/time. Compare every other field,
+    // including each receipt's exact base64 bytes, independently of array order.
+    private func contentDigest(_ value: VaultSnapshot) throws -> String {
+        var body = value
+        body.snapshotId = "00000000-0000-0000-0000-000000000000"
+        body.createdAt = "2026-01-01T00:00:00.000Z"
+        body.expenses.sort { $0.id < $1.id }; body.attachments.sort { $0.id < $1.id }
+        body.budgets.sort { $0.id < $1.id }; body.incomeSources.sort { $0.id < $1.id }
+        body.incomeEntries.sort { $0.id < $1.id }; body.savingsGoals.sort { $0.id < $1.id }
+        body.savingsEntries.sort { $0.id < $1.id }; body.recurringExpenses.sort { $0.id < $1.id }
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        return CloudWire.digest(try encoder.encode(body))
+    }
+    func testPhysicalDevelopmentCloudKitPublishDiscoverRestoreAndReopen() async throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let optIn = environment["PENNY_REAL_CLOUDKIT_TEST"] else {
+            throw XCTSkip("External gate: explicitly opted-in, Development-signed QA phone and available iCloud account required")
+        }
+        var phase = "configuration"
+        var diagnostics: [String: Any] = [:]
+        defer {
+            diagnostics["phase"] = phase
+            if let bytes = try? JSONSerialization.data(withJSONObject: diagnostics, options: [.sortedKeys]) {
+                let attachment = XCTAttachment(data: bytes, uniformTypeIdentifier: "public.json")
+                attachment.name = "real-cloudkit-synthetic-phases-and-digests"
+                attachment.lifetime = .keepAlways; add(attachment)
+            }
+        }
+        do {
+            try require(optIn == "1")
+            try require(environment["PENNY_REAL_CLOUDKIT_DEVELOPMENT_PREFLIGHT"] == "1")
+            try require(Bundle.main.bundleIdentifier == "ca.penny.offline.dev")
+            try require(CloudBuildConfiguration.containerIdentifier == "iCloud.com.penny.pennyMobile")
+            #if targetEnvironment(simulator)
+            try require(false)
+            #endif
+            phase = "isolated-synthetic-source"
+            let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false,
+                                                    attributes: [.posixPermissions: 0o700, .protectionKey: FileProtectionType.complete])
+            defer { try? FileManager.default.removeItem(at: root) }
+            let sourceKey = SymmetricKey(size: .bits256), targetKey = SymmetricKey(size: .bits256)
+            let recoveryKey = BackupArchive.newRecoveryKey() // Never saved to RecoveryKeyStore or attachments.
+            let source = isolatedVault(root.appendingPathComponent("source"), key: sourceKey)
+            let fixtureURL = try XCTUnwrap(Bundle(for: Self.self).resourceURL).appendingPathComponent("fixtures/snapshot-v3.json")
+            var synthetic = try StrictJSON.snapshot(Data(contentsOf: fixtureURL))
+            synthetic.vaultId = UUID().uuidString.lowercased()
+            try require(synthetic.schemaVersion == 3 && synthetic.recordCount == 10 && synthetic.attachments.count == 1)
+            try source.replace(synthetic)
+            let expectedDigest = try contentDigest(synthetic)
+            diagnostics["contentSha256"] = expectedDigest
+            diagnostics["records"] = synthetic.recordCount
+            diagnostics["receipts"] = synthetic.attachments.count
+            diagnostics["receiptBytes"] = synthetic.attachments.reduce(0) { $0 + $1.byteCount }
+            phase = "explicit-provider-enable"
+            let publisherTransport = try CloudKitTransport()
+            let publisher = CloudPublication(vault: source, provider: publisherTransport, keyReader: { recoveryKey })
+            try require(!publisher.enabled)
+            await publisher.enable()
+            try require(publisher.error == nil && publisher.enabled && !publisher.isBusy)
+            phase = "publish-and-remote-readback"
+            await publisher.publish()
+            try require(publisher.error == nil && !publisher.isBusy && !publisher.pendingChanges)
+            guard let manifest = publisher.lastGood else { throw Failure.requirement }
+            try require(manifest.provider == "icloud" && manifest.snapshot.snapshotSchemaVersion == 3)
+            diagnostics["ciphertextSha256"] = manifest.snapshot.sha256
+            diagnostics["ciphertextBytes"] = manifest.snapshot.byteCount
+            // Independent explicit readback also binds actual remote bytes to the
+            // coordinator's verified manifest and the original synthetic content.
+            let remote = try await publisherTransport.download(name: manifest.snapshotName, maximumBytes: manifest.snapshot.byteCount)
+            let authenticated = try CloudWire.verifySnapshot(remote, key: recoveryKey, manifest: manifest)
+            try require(try contentDigest(authenticated) == expectedDigest)
+            phase = "fresh-local-discovery"
+            let targetDirectory = root.appendingPathComponent("target")
+            let target = isolatedVault(targetDirectory, key: targetKey)
+            try require(target.isReady && target.liveBody.recordCount == 0)
+            let before = try contentDigest(target.compatibilitySnapshot())
+            let revision = target.revision, writer = target.writerId, epoch = target.restoreEpoch
+            // A fresh transport/coordinator has no inherited publication state.
+            let receiver = CloudPublication(vault: target, provider: try CloudKitTransport(), keyReader: { recoveryKey })
+            await receiver.discover()
+            try require(receiver.error == nil && !receiver.isBusy && receiver.history.contains(manifest))
+            phase = "verified-preview-no-install"
+            await receiver.prepareRestore(manifest)
+            try require(receiver.error == nil && !receiver.isBusy)
+            guard let preview = receiver.preview else { throw Failure.requirement }
+            try require(try contentDigest(preview.snapshot) == expectedDigest)
+            try require(try contentDigest(target.compatibilitySnapshot()) == before)
+            try require(target.revision == revision && target.writerId == writer && target.restoreEpoch == epoch)
+            phase = "explicit-replace-and-reopen"
+            await receiver.confirmRestore(preview)
+            try require(receiver.error == nil && !receiver.isBusy && !receiver.enabled && target.isReady)
+            try require(try contentDigest(target.compatibilitySnapshot()) == expectedDigest)
+            let reopened = isolatedVault(targetDirectory, key: targetKey)
+            try require(reopened.isReady)
+            try require(try contentDigest(reopened.compatibilitySnapshot()) == expectedDigest)
+            phase = "passed"
+        } catch {
+            // Do not include Error descriptions: CloudKit errors may contain
+            // record/account identifiers. Failure never becomes a fake or skip.
+            XCTFail("Real CloudKit external gate failed during \(phase)")
+        }
+    }
+}
