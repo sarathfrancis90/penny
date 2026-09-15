@@ -1,0 +1,49 @@
+{
+  "observedDate": "2026-09-15",
+  "commit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "runId": 34831398270,
+  "url": "https://github.com/sarathfrancis90/penny/actions/runs/34831398270",
+  "conclusion": "success",
+  "jobs": {
+    "native-offline-android-build": "success",
+    "native-offline-android-api-37.0": "success",
+    "native-offline-android-api-26": "success",
+    "native-offline-ios-simulator": "success",
+    "native-offline-contract": "success",
+    "native-offline-gate": "success"
+  },
+  "ios": {
+    "unitPassed": 145,
+    "uiPassed": 9,
+    "separateGenerationPhasesPassed": 2,
+    "failed": 0,
+    "source": "Complete hosted native log; each distinct test suite and separate invocation counted once."
+  },
+  "android": {
+    "api26Job": "success",
+    "api37Job": "success",
+    "buildJob": "success",
+    "scope": "Completed job conclusions verified. Individual method/skip counts are not recounted in this compact capture."
+  },
+  "retainedFlutterIOS": {
+    "runId": 34831398291,
+    "url": "https://github.com/sarathfrancis90/penny/actions/runs/34831398291",
+    "conclusion": "success"
+  },
+  "repositoryRequired": {
+    "runId": 34831398249,
+    "url": "https://github.com/sarathfrancis90/penny/actions/runs/34831398249",
+    "conclusion": "success"
+  },
+  "artifactSha256": {
+    "artifacts/offline/physical-2026-09-15/hosted-native-58726be.json": "c3098f070b0c1783e9d8a7a9cf7be1b86aff6ac8d37e5c2d3c8d133b5faad010",
+    "artifacts/offline/physical-2026-09-15/hosted-native-58726be.log": "304b7fe6c413f719edb0fa60b0767415781ed5005f270cdebff0686b1853446a",
+    "artifacts/offline/physical-2026-09-15/hosted-required-58726be.json": "109519ff9766b42c22865e487509130aea0a0b1cc41be1448f3e79d556e51102",
+    "artifacts/offline/physical-2026-09-15/hosted-flutter-ios-58726be.json": "75cadc065b6f43f8ebc1c07e540c0bd7891249ec89cc1e1d9d726c86f5aea4b6"
+  },
+  "limits": [
+    "This hosted evidence covers58726be only; the later two physical-availability test methods are separate source and test evidence.",
+    "Historical failed hosted runs remain unchanged.",
+    "CI does not establish real provider, physical supported-model inference, signing for distribution, migration or store eligibility."
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "date": "2026-09-15",
+  "runtimeSourceCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "disposition": "Focused physical core/OCR/availability checkpoint passed; release remains in development.",
+  "sourceScope": "Only three test files changed since runtimeSourceCommit; runtime and portable contracts unchanged. Evidence/docs changes are separate.",
+  "testSourceSHA256": {
+    "apps/android/app/src/androidTest/java/ca/penny/offline/VaultDeviceTest.kt": "dae3a420edacc17fdab6b4f686c7d6150c9850cb64dec7fe3c619651c90c734d",
+    "apps/ios/PennyOfflineTests/CaptureTests.swift": "62c6c07883c53aa04e749e0c866c1f6b6ef61de0860fc33a7cb3716acb300e78",
+    "apps/ios/PennyOfflineUITests/CaptureFlowTests.swift": "be024ed79a67b8bf1fbe6a311a1bfed2287c14540ba3de08a0dfe5deb16fa0f3"
+  },
+  "physicalRuns": [
+    {
+      "platform": "Android",
+      "device": "Samsung SM-S928U1; Android16/API36;4KiB",
+      "selection": "Local encryption/recovery/receipts/finance/native interchange",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "report": "apps/android/evidence/physical-android-2026-09-15.json"
+    },
+    {
+      "platform": "Android",
+      "selection": "Awake QA UI create/edit/recreate/delete",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "report": "apps/android/evidence/physical-android-ui-2026-09-15.json"
+    },
+    {
+      "platform": "Android",
+      "selection": "Owner-offline bundled OCR plus repeated manual UI journey",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "report": "apps/android/evidence/physical-android-offline-2026-09-15.json"
+    },
+    {
+      "platform": "iOS",
+      "device": "iPhone13 Pro Max; iOS26.6",
+      "selection": "Initial physical encryption/receipts/recovery/file protection/OCR/UI relaunch with connectivity available",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "report": "apps/ios/evidence/physical-ios-2026-09-15.json"
+    },
+    {
+      "platform": "iOS",
+      "selection": "Development Offline profile; no network path; actual model-unavailable guard/Vision/manual editor/CRUD across relaunch",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "report": "apps/ios/evidence/physical-ios-offline-2026-09-15.json"
+    }
+  ],
+  "counting": "These are separate invocations with overlapping methods; their sum is not a unique coverage count. The iOS online two-test warmup is diagnostic evidence only.",
+  "preservedFailures": [
+    "Android first UI attempt failed while display was dozing, before expense mutation. Same artifact passed after waking the screen.",
+    "iOS initial mount/launch attempts encountered the locked phone.",
+    "Original iOS development profile rejected both bundles offline before selected XCTest methods began, both before and after successful online warmup. The vendor-supported Development Offline profile resolved it."
+  ],
+  "verification": {
+    "nativeAndHostedReportArtifactPins": 84,
+    "pinMismatches": [],
+    "iosFinalSourcePins": 318,
+    "iosBeforeAndAfterResignProductPinsEach": 293,
+    "protectedLegacyPaths": 18,
+    "protectedLegacyPathsChanged": 0,
+    "codeReview": "Root reviewed all three test diffs: Android owner-offline guard covers entry and cleanup radio setters; iOS network observation is passive and bounded; actual unavailable branch remains inference-free and manual UI uses isolated test state.",
+    "documentationReview": "Independent worker updated four status/release documents from actual reports; root reviewed and incorporated final iOS result."
+  },
+  "reportsSHA256": {
+    "apps/android/evidence/physical-android-2026-09-15.json": "fed3ceed06cd97a9c3b260131594be509be630f0823394502c8f6bb88e0bbb2d",
+    "apps/android/evidence/physical-android-ui-2026-09-15.json": "9dfdcdc387d1da8299df76e0466877bf20aa01eca772fd1273a4959624b038c4",
+    "apps/android/evidence/physical-android-offline-2026-09-15.json": "bf0236785072e65b0c84180cc7ce3fa3a85b84aa98240cf5a191f05d31b844a9",
+    "apps/ios/evidence/physical-ios-2026-09-15.json": "e85f8f008041ccd112de2e87fad6bc7a599ed849d42f09df531e85faf31c0e22",
+    "apps/ios/evidence/physical-ios-offline-2026-09-15.json": "d2a8d16e6bbb084b6b456161efa03044d91360fad613147d0827be1bb842c1bc",
+    "docs/offline/evidence/hosted-native-58726be.json": "b4a6d93ae8b597df41364c59c2749fdf1387021634e682c047d8e0a2a7b0b0f3"
+  },
+  "remaining": [
+    "Real cloud-provider configuration/consent, encrypted remote completion, clean recovery and background qualification.",
+    "Complete legacy acquisition/reconciliation and signed in-place Flutter upgrade.",
+    "Supported-device generative inference, camera/HEIC quality and SDK/system-service traffic observation.",
+    "Physical accessibility, key-protection/locked/full-disk/interruption and current-cap latency/memory/battery matrix.",
+    "Distribution signing, store internal testing, rollout and web dependency retirement gates."
+  ],
+  "limits": [
+    "No shipping application was installed, reset or upgraded. QA identities and synthetic records remain separate.",
+    "CrowdStrike and owner radio settings were not changed by the agent.",
+    "iOS development profile expires2026-09-22 18:31:52UTC; no App Store limitation is inferred.",
+    "Hosted58726be success applies to that commit, before the three test overlays."
+  ]
+}

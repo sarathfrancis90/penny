@@ -1,7 +1,10 @@
 import AVFoundation
 import CryptoKit
+import FoundationModels
 import ImageIO
+import Network
 import Security
+import Synchronization
 import UIKit
 import UniformTypeIdentifiers
 import XCTest
@@ -10,6 +13,62 @@ import XCTest
 final class CaptureTests: XCTestCase {
     private func file(_ name: String) throws -> Data { try Data(contentsOf: XCTUnwrap(Bundle(for: Self.self).resourceURL).appendingPathComponent("fixtures/" + name)) }
     private let publicKey = "pny1-" + String(repeating: "01", count: 32)
+    @MainActor func testActualModelAvailabilityPreservesDeterministicReceiptFallback() async throws {
+        let monitor = NWPathMonitor(), received = XCTestExpectation(description: "First observed network path")
+        let firstStatus = Mutex<String?>(nil)
+        monitor.pathUpdateHandler = { path in
+            let status: String
+            switch path.status {
+            case .satisfied: status = "satisfied"
+            case .unsatisfied: status = "unsatisfied"
+            case .requiresConnection: status = "requiresConnection"
+            @unknown default: status = "unknown"
+            }
+            let first = firstStatus.withLock { value in
+                guard value == nil else { return false }; value = status; return true
+            }
+            if first { received.fulfill() }
+        }
+        monitor.start(queue: DispatchQueue(label: "ca.penny.offline.tests.path-observation"))
+        defer { monitor.cancel() }
+        let wait = await XCTWaiter.fulfillment(of: [received], timeout: 5)
+        monitor.cancel()
+        let status = firstStatus.withLock { $0 } ?? "callbackTimedOut"
+        let expectsOffline = ProcessInfo.processInfo.environment["PENNY_EXPECT_OFFLINE"] == "1"
+        let pathAttachment = XCTAttachment(string: "pathStatus=\(status); expectsOffline=\(expectsOffline); passive observation only; no network probe")
+        pathAttachment.name = "Actual network path"; pathAttachment.lifetime = .keepAlways; add(pathAttachment)
+        XCTAssertEqual(wait, .completed, "No network path callback within five seconds")
+        if expectsOffline { XCTAssertEqual(status, "unsatisfied", "Offline qualification requires an unsatisfied network path") }
+        struct Entry: Decodable { let name: String; let locale: String; let input: String? }
+        struct Corpus: Decodable { let cases: [Entry] }
+        let corpus = try JSONDecoder().decode(Corpus.self, from: file("receipt-parser-corpus.json"))
+        let fixture = try XCTUnwrap(corpus.cases.first { $0.name == "English explicit total" })
+        let source = try XCTUnwrap(fixture.input)
+        let parsed = try ReceiptParser.parse(source, locale: fixture.locale)
+        XCTAssertEqual(parsed.merchant, "Café Toronto"); XCTAssertEqual(parsed.amountMinor, 1130)
+        XCTAssertEqual(parsed.currencyCode, "CAD"); XCTAssertTrue(parsed.requiresReview)
+        let availability = SystemLanguageModel.default.availability
+        let diagnostic: String
+        switch availability {
+        case .available:
+            diagnostic = "availability=available; inference not requested; inference quality not assessed"
+        case .unavailable(let reason):
+            diagnostic = "availability=unavailable; reason=\(String(describing: reason)); unavailable suggestion guard exercised"
+        @unknown default:
+            diagnostic = "availability=unknown; inference not requested"
+        }
+        let attachment = XCTAttachment(string: diagnostic)
+        attachment.name = "Actual on-device model availability"; attachment.lifetime = .keepAlways; add(attachment)
+        if case .unavailable = availability {
+            do {
+                _ = try await LocalAssistant.suggest(source, locale: fixture.locale)
+                XCTFail("Unavailable model returned a suggestion")
+            } catch LocalAssistant.AssistantError.unavailable {
+                // The existing availability guard returns before session creation.
+            } catch { XCTFail("Expected unavailable error, received \(error)") }
+        }
+        XCTAssertEqual(try ReceiptParser.parse(source, locale: fixture.locale), parsed)
+    }
     func testAllSharedReceiptCorpusCases() throws {
         struct Repeat: Decodable { let value: String; let count: Int }
         struct Entry: Decodable {

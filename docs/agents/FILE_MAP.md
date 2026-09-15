@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 1488
+- Total source-visible files: 1495
 
 | Path | Area |
 |---|---|
@@ -219,6 +219,9 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/android/evidence/p6-performance-final-suite.json` | native-android |
 | `apps/android/evidence/p6-process-open.json` | native-android |
 | `apps/android/evidence/p6-source-sha256.txt` | native-android |
+| `apps/android/evidence/physical-android-2026-09-15.json` | native-android |
+| `apps/android/evidence/physical-android-offline-2026-09-15.json` | native-android |
+| `apps/android/evidence/physical-android-ui-2026-09-15.json` | native-android |
 | `apps/android/evidence/raw-savings.json` | native-android |
 | `apps/android/evidence/receipt-candidate.json` | native-android |
 | `apps/android/evidence/receipt-candidate.md` | native-android |
@@ -406,6 +409,8 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/ios/evidence/metadata-retention.md` | native-ios |
 | `apps/ios/evidence/observed-savings-migration.json` | native-ios |
 | `apps/ios/evidence/observed-savings-migration.md` | native-ios |
+| `apps/ios/evidence/physical-ios-2026-09-15.json` | native-ios |
+| `apps/ios/evidence/physical-ios-offline-2026-09-15.json` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.json` | native-ios |
 | `apps/ios/evidence/receipt-reuse-performance.md` | native-ios |
 | `apps/ios/evidence/v4-app-module.json` | native-ios |
@@ -548,6 +553,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/hosted-native-02e6da8.json` | docs |
 | `docs/offline/evidence/hosted-native-1305c5e.json` | docs |
 | `docs/offline/evidence/hosted-native-2114c61.json` | docs |
+| `docs/offline/evidence/hosted-native-58726be.json` | docs |
 | `docs/offline/evidence/hosted-native-59304d7.json` | docs |
 | `docs/offline/evidence/hosted-native-59877b1.json` | docs |
 | `docs/offline/evidence/hosted-native-5d98016.json` | docs |
@@ -590,6 +596,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `docs/offline/evidence/metadata-retention-risk.md` | docs |
 | `docs/offline/evidence/native-demo-metadata.json` | docs |
 | `docs/offline/evidence/native-source-provenance.json` | docs |
+| `docs/offline/evidence/physical-session-integration.json` | docs |
 | `docs/offline/evidence/raw-export-validation.json` | docs |
 | `docs/offline/evidence/raw-migration-native.json` | docs |
 | `docs/offline/evidence/raw-migration-validation.json` | docs |

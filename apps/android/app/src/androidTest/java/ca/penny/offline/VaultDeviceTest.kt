@@ -117,6 +117,7 @@ class VaultDeviceTest {
         }
     }
     @Test fun bundledReceiptOcrWorksWithDeviceNetworksDisabled() = runBlocking {
+        val ownerOffline=InstrumentationRegistry.getArguments().getString("pennyOwnerOffline")=="true"
         val automation=InstrumentationRegistry.getInstrumentation().uiAutomation
         fun shell(command: String)=android.os.ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand(command)).bufferedReader().use {it.readText().trim()}
         val wifi=shell("settings get global wifi_on");val data=shell("settings get global mobile_data")
@@ -146,7 +147,7 @@ class VaultDeviceTest {
             while((android.provider.Settings.Global.getInt(context.contentResolver,"airplane_mode_on",0)!=0)!=enabled && System.nanoTime()<end) Thread.sleep(50)
             check((android.provider.Settings.Global.getInt(context.contentResolver,"airplane_mode_on",0)!=0)==enabled)
         }
-        if(android.os.Build.VERSION.SDK_INT<28) airplane(true) else {shell("svc wifi disable");shell("svc data disable")}
+        if(!ownerOffline) {if(android.os.Build.VERSION.SDK_INT<28) airplane(true) else {shell("svc wifi disable");shell("svc data disable")}}
         val image = Bitmap.createBitmap(900, 500, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(image); canvas.drawColor(Color.WHITE)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK; textSize = 58f }
@@ -164,6 +165,6 @@ class VaultDeviceTest {
             val draft = ai.receipt(context, Uri.fromFile(file))
             assertTrue(draft.merchant.orEmpty().contains("PENNY"))
             assertEquals("12.34", draft.amount)
-        } finally { ai.close(); file.delete(); image.recycle();if(android.os.Build.VERSION.SDK_INT<28) airplane(oldAirplane) else {if(wifi!="0") shell("svc wifi enable");if(data!="0") shell("svc data enable")} }
+        } finally { ai.close(); file.delete(); image.recycle();if(!ownerOffline) {if(android.os.Build.VERSION.SDK_INT<28) airplane(oldAirplane) else {if(wifi!="0") shell("svc wifi enable");if(data!="0") shell("svc data enable")}} }
     }
 }

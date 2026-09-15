@@ -1,0 +1,71 @@
+{
+  "date": "2026-09-15",
+  "scope": "First physical Android focused local QA; isolated synthetic test state, not complete release qualification.",
+  "device": {
+    "manufacturer": "Samsung",
+    "model": "SM-S928U1",
+    "android": "16",
+    "api": 36,
+    "abi": "arm64-v8a",
+    "pageBytes": 4096,
+    "securityPatch": "2026-08-05"
+  },
+  "sourceReviewCommit": "58726be7dffe3a2fc44885086981b1077f781887",
+  "sourceValidation": "104 pinned Android main/test/fixture files plus Gradle/shared codec hashes match committed review. Existing exact APKs reused; no rebuild or source mutation.",
+  "installedArtifacts": {
+    "ca.penny.offline.dev.test": {
+      "apkSha256": "8fd47b9640953d166c664ab4b679866676a24096c61ad2e8ebf9f267f76e04c5"
+    },
+    "ca.penny.offline.dev.test.test": {
+      "apkSha256": "afb9426ce2aeb9f826d2e42f79babbcdf5928d360e52c0ab229ccd754f1bc568"
+    }
+  },
+  "signerCertificateSha256": "071f57552b16e53af2559307a04072d36077297e638c83af36ad9f734637e402",
+  "qaAbsentBeforeInstall": true,
+  "shippingPackage": "com.penny.penny_mobile",
+  "shippingIdentityUnchanged": true,
+  "launch": "am start -W returned success; no UI journey assertion in these instrumentation methods.",
+  "result": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "instrumentationSeconds": 3.871,
+    "tests": {
+      "ca.penny.offline.VaultDeviceTest#receiptRestoreIsEncryptedCompleteAndRollsBackOnStorageFailure": "Unique test UUID database and key alias. Synthetic golden restore/native PNG decode, temporary SQL abort, stale revision rejection, delete own expense; writes only synthetic encrypted backup in QA files.",
+      "ca.penny.offline.VaultDeviceTest#ciphertextPersistsAndConfirmedBackupRecoversLostKey": "Unique test UUID database/key. Deliberately deletes own test alias then verifies restore. Never default/other keys.",
+      "ca.penny.offline.LiveStateDeviceTest#sharedMetadataEditPreservesAllDomainsCiphertextAndFreshReopen": "Private UUID noBackup child/database/key; native shared fixture, actual live metadata edit, exact all domains/raw receipts/ciphertext, cleans own child/key.",
+      "ca.penny.offline.FinanceDeviceTest#postingIsAtomicIdempotentAndRestoreRejectsFinanceEdits": "Unique finance-test UUID database/key; synthetic finance post/edit/reference/temporary SQL rollback checks; cleans own database/key.",
+      "ca.penny.offline.V4NativeWriterInterchangeDeviceTest#swiftWriterBytesPrepareInstallAndFreshStoreReopenExactly": "Private UUID noBackup child/database/key; exact public Swift-captured backup, native two-pass/guarded install/new-store reopen, cleans owned state."
+    }
+  },
+  "keyEvidence": "Actual device Android Keystore encrypt/reopen and deletion/recovery of unique test aliases passed. No KeyInfo security-level/TEE/StrongBox attestation capability exists in current tests; hardware backing not established.",
+  "privacy": "Device serial, full build fingerprint, installed paths and raw command/package dumps remain ignored private artifacts. No recovery keys or personal ledger data in this report.",
+  "limits": [
+    "Shipping app/data and normal emulator demos were not touched. Only QA packages installed; QA force-stopped after tests. No package/data clear or uninstall.",
+    "Network, global settings, permissions and cloud accounts unchanged. This was not an airplane-mode or traffic test.",
+    "Camera/real OCR/model availability, background/lock behavior, physical power-loss/full-disk, provider completion and resource matrix were not run.",
+    "New-store reopen is not physical second-device or fresh-process proof. SQL failures are injected transaction failures."
+  ],
+  "artifactSha256": {
+    "artifacts/offline/physical-android-sep15/source-verification.json": "908209ccb3f963dee7c1afa9e881216c97fb7bfd14c2693c9ef56f5cf77a8732",
+    "artifacts/offline/physical-android-sep15/run.py": "222379a89580f20f35bc72269e7b26160813122ef3d8e8614f0cc4d43fe036be",
+    "artifacts/offline/physical-android-sep15/installed-artifacts.json": "efa59912e077e4a5002bceeeeb599b94f5c979ea690e164824a05cd17379a8d5",
+    "artifacts/offline/physical-android-sep15/shipping-after.log": "9e241d1ad6001aa5f5f5d84dfbc3163addcfe12f038cfb6994ef6ed4ede594d0",
+    "artifacts/offline/physical-android-sep15/launch.log": "656e30086335c0b98d7697da1c9b93adeaf8d0eecc0bc0b00731d0997c15fc42",
+    "artifacts/offline/physical-android-sep15/usb-inventory-private.txt": "f15a01d708b35dbfec93018b01fb4789c83c0f01a1f493dcd6d318bda8d41598",
+    "artifacts/offline/physical-android-sep15/artifact-sha256.json": "9e7b246b7648795ab4df9ea1263289e6adfb6d21404a0520abe54d318a8e5af5",
+    "artifacts/offline/physical-android-sep15/commands-private.json": "2c1379138dfde90e57bcfadd79060c1787428296b00a595056a8a7644128308e",
+    "artifacts/offline/physical-android-sep15/stop-qa.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/offline/physical-android-sep15/app.apk": "8fd47b9640953d166c664ab4b679866676a24096c61ad2e8ebf9f267f76e04c5",
+    "artifacts/offline/physical-android-sep15/physical-serial-private.txt": "e735d367a5e90bdc248e92a22692e20d7916b3e473fc2176510c4ced4e1b0e08",
+    "artifacts/offline/physical-android-sep15/install-app.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/physical-android-sep15/shipping-before.log": "5ce5d0c81ea9c0f49f04c7a80834a6ad934304804cb01b65da97885457063f01",
+    "artifacts/offline/physical-android-sep15/app-signer.log": "f7267d3eff18454654f04dee4f9c7d8574aa343029f524b4e3c037e53da8eb10",
+    "artifacts/offline/physical-android-sep15/tests.log": "cc1c22b9b4351b1b4fad07b5221e6901fea3b5d7e47eafa4ddeff585685b1afb",
+    "artifacts/offline/physical-android-sep15/test.apk": "afb9426ce2aeb9f826d2e42f79babbcdf5928d360e52c0ab229ccd754f1bc568",
+    "artifacts/offline/physical-android-sep15/selected-tests-effects.json": "307c8cd12d0a26c54f27f1c623e50551122494a530ff6bfeb0052d46e4a1e663",
+    "artifacts/offline/physical-android-sep15/device-before-private.json": "e49b23b44383f806638cc78080a1623f95cbeb759919fefe668c0752940779d2",
+    "artifacts/offline/physical-android-sep15/install-test.log": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7",
+    "artifacts/offline/physical-android-sep15/test-signer.log": "f7267d3eff18454654f04dee4f9c7d8574aa343029f524b4e3c037e53da8eb10"
+  }
+}

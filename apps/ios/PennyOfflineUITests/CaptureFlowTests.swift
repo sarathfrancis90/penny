@@ -1,6 +1,38 @@
 import XCTest
 
 @MainActor final class CaptureFlowTests: XCTestCase {
+    func testActualAvailabilityMessageAndManualEditorRemainUsable() {
+        let app = XCUIApplication(); app.launchArguments = ["--uitesting", "--reset-vault"]; app.launch()
+        app.buttons["Vault"].tap()
+        let messages = [
+            "Apple Intelligence is ready on this device.",
+            "This device does not support Apple Intelligence. Receipt text recognition and manual entry still work offline.",
+            "Enable Apple Intelligence in Settings to use text suggestions. Manual entry and receipt text recognition work offline.",
+            "Apple's on-device model is not ready. It may need its initial download. Manual entry and receipt text recognition work offline.",
+            "On-device text suggestions are unavailable. You can still add expenses manually."
+        ]
+        let message = app.staticTexts.matching(NSPredicate(format: "label IN %@", messages)).firstMatch
+        // Scroll only the QA app. No Settings, camera, Photos or model request.
+        for _ in 0..<6 {
+            if message.exists && message.isHittable && app.frame.contains(message.frame) { break }
+            app.swipeUp()
+        }
+        guard message.exists, message.isHittable, app.frame.contains(message.frame), message.frame.height > 0 else {
+            XCTFail("The complete model-availability message is not visible in Vault"); return
+        }
+        let text = XCTAttachment(string: message.label)
+        text.name = "Actual availability accessibility text"; text.lifetime = .keepAlways; add(text)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Actual availability visible in Vault"; screenshot.lifetime = .keepAlways; add(screenshot)
+        app.buttons["Expenses"].tap(); app.buttons["addExpense"].tap()
+        let merchant = app.textFields["merchantField"]
+        XCTAssertTrue(merchant.waitForExistence(timeout: 5)); merchant.tap(); merchant.typeText("Manual Availability Check")
+        let amount = app.textFields["amountField"]; amount.tap(); amount.typeText("7.00")
+        XCTAssertTrue(app.buttons["saveExpense"].isEnabled)
+        app.buttons["Cancel"].tap()
+        XCTAssertTrue(app.staticTexts["A fresh start"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["expense-Manual Availability Check"].exists)
+    }
     func testReceiptDraftRequiresReviewAndCameraFallbackPreservesManualEntry() {
         let app = XCUIApplication(); app.launchArguments = ["--uitesting", "--reset-vault"]; app.launch()
         app.buttons["addExpense"].tap(); app.buttons["Capture on device"].tap()
