@@ -97,6 +97,8 @@ jobs:
           IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REPOSITORY}/${CLOUD_RUN_SERVICE}:${GITHUB_SHA}"
           echo "IMAGE=${IMAGE}" >> "$GITHUB_ENV"
           echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          # Attestation subjects must be the repository name without a tag.
+          echo "image_name=${IMAGE%:*}" >> "$GITHUB_OUTPUT"
           docker build -f Dockerfile.api -t "$IMAGE" .
 
       - name: Scan API image
@@ -138,7 +140,7 @@ jobs:
       - name: Attest image provenance
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32
         with:
-          subject-name: ${{ steps.build-image.outputs.image }}
+          subject-name: ${{ steps.build-image.outputs.image_name }}
           subject-digest: ${{ steps.push-image.outputs.image_digest }}
           push-to-registry: true
 
