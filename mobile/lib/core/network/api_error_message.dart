@@ -8,6 +8,9 @@ const kServerErrorMessage =
 const kNetworkErrorMessage =
     "Couldn't reach Penny. Check your connection and try again.";
 const kGenericErrorMessage = 'Something went wrong. Please try again.';
+const kPhotoTooLargeMessage =
+    'That photo is too large to upload. Try retaking it a little further '
+    'away, or crop it first.';
 
 /// Converts an API/network error into a short message safe to show users.
 ///
@@ -31,6 +34,7 @@ String apiErrorMessage(Object error) {
 
   if (body['code'] == 'AI_UNAVAILABLE') return kAiUnavailableMessage;
   if (status == null) return kGenericErrorMessage;
+  if (status == 413) return kPhotoTooLargeMessage;
   if (status >= 500) return kServerErrorMessage;
 
   final details = body['details'];

@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply } from 'fastify';
 
 import type { DataScope, MobileDataService } from '../../services/mobile-data';
+import { PHOTO_UPLOAD_BODY_LIMIT } from '../upload-limits';
 
 function forbiddenUserMismatch(value: unknown, authUserId: string) {
   return typeof value === 'string' && value.length > 0 && value !== authUserId;
@@ -328,7 +329,10 @@ function registerMediaRoutes(
   kind: 'receipt' | 'avatar',
 ) {
   app.post(`/api/media/${kind}`, {
-    preHandler: app.requireUser,
+    // Authenticate before the body is read so only signed-in users can
+    // send the larger photo payload.
+    onRequest: app.requireUser,
+    bodyLimit: PHOTO_UPLOAD_BODY_LIMIT,
     handler: async (request, reply) => {
       const body = bodyRecord(request.body);
       if (forbiddenUserMismatch(body.userId, request.user.uid)) {

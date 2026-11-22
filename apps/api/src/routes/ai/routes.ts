@@ -5,6 +5,7 @@ import {
   isExpenseCategory,
 } from '../../../../../packages/shared/src/categories';
 import type { AiService, ParsedExpense } from '../../services/ai';
+import { PHOTO_UPLOAD_BODY_LIMIT } from '../upload-limits';
 
 function normalizeParsedExpense(expense: ParsedExpense): ParsedExpense {
   return {
@@ -17,7 +18,10 @@ function normalizeParsedExpense(expense: ParsedExpense): ParsedExpense {
 
 export async function registerAiRoutes(app: FastifyInstance, ai: AiService) {
   app.post('/api/analyze-expense', {
-    preHandler: app.requireUser,
+    // Authenticate before the body is read so only signed-in users can
+    // send the larger photo payload.
+    onRequest: app.requireUser,
+    bodyLimit: PHOTO_UPLOAD_BODY_LIMIT,
     handler: async (request, reply) => {
       const body = request.body as {
         text?: string;

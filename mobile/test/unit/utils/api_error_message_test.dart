@@ -29,6 +29,17 @@ void main() {
       expect(message, isNot(contains('DioException')));
     });
 
+    test('413 tells the user the photo is too large', () {
+      final message = apiErrorMessage(
+        _badResponse(413, {
+          'error': 'Request failed',
+          'details': 'Request body is too large',
+        }),
+      );
+      expect(message, kPhotoTooLargeMessage);
+      expect(message, isNot(contains('DioException')));
+    });
+
     test('generic 5xx never leaks the raw DioException text', () {
       final message = apiErrorMessage(_badResponse(500, {'error': 'x'}));
       expect(message, kServerErrorMessage);

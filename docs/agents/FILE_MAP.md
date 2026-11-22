@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 846
+- Total source-visible files: 848
 
 | Path | Area |
 |---|---|
@@ -62,6 +62,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/api/src/config/__tests__/env.test.ts` | standalone-api |
 | `apps/api/src/config/env.ts` | standalone-api |
 | `apps/api/src/routes/__tests__/route-surface.test.ts` | standalone-api |
+| `apps/api/src/routes/__tests__/upload-limits.test.ts` | standalone-api |
 | `apps/api/src/routes/ai/__tests__/ai.routes.test.ts` | standalone-api |
 | `apps/api/src/routes/ai/routes.ts` | standalone-api |
 | `apps/api/src/routes/budgets/__tests__/budgets.routes.test.ts` | standalone-api |
@@ -74,6 +75,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/api/src/routes/groups/__tests__/groups.routes.test.ts` | standalone-api |
 | `apps/api/src/routes/groups/routes.ts` | standalone-api |
 | `apps/api/src/routes/mobile-data/routes.ts` | standalone-api |
+| `apps/api/src/routes/upload-limits.ts` | standalone-api |
 | `apps/api/src/routes/user/__tests__/user.routes.test.ts` | standalone-api |
 | `apps/api/src/routes/user/routes.ts` | standalone-api |
 | `apps/api/src/server.ts` | standalone-api |
