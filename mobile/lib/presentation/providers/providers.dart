@@ -18,6 +18,7 @@ import 'package:penny_mobile/data/services/export_service.dart';
 import 'package:penny_mobile/data/services/push_notification_service.dart';
 import 'package:penny_mobile/data/services/storage_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/default_group_selection.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(baseUrl: EnvConfig.apiBaseUrl);
@@ -106,6 +107,6 @@ final defaultGroupProvider = StreamProvider<String?>((ref) {
   return Stream.fromFuture(
     api
         .get(ApiEndpoints.defaultGroup, queryParameters: {'userId': user.uid})
-        .then((response) => responseMap(response)['groupId'] as String?),
+        .then((response) => parseDefaultGroupId(responseMap(response))),
   );
 });

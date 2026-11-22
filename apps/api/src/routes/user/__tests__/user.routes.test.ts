@@ -40,6 +40,37 @@ describe('user preference and account routes', () => {
     await app.close();
   });
 
+  it.each([['group-1'], [null]])(
+    'returns the default group (%s) under both field names',
+    async (defaultGroupId) => {
+      const getDefaultGroup = vi.fn(async () => ({ defaultGroupId }));
+      const app = await buildApiApp({
+        readyCheck: async () => undefined,
+        auth: { verifyIdToken: async () => ({ uid: 'user-1' }) },
+        services: {
+          userPreferences: {
+            getDefaultGroup,
+            setDefaultGroup: vi.fn(),
+            clearDefaultGroup: vi.fn(),
+          },
+        } as never,
+      });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/api/user/default-group?userId=user-1',
+        headers: { authorization: 'Bearer valid-token' },
+      });
+
+      expect(response.statusCode).toBe(200);
+      // `groupId` is what released mobile builds read.
+      expect(response.json()).toEqual({ defaultGroupId, groupId: defaultGroupId });
+      expect(getDefaultGroup).toHaveBeenCalledWith({ userId: 'user-1' });
+
+      await app.close();
+    },
+  );
+
   it('deletes the authenticated account through the account service', async () => {
     const deleteAccount = vi.fn(async () => ({
       success: true,

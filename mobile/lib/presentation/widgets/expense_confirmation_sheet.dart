@@ -9,6 +9,7 @@ import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
+import 'package:penny_mobile/presentation/providers/default_group_selection.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
@@ -285,21 +286,23 @@ class _ExpenseConfirmationSheetState
     final defaultGroupAsync = ref.watch(defaultGroupProvider);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    // Apply default group once when data becomes available.
+    // Apply the saved default group once it and the groups list have loaded.
     if (!_defaultGroupApplied) {
-      defaultGroupAsync.whenData((defaultGroupId) {
-        if (defaultGroupId != null && _selectedGroupId == null) {
-          // Verify the default group is still in the user's groups list.
-          final groups = groupsAsync.valueOrNull ?? [];
-          final exists = groups.any((g) => g.id == defaultGroupId);
-          if (exists) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) setState(() => _selectedGroupId = defaultGroupId);
-            });
-          }
-        }
+      final selection = resolveDefaultGroup(
+        defaultGroup: defaultGroupAsync,
+        groups: groupsAsync,
+      );
+      if (selection.resolved) {
         _defaultGroupApplied = true;
-      });
+        final defaultGroupId = selection.groupId;
+        if (defaultGroupId != null && _selectedGroupId == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _selectedGroupId == null) {
+              setState(() => _selectedGroupId = defaultGroupId);
+            }
+          });
+        }
+      }
     }
 
     return Padding(

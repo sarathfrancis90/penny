@@ -35,7 +35,12 @@ export async function registerUserRoutes(
         return sendUserMismatch(reply);
       }
 
-      return userPreferences.getDefaultGroup({ userId: request.user.uid });
+      const result = await userPreferences.getDefaultGroup({
+        userId: request.user.uid,
+      });
+      // Released mobile builds read `groupId`; the canonical field is
+      // `defaultGroupId`. Send both so every app version sees the default.
+      return { ...result, groupId: result.defaultGroupId };
     },
   });
 

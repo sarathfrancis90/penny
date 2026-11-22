@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 848
+- Total source-visible files: 851
 
 | Path | Area |
 |---|---|
@@ -372,6 +372,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `mobile/lib/presentation/providers/biometric_provider.dart` | mobile |
 | `mobile/lib/presentation/providers/budget_providers.dart` | mobile |
 | `mobile/lib/presentation/providers/chat_provider.dart` | mobile |
+| `mobile/lib/presentation/providers/default_group_selection.dart` | mobile |
 | `mobile/lib/presentation/providers/expense_providers.dart` | mobile |
 | `mobile/lib/presentation/providers/group_budget_providers.dart` | mobile |
 | `mobile/lib/presentation/providers/group_income_providers.dart` | mobile |
@@ -490,6 +491,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `mobile/test/unit/models/notification_preferences_test.dart` | mobile |
 | `mobile/test/unit/models/savings_model_test.dart` | mobile |
 | `mobile/test/unit/providers/budget_providers_test.dart` | mobile |
+| `mobile/test/unit/providers/default_group_selection_test.dart` | mobile |
 | `mobile/test/unit/providers/expense_providers_test.dart` | mobile |
 | `mobile/test/unit/providers/filter_providers_test.dart` | mobile |
 | `mobile/test/unit/providers/income_providers_test.dart` | mobile |
@@ -511,6 +513,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `mobile/test/unit/utils/api_error_message_test.dart` | mobile |
 | `mobile/test/unit/utils/validators_test.dart` | mobile |
 | `mobile/test/widget_test.dart` | mobile |
+| `mobile/test/widgets/default_group_preselect_test.dart` | mobile |
 | `next.config.ts` | repo |
 | `osv-scanner.toml` | repo |
 | `package-lock.json` | repo |

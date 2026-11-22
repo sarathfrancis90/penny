@@ -4,7 +4,7 @@
 
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
-- Total mobile files: 265
+- Total mobile files: 268
 - Current source layout: `mobile/lib/core`, `mobile/lib/data`, and `mobile/lib/presentation`
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
@@ -75,6 +75,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/presentation/providers/biometric_provider.dart`
 - `mobile/lib/presentation/providers/budget_providers.dart`
 - `mobile/lib/presentation/providers/chat_provider.dart`
+- `mobile/lib/presentation/providers/default_group_selection.dart`
 - `mobile/lib/presentation/providers/expense_providers.dart`
 - `mobile/lib/presentation/providers/group_budget_providers.dart`
 - `mobile/lib/presentation/providers/group_income_providers.dart`
@@ -149,6 +150,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/test/unit/models/notification_preferences_test.dart`
 - `mobile/test/unit/models/savings_model_test.dart`
 - `mobile/test/unit/providers/budget_providers_test.dart`
+- `mobile/test/unit/providers/default_group_selection_test.dart`
 - `mobile/test/unit/providers/expense_providers_test.dart`
 - `mobile/test/unit/providers/filter_providers_test.dart`
 - `mobile/test/unit/providers/income_providers_test.dart`
@@ -170,6 +172,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/test/unit/utils/api_error_message_test.dart`
 - `mobile/test/unit/utils/validators_test.dart`
 - `mobile/test/widget_test.dart`
+- `mobile/test/widgets/default_group_preselect_test.dart`
 
 ## Integration Tests
 

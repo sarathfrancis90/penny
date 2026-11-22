@@ -479,7 +479,7 @@ class IntegrationFakeApiClient extends ApiClient {
       return {'conversations': conversations};
     }
     if (path == ApiEndpoints.defaultGroup) {
-      return {'groupId': integrationGroupId};
+      return {'defaultGroupId': integrationGroupId};
     }
     if (path == ApiEndpoints.userProfile) {
       return {
