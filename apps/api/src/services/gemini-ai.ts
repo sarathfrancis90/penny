@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { ApiError, GoogleGenAI, Type } from '@google/genai';
 
 import {
   CANONICAL_OTHER_EXPENSE_CATEGORY,
@@ -125,8 +125,31 @@ function normalizeExpenseList(parsed: unknown): ParsedExpense[] {
   throw new Error('AI response JSON was not an expense object');
 }
 
+/**
+ * Gemini rejected the call (billing/credits, quota, overload, bad key...).
+ * Surfaced to clients as a retryable 503 instead of an opaque 500.
+ */
+function toAiUnavailableError(error: unknown): unknown {
+  if (!(error instanceof ApiError)) return error;
+  return Object.assign(new Error('AI service is temporarily unavailable'), {
+    statusCode: 503,
+    code: 'AI_UNAVAILABLE',
+    upstreamStatus: error.status,
+    cause: error,
+  });
+}
+
 export function createGeminiAiService(apiKey: string): AiService {
   const genAI = new GoogleGenAI({ apiKey });
+  const generateContent: typeof genAI.models.generateContent = async (
+    params,
+  ) => {
+    try {
+      return await genAI.models.generateContent(params);
+    } catch (error) {
+      throw toAiUnavailableError(error);
+    }
+  };
 
   return {
     async analyzeExpense(input: AnalyzeExpenseInput) {
@@ -153,7 +176,7 @@ export function createGeminiAiService(apiKey: string): AiService {
         });
       }
 
-      const result = await genAI.models.generateContent({
+      const result = await generateContent({
         model: 'gemini-3-flash-preview',
         contents,
         config: {
@@ -172,7 +195,7 @@ export function createGeminiAiService(apiKey: string): AiService {
       const history = input.conversationHistory
         .map((message) => `${message.role}: ${message.content}`)
         .join('\n');
-      const result = await genAI.models.generateContent({
+      const result = await generateContent({
         model: 'gemini-3-flash-preview',
         contents: [
           {

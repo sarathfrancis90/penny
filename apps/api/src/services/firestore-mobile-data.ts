@@ -64,6 +64,33 @@ function scopedOwnerField(scope: DataScope) {
   return scope === 'personal' ? 'userId' : 'groupId';
 }
 
+export const EXPENSE_PAGE_SIZE = 500;
+export const MAX_LISTED_EXPENSES = 10_000;
+
+interface PageableQuery<D> {
+  limit(n: number): PageableQuery<D>;
+  startAfter(doc: D): PageableQuery<D>;
+  get(): Promise<{ docs: D[] }>;
+}
+
+/** Reads an ordered query page by page until it is exhausted or `max` is hit. */
+export async function collectPages<D>(
+  query: PageableQuery<D>,
+  pageSize: number,
+  max: number,
+): Promise<D[]> {
+  const all: D[] = [];
+  let last: D | undefined;
+  while (all.length < max) {
+    const take = Math.min(pageSize, max - all.length);
+    const page = await (last ? query.startAfter(last) : query).limit(take).get();
+    all.push(...page.docs);
+    if (page.docs.length < take) break;
+    last = page.docs[page.docs.length - 1];
+  }
+  return all;
+}
+
 function safeLimit(limit: unknown, fallback = 100) {
   const parsed = Number(limit);
   return Number.isInteger(parsed) && parsed > 0
@@ -205,9 +232,16 @@ export function createFirestoreMobileDataService(
         query = query.where('groupMetadata.approvalStatus', '==', input.approvalStatus);
       }
       if (input.category) query = query.where('category', '==', input.category);
-      query = query.orderBy('date', 'desc').limit(safeLimit(input.limit));
-      const snap = await query.get();
-      return { expenses: snap.docs.map(serializeDoc) };
+      query = query.orderBy('date', 'desc');
+      // The mobile dashboard filters date ranges on the device, so a caller
+      // that does not ask for a limit gets the full history, not just the
+      // newest page.
+      if (input.limit !== undefined) {
+        const snap = await query.limit(safeLimit(input.limit)).get();
+        return { expenses: snap.docs.map(serializeDoc) };
+      }
+      const docs = await collectPages(query, EXPENSE_PAGE_SIZE, MAX_LISTED_EXPENSES);
+      return { expenses: docs.map(serializeDoc) };
     },
 
     async getExpense(input) {

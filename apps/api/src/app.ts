@@ -123,11 +123,32 @@ export async function buildApiApp(
     reply.header(REQUEST_ID_HEADER, requestId);
   });
 
-  app.setErrorHandler(async (error, _request, reply) => {
-    const fastifyError = error as Error & { statusCode?: number };
+  app.setErrorHandler(async (error, request, reply) => {
+    const fastifyError = error as Error & {
+      statusCode?: number;
+      code?: string;
+      upstreamStatus?: number;
+    };
     const statusCode = fastifyError.statusCode && fastifyError.statusCode >= 400
       ? fastifyError.statusCode
       : 500;
+
+    if (statusCode >= 500) {
+      request.log.error(
+        { err: error, upstreamStatus: fastifyError.upstreamStatus },
+        'request failed',
+      );
+    }
+
+    if (statusCode === 503) {
+      return reply.status(503).send({
+        error: 'Service unavailable',
+        ...(fastifyError.code ? { code: fastifyError.code } : {}),
+        details: fastifyError.message,
+        requestId: reply.getHeader(REQUEST_ID_HEADER),
+      });
+    }
+
     return jsonError(
       reply,
       statusCode,

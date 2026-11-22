@@ -4,7 +4,7 @@
 
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
-- Total mobile files: 263
+- Total mobile files: 265
 - Current source layout: `mobile/lib/core`, `mobile/lib/data`, and `mobile/lib/presentation`
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
@@ -23,6 +23,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/core/constants/notification_types.dart`
 - `mobile/lib/core/network/api_client.dart`
 - `mobile/lib/core/network/api_endpoints.dart`
+- `mobile/lib/core/network/api_error_message.dart`
 - `mobile/lib/core/router/app_router.dart`
 - `mobile/lib/core/theme/app_theme.dart`
 - `mobile/lib/core/utils/validators.dart`
@@ -166,6 +167,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/test/unit/services/export_service_test.dart`
 - `mobile/test/unit/services/push_notification_service_test.dart`
 - `mobile/test/unit/services/storage_service_test.dart`
+- `mobile/test/unit/utils/api_error_message_test.dart`
 - `mobile/test/unit/utils/validators_test.dart`
 - `mobile/test/widget_test.dart`
 

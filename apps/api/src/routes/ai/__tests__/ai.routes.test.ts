@@ -45,6 +45,76 @@ describe('AI routes', () => {
     await app.close();
   });
 
+  it('returns a clear 503 when the AI provider is unavailable', async () => {
+    const app = await buildApiApp({
+      readyCheck: async () => undefined,
+      auth: {
+        verifyIdToken: async () => ({ uid: 'user-1' }),
+      },
+      services: {
+        ai: {
+          analyzeExpense: vi.fn(async () => {
+            throw Object.assign(
+              new Error('AI service is temporarily unavailable'),
+              { statusCode: 503, code: 'AI_UNAVAILABLE' },
+            );
+          }),
+          chat: vi.fn(),
+          generateConversationTitle: vi.fn(),
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/analyze-expense',
+      headers: { authorization: 'Bearer valid-token' },
+      payload: { imageBase64: 'base64-receipt' },
+    });
+
+    expect(response.statusCode).toBe(503);
+    expect(response.json()).toMatchObject({
+      error: 'Service unavailable',
+      code: 'AI_UNAVAILABLE',
+      details: 'AI service is temporarily unavailable',
+    });
+
+    await app.close();
+  });
+
+  it('keeps unexpected AI failures as generic 500s', async () => {
+    const app = await buildApiApp({
+      readyCheck: async () => undefined,
+      auth: {
+        verifyIdToken: async () => ({ uid: 'user-1' }),
+      },
+      services: {
+        ai: {
+          analyzeExpense: vi.fn(async () => {
+            throw new Error('secret internal detail');
+          }),
+          chat: vi.fn(),
+          generateConversationTitle: vi.fn(),
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/analyze-expense',
+      headers: { authorization: 'Bearer valid-token' },
+      payload: { text: 'coffee $4' },
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual({
+      error: 'Internal server error',
+      requestId: expect.any(String),
+    });
+
+    await app.close();
+  });
+
   it('rejects analyze-expense requests without text or image', async () => {
     const app = await buildApiApp({
       readyCheck: async () => undefined,

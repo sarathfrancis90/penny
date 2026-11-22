@@ -22,8 +22,8 @@ RUN npm init -y \
     @fastify/rate-limit@10.3.0 \
     @fastify/sensible@6.0.4 \
     @google/genai@1.42.0 \
-    fastify@5.8.5 \
-    firebase-admin@14.0.0 \
+    fastify@5.12.8 \
+    firebase-admin@14.4.0 \
   && npm cache clean --force \
   && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
   && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack

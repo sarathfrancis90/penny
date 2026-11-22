@@ -7,6 +7,13 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@google/genai', () => ({
+  ApiError: class ApiError extends Error {
+    status: number;
+    constructor(options: { message: string; status: number }) {
+      super(options.message);
+      this.status = options.status;
+    }
+  },
   GoogleGenAI: vi.fn(function GoogleGenAI() {
     return {
       models: {
@@ -99,5 +106,47 @@ describe('Gemini AI service', () => {
     });
     expect(call?.config?.responseSchema?.properties?.expenses?.items?.type).toBe('OBJECT');
     expect(call?.config?.responseSchema?.properties?.expenses?.minItems).toBe(1);
+  });
+
+  it('keeps using the current production model', async () => {
+    mocks.generateContent.mockResolvedValueOnce({
+      text: JSON.stringify({ expenses: [{ vendor: 'A', amount: 1, date: '2026-06-06', category: 'Groceries' }] }),
+    });
+    await createGeminiAiService('test-key').analyzeExpense({ userId: 'u', text: 'A $1' });
+    expect(mocks.generateContent.mock.calls.at(-1)?.[0]?.model).toBe('gemini-3-flash-preview');
+  });
+
+  it('maps Gemini provider errors (e.g. depleted credits) to a 503 AI_UNAVAILABLE error', async () => {
+    const { ApiError } = await import('@google/genai');
+    mocks.generateContent.mockRejectedValueOnce(
+      new ApiError({ message: 'Your prepayment credits are depleted', status: 402 }),
+    );
+
+    await expect(
+      createGeminiAiService('test-key').analyzeExpense({ userId: 'u', imageBase64: 'x' }),
+    ).rejects.toMatchObject({
+      statusCode: 503,
+      code: 'AI_UNAVAILABLE',
+      upstreamStatus: 402,
+      message: 'AI service is temporarily unavailable',
+    });
+  });
+
+  it('maps Gemini provider errors in chat too', async () => {
+    const { ApiError } = await import('@google/genai');
+    mocks.generateContent.mockRejectedValueOnce(
+      new ApiError({ message: 'quota', status: 429 }),
+    );
+
+    await expect(
+      createGeminiAiService('test-key').chat({ userId: 'u', message: 'hi', conversationHistory: [] }),
+    ).rejects.toMatchObject({ statusCode: 503, code: 'AI_UNAVAILABLE', upstreamStatus: 429 });
+  });
+
+  it('leaves non-provider errors untouched', async () => {
+    mocks.generateContent.mockRejectedValueOnce(new Error('boom'));
+    await expect(
+      createGeminiAiService('test-key').analyzeExpense({ userId: 'u', text: 'x' }),
+    ).rejects.toThrow('boom');
   });
 });

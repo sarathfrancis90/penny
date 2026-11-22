@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:penny_mobile/data/models/message_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
@@ -128,7 +129,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       _maybeTriggerAiTitle(convId);
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: apiErrorMessage(e));
     } finally {
       state = state.copyWith(isLoading: false, isAnalyzing: false);
     }
@@ -178,7 +179,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       _maybeTriggerAiTitle(convId);
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: apiErrorMessage(e));
     } finally {
       state = state.copyWith(isAnalyzing: false);
     }

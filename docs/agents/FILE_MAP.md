@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 843
+- Total source-visible files: 846
 
 | Path | Area |
 |---|---|
@@ -77,6 +77,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `apps/api/src/routes/user/__tests__/user.routes.test.ts` | standalone-api |
 | `apps/api/src/routes/user/routes.ts` | standalone-api |
 | `apps/api/src/server.ts` | standalone-api |
+| `apps/api/src/services/__tests__/collect-pages.test.ts` | standalone-api |
 | `apps/api/src/services/__tests__/firebase-admin.test.ts` | standalone-api |
 | `apps/api/src/services/__tests__/firestore-budgets.notifications.test.ts` | standalone-api |
 | `apps/api/src/services/__tests__/firestore-expenses.notifications.test.ts` | standalone-api |
@@ -322,6 +323,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `mobile/lib/core/constants/notification_types.dart` | mobile |
 | `mobile/lib/core/network/api_client.dart` | mobile |
 | `mobile/lib/core/network/api_endpoints.dart` | mobile |
+| `mobile/lib/core/network/api_error_message.dart` | mobile |
 | `mobile/lib/core/router/app_router.dart` | mobile |
 | `mobile/lib/core/theme/app_theme.dart` | mobile |
 | `mobile/lib/core/utils/validators.dart` | mobile |
@@ -504,6 +506,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `mobile/test/unit/services/export_service_test.dart` | mobile |
 | `mobile/test/unit/services/push_notification_service_test.dart` | mobile |
 | `mobile/test/unit/services/storage_service_test.dart` | mobile |
+| `mobile/test/unit/utils/api_error_message_test.dart` | mobile |
 | `mobile/test/unit/utils/validators_test.dart` | mobile |
 | `mobile/test/widget_test.dart` | mobile |
 | `next.config.ts` | repo |
