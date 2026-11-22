@@ -81,7 +81,14 @@ jobs:
         uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f
 
       - name: Configure Docker auth
-        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+        run: |
+          set -euo pipefail
+          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+          # Provenance attestation reads registry logins from the Docker
+          # config file and ignores credential helpers, so also log in
+          # with a short-lived access token.
+          gcloud auth print-access-token \
+            | docker login -u oauth2accesstoken --password-stdin "${GCP_REGION}-docker.pkg.dev"
 
       - name: Build API container
         id: build-image
