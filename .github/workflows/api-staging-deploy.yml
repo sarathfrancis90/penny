@@ -83,10 +83,8 @@ jobs:
       - name: Configure Docker auth
         run: |
           set -euo pipefail
-          gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
-          # Provenance attestation reads registry logins from the Docker
-          # config file and ignores credential helpers, so also log in
-          # with a short-lived access token.
+          # Token login (not the gcloud credential helper): provenance
+          # attestation reads the login straight from the Docker config file.
           gcloud auth print-access-token \
             | docker login -u oauth2accesstoken --password-stdin "${GCP_REGION}-docker.pkg.dev"
 
