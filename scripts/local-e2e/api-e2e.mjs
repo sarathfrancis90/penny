@@ -18,6 +18,7 @@ const short = (v) => JSON.stringify(v)?.slice(0, 260);
 
 async function signUp(name) {
   const email = `${name}-${run}@example.test`;
+  // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request -- reviewed: local Firebase Auth emulator on 127.0.0.1, which only serves HTTP
   const r = await fetch(`${AUTH}/accounts:signUp?key=local`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ email, password: `pw-${run}-${name}`, returnSecureToken: true }),
@@ -322,6 +323,7 @@ console.log('== account deletion');
 await call(temp, 'POST', '/api/expenses', expenseBody({ vendor: 'Temp' }));
 r = await call(temp, 'DELETE', '/api/account/delete', { confirm: true });
 check('account deletion succeeds', r.status === 200, `${r.status} ${short(r.json)}`);
+// nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request -- reviewed: local Firebase Auth emulator on 127.0.0.1, which only serves HTTP
 const look = await fetch(`${AUTH}/accounts:lookup?key=local`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ idToken: temp.token }) });
 check('deleted account is gone from sign-in', look.status !== 200, `${look.status}`);
 

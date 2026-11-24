@@ -1,0 +1,9 @@
+# Reviewed exceptions for the Trivy filesystem scan (Security CI).
+# Each entry expires so it is reviewed again; renew only with a reason.
+
+# activesupport 7.2.3.1 in mobile/Gemfile.lock (safe_constantize DoS).
+# Fixed only in activesupport 8.0.5.2 / 8.1.4.1, but cocoapods-core (latest
+# 1.17.0) requires activesupport < 8. It is a build-time dependency of the
+# fastlane CocoaPods step on CI and is not shipped in the app or the API.
+CVE-2026-126080 exp:2027-01-08
+GHSA-8474-xrp6-wh69 exp:2027-01-08
