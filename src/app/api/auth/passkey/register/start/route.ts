@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generatePasskeyRegistrationOptions } from '@/lib/passkey-utils';
 import { adminDb } from '@/lib/firebase-admin';
 import { withObservability } from '@/lib/observability/withObservability';
+import { requireAuthenticatedUser } from '@/lib/auth-middleware';
 
 /**
  * POST /api/auth/passkey/register/start
@@ -9,7 +10,13 @@ import { withObservability } from '@/lib/observability/withObservability';
  */
 async function postHandler(request: NextRequest) {
   try {
-    const { userId, email, displayName } = await request.json();
+    const { userId: bodyUserId, email: bodyEmail, displayName } = await request.json();
+
+    // A passkey may only be added to the signed-in user's own account
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
+    const email = auth.email || bodyEmail;
 
     if (!userId || !email) {
       return NextResponse.json(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
 import 'package:penny_mobile/data/models/income_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/income_providers.dart';
@@ -199,7 +201,14 @@ class _IncomeSourceTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     void deleteIncome() {
-      ref.read(incomeRepositoryProvider).deleteIncomeSource(source.id);
+      // The row is gone once dismissed, so refresh through the container.
+      final container = ProviderScope.containerOf(context, listen: false);
+      container
+          .read(incomeRepositoryProvider)
+          .deleteIncomeSource(source.id)
+          // On failure the reload brings the row back.
+          .then<void>((_) {}, onError: (Object _) {})
+          .whenComplete(() => container.invalidate(incomeSourcesProvider));
       HapticFeedback.mediumImpact();
     }
 
@@ -392,7 +401,7 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
+    final amount = parseAmount(_amountController.text);
     if (name.isEmpty || amount == null || amount <= 0) return;
 
     setState(() => _saving = true);
@@ -409,13 +418,14 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
             isRecurring: _frequency != 'once',
             taxable: _taxable,
           );
+      widget.ref.invalidate(incomeSourcesProvider);
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -427,82 +437,87 @@ class _CreateIncomeSheetState extends State<_CreateIncomeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SheetHeader(title: 'Add Income Source'),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(hintText: 'Source name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _amountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Amount',
-              prefixText: '\$ ',
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SheetHeader(title: 'Add Income Source'),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(hintText: 'Source name'),
             ),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            decoration: const InputDecoration(hintText: 'Category'),
-            items: _categories
-                .map(
-                  (c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(c.replaceAll('_', ' ')),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _category = v);
-            },
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _frequency,
-            decoration: const InputDecoration(hintText: 'Frequency'),
-            items: _frequencies
-                .map((f) => DropdownMenuItem(value: f, child: Text(f)))
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _frequency = v);
-            },
-          ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            title: const Text('Taxable', style: TextStyle(fontSize: 15)),
-            value: _taxable,
-            onChanged: (v) => setState(() => _taxable = v),
-            activeThumbColor: AppColors.primary,
-            contentPadding: EdgeInsets.zero,
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+            const SizedBox(height: 12),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Amount',
+                prefixText: '\$ ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _category,
+              decoration: const InputDecoration(hintText: 'Category'),
+              items: _categories
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c.replaceAll('_', ' ')),
                     ),
                   )
-                : const Text('Add Source'),
-          ),
-        ],
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _category = v);
+              },
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _frequency,
+              decoration: const InputDecoration(hintText: 'Frequency'),
+              items: _frequencies
+                  .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _frequency = v);
+              },
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Taxable', style: TextStyle(fontSize: 15)),
+              value: _taxable,
+              onChanged: (v) => setState(() => _taxable = v),
+              activeThumbColor: AppColors.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Add Source'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -571,7 +586,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
+    final amount = parseAmount(_amountController.text);
     if (name.isEmpty || amount == null || amount <= 0) return;
 
     setState(() => _saving = true);
@@ -586,6 +601,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
             'isRecurring': _frequency != 'once',
             'taxable': _taxable,
           });
+      widget.ref.invalidate(incomeSourcesProvider);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -597,7 +613,7 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -609,82 +625,87 @@ class _EditIncomeSheetState extends State<_EditIncomeSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SheetHeader(title: 'Edit Income Source'),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(hintText: 'Source name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _amountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Amount',
-              prefixText: '\$ ',
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SheetHeader(title: 'Edit Income Source'),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(hintText: 'Source name'),
             ),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            decoration: const InputDecoration(hintText: 'Category'),
-            items: _categories
-                .map(
-                  (c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(c.replaceAll('_', ' ')),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _category = v);
-            },
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _frequency,
-            decoration: const InputDecoration(hintText: 'Frequency'),
-            items: _frequencies
-                .map((f) => DropdownMenuItem(value: f, child: Text(f)))
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _frequency = v);
-            },
-          ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            title: const Text('Taxable', style: TextStyle(fontSize: 15)),
-            value: _taxable,
-            onChanged: (v) => setState(() => _taxable = v),
-            activeThumbColor: AppColors.primary,
-            contentPadding: EdgeInsets.zero,
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+            const SizedBox(height: 12),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Amount',
+                prefixText: '\$ ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _category,
+              decoration: const InputDecoration(hintText: 'Category'),
+              items: _categories
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c.replaceAll('_', ' ')),
                     ),
                   )
-                : const Text('Save Changes'),
-          ),
-        ],
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _category = v);
+              },
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _frequency,
+              decoration: const InputDecoration(hintText: 'Frequency'),
+              items: _frequencies
+                  .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _frequency = v);
+              },
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Taxable', style: TextStyle(fontSize: 15)),
+              value: _taxable,
+              onChanged: (v) => setState(() => _taxable = v),
+              activeThumbColor: AppColors.primary,
+              contentPadding: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Save Changes'),
+            ),
+          ],
+        ),
       ),
     );
   }

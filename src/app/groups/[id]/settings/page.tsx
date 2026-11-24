@@ -41,6 +41,7 @@ import Link from "next/link";
 import { expenseCategories } from "@/lib/categories";
 import { useAuth } from "@/hooks/useAuth";
 import { useDefaultGroup } from "@/hooks/useDefaultGroup";
+import { authFetch } from "@/lib/authFetch";
 
 interface GroupSettingsPageProps {
   params: Promise<{
@@ -165,7 +166,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/groups/${groupId}`, {
+      const response = await authFetch(`/api/groups/${groupId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -231,7 +232,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
     setActionLoading(true);
     try {
-      const response = await fetch(`/api/groups/${groupId}/archive`, {
+      const response = await authFetch(`/api/groups/${groupId}/archive`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.uid }),
@@ -269,7 +270,7 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
 
     setActionLoading(true);
     try {
-      const response = await fetch(`/api/groups/${groupId}?userId=${user.uid}`, {
+      const response = await authFetch(`/api/groups/${groupId}?userId=${user.uid}`, {
         method: "DELETE",
       });
 
@@ -669,25 +670,27 @@ export default function GroupSettingsPage({ params }: GroupSettingsPageProps) {
                 <AlertTriangle className="h-5 w-5" />
                 Delete Group Permanently?
               </AlertDialogTitle>
-              <AlertDialogDescription className="space-y-4">
-                <p>
-                  This action <strong>cannot be undone</strong>. This will permanently delete:
-                </p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>{group.stats.memberCount} member(s) will lose access</li>
-                  <li>{group.stats.expenseCount} expense(s) will become personal</li>
-                  <li>All group activity history will be lost</li>
-                </ul>
-                <div className="space-y-2">
-                  <Label htmlFor="deleteConfirm">
-                    Type <strong>{group.name}</strong> to confirm:
-                  </Label>
-                  <Input
-                    id="deleteConfirm"
-                    value={deleteConfirmation}
-                    onChange={(e) => setDeleteConfirmation(e.target.value)}
-                    placeholder="Type group name"
-                  />
+              <AlertDialogDescription asChild>
+                <div className="space-y-4">
+                  <p>
+                    This action <strong>cannot be undone</strong>. This will permanently delete:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>{group.stats.memberCount} member(s) will lose access</li>
+                    <li>{group.stats.expenseCount} expense(s) will become personal</li>
+                    <li>All group activity history will be lost</li>
+                  </ul>
+                  <div className="space-y-2">
+                    <Label htmlFor="deleteConfirm">
+                      Type <strong>{group.name}</strong> to confirm:
+                    </Label>
+                    <Input
+                      id="deleteConfirm"
+                      value={deleteConfirmation}
+                      onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      placeholder="Type group name"
+                    />
+                  </div>
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>

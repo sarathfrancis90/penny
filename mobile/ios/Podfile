@@ -42,6 +42,11 @@ post_install do |installer|
     # Suppress warnings from third-party pods (Firebase, gRPC, BoringSSL, etc.)
     target.build_configurations.each do |config|
       config.build_settings['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'
+      # Xcode 27 rejects pod deployment targets below 15.0; align pods with
+      # the app's minimum iOS version.
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      end
     end
   end
 

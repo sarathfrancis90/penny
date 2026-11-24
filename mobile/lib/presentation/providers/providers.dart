@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/core/constants/env_config.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
@@ -19,6 +20,7 @@ import 'package:penny_mobile/data/services/push_notification_service.dart';
 import 'package:penny_mobile/data/services/storage_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/default_group_selection.dart';
+import 'package:penny_mobile/presentation/providers/user_session.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(baseUrl: EnvConfig.apiBaseUrl);
@@ -92,6 +94,30 @@ final pushNotificationInitProvider = FutureProvider<void>((ref) async {
   }
 });
 
+/// Stops push notifications for [userId] on this device. Best-effort: it
+/// never throws and gives up after a few seconds, so it cannot hold up a
+/// sign-out or an account deletion.
+Future<void> unregisterPushToken(
+  PushNotificationService service,
+  String userId,
+) async {
+  try {
+    await service.removeToken(userId).timeout(const Duration(seconds: 3));
+  } catch (error) {
+    debugPrint('[Push] Could not unregister this device: $error');
+  }
+}
+
+/// Signs the current user out, first unregistering this device's push token
+/// so the signed-out user's notifications stop arriving here.
+Future<void> signOutUser(T Function<T>(ProviderListenable<T>) read) async {
+  final user = read(currentUserProvider);
+  if (user != null) {
+    await unregisterPushToken(read(pushNotificationServiceProvider), user.uid);
+  }
+  await read(authServiceProvider).signOut();
+}
+
 /// Stream of navigation URLs from push notification taps.
 final pushNavigationStreamProvider = StreamProvider<String>((ref) {
   final service = ref.read(pushNotificationServiceProvider);
@@ -100,7 +126,8 @@ final pushNavigationStreamProvider = StreamProvider<String>((ref) {
 
 /// Stream the user's default group ID from their preferences.
 /// Returns `null` when no default group is set.
-final defaultGroupProvider = StreamProvider<String?>((ref) {
+final defaultGroupProvider = StreamProvider.autoDispose<String?>((ref) {
+  keepForCurrentSession(ref);
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
   final api = ref.watch(apiClientProvider);

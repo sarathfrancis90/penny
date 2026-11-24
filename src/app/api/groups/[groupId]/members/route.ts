@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
-import { adminDb } from "@/lib/firebase-admin";
+import { adminDb, adminAuth } from "@/lib/firebase-admin";
 import { GroupMember, GroupRole } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
 import { randomBytes } from "crypto";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -17,8 +17,9 @@ async function getHandler(
   try {
     const { groupId } = await params;
     const { searchParams } = new URL(request.url);
-    const tokenUserId = await getAuthenticatedUserId(request);
-    const userId = tokenUserId || searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -78,10 +79,11 @@ async function postHandler(
 ) {
   try {
     const { groupId } = await params;
-    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
     const { userId: bodyUserId, email, role = "member" } = body;
-    const userId = tokenUserId || bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId || !email) {
       return NextResponse.json(
@@ -104,7 +106,7 @@ async function postHandler(
       .doc(`${groupId}_${userId}`)
       .get();
 
-    if (!inviterMembershipDoc.exists) {
+    if (!inviterMembershipDoc.exists || inviterMembershipDoc.data()?.status !== "active") {
       return NextResponse.json(
         { error: "Not a member of this group" },
         { status: 403 }
@@ -197,20 +199,29 @@ async function postHandler(
 
     // Create notification for the invited user (if they're registered)
     try {
-      const usersSnapshot = await adminDb
-        .collection("users")
-        .where("email", "==", email.toLowerCase())
-        .limit(1)
-        .get();
+      // Look the invitee up in Firebase Auth: web sign-up does not always
+      // create a users/{uid} profile, so that collection can miss them.
+      let invitedUserId: string | null = null;
+      try {
+        invitedUserId = (await adminAuth.getUserByEmail(email.toLowerCase())).uid;
+      } catch (lookupError) {
+        if ((lookupError as { code?: string })?.code !== "auth/user-not-found") {
+          throw lookupError;
+        }
+        const usersSnapshot = await adminDb
+          .collection("users")
+          .where("email", "==", email.toLowerCase())
+          .limit(1)
+          .get();
+        invitedUserId = usersSnapshot.empty ? null : usersSnapshot.docs[0].id;
+      }
 
-      if (!usersSnapshot.empty) {
-        const invitedUserDoc = usersSnapshot.docs[0];
-        const invitedUserId = invitedUserDoc.id;
-        
+      if (invitedUserId) {
+
         // Get inviter info
         const inviterDoc = await adminDb.collection("users").doc(userId).get();
         const inviterUserData = inviterDoc.exists ? inviterDoc.data() : null;
-        const inviterName = inviterUserData?.displayName || inviterUserData?.email || 'Someone';
+        const inviterName = inviterUserData?.displayName || inviterUserData?.email || inviterData?.userEmail || auth.email || 'Someone';
         const inviterAvatar = inviterUserData?.photoURL;
 
         await adminDb.collection("notifications").add({
@@ -244,7 +255,8 @@ async function postHandler(
           groupId: groupId,
           actorId: userId,
           actorName: inviterName,
-          actorAvatar: inviterAvatar,
+          // Firestore rejects undefined values, so only set it when known
+          ...(inviterAvatar ? { actorAvatar: inviterAvatar } : {}),
           metadata: {
             groupName: groupData.name,
             groupIcon: groupData.icon || '👥',
@@ -277,7 +289,8 @@ async function postHandler(
       success: true,
       message: "Invitation sent successfully",
       invitationId: invitationRef.id,
-      invitationToken, // Return for testing purposes (in production, only send via email)
+      // The token is never returned to the inviter: whoever holds it can
+      // accept. Only the invitee's own notification carries it.
     });
   } catch (error) {
     console.error("Error inviting member:", error);

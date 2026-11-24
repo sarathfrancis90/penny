@@ -5,6 +5,8 @@ import {
 } from 'firebase-admin/firestore';
 import type { Messaging } from 'firebase-admin/messaging';
 
+import { DEFAULT_TIME_ZONE, isValidTimeZone } from './dates';
+
 export type NotificationPriority = 'low' | 'medium' | 'high' | 'critical';
 export type NotificationCategory = 'group' | 'budget' | 'system' | 'social' | 'income' | 'savings';
 export type NotificationFrequency = 'realtime' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'never';
@@ -18,7 +20,9 @@ export type GroupNotificationType =
   | 'group_member_joined'
   | 'group_member_left'
   | 'group_role_changed'
-  | 'group_settings_changed';
+  | 'group_settings_changed'
+  | 'budget_warning'
+  | 'budget_exceeded';
 
 export interface DeviceToken {
   deviceId: string;
@@ -36,6 +40,8 @@ export interface NotificationSettings {
   globalMute: boolean;
   quietHoursStart: string;
   quietHoursEnd: string;
+  /** IANA zone the quiet hours are in; America/Toronto when unset. */
+  timeZone?: string;
 }
 
 export interface UserSummary {
@@ -110,7 +116,7 @@ export interface NotificationDeliveryDependencies {
   ): Promise<NotificationTypePreference>;
   getUserSettings(userId: string): Promise<NotificationSettings>;
   getUserTokens(userId: string): Promise<DeviceToken[]>;
-  isInQuietHours(startTime: string, endTime: string): boolean;
+  isInQuietHours(startTime: string, endTime: string, timeZone?: string): boolean;
   markNotificationDelivered(notificationId: string): Promise<void>;
   removeStaleTokens(userId: string, tokens: DeviceToken[]): Promise<void>;
   sendMulticast(message: PushMessage): Promise<PushSendResponse>;
@@ -288,7 +294,11 @@ async function notifyOneUser(
 
     const quietHoursBlockPush =
       input.priority !== 'critical' &&
-      deps.isInQuietHours(settings.quietHoursStart, settings.quietHoursEnd);
+      deps.isInQuietHours(
+        settings.quietHoursStart,
+        settings.quietHoursEnd,
+        settings.timeZone ?? DEFAULT_TIME_ZONE,
+      );
     const shouldPush =
       preference.push &&
       preference.frequency === 'realtime' &&
@@ -331,9 +341,13 @@ async function notifyOneUser(
       await deps.markNotificationDelivered(notificationId);
     }
   } catch (error) {
+    // Delivery is best effort: a Firestore or FCM failure (for example a
+    // disabled Google API) must never fail the request that triggered it.
+    const code = (error as { code?: unknown } | null)?.code;
     console.error('[NotificationService] Failed to notify user:', {
       userId,
       type: input.type,
+      ...(code !== undefined ? { code: String(code) } : {}),
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -436,30 +450,87 @@ export function createNoopNotificationService(): NotificationService {
   };
 }
 
+/** Minutes since midnight for an `H:MM`/`HH:MM` 24-hour time. */
+export function parseClock(value: string): number | undefined {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match) return undefined;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return undefined;
+  return hour * 60 + minute;
+}
+
+/** Minutes since midnight on the wall clock of `timeZone` at `now`. */
+function minutesInZone(now: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(now);
+  const part = (type: string) =>
+    Number(parts.find((entry) => entry.type === type)?.value ?? 0);
+  return (part('hour') % 24) * 60 + part('minute');
+}
+
+/**
+ * Whether `now` falls inside the quiet-hours window [start, end) on the
+ * user's own clock. A window whose start is after its end crosses midnight
+ * (22:00–08:00). An unknown zone falls back to America/Toronto; an equal or
+ * malformed start/end means no quiet hours.
+ */
 export function isCurrentTimeInQuietHours(
   startTime: string,
   endTime: string,
+  timeZone: string | undefined = DEFAULT_TIME_ZONE,
+  now: Date = new Date(),
 ): boolean {
-  const [startHour, startMinute] = startTime.split(':').map(Number);
-  const [endHour, endMinute] = endTime.split(':').map(Number);
-  if (
-    !Number.isInteger(startHour) ||
-    !Number.isInteger(startMinute) ||
-    !Number.isInteger(endHour) ||
-    !Number.isInteger(endMinute)
-  ) {
-    return false;
-  }
+  const startMinutes = parseClock(String(startTime ?? ''));
+  const endMinutes = parseClock(String(endTime ?? ''));
+  if (startMinutes === undefined || endMinutes === undefined) return false;
+  if (startMinutes === endMinutes) return false;
 
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const startMinutes = startHour * 60 + startMinute;
-  const endMinutes = endHour * 60 + endMinute;
+  const zone = isValidTimeZone(timeZone) ? timeZone : DEFAULT_TIME_ZONE;
+  const currentMinutes = minutesInZone(now, zone);
 
   if (startMinutes > endMinutes) {
-    return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
   }
-  return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+  return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+}
+
+/**
+ * A user's global notification settings. The quiet-hours zone comes from the
+ * settings document, then the profile's `preferences.timezone`, then
+ * America/Toronto.
+ */
+export async function readFirestoreNotificationSettings(
+  db: Firestore,
+  userId: string,
+): Promise<Required<NotificationSettings>> {
+  const doc = await db.collection('userNotificationSettings').doc(userId).get();
+  const data = doc.data() ?? {};
+  let timeZone = [data.timezone, data.timeZone].find(isValidTimeZone);
+  if (!timeZone) {
+    const userDoc = await db.collection('users').doc(userId).get();
+    const preferences = userDoc.data()?.preferences as Record<string, unknown> | undefined;
+    timeZone = [preferences?.timezone, preferences?.timeZone].find(isValidTimeZone);
+  }
+  return {
+    globalMute:
+      typeof data.globalMute === 'boolean'
+        ? data.globalMute
+        : DEFAULT_SETTINGS.globalMute,
+    quietHoursStart:
+      typeof data.quietHoursStart === 'string'
+        ? data.quietHoursStart
+        : DEFAULT_SETTINGS.quietHoursStart,
+    quietHoursEnd:
+      typeof data.quietHoursEnd === 'string'
+        ? data.quietHoursEnd
+        : DEFAULT_SETTINGS.quietHoursEnd,
+    timeZone: timeZone ?? DEFAULT_TIME_ZONE,
+  };
 }
 
 export function createFirestoreNotificationService(
@@ -533,22 +604,7 @@ export function createFirestoreNotificationService(
     },
 
     async getUserSettings(userId) {
-      const doc = await db.collection('userNotificationSettings').doc(userId).get();
-      const data = doc.data() ?? {};
-      return {
-        globalMute:
-          typeof data.globalMute === 'boolean'
-            ? data.globalMute
-            : DEFAULT_SETTINGS.globalMute,
-        quietHoursStart:
-          typeof data.quietHoursStart === 'string'
-            ? data.quietHoursStart
-            : DEFAULT_SETTINGS.quietHoursStart,
-        quietHoursEnd:
-          typeof data.quietHoursEnd === 'string'
-            ? data.quietHoursEnd
-            : DEFAULT_SETTINGS.quietHoursEnd,
-      };
+      return readFirestoreNotificationSettings(db, userId);
     },
 
     async getUserTokens(userId) {
@@ -569,7 +625,8 @@ export function createFirestoreNotificationService(
         .filter((token): token is DeviceToken => token !== null);
     },
 
-    isInQuietHours: isCurrentTimeInQuietHours,
+    isInQuietHours: (startTime, endTime, timeZone) =>
+      isCurrentTimeInQuietHours(startTime, endTime, timeZone),
 
     async markNotificationDelivered(notificationId) {
       await db.collection('notifications').doc(notificationId).update({

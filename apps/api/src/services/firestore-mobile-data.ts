@@ -8,6 +8,14 @@ import {
 import { type Storage } from 'firebase-admin/storage';
 import { randomUUID } from 'node:crypto';
 
+import { writeInChunks } from './batching';
+import { parseCalendarDate } from './dates';
+import { resolveMemberPermissions } from './group-permissions';
+import {
+  sanitizeNotificationPreferences,
+  sanitizeNotificationSettings,
+  sanitizeUserPreferences,
+} from './preference-validation';
 import type {
   DataScope,
   DuplicateExpenseInput,
@@ -47,10 +55,110 @@ function serializeDoc(doc: FirebaseFirestore.DocumentSnapshot) {
   return { id: doc.id, ...data };
 }
 
+function conflict(message: string) {
+  return Object.assign(new Error(message), { statusCode: 409 });
+}
+
 function parseDate(date: string) {
-  const [year, month, day] = date.split('-').map(Number);
-  if (!year || !month || !day) throw badRequest('date must use YYYY-MM-DD');
-  return Timestamp.fromDate(new Date(year, month - 1, day, 12, 0, 0));
+  const parsed = parseCalendarDate(date);
+  if (!parsed) throw badRequest('date must be a valid YYYY-MM-DD date');
+  return Timestamp.fromDate(
+    new Date(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0),
+  );
+}
+
+/** Firestore's gRPC NOT_FOUND, raised by update() on a missing document. */
+function isFirestoreNotFound(error: unknown) {
+  return (error as { code?: unknown } | null)?.code === 5;
+}
+
+/** Fields that decide who owns a record or when it was made. */
+const PROTECTED_RECORD_FIELDS = [
+  'id',
+  'userId',
+  'groupId',
+  'createdAt',
+  'createdBy',
+  'addedBy',
+];
+
+/** Fields of a `users` document that only the server may write. */
+const PROTECTED_PROFILE_FIELDS = [
+  'id',
+  'uid',
+  'userId',
+  'email',
+  'emailVerified',
+  'fcmTokens',
+  'fcmToken',
+  'pushTokens',
+  'pushToken',
+  'role',
+  'roles',
+  'isAdmin',
+  'admin',
+  'claims',
+  'customClaims',
+  'disabled',
+  'createdAt',
+];
+
+const MAX_CONTRIBUTION_AMOUNT = 10_000_000;
+
+/**
+ * Fields a client may set when creating a record. Ownership, audit
+ * timestamps and savings progress are always set by the server.
+ */
+const CREATABLE_FIELDS = {
+  income: [
+    'name',
+    'category',
+    'amount',
+    'frequency',
+    'isRecurring',
+    'recurringDate',
+    'isActive',
+    'startDate',
+    'endDate',
+    'description',
+    'taxable',
+    'netAmount',
+    'currency',
+    'contributedBy',
+    'splitType',
+  ],
+  savings: [
+    'name',
+    'category',
+    'targetAmount',
+    'monthlyContribution',
+    'targetDate',
+    'startDate',
+    'isActive',
+    'priority',
+    'description',
+    'emoji',
+    'currency',
+    'contributionType',
+  ],
+} as const;
+
+function pickFields(data: Record<string, unknown>, fields: readonly string[]) {
+  return Object.fromEntries(
+    fields
+      .filter((field) => Object.hasOwn(data, field) && data[field] !== undefined)
+      .map((field) => [field, data[field]]),
+  );
+}
+
+/**
+ * Drops protected fields from a client-supplied update. A dotted key such as
+ * `groupId.x` is a field path in `update()`, so its first segment is checked.
+ */
+function withoutFields(data: Record<string, unknown>, fields: readonly string[]) {
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => !fields.includes(key.split('.')[0])),
+  );
 }
 
 function collectionFor(scope: DataScope, domain: 'income' | 'savings') {
@@ -177,14 +285,18 @@ export function createFirestoreMobileDataService(
   ) {
     const collection = collectionFor(scope, domain);
     const now = Timestamp.now();
+    const fields = pickFields(input.data, CREATABLE_FIELDS[domain]);
     const data = {
-      ...input.data,
+      ...fields,
+      ...(domain === 'savings'
+        ? { currentAmount: 0, progressPercentage: 0, status: 'active' }
+        : {}),
       [scopedOwnerField(scope)]: scope === 'personal' ? input.userId : input.groupId,
       ...(scope === 'group' ? { addedBy: input.userId, createdBy: input.userId } : {}),
-      isActive: input.data.isActive ?? true,
+      isActive: fields.isActive ?? true,
       createdAt: now,
       updatedAt: now,
-      startDate: input.data.startDate ?? now,
+      startDate: fields.startDate ?? now,
     };
     if (scope === 'group') {
       if (!input.groupId) throw badRequest('groupId is required');
@@ -202,7 +314,10 @@ export function createFirestoreMobileDataService(
   ) {
     const collection = collectionFor(scope, domain);
     const doc = await getScopedDoc(collection, input.id, scope, input.userId, scope === 'group');
-    await doc.ref.update({ ...input.data, updatedAt: Timestamp.now() });
+    await doc.ref.update({
+      ...withoutFields(input.data, PROTECTED_RECORD_FIELDS),
+      updatedAt: Timestamp.now(),
+    });
     return serializeDoc(await doc.ref.get());
   }
 
@@ -228,7 +343,9 @@ export function createFirestoreMobileDataService(
         query = query.where('userId', '==', input.userId);
         if (input.scope === 'personal') query = query.where('expenseType', '==', 'personal');
       }
-      if (input.approvalStatus) {
+      // Approval only exists on group expenses, and only the group-scoped
+      // combination has a composite index.
+      if (input.groupId && input.approvalStatus) {
         query = query.where('groupMetadata.approvalStatus', '==', input.approvalStatus);
       }
       if (input.category) query = query.where('category', '==', input.category);
@@ -284,7 +401,7 @@ export function createFirestoreMobileDataService(
       const data = doc.data() ?? {};
       if (!data.groupId) throw badRequest('Expense is not a group expense');
       const member = await getActiveMembership(String(data.groupId), input.userId);
-      if (!member.permissions?.canApproveExpenses) {
+      if (!resolveMemberPermissions(member).canApproveExpenses) {
         throw forbidden('No permission to approve expenses');
       }
       await doc.ref.update({
@@ -307,7 +424,7 @@ export function createFirestoreMobileDataService(
       const data = doc.data() ?? {};
       if (!data.groupId) throw badRequest('Expense is not a group expense');
       const member = await getActiveMembership(String(data.groupId), input.userId);
-      if (!member.permissions?.canApproveExpenses) {
+      if (!resolveMemberPermissions(member).canApproveExpenses) {
         throw forbidden('No permission to reject expenses');
       }
       await doc.ref.update({
@@ -352,6 +469,20 @@ export function createFirestoreMobileDataService(
     async declineInvitation(input) {
       const doc = await db.collection('groupInvitations').doc(input.id).get();
       if (!doc.exists) throw notFound('Invitation not found');
+      const invitation = doc.data() ?? {};
+      const invitedEmail =
+        typeof invitation.invitedEmail === 'string'
+          ? invitation.invitedEmail.trim().toLowerCase()
+          : '';
+      const callerEmail = input.userEmail?.trim().toLowerCase() ?? '';
+      if (!invitedEmail || invitedEmail !== callerEmail) {
+        throw forbidden('This invitation is for a different email address');
+      }
+      // A repeated decline (double tap, retry) is already done.
+      if (invitation.status === 'rejected') return { success: true };
+      if (invitation.status !== 'pending') {
+        throw conflict('This invitation is no longer pending');
+      }
       await doc.ref.update({
         status: 'rejected',
         respondedAt: Timestamp.now(),
@@ -397,21 +528,22 @@ export function createFirestoreMobileDataService(
       return { savingsGoal: serializeDoc(doc) };
     },
     async createSavings(input) {
-      const { id, record } = await createScoped(input.scope, 'savings', {
-        ...input,
-        data: {
-          currentAmount: 0,
-          progressPercentage: 0,
-          status: 'active',
-          ...input.data,
-        },
-      });
+      const { id, record } = await createScoped(input.scope, 'savings', input);
       return { id, savingsGoal: record };
     },
     async updateSavings(input) {
       return { savingsGoal: await updateScoped(input.scope, 'savings', input) };
     },
     async contributeSavings(input) {
+      if (
+        !Number.isFinite(input.amount) ||
+        input.amount <= 0 ||
+        input.amount > MAX_CONTRIBUTION_AMOUNT
+      ) {
+        throw badRequest(
+          `amount must be a positive number up to ${MAX_CONTRIBUTION_AMOUNT}`,
+        );
+      }
       const collection = collectionFor(input.scope, 'savings');
       const ref = db.collection(collection).doc(input.id);
       await db.runTransaction(async (transaction) => {
@@ -421,7 +553,10 @@ export function createFirestoreMobileDataService(
         if (input.scope === 'personal') {
           if (data.userId !== input.userId) throw forbidden('Savings goal access denied');
         } else {
-          await getActiveMembership(String(data.groupId), input.userId);
+          const member = await getActiveMembership(String(data.groupId), input.userId);
+          if (!resolveMemberPermissions(member).canAddExpenses) {
+            throw forbidden('No permission to contribute to this savings goal');
+          }
         }
         const currentAmount = Number(data.currentAmount ?? 0) + input.amount;
         const targetAmount = Number(data.targetAmount ?? 0);
@@ -462,10 +597,10 @@ export function createFirestoreMobileDataService(
         .where('userId', '==', input.userId)
         .where('read', '==', false)
         .get();
-      const batch = db.batch();
       const now = Timestamp.now();
-      snap.docs.forEach((doc) => batch.update(doc.ref, { read: true, readAt: now }));
-      if (!snap.empty) await batch.commit();
+      await writeInChunks(db, snap.docs, (batch, doc) => {
+        batch.update(doc.ref, { read: true, readAt: now });
+      });
       return { success: true };
     },
     async deleteNotification(input) {
@@ -479,8 +614,9 @@ export function createFirestoreMobileDataService(
       return { settings: doc.exists ? serializeDoc(doc) : {} };
     },
     async updateNotificationSettings(input) {
+      const data = sanitizeNotificationSettings(input.data);
       const ref = db.collection('userNotificationSettings').doc(input.userId);
-      await ref.set({ ...input.data, updatedAt: Timestamp.now() }, { merge: true });
+      await ref.set({ ...data, updatedAt: Timestamp.now() }, { merge: true });
       return { settings: serializeDoc(await ref.get()) };
     },
     async getNotificationPreferences(input) {
@@ -493,18 +629,20 @@ export function createFirestoreMobileDataService(
       return { preferences: doc.exists ? serializeDoc(doc) : {} };
     },
     async updateNotificationPreferences(input) {
+      const data = sanitizeNotificationPreferences(input.data);
       const ref = db
         .collection('users')
         .doc(input.userId)
         .collection('notificationPreferences')
         .doc('default');
-      await ref.set({ ...input.data, updatedAt: Timestamp.now() }, { merge: true });
+      await ref.set({ ...data, updatedAt: Timestamp.now() }, { merge: true });
       return { preferences: serializeDoc(await ref.get()) };
     },
 
     async upsertPushToken(input) {
       await db.collection('users').doc(input.userId).set(
         {
+          ...(input.email ? { email: input.email.trim().toLowerCase() } : {}),
           fcmTokens: {
             [input.deviceId]: {
               token: input.token,
@@ -519,9 +657,14 @@ export function createFirestoreMobileDataService(
       return { success: true };
     },
     async deletePushToken(input) {
-      await db.collection('users').doc(input.userId).update({
-        [`fcmTokens.${input.deviceId}`]: FieldValue.delete(),
-      });
+      try {
+        await db.collection('users').doc(input.userId).update({
+          [`fcmTokens.${input.deviceId}`]: FieldValue.delete(),
+        });
+      } catch (error) {
+        // No user document means there is no token left to remove.
+        if (!isFirestoreNotFound(error)) throw error;
+      }
       return { success: true };
     },
 
@@ -530,18 +673,40 @@ export function createFirestoreMobileDataService(
       return { profile: doc.exists ? serializeDoc(doc) : { id: input.userId } };
     },
     async updateUserProfile(input) {
-      if (auth) {
-        const update: Parameters<Auth['updateUser']>[1] = {};
-        if (typeof input.data.displayName === 'string') {
-          update.displayName = input.data.displayName;
-        }
-        if (typeof input.data.photoURL === 'string') update.photoURL = input.data.photoURL;
-        if (input.data.photoURL === null) update.photoURL = null;
-        if (Object.keys(update).length > 0) await auth.updateUser(input.userId, update);
-      }
+      // Firestore is the profile everything server-side reads (member names,
+      // notification actors), so it is written first and its failure fails
+      // the request.
       const ref = db.collection('users').doc(input.userId);
-      await ref.set({ ...input.data, updatedAt: Timestamp.now() }, { merge: true });
-      return { profile: serializeDoc(await ref.get()) };
+      await ref.set(
+        {
+          ...withoutFields(input.data, PROTECTED_PROFILE_FIELDS),
+          updatedAt: Timestamp.now(),
+        },
+        { merge: true },
+      );
+      const profile = serializeDoc(await ref.get());
+
+      // The sign-in record only mirrors the name and photo for the app's
+      // own display. Syncing it is best effort: an Auth outage or a disabled
+      // Identity Toolkit API must not turn a saved profile into a 500.
+      const update: Parameters<Auth['updateUser']>[1] = {};
+      for (const key of ['displayName', 'photoURL'] as const) {
+        const value = input.data[key];
+        if (typeof value === 'string') update[key] = value.trim() ? value : null;
+        else if (value === null) update[key] = null;
+      }
+      if (!auth || Object.keys(update).length === 0) return { profile };
+      try {
+        await auth.updateUser(input.userId, update);
+        return { profile, authSynced: true };
+      } catch (error) {
+        console.error('[MobileDataService] Could not sync the profile to the sign-in record', {
+          userId: input.userId,
+          code: String((error as { code?: unknown } | null)?.code ?? 'unknown'),
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return { profile, authSynced: false };
+      }
     },
     async getUserPreferences(input) {
       const doc = await db.collection('users').doc(input.userId).get();
@@ -553,11 +718,12 @@ export function createFirestoreMobileDataService(
       };
     },
     async updateUserPreferences(input) {
+      const data = sanitizeUserPreferences(input.data);
       const ref = db.collection('users').doc(input.userId);
       const updates = Object.fromEntries(
-        Object.entries(input.data).map(([key, value]) => [`preferences.${key}`, value]),
+        Object.entries(data).map(([key, value]) => [`preferences.${key}`, value]),
       );
-      await ref.set({ preferences: input.data, updatedAt: Timestamp.now() }, { merge: true });
+      await ref.set({ preferences: data, updatedAt: Timestamp.now() }, { merge: true });
       if (Object.keys(updates).length > 0) {
         await ref.update({ ...updates, updatedAt: Timestamp.now() });
       }

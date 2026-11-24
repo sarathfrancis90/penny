@@ -26,9 +26,7 @@ class BudgetRepository {
       },
     );
     final data = responseMap(response);
-    return listValue(
-      data['budgets'],
-    ).map((json) => BudgetModel.fromFirestore(apiDocument(json))).toList();
+    return parseList(data['budgets'], BudgetModel.fromFirestore);
   }
 
   Future<String> createBudget({

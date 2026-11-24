@@ -19,9 +19,7 @@ class ConversationRepository {
       queryParameters: {'userId': userId, 'limit': 100},
     );
     final data = responseMap(response);
-    return listValue(data['conversations'])
-        .map((json) => ConversationModel.fromFirestore(apiDocument(json)))
-        .toList();
+    return parseList(data['conversations'], ConversationModel.fromFirestore);
   }
 
   Future<String> createConversation({
@@ -117,8 +115,6 @@ class ConversationRepository {
       queryParameters: {'limit': 100},
     );
     final data = responseMap(response);
-    return listValue(
-      data['messages'],
-    ).map((json) => MessageModel.fromFirestore(apiDocument(json))).toList();
+    return parseList(data['messages'], MessageModel.fromFirestore);
   }
 }

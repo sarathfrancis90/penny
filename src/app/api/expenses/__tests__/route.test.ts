@@ -6,7 +6,7 @@ vi.mock('@/lib/firebase-admin', () => ({
 }));
 
 vi.mock('@/lib/auth-middleware', () => ({
-  getAuthenticatedUserId: vi.fn(async () => 'test-user'),
+  requireAuthenticatedUser: vi.fn(async () => ({ ok: true, userId: 'test-user' })),
 }));
 
 vi.mock('@/lib/services/budgetNotificationService', () => ({

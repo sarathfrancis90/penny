@@ -67,7 +67,10 @@ export interface MobileDataService {
   getMyMembership(input: GroupInput): Promise<{
     membership: Record<string, unknown> | null;
   }>;
-  declineInvitation(input: IdInput): Promise<{ success: true }>;
+  /** `userEmail` is the caller's verified token email; it must be the invitee's. */
+  declineInvitation(
+    input: IdInput & { userEmail?: string },
+  ): Promise<{ success: true }>;
 
   listIncome(input: ListInput & { scope: DataScope }): Promise<{
     incomeSources: Record<string, unknown>[];
@@ -127,6 +130,8 @@ export interface MobileDataService {
     deviceId: string;
     token: string;
     platform: string;
+    /** Verified sign-in email, recorded so invitations can find this user. */
+    email?: string;
   }): Promise<{ success: true }>;
   deletePushToken(input: { userId: string; deviceId: string }): Promise<{
     success: true;
@@ -137,6 +142,8 @@ export interface MobileDataService {
   }>;
   updateUserProfile(input: UpsertInput): Promise<{
     profile: Record<string, unknown>;
+    /** Whether the sign-in record's name/photo were updated; absent when not needed. */
+    authSynced?: boolean;
   }>;
   getUserPreferences(input: { userId: string }): Promise<{
     preferences: Record<string, unknown>;

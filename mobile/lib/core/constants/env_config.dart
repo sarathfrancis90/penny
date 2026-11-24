@@ -9,6 +9,13 @@
 abstract final class EnvConfig {
   static const _env = String.fromEnvironment('ENV', defaultValue: 'prod');
   static const _apiBaseUrlOverride = String.fromEnvironment('API_BASE_URL');
+  static const _authEmulatorHost = String.fromEnvironment('AUTH_EMULATOR_HOST');
+
+  /// `host:port` of a local Firebase Auth emulator, for end-to-end runs
+  /// against a local API. Honoured in debug builds only (see main.dart):
+  ///   flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8787 \
+  ///     --dart-define=AUTH_EMULATOR_HOST=127.0.0.1:9099
+  static String get authEmulatorHost => _authEmulatorHost;
 
   static String get environment => _env;
 

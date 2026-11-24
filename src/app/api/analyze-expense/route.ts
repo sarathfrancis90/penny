@@ -6,6 +6,7 @@ import {
   normalizeExpenseCategory,
 } from "../../../../packages/shared/src/categories";
 import { withObservability } from "@/lib/observability/withObservability";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
 let genAI: GoogleGenAI | null = null;
@@ -17,9 +18,38 @@ function getGenAI(): GoogleGenAI {
 }
 
 // System prompt with detailed instructions for expense analysis
-const getSystemPrompt = (userGroups?: { id: string; name: string; icon: string }[]) => {
+/** Today's calendar date in Canada (Toronto), as YYYY-MM-DD. */
+function torontoToday(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/**
+ * The user's "today". The browser sends its local date; it is trusted only
+ * when it is within a day of the server's date (time zones differ by less
+ * than that). Otherwise Toronto's date is used. Using the UTC date put
+ * evening expenses in Canada on the next day.
+ */
+function resolveToday(localDate: unknown, now = new Date()): string {
+  if (typeof localDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(localDate)) {
+    const client = Date.parse(`${localDate}T12:00:00Z`);
+    const server = Date.parse(`${now.toISOString().slice(0, 10)}T12:00:00Z`);
+    if (Number.isFinite(client) && Math.abs(client - server) <= 86_400_000) {
+      return localDate;
+    }
+  }
+  return torontoToday(now);
+}
+
+const getSystemPrompt = (
+  userGroups: { id: string; name: string; icon: string }[] | undefined,
+  todayDate: string
+) => {
   const categoriesList = expenseCategories.join(", ");
-  const todayDate = new Date().toISOString().split("T")[0];
   const groupsList = userGroups?.map(g => `${g.icon} ${g.name}`).join(", ") || "No groups available";
   
   return `You are Penny, an AI expense tracking assistant for a self-incorporated software professional in Canada. Your job is to analyze expense information and extract structured data for tax purposes.
@@ -80,6 +110,8 @@ interface AnalyzeExpenseRequest {
   text?: string;
   imageBase64?: string;
   userId?: string; // For fetching user's groups
+  /** The user's local calendar date (YYYY-MM-DD), for "today". */
+  localDate?: string;
 }
 
 interface AnalyzeExpenseResponse {
@@ -218,10 +250,12 @@ async function postHandler(request: NextRequest) {
   try {
     // Parse request body
     const body: AnalyzeExpenseRequest = await request.json();
-    const { text, imageBase64, userId: bodyUserId } = body;
+    const { text, imageBase64, userId: bodyUserId, localDate } = body;
 
-    // Extract userId from request body/header
-    userId = bodyUserId || request.headers.get("x-user-id") || undefined;
+    // Identity comes from the verified ID token; a body userId must match it.
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    userId = auth.userId;
 
     // Validate input
     if (!text && !imageBase64) {
@@ -246,7 +280,7 @@ async function postHandler(request: NextRequest) {
     const parts: Array<{ text: string } | { inlineData: { data: string; mimeType: string } }> = [];
 
     // Add system prompt with user's groups
-    parts.push({ text: getSystemPrompt(userGroups) });
+    parts.push({ text: getSystemPrompt(userGroups, resolveToday(localDate)) });
 
     // Add user text if provided
     if (text) {

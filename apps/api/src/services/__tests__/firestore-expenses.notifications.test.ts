@@ -46,7 +46,7 @@ function firestore(expenseData: Record<string, unknown> | null = null) {
             path,
             get: async () => {
               if (path === 'groupMembers/group-1_user-1') {
-                return docSnapshot({ status: 'active' });
+                return docSnapshot({ role: 'member', status: 'active' });
               }
               return docSnapshot({});
             },

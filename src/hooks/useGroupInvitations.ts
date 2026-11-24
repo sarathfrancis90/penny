@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth";
 import { GroupInvitation } from "@/lib/types";
+import { authFetch } from "@/lib/authFetch";
 
 export function useGroupInvitations(groupId?: string) {
   const { user } = useAuth();
@@ -69,7 +70,7 @@ export function useGroupInvitations(groupId?: string) {
       }
 
       try {
-        const response = await fetch("/api/groups/invitations/accept", {
+        const response = await authFetch("/api/groups/invitations/accept", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -103,22 +104,13 @@ export function useGroupInvitations(groupId?: string) {
       }
 
       try {
-        const response = await fetch("/api/groups/invitations/reject", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            invitationId,
-            userId: user.uid,
-          }),
+        // The invitee may mark their own pending invitation as rejected
+        // (see the groupInvitations Firestore rules); there is no API route.
+        await updateDoc(doc(db, "groupInvitations", invitationId), {
+          status: "rejected",
+          respondedAt: Timestamp.now(),
         });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to reject invitation");
-        }
-
-        return result;
+        return { success: true };
       } catch (err) {
         console.error("Error rejecting invitation:", err);
         throw err;
@@ -135,22 +127,14 @@ export function useGroupInvitations(groupId?: string) {
       }
 
       try {
-        const response = await fetch("/api/groups/invitations/cancel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            invitationId,
-            userId: user.uid,
-          }),
+        // Group owners/admins may cancel an invitation directly (see the
+        // groupInvitations Firestore rules); there is no API route.
+        await updateDoc(doc(db, "groupInvitations", invitationId), {
+          status: "cancelled",
+          cancelledAt: Timestamp.now(),
+          cancelledBy: user.uid,
         });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to cancel invitation");
-        }
-
-        return result;
+        return { success: true };
       } catch (err) {
         console.error("Error canceling invitation:", err);
         throw err;

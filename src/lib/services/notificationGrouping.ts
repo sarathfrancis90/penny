@@ -3,21 +3,32 @@
  * 
  * Handles intelligent grouping of similar notifications to reduce noise.
  * Groups notifications by type, source (group), and time window.
+ *
+ * SERVER-ONLY: used by NotificationService with the Admin SDK.
  */
 
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  updateDoc,
-  doc,
-  Timestamp,
-  addDoc,
-  serverTimestamp
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import type { Notification, NotificationType } from '@/lib/types/notifications';
+
+/**
+ * Firestore rejects undefined field values (the Admin SDK throws unless
+ * ignoreUndefinedProperties is set), and optional notification fields are often undefined,
+ * including inside nested maps such as `metadata`. Plain objects are cleaned
+ * recursively; Timestamps, FieldValues and arrays are left as they are.
+ */
+export function withoutUndefined<T extends object>(data: T): T {
+  return Object.fromEntries(
+    Object.entries(data)
+      .filter(([, value]) => value !== undefined)
+      .map(([key, value]) => [
+        key,
+        value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype
+          ? withoutUndefined(value as object)
+          : value,
+      ])
+  ) as T;
+}
 
 /**
  * Configuration for grouping behavior
@@ -67,16 +78,15 @@ export async function findExistingGroup(
   const timeThreshold = new Date(Date.now() - GROUPING_CONFIG.TIME_WINDOW_MINUTES * 60 * 1000);
 
   try {
-    const q = query(
-      collection(db, 'notifications'),
-      where('userId', '==', userId),
-      where('type', '==', type),
-      where('groupKey', '==', groupKey),
-      where('isGrouped', '==', true),
-      where('createdAt', '>=', Timestamp.fromDate(timeThreshold))
-    );
-
-    const snapshot = await getDocs(q);
+    const snapshot = await adminDb
+      .collection('notifications')
+      .where('userId', '==', userId)
+      .where('type', '==', type)
+      .where('groupKey', '==', groupKey)
+      .where('isGrouped', '==', true)
+      .where('createdAt', '>=', Timestamp.fromDate(timeThreshold))
+      .limit(1)
+      .get();
 
     if (!snapshot.empty) {
       const groupDoc = snapshot.docs[0];
@@ -102,7 +112,7 @@ export async function addToGroup(
   newNotification: Omit<Notification, 'id'>
 ): Promise<void> {
   try {
-    const groupDocRef = doc(db, 'notifications', groupNotificationId);
+    const groupDocRef = adminDb.collection('notifications').doc(groupNotificationId);
     const currentCount = groupData.groupCount || 1;
     const groupedActors = groupData.groupedNotifications || [];
 
@@ -113,10 +123,10 @@ export async function addToGroup(
     }
 
     // Update group notification
-    await updateDoc(groupDocRef, {
+    await groupDocRef.update({
       groupCount: currentCount + 1,
       groupedNotifications: [...groupedActors, newNotification.actorId || 'unknown'],
-      updatedAt: serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
       read: false, // Mark as unread when new notification added
       // Update title/body to reflect multiple actors
       title: generateGroupTitle(newNotification.type, currentCount + 1),
@@ -157,10 +167,12 @@ export async function createGroupNotification(
       groupKey,
       groupCount: 1,
       groupedNotifications: [notification.actorId || 'unknown'],
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     };
 
-    const docRef = await addDoc(collection(db, 'notifications'), groupNotification);
+    const docRef = await adminDb
+      .collection('notifications')
+      .add(withoutUndefined(groupNotification));
     
     console.log('[NotificationGrouping] Created group notification:', {
       id: docRef.id,

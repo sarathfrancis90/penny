@@ -3,7 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -11,10 +11,13 @@ import { withObservability } from "@/lib/observability/withObservability";
  */
 async function postHandler(request: NextRequest) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
-    const { token, userId: bodyUserId, userEmail, userName } = body;
-    const userId = tokenUserId || bodyUserId;
+    const { token, userId: bodyUserId, userEmail: bodyUserEmail, userName } = body;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
+    // Match the invitation against the verified email when the token has one
+    const userEmail: string | undefined = auth.email || bodyUserEmail;
 
     if (!token || !userId || !userEmail) {
       return NextResponse.json(
@@ -166,7 +169,8 @@ async function postHandler(request: NextRequest) {
             groupId: invitation.groupId,
             actorId: userId,
             actorName: newMemberName,
-            actorAvatar: newMemberAvatar,
+            // Firestore rejects undefined values, so only set it when known
+            ...(newMemberAvatar ? { actorAvatar: newMemberAvatar } : {}),
             metadata: {
               groupName: groupName,
               memberEmail: userEmail,

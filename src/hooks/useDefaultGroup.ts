@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { authFetch } from "@/lib/authFetch";
 
 /**
  * Hook to manage user's default group
@@ -55,7 +56,7 @@ export function useDefaultGroup(userId: string | undefined) {
       }
 
       try {
-        const response = await fetch("/api/user/default-group", {
+        const response = await authFetch("/api/user/default-group", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, groupId }),
@@ -84,7 +85,7 @@ export function useDefaultGroup(userId: string | undefined) {
     }
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/user/default-group?userId=${userId}`,
         {
           method: "DELETE",

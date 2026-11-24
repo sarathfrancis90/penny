@@ -3,7 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { BudgetNotificationService } from "@/lib/services/budgetNotificationService";
 import { PushService } from "@/lib/services/pushService";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 interface CreateExpenseRequest {
@@ -12,7 +12,7 @@ interface CreateExpenseRequest {
   date: string;
   category: string;
   description?: string;
-  userId: string;
+  userId?: string;
   receiptUrl?: string;
   receiptPath?: string;
   groupId?: string | null;
@@ -20,9 +20,6 @@ interface CreateExpenseRequest {
 
 async function postHandler(request: NextRequest) {
   try {
-    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
-    const tokenUserId = await getAuthenticatedUserId(request);
-
     // Parse request body
     let body: CreateExpenseRequest;
     try {
@@ -39,14 +36,17 @@ async function postHandler(request: NextRequest) {
     const { vendor, amount, date, category, description, userId: bodyUserId, receiptUrl, receiptPath, groupId } =
       body;
 
-    const userId = tokenUserId ?? bodyUserId;
+    // Identity comes from the verified ID token; a body userId must match it.
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     // Validate required fields
     if (!vendor || !amount || !date || !category || !userId) {
       return NextResponse.json(
         {
           error: "Missing required fields",
-          details: "vendor, amount, date, category, and userId are required",
+          details: "vendor, amount, date, and category are required",
         },
         { status: 400 }
       );
@@ -81,24 +81,34 @@ async function postHandler(request: NextRequest) {
     // Determine approval status for group expenses
     let groupMetadata: Record<string, unknown> | null = null;
     if (groupId) {
+      // Only active members allowed to add expenses may post to a group
+      const memberDoc = await adminDb
+        .collection("groupMembers")
+        .doc(`${groupId}_${userId}`)
+        .get();
+      const memberData = memberDoc.exists ? memberDoc.data() : null;
+      if (
+        !memberData ||
+        memberData.status !== "active" ||
+        memberData.permissions?.canAddExpenses !== true
+      ) {
+        return NextResponse.json(
+          {
+            error: "Permission denied",
+            details: "You don't have permission to add expenses to this group",
+          },
+          { status: 403 }
+        );
+      }
+
       const groupRef = adminDb.collection("groups").doc(groupId);
       const groupDoc = await groupRef.get();
       const groupData = groupDoc.exists ? groupDoc.data() : null;
       const requireApproval = groupData?.settings?.requireApproval ?? false;
 
       if (requireApproval) {
-        // Check if submitter is owner or admin (auto-approve for them)
-        const memberSnapshot = await adminDb
-          .collection("groupMembers")
-          .where("groupId", "==", groupId)
-          .where("userId", "==", userId)
-          .where("status", "==", "active")
-          .limit(1)
-          .get();
-
-        const memberRole = memberSnapshot.empty
-          ? "member"
-          : memberSnapshot.docs[0].data().role;
+        // Owners and admins are auto-approved
+        const memberRole = memberData.role;
 
         const isAdminOrOwner = memberRole === "owner" || memberRole === "admin";
 
@@ -176,7 +186,7 @@ async function postHandler(request: NextRequest) {
           // Get user info
           const userDoc = await adminDb.collection("users").doc(userId).get();
           const userData = userDoc.exists ? userDoc.data() : null;
-          const actorName = userData?.displayName || userData?.email || 'Someone';
+          const actorName = userData?.displayName || userData?.email || auth.email || 'Someone';
           const actorAvatar = userData?.photoURL;
 
           // Get all group members except the current user
@@ -209,7 +219,8 @@ async function postHandler(request: NextRequest) {
                 groupId: groupId,
                 actorId: userId,
                 actorName: actorName,
-                actorAvatar: actorAvatar,
+                // Firestore rejects undefined values, so only set it when known
+                ...(actorAvatar ? { actorAvatar } : {}),
                 metadata: {
                   groupName: groupName,
                   groupIcon: groupIcon,
@@ -263,7 +274,7 @@ async function postHandler(request: NextRequest) {
         if (!groupBudgetSnapshot.empty) {
           const budgetDoc = groupBudgetSnapshot.docs[0];
           const budget = budgetDoc.data();
-          const budgetLimit = budget.limit || 0;
+          const budgetLimit = budget.monthlyLimit || 0;
 
           // Calculate total spent in this category for this group
           const startDate = new Date(expenseYear, expenseMonth - 1, 1);
@@ -325,7 +336,7 @@ async function postHandler(request: NextRequest) {
         if (!personalBudgetSnapshot.empty) {
           const budgetDoc = personalBudgetSnapshot.docs[0];
           const budget = budgetDoc.data();
-          const budgetLimit = budget.limit || 0;
+          const budgetLimit = budget.monthlyLimit || 0;
 
           // Calculate total spent in this category for this user (personal only)
           const startDate = new Date(expenseYear, expenseMonth - 1, 1);
@@ -410,16 +421,9 @@ async function postHandler(request: NextRequest) {
 // GET endpoint to retrieve expenses (for future use)
 async function getHandler(request: NextRequest) {
   try {
-    // Extract userId from query parameters
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "userId query parameter is required" },
-        { status: 400 }
-      );
-    }
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
 
     // TODO: Implement expense retrieval in a future prompt
     return NextResponse.json({

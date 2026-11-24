@@ -1,4 +1,5 @@
 import 'package:penny_mobile/data/models/api_timestamp.dart';
+import 'package:penny_mobile/data/models/group_member_model.dart';
 
 class GroupModel {
   GroupModel({
@@ -13,6 +14,7 @@ class GroupModel {
     this.description,
     this.color,
     this.icon,
+    this.myPermissions,
   });
 
   final String id;
@@ -27,12 +29,20 @@ class GroupModel {
   final String? color;
   final String? icon;
 
+  /// The signed-in user's permissions in this group, when the API included
+  /// them (`myPermissions` on the groups list). `null` = not known.
+  final GroupPermissions? myPermissions;
+
+  /// False only when the user is known to lack the permission (a viewer).
+  /// Unknown permissions do not hide anything — the server enforces them.
+  bool get canAddExpenses => myPermissions?.canAddExpenses ?? true;
+
   factory GroupModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return GroupModel(
       id: doc.id,
-      name: data['name'] as String,
-      createdBy: data['createdBy'] as String,
+      name: data['name'] as String? ?? '',
+      createdBy: data['createdBy'] as String? ?? '',
       createdAt: Timestamp.fromJson(data['createdAt']),
       updatedAt: Timestamp.fromJson(data['updatedAt']),
       settings: GroupSettings.fromMap(
@@ -45,6 +55,11 @@ class GroupModel {
       description: data['description'] as String?,
       color: data['color'] as String?,
       icon: data['icon'] as String?,
+      myPermissions: data['myPermissions'] is Map
+          ? GroupPermissions.fromMap(
+              Map<String, dynamic>.from(data['myPermissions'] as Map),
+            )
+          : null,
     );
   }
 }
@@ -102,8 +117,8 @@ class GroupStats {
 
   factory GroupStats.fromMap(Map<String, dynamic> map) {
     return GroupStats(
-      memberCount: map['memberCount'] as int? ?? 0,
-      expenseCount: map['expenseCount'] as int? ?? 0,
+      memberCount: (map['memberCount'] as num?)?.toInt() ?? 0,
+      expenseCount: (map['expenseCount'] as num?)?.toInt() ?? 0,
       totalAmount: (map['totalAmount'] as num?)?.toDouble() ?? 0,
       lastActivityAt: Timestamp.tryParse(map['lastActivityAt']),
     );

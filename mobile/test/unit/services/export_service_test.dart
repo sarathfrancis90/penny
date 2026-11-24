@@ -205,9 +205,7 @@ void main() {
       });
 
       test('escapes descriptions containing commas', () {
-        final expense = makeExpense(
-          description: 'Coffee, donut, and sandwich',
-        );
+        final expense = makeExpense(description: 'Coffee, donut, and sandwich');
 
         final csv = exportService.generateCsv([expense]);
 
@@ -223,6 +221,79 @@ void main() {
         final csv = exportService.generateCsv([expense]);
 
         expect(csv, contains('"Advertising (Promotion, gift cards etc.)"'));
+      });
+    });
+
+    group('spreadsheet safety', () {
+      test('neutralises cells that a spreadsheet would run as a formula', () {
+        for (final lead in ['=', '+', '-', '@', '\t']) {
+          final csv = exportService.generateCsv([
+            makeExpense(vendor: '${lead}HYPERLINK("http://x")'),
+          ]);
+          final row = csv.split('\n')[1];
+          expect(row, contains("'$lead"), reason: 'lead "$lead"');
+          expect(row.split(',')[1], isNot(startsWith(lead)));
+        }
+      });
+
+      test('neutralises a formula in the description and type columns', () {
+        final csv = exportService.generateCsv([
+          makeExpense(description: '=1+1', expenseType: '@SUM(A1)'),
+        ]);
+        final cells = csv.split('\n')[1].split(',');
+        expect(cells[4], "'@SUM(A1)");
+        expect(cells[6], "'=1+1");
+      });
+
+      test('does not touch a negative number in the amount column', () {
+        final csv = exportService.generateCsv([makeExpense(amount: -5)]);
+        expect(csv.split('\n')[1].split(',')[3], '-5.00');
+      });
+
+      test('quotes a carriage return', () {
+        final csv = exportService.generateCsv([
+          makeExpense(vendor: 'Line1\rLine2'),
+        ]);
+        expect(csv, contains('"Line1\rLine2"'));
+      });
+
+      test('leaves rejected group expenses out', () {
+        final rejected = ExpenseModel(
+          id: 'exp-r',
+          userId: 'user-1',
+          vendor: 'Rejected Vendor',
+          amount: 99,
+          category: 'Groceries',
+          date: Timestamp.fromDate(DateTime(2025, 3, 15)),
+          expenseType: 'group',
+          createdAt: Timestamp.fromDate(DateTime(2025, 3, 15)),
+          updatedAt: Timestamp.fromDate(DateTime(2025, 3, 15)),
+          groupId: 'g1',
+          groupMetadata: const {'approvalStatus': 'rejected'},
+        );
+        final csv = exportService.generateCsv([
+          rejected,
+          makeExpense(vendor: 'Kept Vendor'),
+        ]);
+        expect(csv, isNot(contains('Rejected Vendor')));
+        expect(csv, contains('Kept Vendor'));
+      });
+
+      test('file name keeps only safe characters from the label', () {
+        expect(
+          ExportService.exportFileName('2025-03-01_2025-03-31'),
+          'penny_expenses_2025-03-01_2025-03-31.csv',
+        );
+        expect(
+          ExportService.exportFileName('../../etc/passwd'),
+          isNot(contains('/')),
+        );
+        expect(ExportService.exportFileName('../..'), isNot(contains('..')));
+        expect(ExportService.exportFileName(null), 'penny_expenses_export.csv');
+        expect(
+          ExportService.exportFileName('///'),
+          'penny_expenses_export.csv',
+        );
       });
     });
 

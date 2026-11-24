@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PersonalBudget, GroupBudget, BudgetPeriod } from "@/lib/types";
+import { authFetch } from "@/lib/authFetch";
 
 /**
  * Hook to manage budget CRUD operations
@@ -33,7 +34,7 @@ export function useBudgetManagement(userId: string | undefined) {
     setError(null);
 
     try {
-      const response = await fetch("/api/budgets/personal", {
+      const response = await authFetch("/api/budgets/personal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -84,7 +85,7 @@ export function useBudgetManagement(userId: string | undefined) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/budgets/personal/${budgetId}`, {
+      const response = await authFetch(`/api/budgets/personal/${budgetId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -122,7 +123,7 @@ export function useBudgetManagement(userId: string | undefined) {
     setError(null);
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/budgets/personal/${budgetId}?userId=${userId}`,
         {
           method: "DELETE",
@@ -167,7 +168,7 @@ export function useBudgetManagement(userId: string | undefined) {
     setError(null);
 
     try {
-      const response = await fetch("/api/budgets/group", {
+      const response = await authFetch("/api/budgets/group", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -219,7 +220,7 @@ export function useBudgetManagement(userId: string | undefined) {
     setError(null);
 
     try {
-      const response = await fetch(`/api/budgets/group/${budgetId}`, {
+      const response = await authFetch(`/api/budgets/group/${budgetId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -257,7 +258,7 @@ export function useBudgetManagement(userId: string | undefined) {
     setError(null);
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/budgets/group/${budgetId}?userId=${userId}`,
         {
           method: "DELETE",

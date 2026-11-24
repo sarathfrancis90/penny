@@ -11,6 +11,20 @@ export interface CreateGroupInput {
 
 export type GroupRole = 'owner' | 'admin' | 'member' | 'viewer';
 
+/** A pending invitation as the invitee sees it; never carries the token. */
+export interface PendingInvitationSummary {
+  id: string;
+  groupId: string;
+  groupName: string;
+  invitedBy: string;
+  invitedByName: string | null;
+  role: string;
+  /** ISO-8601, or null when the stored value is missing. */
+  createdAt: string | null;
+  /** ISO-8601, or null when the invitation has no expiry. */
+  expiresAt: string | null;
+}
+
 export interface GroupService {
   createGroup(input: CreateGroupInput): Promise<{
     groupId: string;
@@ -44,12 +58,22 @@ export interface GroupService {
   }): Promise<void>;
   acceptInvitation(input: {
     token: string;
+    /** Used only when there is no token (older invitation notifications). */
+    invitationId?: string;
     userId: string;
     userEmail: string;
     userName?: string;
   }): Promise<{ groupId: string; groupName: string; role: GroupRole }>;
   archiveGroup(input: { groupId: string; userId: string }): Promise<void>;
   leaveGroup(input: { groupId: string; userId: string }): Promise<void>;
+  /**
+   * Pending, unexpired invitations to active groups addressed to the
+   * caller's verified email (case-insensitive), newest first.
+   */
+  listMyInvitations(input: {
+    userId: string;
+    userEmail?: string;
+  }): Promise<PendingInvitationSummary[]>;
 }
 
 export function createUnavailableGroupService(): GroupService {
@@ -71,5 +95,6 @@ export function createUnavailableGroupService(): GroupService {
     acceptInvitation: unavailable,
     archiveGroup: unavailable,
     leaveGroup: unavailable,
+    listMyInvitations: unavailable,
   };
 }

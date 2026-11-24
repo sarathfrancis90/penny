@@ -35,6 +35,7 @@ OpenAPI artifact: `docs/api/openapi.json`.
 | PATCH | `/api/groups/{groupId}/members/{memberId}` | firebase | implemented | `apps/api/src/routes/groups/routes.ts` |
 | PUT | `/api/groups/{groupId}/members/{memberId}` | firebase | implemented | `apps/api/src/routes/groups/routes.ts` |
 | DELETE | `/api/groups/{groupId}/members/{memberId}` | firebase | implemented | `apps/api/src/routes/groups/routes.ts` |
+| GET | `/api/groups/invitations` | firebase | implemented | `apps/api/src/routes/groups/routes.ts` |
 | POST | `/api/groups/invitations/accept` | firebase | implemented | `apps/api/src/routes/groups/routes.ts` |
 | POST | `/api/groups/invitations/{id}/decline` | firebase | implemented | `apps/api/src/routes/mobile-data/routes.ts` |
 | POST | `/api/groups/{groupId}/archive` | firebase | implemented | `apps/api/src/routes/groups/routes.ts` |

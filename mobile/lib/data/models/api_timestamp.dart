@@ -28,7 +28,8 @@ class Timestamp implements Comparable<Timestamp> {
       return Timestamp.fromMillisecondsSinceEpoch(value.toInt());
     }
     if (value is String && value.isNotEmpty) {
-      return Timestamp.fromDate(DateTime.parse(value));
+      final parsed = DateTime.tryParse(value);
+      return parsed == null ? null : Timestamp.fromDate(parsed);
     }
     if (value is Map) {
       final seconds = value['_seconds'] ?? value['seconds'];

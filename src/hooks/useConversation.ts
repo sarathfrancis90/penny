@@ -20,6 +20,10 @@ interface UseConversationResult {
   updateLastAccessed: () => Promise<void>;
 }
 
+// Stable empty list: a fresh [] on every render would change the returned
+// `messages` identity each time and re-run effects that depend on it.
+const EMPTY_MESSAGES: ConversationMessage[] = [];
+
 /**
  * Hook to fetch a single conversation with its messages
  * 
@@ -162,7 +166,7 @@ export function useConversation(
 
   return {
     conversation: hasConversationScope && loadedKey === queryKey ? conversation : null,
-    messages: hasConversationScope && loadedKey === queryKey ? messages : [],
+    messages: hasConversationScope && loadedKey === queryKey ? messages : EMPTY_MESSAGES,
     loading: hasConversationScope ? loadedKey !== queryKey || loading : false,
     error: hasConversationScope ? error : null,
     updateLastAccessed,

@@ -1,62 +1,29 @@
-import { Timestamp, type Firestore } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { randomBytes } from 'node:crypto';
 
-import type { CreateGroupInput, GroupRole, GroupService } from './groups';
+import { writeInChunks } from './batching';
+import { DEFAULT_ROLE_PERMISSIONS, resolveMemberPermissions } from './group-permissions';
+import type {
+  CreateGroupInput,
+  GroupRole,
+  GroupService,
+  PendingInvitationSummary,
+} from './groups';
 import {
   createNoopNotificationService,
   type NotificationService,
 } from './notifications';
 
-const DEFAULT_ROLE_PERMISSIONS = {
-  owner: {
-    canAddExpenses: true,
-    canEditOwnExpenses: true,
-    canEditAllExpenses: true,
-    canDeleteExpenses: true,
-    canApproveExpenses: true,
-    canInviteMembers: true,
-    canRemoveMembers: true,
-    canViewReports: true,
-    canExportData: true,
-    canManageSettings: true,
-  },
-  admin: {
-    canAddExpenses: true,
-    canEditOwnExpenses: true,
-    canEditAllExpenses: true,
-    canDeleteExpenses: true,
-    canApproveExpenses: true,
-    canInviteMembers: true,
-    canRemoveMembers: true,
-    canViewReports: true,
-    canExportData: true,
-    canManageSettings: false,
-  },
-  member: {
-    canAddExpenses: true,
-    canEditOwnExpenses: true,
-    canEditAllExpenses: false,
-    canDeleteExpenses: false,
-    canApproveExpenses: false,
-    canInviteMembers: false,
-    canRemoveMembers: false,
-    canViewReports: true,
-    canExportData: false,
-    canManageSettings: false,
-  },
-  viewer: {
-    canAddExpenses: false,
-    canEditOwnExpenses: false,
-    canEditAllExpenses: false,
-    canDeleteExpenses: false,
-    canApproveExpenses: false,
-    canInviteMembers: false,
-    canRemoveMembers: false,
-    canViewReports: true,
-    canExportData: false,
-    canManageSettings: false,
-  },
-};
+/** A member's name for messages; an empty stored name counts as missing. */
+function nameOf(
+  data: { userName?: unknown; userEmail?: unknown } | undefined,
+  fallback: string,
+): string {
+  for (const value of [data?.userName, data?.userEmail]) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return fallback;
+}
 
 function forbidden(message: string) {
   return Object.assign(new Error(message), { statusCode: 403 });
@@ -78,10 +45,58 @@ function isRole(value: unknown): value is GroupRole {
   return value === 'owner' || value === 'admin' || value === 'member' || value === 'viewer';
 }
 
+/** Most invitations one person is shown at once. */
+const MAX_LISTED_INVITATIONS = 50;
+
+function toDate(value: unknown): Date | undefined {
+  if (value instanceof Timestamp) return value.toDate();
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return undefined;
+}
+
+function isoOrNull(value: unknown): string | null {
+  return toDate(value)?.toISOString() ?? null;
+}
+
+/** The one sign-in lookup invitations need; optional so tests can omit it. */
+export interface InviteeLookup {
+  getUserByEmail(email: string): Promise<{ uid: string }>;
+}
+
 export function createFirestoreGroupService(
   db: Firestore,
   notifications: NotificationService = createNoopNotificationService(),
+  auth?: InviteeLookup,
 ): GroupService {
+  /**
+   * The account behind an invited email. Sign-in records are authoritative;
+   * the profile email is the fallback (older accounts, or a lookup failure).
+   */
+  async function findUserIdByEmail(email: string): Promise<string | undefined> {
+    if (auth) {
+      try {
+        return (await auth.getUserByEmail(email)).uid;
+      } catch (error) {
+        if ((error as { code?: unknown } | null)?.code !== 'auth/user-not-found') {
+          console.error('[GroupService] Sign-in lookup by email failed', {
+            code: String((error as { code?: unknown } | null)?.code ?? 'unknown'),
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+    const users = await db
+      .collection('users')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+    return users.docs[0]?.id;
+  }
+
   async function getActiveMembership(groupId: string, userId: string) {
     const doc = await db.collection('groupMembers').doc(`${groupId}_${userId}`).get();
     if (!doc.exists || doc.data()?.status !== 'active') {
@@ -90,27 +105,53 @@ export function createFirestoreGroupService(
     return doc;
   }
 
+  // `memberIdOrUserId` comes from the URL. A membership document is only
+  // returned when it belongs to the group in the same URL, so an admin of
+  // one group cannot reach into another group's members.
   async function getMemberDoc(groupId: string, memberIdOrUserId: string) {
     const direct = await db.collection('groupMembers').doc(memberIdOrUserId).get();
-    if (direct.exists) return direct;
+    if (direct.exists && direct.data()?.groupId === groupId) return direct;
 
     const byUserId = await db
       .collection('groupMembers')
       .doc(`${groupId}_${memberIdOrUserId}`)
       .get();
-    if (byUserId.exists) return byUserId;
+    if (byUserId.exists && byUserId.data()?.groupId === groupId) return byUserId;
 
     throw notFound('Member not found');
   }
 
-  async function decrementMemberCount(groupId: string) {
+  /**
+   * Marks a membership as left/removed and lowers the group's member count,
+   * in one transaction. Returns false, changing nothing, when the member is
+   * already gone, so a repeated or concurrent call cannot count twice. Only
+   * active members are counted; an invited one never was.
+   */
+  async function markMemberGone(
+    groupId: string,
+    memberRef: FirebaseFirestore.DocumentReference,
+    memberUpdate: Record<string, unknown>,
+  ): Promise<boolean> {
     const groupRef = db.collection('groups').doc(groupId);
-    const groupDoc = await groupRef.get();
-    const currentMemberCount = groupDoc.data()?.stats?.memberCount ?? 0;
-    await groupRef.update({
-      'stats.memberCount': Math.max(0, Number(currentMemberCount) - 1),
-      'stats.lastActivityAt': Timestamp.now(),
-      updatedAt: Timestamp.now(),
+    return db.runTransaction(async (transaction) => {
+      const [memberDoc, groupDoc] = await Promise.all([
+        transaction.get(memberRef),
+        transaction.get(groupRef),
+      ]);
+      const status = memberDoc.data()?.status;
+      if (!memberDoc.exists || status === 'left' || status === 'removed') {
+        return false;
+      }
+      const now = Timestamp.now();
+      transaction.update(memberRef, memberUpdate);
+      if (status === 'active' && groupDoc.exists) {
+        transaction.update(groupRef, {
+          'stats.memberCount': FieldValue.increment(-1),
+          'stats.lastActivityAt': now,
+          updatedAt: now,
+        });
+      }
+      return true;
     });
   }
 
@@ -151,7 +192,7 @@ export function createFirestoreGroupService(
         groupId,
         userId: input.userId,
         userEmail: input.userEmail ?? '',
-        userName: input.userName ?? '',
+        userName: input.userName?.trim() ?? '',
         role: 'owner',
         status: 'active',
         invitedAt: now,
@@ -163,7 +204,7 @@ export function createFirestoreGroupService(
       batch.set(db.collection('groupActivities').doc(), {
         groupId,
         userId: input.userId,
-        userName: input.userName ?? 'User',
+        userName: (input.userName?.trim() || 'User'),
         action: 'group_created',
         details: `Created group "${input.name.trim()}"`,
         metadata: { groupName: input.name.trim() },
@@ -196,7 +237,7 @@ export function createFirestoreGroupService(
             ...(groupDoc.data() ?? {}),
             id: groupDoc.id,
             myRole: member.role,
-            myPermissions: member.permissions,
+            myPermissions: resolveMemberPermissions(member),
           };
         }),
       );
@@ -246,7 +287,7 @@ export function createFirestoreGroupService(
         changes.push('icon');
       }
       if (input.updates.settings !== undefined) {
-        if (!membershipData.permissions?.canManageSettings) {
+        if (!resolveMemberPermissions(membershipData).canManageSettings) {
           throw forbidden('No permission to update group settings');
         }
         if (
@@ -276,7 +317,7 @@ export function createFirestoreGroupService(
         groupId: input.groupId,
         userId: input.userId,
         userName:
-          membershipData.userName ?? membershipData.userEmail ?? 'Admin',
+          nameOf(membershipData, 'Admin'),
         action: 'group_updated',
         details: 'Updated group details',
         metadata: { changes },
@@ -318,6 +359,32 @@ export function createFirestoreGroupService(
         throw forbidden('Only owners can delete groups');
       }
 
+      const members = await db
+        .collection('groupMembers')
+        .where('groupId', '==', input.groupId)
+        .get();
+      await writeInChunks(db, members.docs, (batch, doc) => {
+        batch.update(doc.ref, {
+          status: 'removed',
+          leftAt: now,
+          lastActivityAt: now,
+        });
+      });
+
+      const expenses = await db
+        .collection('expenses')
+        .where('groupId', '==', input.groupId)
+        .get();
+      await writeInChunks(db, expenses.docs, (batch, doc) => {
+        batch.update(doc.ref, {
+          groupId: null,
+          expenseType: 'personal',
+          updatedAt: now,
+        });
+      });
+
+      // Last, so that if anything above fails the group is still there and
+      // the owner can run the delete again to finish it.
       await db.collection('groups').doc(input.groupId).update({
         status: 'deleted',
         updatedAt: now,
@@ -325,42 +392,14 @@ export function createFirestoreGroupService(
         deletedBy: input.userId,
       });
 
-      const members = await db
-        .collection('groupMembers')
-        .where('groupId', '==', input.groupId)
-        .get();
-      const memberBatch = db.batch();
-      for (const doc of members.docs) {
-        memberBatch.update(doc.ref, {
-          status: 'removed',
-          leftAt: now,
-          lastActivityAt: now,
-        });
-      }
-      if (!members.empty) await memberBatch.commit();
-
-      const expenses = await db
-        .collection('expenses')
-        .where('groupId', '==', input.groupId)
-        .get();
-      const expenseBatch = db.batch();
-      for (const doc of expenses.docs) {
-        expenseBatch.update(doc.ref, {
-          groupId: null,
-          expenseType: 'personal',
-          updatedAt: now,
-        });
-      }
-      if (!expenses.empty) await expenseBatch.commit();
-
       await db.collection('groupActivities').doc().set({
         groupId: input.groupId,
         userId: input.userId,
         userName:
-          membershipData.userName ?? membershipData.userEmail ?? 'Unknown User',
+          nameOf(membershipData, 'Unknown User'),
         action: 'group_deleted',
         details: `Group deleted by ${
-          membershipData.userName ?? membershipData.userEmail ?? 'Unknown User'
+          nameOf(membershipData, 'Unknown User')
         }`,
         createdAt: now,
       });
@@ -374,7 +413,7 @@ export function createFirestoreGroupService(
         userIds: recipients,
         type: 'group_settings_changed',
         title: 'Group deleted',
-        body: `${membershipData.userName ?? membershipData.userEmail ?? 'Someone'} deleted the group`,
+        body: `${nameOf(membershipData, 'Someone')} deleted the group`,
         category: 'group',
         priority: 'high',
         icon: 'delete',
@@ -383,7 +422,7 @@ export function createFirestoreGroupService(
         groupId: input.groupId,
         actorId: input.userId,
         actorName:
-          membershipData.userName ?? membershipData.userEmail ?? 'Someone',
+          nameOf(membershipData, 'Someone'),
       });
     },
 
@@ -408,7 +447,7 @@ export function createFirestoreGroupService(
 
       const inviter = await getActiveMembership(input.groupId, input.userId);
       const inviterData = inviter.data() ?? {};
-      if (!inviterData.permissions?.canInviteMembers) {
+      if (!resolveMemberPermissions(inviterData).canInviteMembers) {
         throw forbidden('No permission to invite members');
       }
 
@@ -428,6 +467,20 @@ export function createFirestoreGroupService(
       if (existing?.status === 'active') throw badRequest('User is already a member');
       if (existing?.status === 'invited') throw badRequest('User is already invited');
 
+      // Pending invitations live in groupInvitations, not groupMembers, so
+      // check there too; an expired one may be replaced by a new invite.
+      const pendingInvites = await db
+        .collection('groupInvitations')
+        .where('groupId', '==', input.groupId)
+        .where('invitedEmail', '==', email)
+        .where('status', '==', 'pending')
+        .get();
+      const stillValid = pendingInvites.docs.some((doc) => {
+        const expires = doc.data().expiresAt;
+        return !(expires instanceof Timestamp) || expires.toMillis() > now.toMillis();
+      });
+      if (stillValid) throw badRequest('User is already invited');
+
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
       const token = randomBytes(32).toString('hex');
@@ -436,7 +489,7 @@ export function createFirestoreGroupService(
         groupName: groupData.name,
         invitedEmail: email,
         invitedBy: input.userId,
-        invitedByName: inviterData.userName ?? 'A team member',
+        invitedByName: nameOf(inviterData, 'A team member'),
         role: input.role,
         status: 'pending',
         token,
@@ -449,7 +502,7 @@ export function createFirestoreGroupService(
       await db.collection('groupActivities').doc().set({
         groupId: input.groupId,
         userId: input.userId,
-        userName: inviterData.userName ?? 'User',
+        userName: nameOf(inviterData, 'User'),
         action: 'member_invited',
         details: `Invited ${email} as ${input.role}`,
         metadata: { email, role: input.role, invitationId: invitationRef.id },
@@ -471,18 +524,13 @@ export function createFirestoreGroupService(
         metadata: { email, role: input.role, invitationId: invitationRef.id },
       });
 
-      const invitedUsers = await db
-        .collection('users')
-        .where('email', '==', email)
-        .limit(1)
-        .get();
-      const invitedUserId = invitedUsers.docs[0]?.id;
+      const invitedUserId = await findUserIdByEmail(email);
       if (invitedUserId && invitedUserId !== input.userId) {
         await notifications.notifyUsers({
           userIds: [invitedUserId],
           type: 'group_invitation',
           title: 'Group invitation',
-          body: `${inviterData.userName ?? inviterData.userEmail ?? 'Someone'} invited you to join ${groupData.name}`,
+          body: `${nameOf(inviterData, 'Someone')} invited you to join ${groupData.name}`,
           category: 'group',
           priority: 'high',
           icon: 'invite',
@@ -491,11 +539,15 @@ export function createFirestoreGroupService(
           relatedType: 'group',
           groupId: input.groupId,
           actorId: input.userId,
-          actorName: inviterData.userName ?? inviterData.userEmail ?? 'Someone',
+          actorName: nameOf(inviterData, 'Someone'),
+          // Only the invited user sees this notification, so it can carry
+          // the token the app sends back to accept.
           metadata: {
+            groupId: input.groupId,
             groupName: groupData.name,
             groupIcon: groupData.icon,
             invitationId: invitationRef.id,
+            invitationToken: token,
             role: input.role,
           },
         });
@@ -534,7 +586,7 @@ export function createFirestoreGroupService(
       await db.collection('groupActivities').doc().set({
         groupId: input.groupId,
         userId: input.requesterUserId,
-        userName: requesterData.userName ?? requesterData.userEmail ?? 'Admin',
+        userName: nameOf(requesterData, 'Admin'),
         action: 'member_role_changed',
         details: `Changed ${targetData.userEmail}'s role from ${targetData.role} to ${input.newRole}`,
         metadata: {
@@ -576,12 +628,16 @@ export function createFirestoreGroupService(
         if (targetData.role === 'owner') {
           throw badRequest('Owners cannot leave the group. Transfer ownership first or delete the group.');
         }
-        await target.ref.update({ status: 'left', leftAt: now, lastActivityAt: now });
-        await decrementMemberCount(input.groupId);
+        const left = await markMemberGone(input.groupId, target.ref, {
+          status: 'left',
+          leftAt: now,
+          lastActivityAt: now,
+        });
+        if (!left) return;
         await db.collection('groupActivities').doc().set({
           groupId: input.groupId,
           userId: input.requesterUserId,
-          userName: targetData.userName ?? targetData.userEmail ?? 'Member',
+          userName: nameOf(targetData, 'Member'),
           action: 'member_left',
           details: `${targetData.userEmail} left the group`,
           metadata: { userId: targetData.userId, email: targetData.userEmail },
@@ -606,7 +662,7 @@ export function createFirestoreGroupService(
 
       const requester = await getActiveMembership(input.groupId, input.requesterUserId);
       const requesterData = requester.data() ?? {};
-      if (!requesterData.permissions?.canRemoveMembers) {
+      if (!resolveMemberPermissions(requesterData).canRemoveMembers) {
         throw forbidden('No permission to remove members');
       }
       if (targetData.role === 'owner') throw badRequest('Cannot remove the owner');
@@ -614,17 +670,17 @@ export function createFirestoreGroupService(
         throw forbidden('Only owners can remove admins');
       }
 
-      await target.ref.update({
+      const removed = await markMemberGone(input.groupId, target.ref, {
         status: 'removed',
         removedBy: input.requesterUserId,
         leftAt: now,
         lastActivityAt: now,
       });
-      await decrementMemberCount(input.groupId);
+      if (!removed) return;
       await db.collection('groupActivities').doc().set({
         groupId: input.groupId,
         userId: input.requesterUserId,
-        userName: requesterData.userName ?? requesterData.userEmail ?? 'Admin',
+        userName: nameOf(requesterData, 'Admin'),
         action: 'member_removed',
         details: `Removed ${targetData.userEmail} from the group`,
         metadata: {
@@ -639,7 +695,7 @@ export function createFirestoreGroupService(
           userIds: [targetData.userId],
           type: 'group_member_left',
           title: 'Removed from group',
-          body: `You were removed from the group by ${requesterData.userName ?? requesterData.userEmail ?? 'an admin'}`,
+          body: `You were removed from the group by ${nameOf(requesterData, 'an admin')}`,
           category: 'group',
           priority: 'medium',
           icon: 'member',
@@ -647,7 +703,7 @@ export function createFirestoreGroupService(
           relatedType: 'member',
           groupId: input.groupId,
           actorId: input.requesterUserId,
-          actorName: requesterData.userName ?? requesterData.userEmail ?? 'Admin',
+          actorName: nameOf(requesterData, 'Admin'),
           metadata: {
             removedUserId: targetData.userId,
             removedEmail: targetData.userEmail,
@@ -674,60 +730,91 @@ export function createFirestoreGroupService(
     },
 
     async acceptInvitation(input) {
-      const invitations = await db
-        .collection('groupInvitations')
-        .where('token', '==', input.token)
-        .where('status', '==', 'pending')
-        .limit(1)
-        .get();
-      if (invitations.empty) throw notFound('Invalid or expired invitation');
-
-      const invitationDoc = invitations.docs[0];
-      const invitation = invitationDoc.data();
+      // Normally found by its secret token. Notifications sent before the
+      // token was included only carry the invitation id; that is enough
+      // because the caller's verified email is checked against it below.
+      let invitationDoc;
+      if (input.token) {
+        const invitations = await db
+          .collection('groupInvitations')
+          .where('token', '==', input.token)
+          .where('status', '==', 'pending')
+          .limit(1)
+          .get();
+        invitationDoc = invitations.docs[0];
+      } else if (input.invitationId) {
+        const byId = await db
+          .collection('groupInvitations')
+          .doc(input.invitationId)
+          .get();
+        if (byId.exists && byId.data()?.status === 'pending') invitationDoc = byId;
+      }
+      const invitation = invitationDoc?.data();
+      if (!invitationDoc || !invitation) {
+        throw notFound('Invalid or expired invitation');
+      }
+      const invitationRef = db.collection('groupInvitations').doc(invitationDoc.id);
       if (invitation.invitedEmail?.toLowerCase() !== input.userEmail.toLowerCase()) {
         throw forbidden('This invitation is for a different email address');
       }
-      if (new Date() > invitation.expiresAt.toDate()) {
-        await invitationDoc.ref.update({ status: 'expired' });
+      const expiresAt = toDate(invitation.expiresAt);
+      if (expiresAt && new Date() > expiresAt) {
+        await invitationRef.update({ status: 'expired' });
         throw gone('This invitation has expired');
       }
       if (!isRole(invitation.role)) throw badRequest('Invalid invitation role');
 
-      const membershipId = `${invitation.groupId}_${input.userId}`;
-      const membership = await db.collection('groupMembers').doc(membershipId).get();
-      if (membership.exists && membership.data()?.status === 'active') {
-        throw badRequest('Already a member of this group');
-      }
-
-      const now = Timestamp.now();
-      await db.collection('groupMembers').doc(membershipId).set({
-        groupId: invitation.groupId,
-        userId: input.userId,
-        userEmail: input.userEmail.toLowerCase(),
-        userName: input.userName ?? '',
-        role: invitation.role,
-        status: 'active',
-        invitedAt: invitation.createdAt,
-        invitedBy: invitation.invitedBy,
-        joinedAt: now,
-        permissions: DEFAULT_ROLE_PERMISSIONS[invitation.role],
-        lastActivityAt: now,
-      });
-      await invitationDoc.ref.update({ status: 'accepted', respondedAt: now });
-
+      const role = invitation.role;
+      const membershipRef = db
+        .collection('groupMembers')
+        .doc(`${invitation.groupId}_${input.userId}`);
       const groupRef = db.collection('groups').doc(invitation.groupId);
-      const groupDoc = await groupRef.get();
-      const currentMemberCount = groupDoc.data()?.stats?.memberCount ?? 0;
-      await groupRef.update({
-        'stats.memberCount': Number(currentMemberCount) + 1,
-        'stats.lastActivityAt': now,
-        updatedAt: now,
+      const now = Timestamp.now();
+
+      // One transaction: the membership, the invitation and the member count
+      // change together, and a second concurrent accept cannot count twice.
+      await db.runTransaction(async (transaction) => {
+        const [freshInvitation, membership, groupDoc] = await Promise.all([
+          transaction.get(invitationRef),
+          transaction.get(membershipRef),
+          transaction.get(groupRef),
+        ]);
+        if (freshInvitation.data()?.status !== 'pending') {
+          throw notFound('Invalid or expired invitation');
+        }
+        if (!groupDoc.exists) throw notFound('Group not found');
+        if ((groupDoc.data()?.status ?? 'active') !== 'active') {
+          throw gone('This group is no longer active');
+        }
+        if (membership.exists && membership.data()?.status === 'active') {
+          throw badRequest('Already a member of this group');
+        }
+
+        transaction.set(membershipRef, {
+          groupId: invitation.groupId,
+          userId: input.userId,
+          userEmail: input.userEmail.toLowerCase(),
+          userName: input.userName?.trim() ?? '',
+          role,
+          status: 'active',
+          invitedAt: invitation.createdAt,
+          invitedBy: invitation.invitedBy,
+          joinedAt: now,
+          permissions: DEFAULT_ROLE_PERMISSIONS[role],
+          lastActivityAt: now,
+        });
+        transaction.update(invitationRef, { status: 'accepted', respondedAt: now });
+        transaction.update(groupRef, {
+          'stats.memberCount': FieldValue.increment(1),
+          'stats.lastActivityAt': now,
+          updatedAt: now,
+        });
       });
 
       await db.collection('groupActivities').doc().set({
         groupId: invitation.groupId,
         userId: input.userId,
-        userName: input.userName ?? 'New member',
+        userName: (input.userName?.trim() || 'New member'),
         action: 'member_joined',
         details: `${input.userEmail} joined the group`,
         metadata: { email: input.userEmail, role: invitation.role },
@@ -771,7 +858,7 @@ export function createFirestoreGroupService(
       await db.collection('groupActivities').doc().set({
         groupId: input.groupId,
         userId: input.userId,
-        userName: data.userName ?? data.userEmail ?? 'Admin',
+        userName: nameOf(data, 'Admin'),
         action: 'group_archived',
         details: 'Archived group',
         createdAt: Timestamp.now(),
@@ -797,16 +884,16 @@ export function createFirestoreGroupService(
       if (targetData.role === 'owner') {
         throw badRequest('Owners cannot leave the group. Transfer ownership first or delete the group.');
       }
-      await target.ref.update({
+      const left = await markMemberGone(input.groupId, target.ref, {
         status: 'left',
         leftAt: Timestamp.now(),
         lastActivityAt: Timestamp.now(),
       });
-      await decrementMemberCount(input.groupId);
+      if (!left) return;
       await db.collection('groupActivities').doc().set({
         groupId: input.groupId,
         userId: input.userId,
-        userName: targetData.userName ?? targetData.userEmail ?? 'Member',
+        userName: nameOf(targetData, 'Member'),
         action: 'member_left',
         details: `${targetData.userEmail} left the group`,
         metadata: { userId: targetData.userId, email: targetData.userEmail },
@@ -825,6 +912,69 @@ export function createFirestoreGroupService(
         relatedId: targetData.userId,
         relatedType: 'member',
         metadata: { userId: targetData.userId, email: targetData.userEmail },
+      });
+    },
+
+    async listMyInvitations(input) {
+      const email = input.userEmail?.trim().toLowerCase();
+      if (!email) return [];
+
+      // Served by the (invitedEmail, status, createdAt desc) index.
+      const snapshot = await db
+        .collection('groupInvitations')
+        .where('invitedEmail', '==', email)
+        .where('status', '==', 'pending')
+        .orderBy('createdAt', 'desc')
+        .limit(MAX_LISTED_INVITATIONS)
+        .get();
+
+      const now = new Date();
+      const candidates = snapshot.docs.filter((doc) => {
+        const expiresAt = toDate(doc.data().expiresAt);
+        return !expiresAt || expiresAt > now;
+      });
+      const groupIds = [
+        ...new Set(candidates.map((doc) => String(doc.data().groupId ?? '')).filter(Boolean)),
+      ];
+      const groups = new Map(
+        await Promise.all(
+          groupIds.map(async (groupId) => {
+            const [groupDoc, membership] = await Promise.all([
+              db.collection('groups').doc(groupId).get(),
+              db.collection('groupMembers').doc(`${groupId}_${input.userId}`).get(),
+            ]);
+            const group = groupDoc.data();
+            // Same checks accept makes: the group must exist and be active,
+            // and an existing active member cannot accept again.
+            const acceptable =
+              groupDoc.exists &&
+              (group?.status ?? 'active') === 'active' &&
+              membership.data()?.status !== 'active';
+            return [groupId, acceptable ? group : undefined] as const;
+          }),
+        ),
+      );
+
+      return candidates.flatMap((doc): PendingInvitationSummary[] => {
+        const invitation = doc.data();
+        const groupId = String(invitation.groupId ?? '');
+        const group = groups.get(groupId);
+        if (!group) return [];
+        return [
+          {
+            id: doc.id,
+            groupId,
+            groupName: String(group.name ?? invitation.groupName ?? 'Group'),
+            invitedBy: String(invitation.invitedBy ?? ''),
+            invitedByName:
+              typeof invitation.invitedByName === 'string' && invitation.invitedByName
+                ? invitation.invitedByName
+                : null,
+            role: String(invitation.role ?? 'member'),
+            createdAt: isoOrNull(invitation.createdAt),
+            expiresAt: isoOrNull(invitation.expiresAt),
+          },
+        ];
       });
     },
   };

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { isAdmin } from "@/lib/admin-auth";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { withObservability } from "@/lib/observability/withObservability";
 
 // Pricing constants (update these as needed)
@@ -67,13 +67,10 @@ interface CostBreakdown {
 // GET - Get comprehensive cost breakdown
 async function getHandler(request: NextRequest) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     const { searchParams } = new URL(request.url);
     const daysParam = searchParams.get("days");
@@ -85,13 +82,11 @@ async function getHandler(request: NextRequest) {
     startDate.setDate(startDate.getDate() - days);
 
     // Get AI analytics data
-    const analyticsRef = collection(db, "analytics");
-    const analyticsQuery = query(
-      analyticsRef,
-      where("timestamp", ">=", Timestamp.fromDate(startDate)),
-      where("timestamp", "<=", Timestamp.fromDate(endDate))
-    );
-    const analyticsSnapshot = await getDocs(analyticsQuery);
+    const analyticsSnapshot = await adminDb
+      .collection("analytics")
+      .where("timestamp", ">=", Timestamp.fromDate(startDate))
+      .where("timestamp", "<=", Timestamp.fromDate(endDate))
+      .get();
 
     // Calculate AI costs
     let totalAIRequests = 0;
@@ -110,9 +105,8 @@ async function getHandler(request: NextRequest) {
     // Estimate Firestore operations
     // For a more accurate count, you'd need to track these explicitly
     // These are estimates based on typical app usage patterns
-    const expensesRef = collection(db, "expenses");
-    const expensesSnapshot = await getDocs(expensesRef);
-    const totalExpenses = expensesSnapshot.size;
+    const expensesCount = await adminDb.collection("expenses").count().get();
+    const totalExpenses = expensesCount.data().count;
 
     const analyticsCount = analyticsSnapshot.size;
 

@@ -4,17 +4,66 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
-import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
+import 'package:penny_mobile/core/utils/client_request_id.dart';
+import 'package:penny_mobile/core/utils/picker_dates.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
+import 'package:penny_mobile/data/services/duplicate_detector.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/default_group_selection.dart';
+import 'package:penny_mobile/presentation/providers/expense_refresh.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/over_budget_warning_sheet.dart';
 import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
+
+/// Lets one button outside the cards (the pinned "Confirm & Save") save
+/// every pending [ExpenseCard], not just the last one built.
+class ExpenseSaveController {
+  /// True while [saveAll] is running.
+  final saving = ValueNotifier<bool>(false);
+
+  final _cards = <Object, Future<bool> Function()>{};
+  bool _disposed = false;
+
+  void register(Object card, Future<bool> Function() save) {
+    _cards[card] = save;
+  }
+
+  void unregister(Object card) => _cards.remove(card);
+
+  /// Saves every card, one after the other (a card may ask a question
+  /// first, e.g. about a possible duplicate). A card that fails does not
+  /// stop the others. Returns how many were saved and how many were not.
+  Future<({int saved, int failed})> saveAll() async {
+    if (saving.value) return (saved: 0, failed: 0);
+    saving.value = true;
+    var saved = 0;
+    var failed = 0;
+    try {
+      for (final save in _cards.values.toList()) {
+        if (await save()) {
+          saved++;
+        } else {
+          failed++;
+        }
+      }
+    } finally {
+      // The screen may have gone away (e.g. sign-out) while saving.
+      if (!_disposed) saving.value = false;
+    }
+    return (saved: saved, failed: failed);
+  }
+
+  void dispose() {
+    _disposed = true;
+    saving.dispose();
+  }
+}
 
 /// Expense confirmation form displayed as a bottom panel in HomeScreen.
 ///
@@ -29,8 +78,8 @@ class ExpenseCard extends ConsumerStatefulWidget {
     this.onSaved,
     this.onDismiss,
     this.confirmed = false,
-    this.saveTrigger,
-    this.savingNotifier,
+    this.saveController,
+    this.showSuccess = true,
   });
 
   final ParsedExpense expense;
@@ -39,13 +88,13 @@ class ExpenseCard extends ConsumerStatefulWidget {
   final VoidCallback? onDismiss;
   final bool confirmed;
 
-  /// When set, the card registers its save method with this notifier
-  /// so an external widget (e.g. a pinned button) can trigger save.
-  final ValueNotifier<VoidCallback?>? saveTrigger;
+  /// When set, the card registers its save method with this controller so
+  /// an external widget (e.g. a pinned button) can save all cards.
+  final ExpenseSaveController? saveController;
 
-  /// When set, the card pushes its saving state to this notifier
-  /// so an external widget can show a spinner.
-  final ValueNotifier<bool>? savingNotifier;
+  /// Whether the card shows its own "saved" overlay. Turned off when several
+  /// cards are saved together and the parent shows one summary instead.
+  final bool showSuccess;
 
   @override
   ConsumerState<ExpenseCard> createState() => _ExpenseCardState();
@@ -63,6 +112,12 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
 
   bool _saving = false;
   bool _defaultGroupApplied = false;
+
+  /// Why the last save attempt did not go through; shown on the card.
+  String? _saveError;
+
+  /// One `clientRequestId` per save, reused when the same save is retried.
+  final _saveAttempt = SaveAttemptId();
 
   @override
   void initState() {
@@ -86,12 +141,12 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
     });
 
     // Register save callback so external widgets can trigger save.
-    widget.saveTrigger?.value = _save;
+    widget.saveController?.register(this, _save);
   }
 
   @override
   void dispose() {
-    widget.saveTrigger?.value = null;
+    widget.saveController?.unregister(this);
     _vendorController.dispose();
     _amountController.dispose();
     _descriptionController.dispose();
@@ -109,75 +164,67 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
   }
 
   Future<void> _pickDate() async {
+    final firstDate = DateTime(2020);
+    final lastDate = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      // Full keyboard so "/" can be typed; numeric pads on many
+      // Android keyboards have no separator key.
+      keyboardType: TextInputType.text,
+      initialDate: clampPickerDate(_date, firstDate, lastDate),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked != null) setState(() => _date = picked);
   }
 
-  Future<void> _save() async {
+  /// Saves this expense. Returns true when it was saved; otherwise the card
+  /// stays on screen (with the reason, if the save failed).
+  Future<bool> _save() async {
+    if (!mounted || _saving) return false;
+    if (_saveError != null) setState(() => _saveError = null);
+
     final vendor = _vendorController.text.trim();
     if (vendor.isEmpty) {
       _showError('Vendor name is required');
-      return;
+      return false;
     }
 
-    final amount = double.tryParse(_amountController.text.trim());
-    if (amount == null || amount <= 0) {
+    final amount = parseAmount(_amountController.text);
+    if (amount == null) {
       _showError('Enter a valid amount');
-      return;
+      return false;
     }
 
     final user = ref.read(currentUserProvider);
     if (user == null) {
       _showError('Not signed in');
-      return;
+      return false;
     }
 
-    // Duplicate check is best-effort; an API error should not block saving.
-    try {
-      final duplicateResult = await ref
-          .read(duplicateDetectorProvider)
-          .checkForDuplicate(
-            vendor: vendor,
-            amount: amount,
-            date: _date,
-            userId: user.uid,
-            groupId: _selectedGroupId,
-          );
-      if (duplicateResult != null) {
-        if (!mounted) return;
-        final addAnyway = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Possible Duplicate'),
-            content: Text(duplicateResult.warningMessage),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Add Anyway'),
-              ),
-            ],
-          ),
+    // A failed duplicate check counts as "none found": saving matters more.
+    final duplicateResult = await ref
+        .read(duplicateDetectorProvider)
+        .checkForDuplicateOrNull(
+          vendor: vendor,
+          amount: amount,
+          date: _date,
+          userId: user.uid,
+          groupId: _selectedGroupId,
         );
-        if (addAnyway != true) return;
-      }
-    } catch (_) {
-      // Skip duplicate detection if the query fails — saving is more important.
+    if (duplicateResult != null) {
+      if (!mounted) return false;
+      final addAnyway = await _confirmDuplicate(duplicateResult);
+      if (addAnyway != true) return false;
     }
+
+    if (!mounted) return false;
 
     // Budget check for personal expenses
     if (_selectedGroupId == null) {
       final usage = ref.read(budgetUsageForCategoryProvider(_category));
       if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
-        if (!mounted) return;
+        if (!mounted) return false;
         final proceed = await OverBudgetWarningSheet.show(
           context,
           category: _category,
@@ -185,88 +232,111 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
           currentSpent: usage.totalSpent,
           expenseAmount: amount,
         );
-        if (proceed != true) return;
+        if (proceed != true) return false;
+        if (!mounted) return false;
       }
     }
 
     setState(() => _saving = true);
-    widget.savingNotifier?.value = true;
+    final groupId = _selectedGroupId;
 
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(_date);
       final description = _descriptionController.text.trim();
 
-      if (_selectedGroupId != null) {
-        await ref
-            .read(apiClientProvider)
-            .post(
-              ApiEndpoints.expenses,
-              data: {
-                'userId': user.uid,
-                'vendor': vendor,
-                'amount': amount,
-                'category': _category,
-                'date': dateStr,
-                'description': description,
-                'groupId': _selectedGroupId,
-                'expenseType': 'group',
-                if (widget.receiptUrl != null) 'receiptUrl': widget.receiptUrl,
-              },
-            );
-      } else {
-        await ref
-            .read(expenseRepositoryProvider)
-            .savePersonalExpense(
-              userId: user.uid,
-              vendor: vendor,
-              amount: amount,
-              category: _category,
-              date: dateStr,
-              description: description,
-              receiptUrl: widget.receiptUrl,
-            );
-      }
+      // Group saves also update group stats, activity and notifications
+      // server-side.
+      await ref
+          .read(expenseRepositoryProvider)
+          .saveExpense(
+            userId: user.uid,
+            vendor: vendor,
+            amount: amount,
+            category: _category,
+            date: dateStr,
+            description: description,
+            receiptUrl: widget.receiptUrl,
+            groupId: groupId,
+            clientRequestId: _saveAttempt.idFor({
+              'vendor': vendor,
+              'amount': amount,
+              'category': _category,
+              'date': dateStr,
+              'description': description,
+              'groupId': groupId,
+            }),
+          );
 
       HapticFeedback.mediumImpact();
 
       if (mounted) {
-        final groupName = _selectedGroupId != null
-            ? ref
-                      .read(userGroupsProvider)
-                      .valueOrNull
-                      ?.where((g) => g.id == _selectedGroupId)
-                      .firstOrNull
-                      ?.name ??
-                  'group'
-            : null;
+        refreshExpenseData(ref.invalidate, groupId: groupId);
 
-        SuccessOverlay.show(
-          context,
-          title: vendor,
-          subtitle:
-              '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
-        );
+        if (widget.showSuccess) {
+          final groupName = groupId != null
+              ? ref
+                        .read(userGroupsProvider)
+                        .valueOrNull
+                        ?.where((g) => g.id == groupId)
+                        .firstOrNull
+                        ?.name ??
+                    'group'
+              : null;
+
+          SuccessOverlay.show(
+            context,
+            title: vendor,
+            subtitle:
+                '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
+          );
+        }
 
         widget.onSaved?.call();
       }
+      return true;
     } catch (e) {
       if (mounted) {
-        _showError('Failed to save: $e');
+        _showError("Couldn't save. ${apiErrorMessage(e)}");
       }
+      return false;
     } finally {
       if (mounted) setState(() => _saving = false);
-      widget.savingNotifier?.value = false;
     }
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
+  Future<bool?> _confirmDuplicate(DuplicateResult duplicate) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Possible Duplicate'),
+        content: Text(duplicate.warningMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Add Anyway'),
+          ),
+        ],
       ),
     );
+  }
+
+  /// Shows why the card was not saved: on the card itself (it stays there
+  /// until the next attempt) and as a snackbar.
+  void _showError(String message) {
+    setState(() => _saveError = message);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
   }
 
   /// Short display name for the category (used in the budget impact line).
@@ -290,7 +360,9 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
     }
 
     final theme = Theme.of(context);
-    final groupsAsync = ref.watch(userGroupsProvider);
+    // Only groups the user may add expenses to (viewers are left out); a
+    // default group that is not among them falls back to Personal.
+    final groupsAsync = ref.watch(addableGroupsProvider);
     final defaultGroupAsync = ref.watch(defaultGroupProvider);
 
     // Apply the saved default group once it and the groups list have loaded.
@@ -333,6 +405,14 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
         children: [
           // -- Header with confidence badge --
           _buildHeader(theme),
+
+          if (_saveError != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              _saveError!,
+              style: const TextStyle(fontSize: 12, color: AppColors.error),
+            ),
+          ],
 
           const SizedBox(height: 8),
 
@@ -612,7 +692,7 @@ class _ExpenseCardState extends ConsumerState<ExpenseCard> {
 
   /// Compact single-line budget impact preview.
   Widget _buildBudgetImpactLine(ThemeData theme) {
-    final amount = double.tryParse(_amountController.text.trim()) ?? 0;
+    final amount = parseAmount(_amountController.text) ?? 0;
     if (amount <= 0 || _selectedGroupId != null) {
       return const SizedBox.shrink();
     }

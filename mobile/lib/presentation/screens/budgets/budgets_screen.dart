@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
@@ -471,6 +473,12 @@ class _CreateBudgetSheet extends StatefulWidget {
 }
 
 class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
+  /// Why the form was not saved, shown under the save button (a SnackBar
+  /// would sit behind this sheet).
+  String? _formError;
+
+  void _setFormError(String message) => setState(() => _formError = message);
+
   final _amountController = TextEditingController();
   String? _selectedCategory;
   bool _saving = false;
@@ -485,8 +493,15 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
   }
 
   Future<void> _save() async {
-    final amount = double.tryParse(_amountController.text.trim());
-    if (_selectedCategory == null || amount == null || amount <= 0) return;
+    final amount = parseAmount(_amountController.text);
+    if (_selectedCategory == null) {
+      _setFormError('Choose a category for this budget.');
+      return;
+    }
+    if (amount == null || amount <= 0) {
+      _setFormError('Enter a monthly limit greater than zero.');
+      return;
+    }
 
     setState(() => _saving = true);
 
@@ -506,13 +521,14 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
               notificationsEnabled: _notificationsEnabled,
             ),
           );
+      widget.ref.invalidate(budgetsProvider);
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -524,171 +540,184 @@ class _CreateBudgetSheetState extends State<_CreateBudgetSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Create Budget',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 20),
-
-          DropdownButtonFormField<String>(
-            initialValue: _selectedCategory,
-            decoration: const InputDecoration(hintText: 'Category'),
-            isExpanded: true,
-            items: expenseCategories.map((c) {
-              final short = c.length > 40 ? '${c.substring(0, 40)}...' : c;
-              return DropdownMenuItem(
-                value: c,
-                child: Text(short, style: const TextStyle(fontSize: 14)),
-              );
-            }).toList(),
-            onChanged: (v) => setState(() => _selectedCategory = v),
-          ),
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: _amountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Monthly limit',
-              prefixText: '\$ ',
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Create Budget',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Settings section
-          Text(
-            'SETTINGS',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              letterSpacing: 1,
+            DropdownButtonFormField<String>(
+              initialValue: _selectedCategory,
+              decoration: const InputDecoration(hintText: 'Category'),
+              isExpanded: true,
+              items: expenseCategories.map((c) {
+                final short = c.length > 40 ? '${c.substring(0, 40)}...' : c;
+                return DropdownMenuItem(
+                  value: c,
+                  child: Text(short, style: const TextStyle(fontSize: 14)),
+                );
+              }).toList(),
+              onChanged: (v) => setState(() => _selectedCategory = v),
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // Rollover toggle
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Rollover unused budget',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Carry forward unspent amount to next month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
               ),
-              Switch.adaptive(
-                value: _rollover,
-                activeThumbColor: AppColors.primary,
-                onChanged: (v) => setState(() => _rollover = v),
+              decoration: const InputDecoration(
+                hintText: 'Monthly limit',
+                prefixText: '\$ ',
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
+            ),
+            const SizedBox(height: 20),
 
-          // Alert threshold
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Alert threshold',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-                ),
+            // Settings section
+            Text(
+              'SETTINGS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
               ),
+            ),
+            const SizedBox(height: 12),
+
+            // Rollover toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Rollover unused budget',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Carry forward unspent amount to next month',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: _rollover,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _rollover = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Alert threshold
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Alert threshold',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                Text(
+                  '${_alertThreshold.round()}%',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: _alertThreshold,
+              min: 50,
+              max: 100,
+              divisions: 10,
+              activeColor: AppColors.primary,
+              onChanged: (v) => setState(() => _alertThreshold = v),
+            ),
+            const SizedBox(height: 4),
+
+            // Notifications toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Budget notifications',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Get notified when approaching limit',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: _notificationsEnabled,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _notificationsEnabled = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            if (_formError != null) ...[
               Text(
-                '${_alertThreshold.round()}%',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
+                _formError!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
             ],
-          ),
-          Slider(
-            value: _alertThreshold,
-            min: 50,
-            max: 100,
-            divisions: 10,
-            activeColor: AppColors.primary,
-            onChanged: (v) => setState(() => _alertThreshold = v),
-          ),
-          const SizedBox(height: 4),
-
-          // Notifications toggle
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Budget notifications',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Get notified when approaching limit',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch.adaptive(
-                value: _notificationsEnabled,
-                activeThumbColor: AppColors.primary,
-                onChanged: (v) => setState(() => _notificationsEnabled = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Create Budget'),
-          ),
-        ],
+                    )
+                  : const Text('Create Budget'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -710,6 +739,12 @@ class _EditBudgetSheet extends StatefulWidget {
 }
 
 class _EditBudgetSheetState extends State<_EditBudgetSheet> {
+  /// Why the form was not saved, shown under the save button (a SnackBar
+  /// would sit behind this sheet).
+  String? _formError;
+
+  void _setFormError(String message) => setState(() => _formError = message);
+
   late final TextEditingController _amountController;
   bool _saving = false;
   late bool _rollover;
@@ -734,8 +769,11 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
   }
 
   Future<void> _save() async {
-    final amount = double.tryParse(_amountController.text.trim());
-    if (amount == null || amount <= 0) return;
+    final amount = parseAmount(_amountController.text);
+    if (amount == null || amount <= 0) {
+      _setFormError('Enter a monthly limit greater than zero.');
+      return;
+    }
 
     setState(() => _saving = true);
     try {
@@ -749,6 +787,7 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
               notificationsEnabled: _notificationsEnabled,
             ).toMap(),
           });
+      widget.ref.invalidate(budgetsProvider);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -760,7 +799,7 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -800,6 +839,7 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
       await widget.ref
           .read(budgetRepositoryProvider)
           .deleteBudget(widget.budget.id);
+      widget.ref.invalidate(budgetsProvider);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -811,7 +851,7 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -821,172 +861,185 @@ class _EditBudgetSheetState extends State<_EditBudgetSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Edit Budget',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            widget.category,
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Edit Budget',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _amountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Monthly limit',
-              prefixText: '\$ ',
+            const SizedBox(height: 4),
+            Text(
+              widget.category,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
-            autofocus: true,
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Monthly limit',
+                prefixText: '\$ ',
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 20),
 
-          // Settings section
-          Text(
-            'SETTINGS',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              letterSpacing: 1,
+            // Settings section
+            Text(
+              'SETTINGS',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 1,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // Rollover toggle
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Rollover unused budget',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+            // Rollover toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Rollover unused budget',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Carry forward unspent amount to next month',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      SizedBox(height: 2),
+                      Text(
+                        'Carry forward unspent amount to next month',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Switch.adaptive(
-                value: _rollover,
-                activeThumbColor: AppColors.primary,
-                onChanged: (v) => setState(() => _rollover = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+                Switch.adaptive(
+                  value: _rollover,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _rollover = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
 
-          // Alert threshold
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'Alert threshold',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            // Alert threshold
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Alert threshold',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                  ),
                 ),
-              ),
+                Text(
+                  '${_alertThreshold.round()}%',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: _alertThreshold,
+              min: 50,
+              max: 100,
+              divisions: 10,
+              activeColor: AppColors.primary,
+              onChanged: (v) => setState(() => _alertThreshold = v),
+            ),
+            const SizedBox(height: 4),
+
+            // Notifications toggle
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Budget notifications',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Get notified when approaching limit',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch.adaptive(
+                  value: _notificationsEnabled,
+                  activeThumbColor: AppColors.primary,
+                  onChanged: (v) => setState(() => _notificationsEnabled = v),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            if (_formError != null) ...[
               Text(
-                '${_alertThreshold.round()}%',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
+                _formError!,
+                style: const TextStyle(color: AppColors.error, fontSize: 13),
+                textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
             ],
-          ),
-          Slider(
-            value: _alertThreshold,
-            min: 50,
-            max: 100,
-            divisions: 10,
-            activeColor: AppColors.primary,
-            onChanged: (v) => setState(() => _alertThreshold = v),
-          ),
-          const SizedBox(height: 4),
-
-          // Notifications toggle
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Budget notifications',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Get notified when approaching limit',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch.adaptive(
-                value: _notificationsEnabled,
-                activeThumbColor: AppColors.primary,
-                onChanged: (v) => setState(() => _notificationsEnabled = v),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Save'),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: _saving ? null : _delete,
-            child: const Text(
-              'Delete Budget',
-              style: TextStyle(color: AppColors.error),
+                    )
+                  : const Text('Save'),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _saving ? null : _delete,
+              child: const Text(
+                'Delete Budget',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

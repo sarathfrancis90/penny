@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 // Lazy-initialize the Gemini AI client (v1.42+ throws if apiKey is empty at construction)
@@ -18,10 +18,11 @@ function getGenAI(): GoogleGenAI {
  */
 async function postHandler(request: NextRequest) {
   try {
-    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
-    const tokenUserId = await getAuthenticatedUserId(request);
+    // Authenticate with the verified ID token; a body userId must match it
     const { message, userId: bodyUserId, conversationHistory = [] } = await request.json();
-    const userId = tokenUserId ?? bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,15 +43,14 @@ async function postHandler(request: NextRequest) {
     const systemPrompt = `You are Penny, an AI expense tracking assistant for a self-incorporated software professional in Canada. 
 
 Your capabilities:
-1. Answer questions about expenses, budgets, and spending patterns
-2. Provide insights and analytics on financial data
-3. Help with tax-related expense queries
-4. Compare spending across different periods
-5. Search and filter expenses
+1. Explain CRA T2125 expense categories and what is deductible
+2. Help categorise or word an expense the user describes
+3. Answer general questions about tracking expenses, budgets and savings in Penny
+
+Important: you cannot see this user's expenses, budgets, income or savings in this conversation. Never state or estimate their amounts, totals, vendors or trends, and never make up example figures as if they were theirs. When they ask about their own numbers, say you can't look those up here and point them to the Dashboard (spending by period and category) or the Budgets page. You can still explain CRA T2125 categories and what is deductible, and help them word or categorise an expense.
 
 When answering:
 - Be conversational and friendly, but concise
-- Use the available functions to fetch real data
 - Format currency in CAD with $ symbol
 - **Use markdown formatting** for rich responses:
   • Use **bold** for important numbers and categories
@@ -69,7 +69,6 @@ When answering:
 - If data shows concerning trends, mention it
 - Keep responses focused and scannable
 
-Available functions: budget status, expense summaries, category breakdowns, group expenses, search, recent expenses, period comparisons.
 
 Current date: ${new Date().toISOString().split("T")[0]}
 

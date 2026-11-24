@@ -514,19 +514,19 @@ export const SavingsContributionService = {
       contributionData
     );
 
-    // Update the goal's current amount
-    if (data.userId) {
-      await PersonalSavingsGoalService.addContribution(
-        data.goalId,
-        data.amount
-      );
-    } else if (data.groupId) {
-      // For group contributions, we need to know which user contributed
-      // This would be passed in the data or determined by context
+    // Update the goal's current amount. Every contribution carries the
+    // contributor's userId (the rules require it), so a group contribution
+    // is recognised by its groupId.
+    if (data.groupId) {
       await GroupSavingsGoalService.addContribution(
         data.goalId,
         data.amount,
-        data.userId || '' // In real implementation, get from auth context
+        data.userId ?? ''
+      );
+    } else {
+      await PersonalSavingsGoalService.addContribution(
+        data.goalId,
+        data.amount
       );
     }
 
@@ -537,11 +537,21 @@ export const SavingsContributionService = {
   },
 
   /**
-   * Get contributions for a specific goal
+   * Get contributions for a specific goal.
+   *
+   * Security rules only allow listing contributions the query proves are the
+   * caller's own (userId) or their group's (groupId), so the goal query must
+   * be scoped by one of them; a bare goalId query is always denied.
    */
-  async getForGoal(goalId: string): Promise<SavingsContribution[]> {
+  async getForGoal(
+    goalId: string,
+    scope: { userId: string } | { groupId: string }
+  ): Promise<SavingsContribution[]> {
     const q = query(
       collection(db, CONTRIBUTIONS_COLLECTION),
+      'groupId' in scope
+        ? where('groupId', '==', scope.groupId)
+        : where('userId', '==', scope.userId),
       where('goalId', '==', goalId),
       orderBy('date', 'desc')
     );
@@ -595,6 +605,9 @@ export const SavingsContributionService = {
       constraints.unshift(where('userId', '==', userId));
     } else if (groupId) {
       constraints.unshift(where('groupId', '==', groupId));
+    } else {
+      // An unscoped query can never satisfy the security rules.
+      throw new Error('getForMonth needs a userId or a groupId');
     }
 
     const q = query(collection(db, CONTRIBUTIONS_COLLECTION), ...constraints);

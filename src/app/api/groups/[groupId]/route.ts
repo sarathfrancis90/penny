@@ -3,7 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Group } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -16,7 +16,9 @@ async function getHandler(
   try {
     const { groupId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -90,13 +92,14 @@ async function patchHandler(
   try {
     const { groupId } = await params;
 
-    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
-    const tokenUserId = await getAuthenticatedUserId(request);
+    // Authenticate with the verified ID token; a body userId must match it
 
     const body = await request.json();
     const { name, description, color, icon, settings, userId: bodyUserId } = body;
 
-    const userId = tokenUserId ?? bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -192,7 +195,7 @@ async function patchHandler(
     await adminDb.collection("groups").doc(groupId).update(updateData);
 
     // Log activity
-    await adminDb.collection("groupActivity").add({
+    await adminDb.collection("groupActivities").add({
       groupId,
       userId: userId,
       userName: membershipData.userName || membershipData.userEmail || "Unknown User",
@@ -289,9 +292,10 @@ async function deleteHandler(
     const { groupId } = await params;
 
     // Authenticate: prefer Bearer token (mobile), fall back to query param (web)
-    const tokenUserId = await getAuthenticatedUserId(request);
     const { searchParams } = new URL(request.url);
-    const userId = tokenUserId ?? searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -364,7 +368,7 @@ async function deleteHandler(
     await expenseBatch.commit();
 
     // Log activity
-    await adminDb.collection("groupActivity").add({
+    await adminDb.collection("groupActivities").add({
       groupId,
       userId: userId,
       userName: membershipData.userName || membershipData.userEmail || "Unknown User",

@@ -25,6 +25,7 @@ class StorageService {
         'contentType': 'image/jpeg',
         'base64': base64Encode(bytes),
       },
+      receiveTimeout: ApiClient.longReceiveTimeout,
     );
     return (responseMap(response)['url'] ?? '').toString();
   }
@@ -39,6 +40,7 @@ class StorageService {
         'contentType': 'image/jpeg',
         'base64': base64Encode(bytes),
       },
+      receiveTimeout: ApiClient.longReceiveTimeout,
     );
     final data = responseMap(response);
     await _api.patch(

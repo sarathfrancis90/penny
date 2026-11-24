@@ -17,9 +17,10 @@ class IncomeRepository {
       ApiEndpoints.personalIncome,
       queryParameters: {'userId': userId},
     );
-    return listValue(responseMap(response)['incomeSources'])
-        .map((json) => IncomeSourceModel.fromFirestore(apiDocument(json)))
-        .toList();
+    return parseList(
+      responseMap(response)['incomeSources'],
+      IncomeSourceModel.fromFirestore,
+    );
   }
 
   Future<String> createIncomeSource({

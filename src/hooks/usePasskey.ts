@@ -8,6 +8,7 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import type { RegistrationResponseJSON, AuthenticationResponseJSON } from '@simplewebauthn/types';
+import { authFetch } from "@/lib/authFetch";
 
 interface Passkey {
   id: string;
@@ -92,7 +93,7 @@ export function usePasskey() {
 
     try {
       // Start registration on server
-      const startResponse = await fetch('/api/auth/passkey/register/start', {
+      const startResponse = await authFetch('/api/auth/passkey/register/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, email, displayName }),
@@ -112,7 +113,7 @@ export function usePasskey() {
       const deviceName = getDeviceInfo();
 
       // Verify registration on server
-      const verifyResponse = await fetch('/api/auth/passkey/register/verify', {
+      const verifyResponse = await authFetch('/api/auth/passkey/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, response: registrationResponse, deviceName }),
@@ -147,7 +148,7 @@ export function usePasskey() {
 
     try {
       // Start authentication on server
-      const startResponse = await fetch('/api/auth/passkey/authenticate/start', {
+      const startResponse = await authFetch('/api/auth/passkey/authenticate/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -164,7 +165,7 @@ export function usePasskey() {
       const authenticationResponse: AuthenticationResponseJSON = await startAuthentication(options);
 
       // Verify authentication on server
-      const verifyResponse = await fetch('/api/auth/passkey/authenticate/verify', {
+      const verifyResponse = await authFetch('/api/auth/passkey/authenticate/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challengeId, response: authenticationResponse }),
@@ -204,7 +205,7 @@ export function usePasskey() {
    */
   const loadPasskeys = async () => {
     try {
-      const response = await fetch('/api/auth/passkey/list');
+      const response = await authFetch('/api/auth/passkey/list');
       
       // Handle 401 gracefully - user just needs to log in first
       if (response.status === 401) {
@@ -234,7 +235,7 @@ export function usePasskey() {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/passkey/delete', {
+      const response = await authFetch('/api/auth/passkey/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passkeyId }),

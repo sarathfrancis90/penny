@@ -34,9 +34,10 @@ class ConversationModel {
       createdAt: Timestamp.fromJson(data['createdAt']),
       updatedAt: Timestamp.fromJson(data['updatedAt']),
       lastMessagePreview: data['lastMessagePreview'] as String? ?? '',
-      messageCount: data['messageCount'] as int? ?? 0,
+      messageCount: (data['messageCount'] as num?)?.toInt() ?? 0,
       status: data['status'] as String? ?? 'active',
-      totalExpensesCreated: data['totalExpensesCreated'] as int? ?? 0,
+      totalExpensesCreated:
+          (data['totalExpensesCreated'] as num?)?.toInt() ?? 0,
       metadata: ConversationMetadata.fromMap(
         data['metadata'] as Map<String, dynamic>? ?? {},
       ),

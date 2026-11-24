@@ -8,6 +8,8 @@ class SavingsRepository {
 
   final ApiClient _api;
 
+  static const _visibleStatuses = {'active', 'achieved', 'paused'};
+
   Stream<List<SavingsGoalModel>> watchSavingsGoals(String userId) {
     return Stream.fromFuture(_listSavings(userId));
   }
@@ -15,11 +17,15 @@ class SavingsRepository {
   Future<List<SavingsGoalModel>> _listSavings(String userId) async {
     final response = await _api.get(
       ApiEndpoints.personalSavings,
-      queryParameters: {'userId': userId, 'status': 'active'},
+      queryParameters: {'userId': userId},
     );
-    return listValue(
+    // A contribution that reaches the target marks the goal "achieved" on the
+    // server. Asking only for active goals made it vanish, together with its
+    // money in the totals, so keep achieved and paused goals too.
+    return parseList(
       responseMap(response)['savingsGoals'],
-    ).map((json) => SavingsGoalModel.fromFirestore(apiDocument(json))).toList();
+      SavingsGoalModel.fromFirestore,
+    ).where((goal) => _visibleStatuses.contains(goal.status)).toList();
   }
 
   Future<String> createSavingsGoal({

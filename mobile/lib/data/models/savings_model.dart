@@ -70,7 +70,7 @@ class SavingsGoalModel {
       targetDate: Timestamp.tryParse(data['targetDate']),
       achievedDate: Timestamp.tryParse(data['achievedDate']),
       progressPercentage: (data['progressPercentage'] as num?)?.toDouble() ?? 0,
-      monthsToGoal: data['monthsToGoal'] as int?,
+      monthsToGoal: (data['monthsToGoal'] as num?)?.toInt(),
       onTrack: data['onTrack'] as bool? ?? false,
       description: data['description'] as String?,
       emoji: data['emoji'] as String?,

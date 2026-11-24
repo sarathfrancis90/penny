@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, adminAuth } from "@/lib/firebase-admin";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { getStorage } from "firebase-admin/storage";
+import { adminApp, adminDb, adminAuth } from "@/lib/firebase-admin";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -13,21 +14,17 @@ import { withObservability } from "@/lib/observability/withObservability";
  */
 async function deleteHandler(request: NextRequest) {
   try {
-    const userId = await getAuthenticatedUserId(request);
-    if (!userId) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
+    const auth = await requireAuthenticatedUser(request);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     // Delete all user data from Firestore collections
-    const batch = adminDb.batch();
     const collections = [
       { name: "expenses", field: "userId" },
       { name: "budgets_personal", field: "userId" },
       { name: "income_sources_personal", field: "userId" },
       { name: "savings_goals_personal", field: "userId" },
+      { name: "savings_contributions", field: "userId" },
       { name: "notifications", field: "userId" },
       { name: "conversations", field: "userId" },
       { name: "groupMembers", field: "userId" },
@@ -37,13 +34,18 @@ async function deleteHandler(request: NextRequest) {
       { name: "challenges", field: "userId" },
     ];
 
-    // Firestore batches have a 500-operation limit, so process in chunks
-    let opCount = 0;
+    // Firestore batches have a 500-operation limit, and a committed batch
+    // can't be reused, so start a fresh batch for every chunk.
     const BATCH_LIMIT = 450; // leave some headroom
+    let batch = adminDb.batch();
+    let opCount = 0;
 
-    const commitBatchIfNeeded = async () => {
+    const deleteRef = async (ref: FirebaseFirestore.DocumentReference) => {
+      batch.delete(ref);
+      opCount++;
       if (opCount >= BATCH_LIMIT) {
         await batch.commit();
+        batch = adminDb.batch();
         opCount = 0;
       }
     };
@@ -60,28 +62,50 @@ async function deleteHandler(request: NextRequest) {
         if (name === "conversations") {
           const messages = await doc.ref.collection("messages").get();
           for (const msg of messages.docs) {
-            batch.delete(msg.ref);
-            opCount++;
-            await commitBatchIfNeeded();
+            await deleteRef(msg.ref);
           }
         }
 
-        batch.delete(doc.ref);
-        opCount++;
-        await commitBatchIfNeeded();
+        await deleteRef(doc.ref);
       }
     }
 
-    // Delete the user profile document
+    // Notification settings live under and beside the user profile
     const userDoc = adminDb.collection("users").doc(userId);
+    const preferences = await userDoc.collection("notificationPreferences").get();
+    for (const pref of preferences.docs) {
+      await deleteRef(pref.ref);
+    }
+    const settingsDoc = adminDb.collection("userNotificationSettings").doc(userId);
+    if ((await settingsDoc.get()).exists) {
+      await deleteRef(settingsDoc);
+    }
+
+    // Delete the user profile document
     if ((await userDoc.get()).exists) {
-      batch.delete(userDoc);
-      opCount++;
+      await deleteRef(userDoc);
     }
 
     // Commit remaining operations
     if (opCount > 0) {
       await batch.commit();
+    }
+
+    // Delete the user's uploaded files (receipt images, chat attachments,
+    // avatar). Best effort: a storage failure must not block the deletion,
+    // but it is logged so leftover files can be cleaned up.
+    const bucketName =
+      process.env.FIREBASE_STORAGE_BUCKET ||
+      process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+    for (const prefix of [`receipts/${userId}/`, `conversations/${userId}/`, `avatars/${userId}/`]) {
+      try {
+        await getStorage(adminApp).bucket(bucketName).deleteFiles({ prefix });
+      } catch (storageError) {
+        console.error(
+          `[Account Delete] Could not delete files under ${prefix}:`,
+          storageError instanceof Error ? storageError.message : storageError
+        );
+      }
     }
 
     // Delete Firebase Auth account

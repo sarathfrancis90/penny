@@ -9,6 +9,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { authFetch } from "@/lib/authFetch";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -22,7 +23,7 @@ export function useAuth() {
       // Auto-create JWT session for authenticated users
       if (user) {
         try {
-          await fetch('/api/auth/session/create', {
+          await authFetch('/api/auth/session/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -50,7 +51,7 @@ export function useAuth() {
   const signOut = async () => {
     // Clear JWT session
     try {
-      await fetch('/api/auth/session/create', {
+      await authFetch('/api/auth/session/create', {
         method: 'DELETE',
       });
     } catch (error) {

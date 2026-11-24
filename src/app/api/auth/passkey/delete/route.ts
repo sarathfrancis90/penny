@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
-import { jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
 import { withObservability } from '@/lib/observability/withObservability';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
-);
+import { requireAuthenticatedUser } from '@/lib/auth-middleware';
 
 /**
  * DELETE /api/auth/passkey/delete
@@ -14,27 +9,10 @@ const JWT_SECRET = new TextEncoder().encode(
  */
 async function deleteHandler(request: NextRequest) {
   try {
-    // Get user ID from session
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
-
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
-
-    // Verify JWT and get user ID
-    const { payload } = await jwtVerify(sessionCookie.value, JWT_SECRET);
-    const userId = payload.userId as string;
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      );
-    }
+    // Identify the user from their verified Firebase ID token
+    const auth = await requireAuthenticatedUser(request);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     const { passkeyId } = await request.json();
 

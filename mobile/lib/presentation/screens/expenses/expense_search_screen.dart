@@ -5,6 +5,54 @@ import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/presentation/providers/expense_providers.dart';
 
+/// The time shortcut in a search query ("today", "yesterday", "last week",
+/// "last month", "this month") as a date range, plus the query without it.
+///
+/// [start] is inclusive and [end] exclusive, so "yesterday" covers exactly
+/// yesterday and does not also return today's expenses. Both are null when
+/// the query has no shortcut. [lowerQuery] must already be lower-cased.
+({DateTime? start, DateTime? end, String term}) expenseSearchDateRange(
+  String lowerQuery,
+  DateTime now,
+) {
+  final today = DateTime(now.year, now.month, now.day);
+  final tomorrow = DateTime(now.year, now.month, now.day + 1);
+  String without(String shortcut) => lowerQuery.replaceAll(shortcut, '').trim();
+
+  if (lowerQuery.contains('today')) {
+    return (start: today, end: tomorrow, term: without('today'));
+  }
+  if (lowerQuery.contains('yesterday')) {
+    return (
+      start: DateTime(now.year, now.month, now.day - 1),
+      end: today,
+      term: without('yesterday'),
+    );
+  }
+  if (lowerQuery.contains('last week')) {
+    return (
+      start: now.subtract(const Duration(days: 7)),
+      end: tomorrow,
+      term: without('last week'),
+    );
+  }
+  if (lowerQuery.contains('last month')) {
+    return (
+      start: DateTime(now.year, now.month - 1, now.day),
+      end: tomorrow,
+      term: without('last month'),
+    );
+  }
+  if (lowerQuery.contains('this month')) {
+    return (
+      start: DateTime(now.year, now.month, 1),
+      end: DateTime(now.year, now.month + 1, 1),
+      term: without('this month'),
+    );
+  }
+  return (start: null, end: null, term: lowerQuery);
+}
+
 /// Natural language search across expenses.
 /// Supports queries like "coffee last week", "uber march", "over $50".
 class ExpenseSearchScreen extends ConsumerStatefulWidget {
@@ -51,27 +99,10 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
     final now = DateTime.now();
 
     // Parse natural language time filters
-    DateTime? startDate;
-    String? searchTerm;
-
-    if (lower.contains('today')) {
-      startDate = DateTime(now.year, now.month, now.day);
-      searchTerm = lower.replaceAll('today', '').trim();
-    } else if (lower.contains('yesterday')) {
-      startDate = DateTime(now.year, now.month, now.day - 1);
-      searchTerm = lower.replaceAll('yesterday', '').trim();
-    } else if (lower.contains('last week')) {
-      startDate = now.subtract(const Duration(days: 7));
-      searchTerm = lower.replaceAll('last week', '').trim();
-    } else if (lower.contains('last month')) {
-      startDate = DateTime(now.year, now.month - 1, now.day);
-      searchTerm = lower.replaceAll('last month', '').trim();
-    } else if (lower.contains('this month')) {
-      startDate = DateTime(now.year, now.month, 1);
-      searchTerm = lower.replaceAll('this month', '').trim();
-    } else {
-      searchTerm = lower;
-    }
+    final range = expenseSearchDateRange(lower, now);
+    final startDate = range.start;
+    final endDate = range.end;
+    String? searchTerm = range.term;
 
     // Parse amount filter: "over $50", "under $100"
     double? minAmount;
@@ -90,9 +121,9 @@ class _ExpenseSearchScreenState extends ConsumerState<ExpenseSearchScreen> {
     // Filter expenses
     var filtered = allExpenses.where((e) {
       // Date filter
-      if (startDate != null && e.date.toDate().isBefore(startDate)) {
-        return false;
-      }
+      final date = e.date.toDate();
+      if (startDate != null && date.isBefore(startDate)) return false;
+      if (endDate != null && !date.isBefore(endDate)) return false;
       // Amount filters
       if (minAmount != null && e.amount < minAmount) return false;
       if (maxAmount != null && e.amount > maxAmount) return false;

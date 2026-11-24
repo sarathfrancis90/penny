@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -11,8 +11,9 @@ import { withObservability } from "@/lib/observability/withObservability";
 async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const tokenUserId = await getAuthenticatedUserId(request);
-    const userId = tokenUserId || searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
     const limitParam = searchParams.get("limit");
     const includeArchived = searchParams.get("includeArchived") === "true";
 
@@ -72,10 +73,11 @@ async function getHandler(request: NextRequest) {
  */
 async function postHandler(request: NextRequest) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
     const { userId: bodyUserId, title, firstMessage, firstMessageRole = "user" } = body;
-    const userId = tokenUserId || bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(

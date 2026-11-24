@@ -26,6 +26,7 @@ export async function registerAiRoutes(app: FastifyInstance, ai: AiService) {
       const body = request.body as {
         text?: string;
         imageBase64?: string;
+        localDate?: unknown;
       };
 
       if (!body?.text && !body?.imageBase64) {
@@ -40,6 +41,8 @@ export async function registerAiRoutes(app: FastifyInstance, ai: AiService) {
         userId: request.user.uid,
         text: body.text,
         imageBase64: body.imageBase64,
+        localDate:
+          typeof body.localDate === 'string' ? body.localDate : undefined,
       });
 
       if (Array.isArray(result)) {

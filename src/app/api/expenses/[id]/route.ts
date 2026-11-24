@@ -3,7 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { deleteReceipt } from "@/lib/storageService";
 import { PushService } from "@/lib/services/pushService";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -91,6 +91,43 @@ interface UpdateExpenseRequest {
   description?: string;
 }
 
+/**
+ * Check that `userId` may change (`edit`) or delete (`delete`) an expense.
+ * Mirrors the Firestore rules for `expenses/{id}`:
+ *  - personal expense: only its owner;
+ *  - group expense: an active member of the group who either created the
+ *    expense (with canEditOwnExpenses for edits) or holds
+ *    canEditAllExpenses / canDeleteExpenses.
+ */
+async function canModifyExpense(
+  expenseData: FirebaseFirestore.DocumentData,
+  userId: string,
+  action: "edit" | "delete"
+): Promise<boolean> {
+  if (expenseData.expenseType !== "group" || !expenseData.groupId) {
+    return expenseData.userId === userId;
+  }
+
+  const memberDoc = await adminDb
+    .collection("groupMembers")
+    .doc(`${expenseData.groupId}_${userId}`)
+    .get();
+  const member = memberDoc.exists ? memberDoc.data() : null;
+  if (!member || member.status !== "active") {
+    return false;
+  }
+
+  const permissions = member.permissions || {};
+  const isCreator = expenseData.userId === userId;
+  if (action === "delete") {
+    return isCreator || permissions.canDeleteExpenses === true;
+  }
+  return (
+    (isCreator && permissions.canEditOwnExpenses === true) ||
+    permissions.canEditAllExpenses === true
+  );
+}
+
 // DELETE - Delete an expense
 async function deleteHandler(
   request: NextRequest,
@@ -106,9 +143,27 @@ async function deleteHandler(
       );
     }
 
-    // Get the expense document first to check for receipt
+    const auth = await requireAuthenticatedUser(request);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
+
+    // Get the expense document first to check ownership and the receipt
     const expenseDoc = await adminDb.collection("expenses").doc(id).get();
     const expenseData = expenseDoc.data();
+
+    if (!expenseDoc.exists || !expenseData) {
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+    }
+
+    if (!(await canModifyExpense(expenseData, userId, "delete"))) {
+      return NextResponse.json(
+        {
+          error: "Permission denied",
+          details: "You don't have permission to delete this expense",
+        },
+        { status: 403 }
+      );
+    }
 
     // Delete the receipt image if it exists
     if (expenseData?.receiptPath) {
@@ -123,8 +178,6 @@ async function deleteHandler(
 
     // Notify group members if this is a group expense
     if (expenseData?.groupId && expenseData?.expenseType === "group") {
-      const tokenUserId = await getAuthenticatedUserId(request);
-      const userId = tokenUserId || expenseData.userId;
       await notifyGroupMembers(
         expenseData.groupId,
         userId,
@@ -187,12 +240,33 @@ async function putHandler(
 ) {
   try {
     const { id } = await params;
+
+    const auth = await requireAuthenticatedUser(request);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
+
     const body: UpdateExpenseRequest = await request.json();
 
     if (!id) {
       return NextResponse.json(
         { error: "Expense ID is required" },
         { status: 400 }
+      );
+    }
+
+    const existingDoc = await adminDb.collection("expenses").doc(id).get();
+    const existingData = existingDoc.data();
+    if (!existingDoc.exists || !existingData) {
+      return NextResponse.json({ error: "Expense not found" }, { status: 404 });
+    }
+
+    if (!(await canModifyExpense(existingData, userId, "edit"))) {
+      return NextResponse.json(
+        {
+          error: "Permission denied",
+          details: "You don't have permission to update this expense",
+        },
+        { status: 403 }
       );
     }
 
@@ -237,9 +311,6 @@ async function putHandler(
     const expenseDoc = await adminDb.collection("expenses").doc(id).get();
     const expenseData = expenseDoc.data();
     if (expenseData?.groupId && expenseData?.expenseType === "group") {
-      const tokenUserId = await getAuthenticatedUserId(request);
-      const userId = tokenUserId || expenseData.userId;
-
       const changes = Object.keys(body).filter(k => body[k as keyof UpdateExpenseRequest] !== undefined);
       const changeDesc = changes.join(", ");
 

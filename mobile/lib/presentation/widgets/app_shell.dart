@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:penny_mobile/core/router/app_links.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
@@ -69,7 +70,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     ref.listen(pushNavigationStreamProvider, (_, next) {
       final url = next.valueOrNull;
       if (url != null && context.mounted) {
-        context.push(url);
+        openAppLink(context, url);
       }
     });
 

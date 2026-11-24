@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { FakeFirestore } from '../../test-support/fake-firestore';
 import {
   createNotificationService,
+  isCurrentTimeInQuietHours,
+  readFirestoreNotificationSettings,
   type NotificationDeliveryDependencies,
 } from '../notifications';
 
@@ -213,5 +216,129 @@ describe('notification service', () => {
         }),
       }),
     );
+  });
+});
+
+describe('quiet hours', () => {
+  // 2026-07-15 03:30 UTC is 23:30 the evening before in Toronto (EDT, UTC-4).
+  const lateEveningToronto = new Date('2026-07-15T03:30:00Z');
+  // 2026-07-15 14:00 UTC is 10:00 in Toronto and 07:00 in Vancouver.
+  const morning = new Date('2026-07-15T14:00:00Z');
+
+  it('evaluates the window in the user’s time zone, not UTC', () => {
+    expect(
+      isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', lateEveningToronto),
+    ).toBe(true);
+    // 14:00 UTC is outside 22:00–08:00, but in Vancouver it is 07:00 (inside).
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Vancouver', morning)).toBe(true);
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', morning)).toBe(false);
+  });
+
+  it('defaults to America/Toronto when no zone is stored or the zone is invalid', () => {
+    // 23:00 UTC is 19:00 in Toronto: outside 22:00–08:00, though UTC says inside.
+    const evening = new Date('2026-07-15T23:00:00Z');
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', undefined, evening)).toBe(false);
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'Not/AZone', evening)).toBe(false);
+    expect(isCurrentTimeInQuietHours('18:00', '20:00', undefined, evening)).toBe(true);
+  });
+
+  it('handles windows that cross midnight and same-day windows', () => {
+    const at = (hhmm: string) => new Date(`2026-01-15T${hhmm}:00-05:00`); // Toronto EST
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', at('22:00'))).toBe(true);
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', at('00:15'))).toBe(true);
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', at('07:59'))).toBe(true);
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', at('08:00'))).toBe(false);
+    expect(isCurrentTimeInQuietHours('22:00', '08:00', 'America/Toronto', at('12:00'))).toBe(false);
+    expect(isCurrentTimeInQuietHours('13:00', '14:00', 'America/Toronto', at('13:30'))).toBe(true);
+    expect(isCurrentTimeInQuietHours('13:00', '14:00', 'America/Toronto', at('14:30'))).toBe(false);
+    expect(isCurrentTimeInQuietHours('09:00', '09:00', 'America/Toronto', at('09:00'))).toBe(false);
+    expect(isCurrentTimeInQuietHours('bad', '08:00', 'America/Toronto', at('23:00'))).toBe(false);
+  });
+
+  it('passes the user’s stored time zone to the quiet-hours check', async () => {
+    const isInQuietHours = vi.fn(() => true);
+    const deps = dependencies({
+      getUserSettings: vi.fn(async () => ({
+        globalMute: false,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+        timeZone: 'America/Vancouver',
+      })),
+      getUserTokens: vi.fn(async () => [
+        { deviceId: 'device-1', token: 'token-1', platform: 'ios' as const },
+      ]),
+      isInQuietHours,
+    });
+
+    await createNotificationService(deps).notifyUsers({
+      userIds: ['recipient-1'],
+      type: 'group_expense_added',
+      title: 'New expense',
+      body: 'x',
+      category: 'group',
+      priority: 'medium',
+    });
+
+    expect(isInQuietHours).toHaveBeenCalledWith('22:00', '08:00', 'America/Vancouver');
+    expect(deps.sendMulticast).not.toHaveBeenCalled();
+    expect(deps.createNotification).toHaveBeenCalledOnce();
+  });
+
+  it('reads the zone from notification settings, then user preferences, else Toronto', async () => {
+    const db = new FakeFirestore();
+    db.seed('userNotificationSettings/u1', {
+      quietHoursStart: '21:00',
+      quietHoursEnd: '07:00',
+      timezone: 'America/Halifax',
+    });
+    db.seed('userNotificationSettings/u2', { quietHoursStart: '21:00' });
+    db.seed('users/u2', { preferences: { timezone: 'America/Edmonton' } });
+    db.seed('userNotificationSettings/u3', { timezone: 'Not/AZone' });
+    const settings = await Promise.all(
+      ['u1', 'u2', 'u3', 'u4'].map((userId) =>
+        readFirestoreNotificationSettings(db as never, userId),
+      ),
+    );
+    expect(settings.map((entry) => entry.timeZone)).toEqual([
+      'America/Halifax',
+      'America/Edmonton',
+      'America/Toronto',
+      'America/Toronto',
+    ]);
+    expect(settings[0]).toMatchObject({ quietHoursStart: '21:00', quietHoursEnd: '07:00' });
+  });
+});
+
+describe('push delivery failures', () => {
+  it('logs the error code and does not throw when FCM rejects the send', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const deps = dependencies({
+      getUserTokens: vi.fn(async () => [
+        { deviceId: 'device-1', token: 'token-1', platform: 'ios' as const },
+      ]),
+      sendMulticast: vi.fn(async () => {
+        throw Object.assign(new Error('Identity Toolkit API has not been used'), {
+          code: 'messaging/third-party-auth-error',
+        });
+      }),
+    });
+
+    await expect(
+      createNotificationService(deps).notifyUsers({
+        userIds: ['recipient-1'],
+        type: 'group_expense_added',
+        title: 'New expense',
+        body: 'x',
+        category: 'group',
+        priority: 'medium',
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(deps.createNotification).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith(
+      '[NotificationService] Failed to notify user:',
+      expect.objectContaining({ code: 'messaging/third-party-auth-error' }),
+    );
+    log.mockRestore();
   });
 });

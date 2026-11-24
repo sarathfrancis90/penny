@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { buildApiApp } from '../../../app';
+import { createFirestoreUserPreferenceService } from '../../../services/firestore-user-preferences';
+import { FakeFirestore } from '../../../test-support/fake-firestore';
 
 describe('user preference and account routes', () => {
   it('sets the default group using the authenticated user', async () => {
@@ -96,6 +98,27 @@ describe('user preference and account routes', () => {
       message: 'Account and all associated data have been permanently deleted.',
     });
     expect(deleteAccount).toHaveBeenCalledWith({ userId: 'user-1' });
+
+    await app.close();
+  });
+
+  it('returns a null default group, in both field names, for a user with no profile document', async () => {
+    const app = await buildApiApp({
+      readyCheck: async () => undefined,
+      auth: { verifyIdToken: async () => ({ uid: 'new-user' }) },
+      services: {
+        userPreferences: createFirestoreUserPreferenceService(new FakeFirestore() as never),
+      },
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/user/default-group?userId=new-user',
+      headers: { authorization: 'Bearer valid-token' },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ defaultGroupId: null, groupId: null });
 
     await app.close();
   });

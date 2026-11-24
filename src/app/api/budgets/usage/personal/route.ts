@@ -8,6 +8,7 @@ import {
 import { Expense } from "@/lib/types";
 import { Timestamp } from "firebase-admin/firestore";
 import { withObservability } from "@/lib/observability/withObservability";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 
 /**
  * GET /api/budgets/usage/personal
@@ -17,7 +18,9 @@ import { withObservability } from "@/lib/observability/withObservability";
 async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
     const monthParam = searchParams.get("month");
     const yearParam = searchParams.get("year");
 

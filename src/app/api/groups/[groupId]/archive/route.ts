@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { withObservability } from "@/lib/observability/withObservability";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 
 async function postHandler(
   request: NextRequest,
@@ -10,7 +11,10 @@ async function postHandler(
   try {
     const { groupId } = await params;
     const body = await request.json();
-    const { userId } = body;
+    const { userId: bodyUserId } = body;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -25,7 +29,7 @@ async function postHandler(
       .doc(`${groupId}_${userId}`)
       .get();
 
-    if (!memberDoc.exists) {
+    if (!memberDoc.exists || memberDoc.data()?.status !== "active") {
       return NextResponse.json(
         { error: "Not a member of this group" },
         { status: 403 }
@@ -52,7 +56,7 @@ async function postHandler(
     });
 
     // Log activity
-    await adminDb.collection("groupActivity").add({
+    await adminDb.collection("groupActivities").add({
       groupId,
       userId: userId,
       userName: memberData.userName || memberData.userEmail || "Unknown User",

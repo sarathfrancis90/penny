@@ -4,35 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/models/conversation_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/chat_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 
-/// Streams the user's active conversations, sorted with pinned first then by
-/// most-recently updated. Bounded to keep the drawer snappy on large accounts;
-/// search uses [searchAllConversationsProvider] for full coverage.
-final conversationsListProvider = StreamProvider<List<ConversationModel>>((
-  ref,
-) {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return const Stream.empty();
-  return ref
-      .watch(conversationRepositoryProvider)
-      .watchConversations(user.uid)
-      .map((conversations) {
-        conversations.sort((a, b) {
-          if (a.metadata.isPinned && !b.metadata.isPinned) return -1;
-          if (!a.metadata.isPinned && b.metadata.isPinned) return 1;
-          return b.updatedAt.compareTo(a.updatedAt);
-        });
-        return conversations;
-      });
-});
-
-final searchAllConversationsProvider =
-    FutureProvider.family<List<ConversationModel>, String>((ref, query) async {
+final searchAllConversationsProvider = FutureProvider.autoDispose
+    .family<List<ConversationModel>, String>((ref, query) async {
       if (query.isEmpty) return const [];
       final user = ref.watch(currentUserProvider);
       if (user == null) return const [];
@@ -481,17 +461,25 @@ class _ConversationTile extends ConsumerWidget {
         },
         onDismissed: (_) async {
           final convId = conversation.id;
+          // The row is gone after this, so keep the container for Undo.
+          final container = ProviderScope.containerOf(context, listen: false);
           await repo.archiveConversation(convId);
+          ref.invalidate(conversationsListProvider);
           _resetChatIfActive(ref, convId);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: const Text('Conversation archived'),
                 behavior: SnackBarBehavior.floating,
+                // An action makes a SnackBar stay up until tapped; let it time out.
+                persist: false,
                 action: SnackBarAction(
                   label: 'Undo',
-                  onPressed: () =>
-                      repo.updateConversation(convId, {'status': 'active'}),
+                  onPressed: () => repo
+                      .updateConversation(convId, {'status': 'active'})
+                      .whenComplete(
+                        () => container.invalidate(conversationsListProvider),
+                      ),
                 ),
               ),
             );
@@ -506,6 +494,7 @@ class _ConversationTile extends ConsumerWidget {
     final repo = ref.read(conversationRepositoryProvider);
     final convId = conversation.id;
     await repo.archiveConversation(convId);
+    ref.invalidate(conversationsListProvider);
     _resetChatIfActive(ref, convId);
     HapticFeedback.lightImpact();
     if (context.mounted) {
@@ -513,6 +502,8 @@ class _ConversationTile extends ConsumerWidget {
         SnackBar(
           content: const Text('Conversation archived'),
           behavior: SnackBarBehavior.floating,
+          // An action makes a SnackBar stay up until tapped; let it time out.
+          persist: false,
           action: SnackBarAction(
             label: 'Undo',
             onPressed: () =>
@@ -548,6 +539,7 @@ class _ConversationTile extends ConsumerWidget {
                 onTap: () async {
                   Navigator.pop(ctx);
                   await repo.pinConversation(convId, !isPinned);
+                  ref.invalidate(conversationsListProvider);
                   HapticFeedback.lightImpact();
                 },
               ),
@@ -571,6 +563,7 @@ class _ConversationTile extends ConsumerWidget {
                 onTap: () async {
                   Navigator.pop(ctx);
                   await repo.archiveConversation(convId);
+                  ref.invalidate(conversationsListProvider);
                   _resetChatIfActive(ref, convId);
                   HapticFeedback.lightImpact();
                   if (context.mounted) {
@@ -628,6 +621,7 @@ class _ConversationTile extends ConsumerWidget {
                 await ref
                     .read(conversationRepositoryProvider)
                     .renameConversation(conversation.id, newTitle);
+                ref.invalidate(conversationsListProvider);
                 HapticFeedback.lightImpact();
               }
               if (ctx.mounted) Navigator.pop(ctx);
@@ -660,6 +654,7 @@ class _ConversationTile extends ConsumerWidget {
                 await ref
                     .read(conversationRepositoryProvider)
                     .deleteConversation(conversation.id);
+                ref.invalidate(conversationsListProvider);
                 _resetChatIfActive(ref, conversation.id);
                 HapticFeedback.mediumImpact();
                 if (context.mounted) {
@@ -674,7 +669,7 @@ class _ConversationTile extends ConsumerWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to delete: $e'),
+                      content: Text('Failed to delete: ${apiErrorMessage(e)}'),
                       backgroundColor: AppColors.error,
                     ),
                   );

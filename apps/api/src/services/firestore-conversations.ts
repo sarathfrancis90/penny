@@ -5,6 +5,7 @@ import {
   type Query,
 } from 'firebase-admin/firestore';
 
+import { writeInChunks } from './batching';
 import type {
   AddMessageInput,
   ConversationService,
@@ -142,10 +143,11 @@ export function createFirestoreConversationService(
         input.userId,
       );
       const messagesSnapshot = await ref.collection('messages').get();
-      const batch = db.batch();
-      messagesSnapshot.docs.forEach((messageDoc) => batch.delete(messageDoc.ref));
-      batch.delete(ref);
-      await batch.commit();
+      await writeInChunks(db, messagesSnapshot.docs, (batch, messageDoc) => {
+        batch.delete(messageDoc.ref);
+      });
+      // Last, so a failed run leaves the conversation in place to retry.
+      await ref.delete();
       return { success: true };
     },
 

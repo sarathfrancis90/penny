@@ -17,9 +17,10 @@ class GroupIncomeRepository {
       ApiEndpoints.groupIncome,
       queryParameters: {'groupId': groupId},
     );
-    return listValue(responseMap(response)['incomeSources'])
-        .map((json) => GroupIncomeSourceModel.fromFirestore(apiDocument(json)))
-        .toList();
+    return parseList(
+      responseMap(response)['incomeSources'],
+      GroupIncomeSourceModel.fromFirestore,
+    );
   }
 
   Future<String> createGroupIncomeSource({

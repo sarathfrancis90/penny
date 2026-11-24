@@ -49,10 +49,15 @@ class AiRepository {
 
   /// Analyze an expense from text and/or image.
   /// Returns parsed expense data (single or multiple).
+  ///
+  /// [now] is the device clock (injectable for tests); its calendar date is
+  /// sent as `localDate` so "today"/"yesterday" resolve in the user's time
+  /// zone rather than the server's.
   Future<AnalyzeExpenseResult> analyzeExpense({
     String? text,
     File? imageFile,
     required String userId,
+    DateTime? now,
   }) async {
     String? imageBase64;
     if (imageFile != null) {
@@ -66,7 +71,9 @@ class AiRepository {
         'text': ?text,
         'imageBase64': ?imageBase64,
         'userId': userId,
+        'localDate': _localDate(now ?? DateTime.now()),
       },
+      receiveTimeout: ApiClient.longReceiveTimeout,
     );
 
     final data = response.data as Map<String, dynamic>;
@@ -87,6 +94,13 @@ class AiRepository {
       return AnalyzeExpenseResult(expenses: [expense]);
     }
   }
+}
+
+String _localDate(DateTime now) {
+  final local = now.toLocal();
+  final month = local.month.toString().padLeft(2, '0');
+  final day = local.day.toString().padLeft(2, '0');
+  return '${local.year}-$month-$day';
 }
 
 class AnalyzeExpenseResult {

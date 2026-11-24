@@ -393,8 +393,8 @@ For issues or questions about the Admin Console:
 
 **Login:** `/admin-console/login`  
 **Dashboard:** `/admin-console`  
-**Default Username:** `penny_admin_2024`  
-**Default Password:** `PnY@2024#Secure$Admin!`  
+**Username:** set with the `ADMIN_USERNAME` environment variable (no built-in default).  
+**Password:** set with the `ADMIN_PASSWORD` environment variable; `ADMIN_SESSION_SECRET` is also required. If any is missing, the login is refused.  
 **Session Duration:** 24 hours  
 **Analytics Period:** Last 30 days (default)  
 

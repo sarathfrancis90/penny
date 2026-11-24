@@ -2,6 +2,7 @@ import 'package:penny_mobile/data/models/api_timestamp.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:penny_mobile/core/utils/client_request_id.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 
 /// Result of attempting to add a guest expense.
@@ -26,6 +27,7 @@ class GuestExpenseNotifier extends StateNotifier<List<ExpenseModel>> {
   static const _expensesKey = 'expenses';
   static const _aiUsesKey = 'ai_uses';
   static const _receiptScansKey = 'receipt_scans';
+  static const _migrationIdsKey = 'migration_ids';
 
   // --- Getters ---
 
@@ -136,15 +138,34 @@ class GuestExpenseNotifier extends StateNotifier<List<ExpenseModel>> {
     _box.put(_receiptScansKey, current + 1);
   }
 
-  /// Consume all expenses for migration to the signed-in account.
-  /// Returns the list and atomically clears local storage.
-  List<ExpenseModel> consumeForMigration() {
-    final expenses = List<ExpenseModel>.from(state);
-    state = [];
-    _box.delete(_expensesKey);
-    _box.delete(_aiUsesKey);
-    _box.delete(_receiptScansKey);
-    return expenses;
+  /// The `clientRequestId` used when uploading [expenseId] to the signed-in
+  /// account. It is stored, so a retried migration sends the same id and the
+  /// server can recognise an expense it already saved.
+  String migrationRequestId(String expenseId) {
+    final ids = _migrationIds();
+    final existing = ids[expenseId];
+    if (existing != null) return existing;
+    final id = newClientRequestId();
+    _box.put(_migrationIdsKey, {...ids, expenseId: id});
+    return id;
+  }
+
+  /// Remove one expense after it was saved to the signed-in account.
+  /// Expenses that failed to upload stay here for a later retry.
+  void markMigrated(String expenseId) {
+    delete(expenseId);
+    if (state.isEmpty) {
+      _box.delete(_aiUsesKey);
+      _box.delete(_receiptScansKey);
+      _box.delete(_migrationIdsKey);
+    } else {
+      _box.put(_migrationIdsKey, _migrationIds()..remove(expenseId));
+    }
+  }
+
+  Map<String, String> _migrationIds() {
+    final raw = _box.get(_migrationIdsKey);
+    return raw is Map ? Map<String, String>.from(raw) : <String, String>{};
   }
 
   // --- Persistence ---

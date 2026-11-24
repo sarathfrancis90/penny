@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { PushService } from "@/lib/services/pushService";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 async function postHandler(
@@ -10,7 +10,6 @@ async function postHandler(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
     let bodyUserId: string | null = null;
     try {
       const body = await request.json();
@@ -18,11 +17,9 @@ async function postHandler(
     } catch {
       // No body or invalid JSON — that's fine
     }
-    const userId = tokenUserId || bodyUserId;
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     const { groupId } = await params;
 
@@ -38,7 +35,7 @@ async function postHandler(
       .doc(membershipId)
       .get();
 
-    if (!membershipDoc.exists) {
+    if (!membershipDoc.exists || membershipDoc.data()?.status !== "active") {
       return NextResponse.json(
         { error: "Not a member of this group" },
         { status: 403 }
@@ -78,7 +75,7 @@ async function postHandler(
     }
 
     // Log activity
-    await adminDb.collection("groupActivity").add({
+    await adminDb.collection("groupActivities").add({
       groupId,
       userId,
       userName: displayName,

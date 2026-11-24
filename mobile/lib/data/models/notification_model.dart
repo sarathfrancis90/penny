@@ -75,10 +75,10 @@ class NotificationModel {
     final data = doc.data()! as Map<String, dynamic>;
     return NotificationModel(
       id: doc.id,
-      userId: data['userId'] as String,
-      type: data['type'] as String,
-      title: data['title'] as String,
-      body: data['body'] as String,
+      userId: data['userId'] as String? ?? '',
+      type: data['type'] as String? ?? '',
+      title: data['title'] as String? ?? '',
+      body: data['body'] as String? ?? '',
       priority: data['priority'] as String? ?? 'medium',
       category: data['category'] as String? ?? 'system',
       read: data['read'] as bool? ?? false,
@@ -93,7 +93,7 @@ class NotificationModel {
       groupId: data['groupId'] as String?,
       actorName: data['actorName'] as String?,
       actorAvatar: data['actorAvatar'] as String?,
-      groupCount: data['groupCount'] as int?,
+      groupCount: (data['groupCount'] as num?)?.toInt(),
       metadata: data['metadata'] != null
           ? Map<String, dynamic>.from(data['metadata'] as Map)
           : null,

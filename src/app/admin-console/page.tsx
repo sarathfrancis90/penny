@@ -33,6 +33,21 @@ import {
   Download,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { auth } from "@/lib/firebase";
+
+/**
+ * Fetch for admin routes that read Firestore with the Admin SDK. Those
+ * routes require a Firebase ID token with the `admin: true` custom claim
+ * (granted by scripts/grant-admin.ts), so sign in to Penny with an admin
+ * account in this browser; the legacy console cookie alone is not enough.
+ */
+async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  await auth.authStateReady();
+  const token = await auth.currentUser?.getIdToken();
+  const headers = new Headers(init.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return fetch(input, { ...init, headers });
+}
 
 interface User {
   userId: string;
@@ -220,7 +235,7 @@ export default function AdminConsolePage() {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await adminFetch("/api/admin/users");
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || []);
@@ -252,7 +267,7 @@ export default function AdminConsolePage() {
 
   const loadAnalytics = async () => {
     try {
-      const response = await fetch("/api/admin/analytics?days=30");
+      const response = await adminFetch("/api/admin/analytics?days=30");
       if (response.ok) {
         const data = await response.json();
         setAnalytics(data);
@@ -264,7 +279,7 @@ export default function AdminConsolePage() {
 
   const loadCosts = async () => {
     try {
-      const response = await fetch("/api/admin/costs?days=30");
+      const response = await adminFetch("/api/admin/costs?days=30");
       if (response.ok) {
         const data = await response.json();
         setCosts(data);
@@ -276,7 +291,7 @@ export default function AdminConsolePage() {
 
   const loadSystemStats = async () => {
     try {
-      const response = await fetch("/api/admin/system");
+      const response = await adminFetch("/api/admin/system");
       if (response.ok) {
         const data = await response.json();
         setSystemStats(data.stats);
@@ -288,7 +303,7 @@ export default function AdminConsolePage() {
 
   const loadConfig = async () => {
     try {
-      const response = await fetch("/api/admin/config");
+      const response = await adminFetch("/api/admin/config");
       if (response.ok) {
         const data = await response.json();
         setConfig(data.config);
@@ -305,7 +320,7 @@ export default function AdminConsolePage() {
 
   const handleExportUser = async (userId: string, userEmail?: string) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/export`);
+      const response = await adminFetch(`/api/admin/users/${userId}/export`);
       if (response.ok) {
         const data = await response.json();
         
@@ -332,7 +347,7 @@ export default function AdminConsolePage() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(
+      const response = await adminFetch(
         `/api/admin/users/${selectedUser}?type=${deleteType}`,
         { method: "DELETE" }
       );
@@ -1199,11 +1214,8 @@ export default function AdminConsolePage() {
                     <p className="text-sm">
                       <strong>Admin Access:</strong> <code className="ml-2">/admin-console</code>
                     </p>
-                    <p className="text-sm">
-                      <strong>Default Username:</strong> <code className="ml-2">penny_admin_2024</code>
-                    </p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      💡 Change credentials via environment variables in production
+                      Console login requires ADMIN_USERNAME, ADMIN_PASSWORD and ADMIN_SESSION_SECRET to be set; data tabs also need a Penny sign-in with the admin claim.
                     </p>
                   </div>
                 </div>

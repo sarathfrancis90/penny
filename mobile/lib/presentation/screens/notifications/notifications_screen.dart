@@ -2,15 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:penny_mobile/core/router/app_links.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/data/models/notification_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
+import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/notification_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/penny_empty_state.dart';
 import 'package:penny_mobile/presentation/widgets/shimmer_loading.dart';
 import 'package:penny_mobile/presentation/widgets/error_state.dart';
+
+/// Marks a notification as read and reloads the list so the unread badge
+/// updates. Best-effort: a failure here never stops what the user was doing
+/// (opening the notification, accepting an invitation).
+Future<void> _markReadBestEffort(
+  ProviderContainer container,
+  String notificationId,
+) async {
+  try {
+    await container
+        .read(notificationRepositoryProvider)
+        .markAsRead(notificationId);
+  } catch (error) {
+    debugPrint('[Notifications] Could not mark as read: $error');
+  }
+  container.invalidate(notificationsProvider);
+}
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
@@ -26,13 +46,22 @@ class NotificationsScreen extends ConsumerWidget {
         actions: [
           if (unreadCount > 0)
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 final user = ref.read(currentUserProvider);
                 if (user != null) {
-                  ref
-                      .read(notificationRepositoryProvider)
-                      .markAllAsRead(user.uid);
+                  final container = ProviderScope.containerOf(
+                    context,
+                    listen: false,
+                  );
                   HapticFeedback.lightImpact();
+                  try {
+                    await container
+                        .read(notificationRepositoryProvider)
+                        .markAllAsRead(user.uid);
+                  } catch (error) {
+                    debugPrint('[Notifications] Mark all read failed: $error');
+                  }
+                  container.invalidate(notificationsProvider);
                 }
               },
               child: const Text('Mark all read'),
@@ -89,9 +118,17 @@ class _NotificationList extends ConsumerWidget {
               notification: n,
               onTap: () => _handleNotificationTap(context, ref, n),
               onDismiss: () {
-                ref
+                final container = ProviderScope.containerOf(
+                  context,
+                  listen: false,
+                );
+                container
                     .read(notificationRepositoryProvider)
-                    .deleteNotification(n.id);
+                    .deleteNotification(n.id)
+                    .then<void>((_) {}, onError: (Object _) {})
+                    .whenComplete(
+                      () => container.invalidate(notificationsProvider),
+                    );
                 HapticFeedback.lightImpact();
               },
             ),
@@ -107,9 +144,10 @@ class _NotificationList extends ConsumerWidget {
     NotificationModel notification,
   ) async {
     if (!notification.read) {
-      await ref
-          .read(notificationRepositoryProvider)
-          .markAsRead(notification.id);
+      await _markReadBestEffort(
+        ProviderScope.containerOf(context, listen: false),
+        notification.id,
+      );
     }
 
     HapticFeedback.selectionClick();
@@ -117,7 +155,7 @@ class _NotificationList extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (route != null) {
-      context.push(route);
+      openAppLink(context, route);
       return;
     }
 
@@ -132,6 +170,9 @@ class _NotificationList extends ConsumerWidget {
   }
 
   String? _routeFor(NotificationModel notification) {
+    if (notification.type == 'group_invitation') {
+      return linkForNotification(type: notification.type, url: '/groups');
+    }
     final metadata = notification.metadata ?? const <String, dynamic>{};
     final actionUrl = notification.actionUrl;
     if (actionUrl != null) {
@@ -219,23 +260,36 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
       final user = ref.read(currentUserProvider);
       if (user == null) return;
 
+      // Older invitation notifications carry only the invitation id; the
+      // server accepts either and checks the signed-in email itself.
       final token = notification.metadata?['invitationToken'] as String?;
-      if (token == null) {
-        throw Exception('Missing invitation token');
+      final invitationId = notification.metadata?['invitationId'] as String?;
+      final hasToken = token != null && token.isNotEmpty;
+      if (!hasToken && (invitationId == null || invitationId.isEmpty)) {
+        throw StateError('This invitation can no longer be opened.');
       }
+      final container = ProviderScope.containerOf(context, listen: false);
 
       final result = await ref
           .read(groupRepositoryProvider)
           .acceptInvitation(
-            token: token,
+            token: hasToken ? token : null,
+            invitationId: hasToken ? null : invitationId,
             userId: user.uid,
             userEmail: user.email ?? '',
             userName: user.displayName,
           );
 
-      await ref
-          .read(notificationRepositoryProvider)
-          .markAsRead(notification.id);
+      final acceptedGroupId =
+          result['groupId'] as String? ??
+          notification.metadata?['groupId'] as String?;
+      // The new group must show up without a manual refresh.
+      container.invalidate(userGroupsProvider);
+      if (acceptedGroupId != null) {
+        container.invalidate(currentUserMembershipProvider(acceptedGroupId));
+        container.invalidate(groupByIdProvider(acceptedGroupId));
+      }
+      await _markReadBestEffort(container, notification.id);
 
       HapticFeedback.mediumImpact();
 
@@ -259,7 +313,9 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to accept invitation: $e'),
+            content: Text(
+              "Couldn't accept the invitation. ${apiErrorMessage(e)}",
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -283,9 +339,11 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
           .read(groupRepositoryProvider)
           .declineInvitation(invitationId: invitationId);
 
-      await ref
-          .read(notificationRepositoryProvider)
-          .markAsRead(notification.id);
+      if (!mounted) return;
+      await _markReadBestEffort(
+        ProviderScope.containerOf(context, listen: false),
+        notification.id,
+      );
 
       HapticFeedback.lightImpact();
 
@@ -301,7 +359,9 @@ class _NotificationTileState extends ConsumerState<_NotificationTile> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to decline invitation: $e'),
+            content: Text(
+              "Couldn't decline the invitation. ${apiErrorMessage(e)}",
+            ),
             backgroundColor: AppColors.error,
           ),
         );

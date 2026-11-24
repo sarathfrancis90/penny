@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth";
 import { GroupMember, GroupRole } from "@/lib/types";
+import { authFetch } from "@/lib/authFetch";
 
 export function useGroupMembers(groupId: string | null) {
   const { user } = useAuth();
@@ -68,7 +69,7 @@ export function useGroupMembers(groupId: string | null) {
       }
 
       try {
-        const response = await fetch(`/api/groups/${groupId}/members`, {
+        const response = await authFetch(`/api/groups/${groupId}/members`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -101,7 +102,7 @@ export function useGroupMembers(groupId: string | null) {
       }
 
       try {
-        const response = await fetch(`/api/groups/${groupId}/members/${memberId}`, {
+        const response = await authFetch(`/api/groups/${groupId}/members/${memberId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -133,7 +134,7 @@ export function useGroupMembers(groupId: string | null) {
       }
 
       try {
-        const response = await fetch(
+        const response = await authFetch(
           `/api/groups/${groupId}/members/${memberId}?userId=${user.uid}&action=remove`,
           {
             method: "DELETE",
@@ -162,7 +163,7 @@ export function useGroupMembers(groupId: string | null) {
     }
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/groups/${groupId}/members/${myMembership.id}?userId=${user.uid}&action=leave`,
         {
           method: "DELETE",

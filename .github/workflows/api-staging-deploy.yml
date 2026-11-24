@@ -41,6 +41,8 @@ jobs:
       FIRESTORE_PROJECT_ID: ${{ vars.FIRESTORE_PROJECT_ID }}
       FIRESTORE_DATABASE_ID: ${{ vars.FIRESTORE_DATABASE_ID }}
       GEMINI_SECRET_NAME: ${{ vars.GEMINI_SECRET_NAME || 'penny-gemini-api-key' }}
+      # Optional: switch the AI model without a code change (empty = API default).
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
       CRON_SECRET_NAME: ${{ vars.CRON_SECRET_NAME || 'penny-cron-secret' }}
       CANDIDATE_TAG: candidate-${{ github.run_id }}
 
@@ -186,6 +188,7 @@ jobs:
           if [ -n "$FIREBASE_AUTH_PROJECT_ID" ]; then append_env FIREBASE_AUTH_PROJECT_ID "$FIREBASE_AUTH_PROJECT_ID"; fi
           if [ -n "$API_CORS_ORIGINS" ]; then append_env API_CORS_ORIGINS "$API_CORS_ORIGINS"; fi
           if [ -n "$FIRESTORE_DATABASE_ID" ]; then append_env FIRESTORE_DATABASE_ID "$FIRESTORE_DATABASE_ID"; fi
+          if [ -n "$GEMINI_MODEL" ]; then append_env GEMINI_MODEL "$GEMINI_MODEL"; fi
 
           gcloud run deploy "$CLOUD_RUN_SERVICE" \
             --image "$IMAGE_WITH_DIGEST" \

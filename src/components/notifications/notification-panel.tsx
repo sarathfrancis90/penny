@@ -19,8 +19,10 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationActions } from '@/hooks/useNotificationActions';
-import { Notification, NotificationCategory } from '@/lib/types/notifications';
+import { useGroupInvitations } from '@/hooks/useGroupInvitations';
+import { Notification, NotificationAction, NotificationCategory } from '@/lib/types/notifications';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface NotificationPanelProps {
   userId?: string;
@@ -40,6 +42,44 @@ export function NotificationPanel({ userId, onClose }: NotificationPanelProps) {
   });
 
   const { markAsRead, deleteNotification, markAllAsRead, loading: actionLoading } = useNotificationActions();
+  const { acceptInvitation, rejectInvitation } = useGroupInvitations();
+  const [pendingActionId, setPendingActionId] = useState<string | null>(null);
+
+  // Notification buttons (e.g. Accept / Decline on a group invitation)
+  const handleNotificationAction = async (notification: Notification, action: NotificationAction) => {
+    if (action.url) {
+      router.push(action.url);
+      onClose?.();
+      return;
+    }
+
+    const metadata = notification.metadata || {};
+    const token = typeof metadata.invitationToken === 'string' ? metadata.invitationToken : null;
+    const invitationId = typeof metadata.invitationId === 'string' ? metadata.invitationId : null;
+    const groupName = typeof metadata.groupName === 'string' ? metadata.groupName : 'the group';
+
+    setPendingActionId(notification.id);
+    try {
+      if (action.action === 'accept_group_invitation' && token) {
+        const result = await acceptInvitation(token);
+        toast.success(`You joined ${groupName}`);
+        await deleteNotification(notification.id);
+        const groupId = result?.groupId || notification.groupId;
+        if (groupId) {
+          router.push(`/groups/${groupId}`);
+          onClose?.();
+        }
+      } else if (action.action === 'decline_group_invitation' && invitationId) {
+        await rejectInvitation(invitationId);
+        toast.success('Invitation declined');
+        await deleteNotification(notification.id);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setPendingActionId(null);
+    }
+  };
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
@@ -157,6 +197,8 @@ export function NotificationPanel({ userId, onClose }: NotificationPanelProps) {
                       notification={notification}
                       onClick={() => handleNotificationClick(notification)}
                       onDelete={(e) => handleDelete(e, notification.id)}
+                      onAction={(action) => handleNotificationAction(notification, action)}
+                      actionPending={pendingActionId === notification.id}
                       formatTime={formatTime}
                     />
                   )
@@ -192,10 +234,12 @@ interface NotificationItemProps {
   notification: Notification;
   onClick: () => void;
   onDelete: (e: React.MouseEvent) => void;
+  onAction: (action: NotificationAction) => void;
+  actionPending?: boolean;
   formatTime: (timestamp: { toDate: () => Date } | undefined) => string;
 }
 
-function NotificationItem({ notification, onClick, onDelete, formatTime }: NotificationItemProps) {
+function NotificationItem({ notification, onClick, onDelete, onAction, actionPending, formatTime }: NotificationItemProps) {
   return (
     <div
       role="button"
@@ -241,9 +285,10 @@ function NotificationItem({ notification, onClick, onDelete, formatTime }: Notif
                   size="sm"
                   variant={action.variant === 'danger' ? 'destructive' : action.variant === 'primary' ? 'default' : 'outline'}
                   className="h-7 text-xs"
+                  disabled={actionPending}
                   onClick={(e) => {
                     e.stopPropagation();
-                    // Handle action click - will be implemented in Phase 2
+                    onAction(action);
                   }}
                 >
                   {action.label}

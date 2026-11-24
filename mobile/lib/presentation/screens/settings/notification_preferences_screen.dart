@@ -75,12 +75,25 @@ class NotificationPreferencesScreen extends ConsumerWidget {
     );
   }
 
+  /// Reloads a settings provider after a save, so switches show what the
+  /// server stored. If the screen has already closed there is nothing to
+  /// refresh.
+  static void _reload(WidgetRef ref, ProviderOrFamily provider) {
+    try {
+      ref.invalidate(provider);
+    } on StateError {
+      // The screen was closed before the save finished.
+    }
+  }
+
   void _updateSetting(WidgetRef ref, Map<String, dynamic> updates) {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
     ref
         .read(notificationPreferencesRepoProvider)
-        .updateSettings(user.uid, updates);
+        .updateSettings(user.uid, updates)
+        .then<void>((_) {}, onError: (Object _) {})
+        .whenComplete(() => _reload(ref, notificationSettingsProvider));
     HapticFeedback.selectionClick();
   }
 
@@ -193,7 +206,11 @@ class NotificationPreferencesScreen extends ConsumerWidget {
             if (user == null) return;
             ref
                 .read(notificationPreferencesRepoProvider)
-                .updateTypePreference(user.uid, type, updatedPref);
+                .updateTypePreference(user.uid, type, updatedPref)
+                .then<void>((_) {}, onError: (Object _) {})
+                .whenComplete(
+                  () => _reload(ref, notificationTypePrefsProvider),
+                );
             HapticFeedback.selectionClick();
             Navigator.pop(ctx);
           },

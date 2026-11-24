@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
 import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/group_activity_model.dart';
+import 'package:penny_mobile/data/models/group_invitation_model.dart';
 import 'package:penny_mobile/data/models/group_member_model.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
@@ -31,9 +33,7 @@ class GroupRepository {
       queryParameters: {'userId': userId},
     );
     final data = responseMap(response);
-    return listValue(
-      data['groups'],
-    ).map((json) => GroupModel.fromFirestore(apiDocument(json))).toList();
+    return parseList(data['groups'], GroupModel.fromFirestore);
   }
 
   Stream<List<GroupMemberModel>> watchGroupMembers(String groupId) {
@@ -43,9 +43,7 @@ class GroupRepository {
   Future<List<GroupMemberModel>> _listMembers(String groupId) async {
     final response = await _api.get(ApiEndpoints.groupMembers(groupId));
     final data = responseMap(response);
-    return listValue(
-      data['members'],
-    ).map((json) => GroupMemberModel.fromFirestore(apiDocument(json))).toList();
+    return parseList(data['members'], GroupMemberModel.fromFirestore);
   }
 
   Future<GroupMemberModel?> getUserMembership(
@@ -74,13 +72,30 @@ class GroupRepository {
       queryParameters: {'limit': limit},
     );
     final data = responseMap(response);
-    return listValue(data['activities'])
-        .map((json) => GroupActivityModel.fromFirestore(apiDocument(json)))
-        .toList();
+    return parseList(data['activities'], GroupActivityModel.fromFirestore);
   }
 
+  /// The signed-in user's pending group invitations. An older API without
+  /// this route (404) has none to show.
+  Future<List<GroupInvitationModel>> listPendingInvitations() async {
+    final Response<dynamic> response;
+    try {
+      response = await _api.get(ApiEndpoints.groupInvitations);
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) return const [];
+      rethrow;
+    }
+    return [
+      for (final json in listValue(responseMap(response)['invitations']))
+        ?GroupInvitationModel.tryParse(json),
+    ];
+  }
+
+  /// Accepts by [token], or by [invitationId] when the notification that
+  /// brought the user here has no token.
   Future<Map<String, dynamic>> acceptInvitation({
-    required String token,
+    String? token,
+    String? invitationId,
     required String userId,
     required String userEmail,
     String? userName,
@@ -88,7 +103,8 @@ class GroupRepository {
     final response = await _api.post(
       ApiEndpoints.acceptInvitation,
       data: {
-        'token': token,
+        'token': ?token,
+        'invitationId': ?invitationId,
         'userId': userId,
         'userEmail': userEmail,
         'userName': ?userName,

@@ -293,7 +293,8 @@ export class BudgetNotificationService {
             percentage,
             current,
             limit,
-            overage: current - limit,
+            // Round to cents: float subtraction yields e.g. 8.799999999999997
+            overage: Math.round((current - limit) * 100) / 100,
             isGroupBudget: params.isGroupBudget,
             groupId: params.groupId,
             groupName: params.groupName,

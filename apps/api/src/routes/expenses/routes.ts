@@ -1,18 +1,31 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 import { isExpenseCategory } from '../../../../../packages/shared/src/categories';
+import { isExpenseDateString, parseCalendarDate } from '../../services/dates';
 import type { ExpenseService } from '../../services/expenses';
 
 function forbiddenUserMismatch(bodyUserId: unknown, authUserId: string) {
   return typeof bodyUserId === 'string' && bodyUserId && bodyUserId !== authUserId;
 }
 
-function isValidDate(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
 function isPositiveAmount(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
+function isProvided(value: unknown) {
+  return value !== undefined && value !== null;
+}
+
+function isClientRequestId(value: unknown): value is string {
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(value);
+}
+
+function badRequest(reply: FastifyReply, details: string) {
+  return reply.status(400).send({
+    error: 'Bad Request',
+    details,
+    requestId: reply.getHeader('x-request-id'),
+  });
 }
 
 export async function registerExpenseRoutes(
@@ -49,12 +62,15 @@ export async function registerExpenseRoutes(
         });
       }
 
-      if (!isValidDate(body.date)) {
-        return reply.status(400).send({
-          error: 'Bad Request',
-          details: 'date must use YYYY-MM-DD format',
-          requestId: reply.getHeader('x-request-id'),
-        });
+      if (!isExpenseDateString(body.date)) {
+        return badRequest(reply, 'date must be a valid YYYY-MM-DD date');
+      }
+
+      if (isProvided(body.clientRequestId) && !isClientRequestId(body.clientRequestId)) {
+        return badRequest(
+          reply,
+          'clientRequestId must be 8-64 characters of letters, digits, "_" or "-"',
+        );
       }
 
       if (typeof body.category !== 'string' || !isExpenseCategory(body.category)) {
@@ -81,6 +97,9 @@ export async function registerExpenseRoutes(
           typeof body.groupId === 'string' || body.groupId === null
             ? body.groupId
             : undefined,
+        clientRequestId: isClientRequestId(body.clientRequestId)
+          ? body.clientRequestId
+          : undefined,
       });
 
       return {
@@ -91,40 +110,47 @@ export async function registerExpenseRoutes(
     },
   });
 
+  // PATCH and PUT are the same operation; older clients use either.
+  const updateExpense = async (request: FastifyRequest, reply: FastifyReply) => {
+    const params = request.params as { id: string };
+    const body = (request.body ?? {}) as Record<string, unknown>;
+
+    if (isProvided(body.amount) && !isPositiveAmount(body.amount)) {
+      return badRequest(reply, 'amount must be a positive number');
+    }
+    // Whether the year is plausible is checked against the stored expense,
+    // so an unchanged legacy date does not block editing other fields.
+    if (isProvided(body.date) && !parseCalendarDate(body.date)) {
+      return badRequest(reply, 'date must be a valid YYYY-MM-DD date');
+    }
+
+    const result = await expenses.updateExpense({
+      id: params.id,
+      userId: request.user.uid,
+      vendor: typeof body.vendor === 'string' ? body.vendor : undefined,
+      amount: isPositiveAmount(body.amount) ? body.amount : undefined,
+      date: typeof body.date === 'string' ? body.date : undefined,
+      // Not rejected: the released app resends an expense's stored category
+      // on every edit, and older expenses can hold a non-canonical one.
+      category:
+        typeof body.category === 'string' && isExpenseCategory(body.category)
+          ? body.category
+          : undefined,
+      description:
+        typeof body.description === 'string' ? body.description : undefined,
+    });
+
+    return { success: true, id: result.id, message: 'Expense updated' };
+  };
+
   app.patch('/api/expenses/:id', {
     preHandler: app.requireUser,
-    handler: async (request) => {
-      const params = request.params as { id: string };
-      const body = request.body as Record<string, unknown>;
-      const result = await expenses.updateExpense({
-        id: params.id,
-        userId: request.user.uid,
-        vendor: typeof body.vendor === 'string' ? body.vendor : undefined,
-        amount: isPositiveAmount(body.amount) ? body.amount : undefined,
-        date: isValidDate(body.date) ? body.date : undefined,
-        category:
-          typeof body.category === 'string' && isExpenseCategory(body.category)
-            ? body.category
-            : undefined,
-        description:
-          typeof body.description === 'string' ? body.description : undefined,
-      });
-
-      return { success: true, id: result.id, message: 'Expense updated' };
-    },
+    handler: updateExpense,
   });
 
   app.put('/api/expenses/:id', {
     preHandler: app.requireUser,
-    handler: async (request, reply) =>
-      app.inject({
-        method: 'PATCH',
-        url: request.url,
-        headers: request.headers as Record<string, string>,
-        payload: request.body as object,
-      }).then((response) =>
-        reply.status(response.statusCode).headers(response.headers).send(response.body),
-      ),
+    handler: updateExpense,
   });
 
   app.delete('/api/expenses/:id', {

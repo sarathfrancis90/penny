@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authFetch } from "@/lib/authFetch";
 
 interface PendingExpense {
   vendor: string;
@@ -142,7 +143,7 @@ export default function Home() {
     if (!user) return;
 
     try {
-      await fetch(`/api/conversations/${conversationId}/messages`, {
+      await authFetch(`/api/conversations/${conversationId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -226,7 +227,7 @@ export default function Home() {
         .filter(m => m.role !== "system" && !m.id.startsWith("thinking"))
         .map(m => ({ role: m.role, content: m.content }));
 
-      const response = await fetch("/api/ai-chat", {
+      const response = await authFetch("/api/ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

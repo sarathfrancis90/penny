@@ -175,4 +175,83 @@ describe('AI routes', () => {
 
     await app.close();
   });
+
+  it('returns a non-retryable 422 with a readable message when the receipt cannot be read', async () => {
+    const app = await buildApiApp({
+      readyCheck: async () => undefined,
+      auth: { verifyIdToken: async () => ({ uid: 'user-1' }) },
+      services: {
+        ai: {
+          analyzeExpense: vi.fn(async () => {
+            throw Object.assign(new Error('Could not read this receipt'), {
+              statusCode: 422,
+              code: 'AI_UNREADABLE',
+            });
+          }),
+          chat: vi.fn(),
+          generateConversationTitle: vi.fn(),
+        },
+      },
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/analyze-expense',
+      headers: { authorization: 'Bearer valid-token' },
+      payload: { imageBase64: 'base64-receipt' },
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(response.json()).toEqual({
+      error: 'Error',
+      code: 'AI_UNREADABLE',
+      details: 'Could not read this receipt',
+      requestId: expect.any(String),
+    });
+
+    await app.close();
+  });
+
+  it('passes the optional client localDate to the AI service', async () => {
+    const analyzeExpense = vi.fn(async () => ({
+      vendor: 'Cafe',
+      amount: 4,
+      date: '2026-06-30',
+      category: 'Meals and entertainment',
+    }));
+    const app = await buildApiApp({
+      readyCheck: async () => undefined,
+      auth: { verifyIdToken: async () => ({ uid: 'user-1' }) },
+      services: {
+        ai: { analyzeExpense, chat: vi.fn(), generateConversationTitle: vi.fn() },
+      },
+    });
+    const analyze = (payload: object) =>
+      app.inject({
+        method: 'POST',
+        url: '/api/analyze-expense',
+        headers: { authorization: 'Bearer valid-token' },
+        payload,
+      });
+
+    expect((await analyze({ text: 'coffee $4', localDate: '2026-06-30' })).statusCode).toBe(200);
+    expect(analyzeExpense).toHaveBeenLastCalledWith({
+      userId: 'user-1',
+      text: 'coffee $4',
+      imageBase64: undefined,
+      localDate: '2026-06-30',
+    });
+
+    // Older apps send no localDate; a non-string one is dropped, not an error.
+    expect((await analyze({ text: 'coffee $4' })).statusCode).toBe(200);
+    expect(analyzeExpense).toHaveBeenLastCalledWith(
+      expect.objectContaining({ localDate: undefined }),
+    );
+    expect((await analyze({ text: 'coffee $4', localDate: 20260630 })).statusCode).toBe(200);
+    expect(analyzeExpense).toHaveBeenLastCalledWith(
+      expect.objectContaining({ localDate: undefined }),
+    );
+
+    await app.close();
+  });
 });

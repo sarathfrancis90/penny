@@ -26,6 +26,7 @@ export const apiRouteSurface = [
   { method: 'PATCH', path: '/api/groups/{groupId}/members/{memberId}', auth: 'firebase' },
   { method: 'PUT', path: '/api/groups/{groupId}/members/{memberId}', auth: 'firebase' },
   { method: 'DELETE', path: '/api/groups/{groupId}/members/{memberId}', auth: 'firebase' },
+  { method: 'GET', path: '/api/groups/invitations', auth: 'firebase' },
   { method: 'POST', path: '/api/groups/invitations/accept', auth: 'firebase' },
   { method: 'POST', path: '/api/groups/invitations/{id}/decline', auth: 'firebase' },
   { method: 'POST', path: '/api/groups/{groupId}/archive', auth: 'firebase' },

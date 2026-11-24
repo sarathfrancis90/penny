@@ -5,26 +5,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/core/network/api_client.dart';
 import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/data/repositories/api_response_helpers.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/providers/theme_provider.dart';
+import 'package:penny_mobile/presentation/providers/user_session.dart';
 
-final userPreferencesProvider = StreamProvider<Map<String, dynamic>>((ref) {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) return const Stream.empty();
-  final api = ref.watch(apiClientProvider);
-  return Stream.fromFuture(
-    api
-        .get(
-          ApiEndpoints.userPreferences,
-          queryParameters: {'userId': user.uid},
-        )
-        .then((response) => mapValue(responseMap(response)['preferences'])),
-  );
-});
+final userPreferencesProvider =
+    StreamProvider.autoDispose<Map<String, dynamic>>((ref) {
+      keepForCurrentSession(ref);
+      final user = ref.watch(currentUserProvider);
+      if (user == null) return const Stream.empty();
+      final api = ref.watch(apiClientProvider);
+      return Stream.fromFuture(
+        api
+            .get(
+              ApiEndpoints.userPreferences,
+              queryParameters: {'userId': user.uid},
+            )
+            .then((response) => mapValue(responseMap(response)['preferences'])),
+      );
+    });
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -329,28 +334,20 @@ class SettingsScreen extends ConsumerWidget {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // Call API to delete account data first.
-      try {
-        final apiClient = ref.read(apiClientProvider);
-        await apiClient.delete('/api/account/delete');
-      } catch (apiError) {
-        // API will also delete the auth account, but if the API call
-        // fails we still try to delete locally
-        debugPrint('[Account Delete] API error: $apiError');
-      }
+      // (The server removes this device's push token with the account.)
+      await deleteAccount(
+        api: ref.read(apiClientProvider),
+        user: user,
+        signOut: FirebaseAuth.instance.signOut,
+      );
 
-      // Delete the Firebase Auth account (may already be deleted by API)
-      try {
-        await user.delete();
-      } on FirebaseAuthException catch (e) {
-        if (e.code != 'user-not-found') rethrow;
-        // User already deleted by API — this is fine
-      }
+      // Clean up local data, but keep the app past onboarding so the next
+      // screen is sign-in.
+      final prefs = Hive.box('app_preferences');
+      await prefs.clear();
+      await prefs.put('onboarding_complete', true);
 
-      // Clean up local data
-      await Hive.box('app_preferences').clear();
-
-      // Auth state listener will redirect to login automatically
+      // The auth state listener redirects to sign-in.
     } on FirebaseAuthException catch (e) {
       if (!context.mounted) return;
 
@@ -374,15 +371,40 @@ class SettingsScreen extends ConsumerWidget {
         );
       }
     } catch (e) {
+      debugPrint('[Account Delete] error: $e');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to delete account: $e'),
+          content: Text("Couldn't delete your account. ${apiErrorMessage(e)}"),
           backgroundColor: AppColors.error,
         ),
       );
     }
   }
+}
+
+/// Deletes the user's data on the server, then the sign-in itself, then
+/// signs out of this device.
+///
+/// If the server call fails this throws and leaves the sign-in alone:
+/// deleting only the sign-in would leave the data behind with no way for the
+/// user to reach it again. Once the server has deleted the account, the
+/// device always signs out, whatever deleting the local sign-in reports (the
+/// server usually removed it already, so it fails with codes such as
+/// user-not-found or user-token-expired).
+Future<void> deleteAccount({
+  required ApiClient api,
+  required User user,
+  required Future<void> Function() signOut,
+}) async {
+  await api.delete('/api/account/delete');
+
+  try {
+    await user.delete();
+  } on FirebaseAuthException catch (e) {
+    debugPrint('[Account Delete] sign-in already removed: ${e.code}');
+  }
+  await signOut();
 }
 
 class _SectionHeader extends StatelessWidget {

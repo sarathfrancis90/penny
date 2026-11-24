@@ -17,9 +17,10 @@ class GroupSavingsRepository {
       ApiEndpoints.groupSavings,
       queryParameters: {'groupId': groupId, 'status': 'active'},
     );
-    return listValue(responseMap(response)['savingsGoals'])
-        .map((json) => GroupSavingsGoalModel.fromFirestore(apiDocument(json)))
-        .toList();
+    return parseList(
+      responseMap(response)['savingsGoals'],
+      GroupSavingsGoalModel.fromFirestore,
+    );
   }
 
   Future<String> createGroupSavingsGoal({

@@ -4,7 +4,7 @@
 
 This inventory is scoped to the active Flutter mobile app and mobile release tooling. It includes tracked files plus nonignored untracked files visible to Git at generation time.
 
-- Total mobile files: 268
+- Total mobile files: 309
 - Current source layout: `mobile/lib/core`, `mobile/lib/data`, and `mobile/lib/presentation`
 - Stale layout warning: the old feature-module tree is not part of the current mobile source layout.
 
@@ -24,8 +24,12 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/core/network/api_client.dart`
 - `mobile/lib/core/network/api_endpoints.dart`
 - `mobile/lib/core/network/api_error_message.dart`
+- `mobile/lib/core/router/app_links.dart`
 - `mobile/lib/core/router/app_router.dart`
 - `mobile/lib/core/theme/app_theme.dart`
+- `mobile/lib/core/utils/amount_parser.dart`
+- `mobile/lib/core/utils/client_request_id.dart`
+- `mobile/lib/core/utils/picker_dates.dart`
 - `mobile/lib/core/utils/validators.dart`
 
 ## Data Models, Repositories, and Services
@@ -39,6 +43,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/data/models/expense_model.dart`
 - `mobile/lib/data/models/group_activity_model.dart`
 - `mobile/lib/data/models/group_income_model.dart`
+- `mobile/lib/data/models/group_invitation_model.dart`
 - `mobile/lib/data/models/group_member_model.dart`
 - `mobile/lib/data/models/group_model.dart`
 - `mobile/lib/data/models/group_savings_model.dart`
@@ -77,6 +82,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/presentation/providers/chat_provider.dart`
 - `mobile/lib/presentation/providers/default_group_selection.dart`
 - `mobile/lib/presentation/providers/expense_providers.dart`
+- `mobile/lib/presentation/providers/expense_refresh.dart`
 - `mobile/lib/presentation/providers/group_budget_providers.dart`
 - `mobile/lib/presentation/providers/group_income_providers.dart`
 - `mobile/lib/presentation/providers/group_providers.dart`
@@ -87,7 +93,9 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/presentation/providers/notification_providers.dart`
 - `mobile/lib/presentation/providers/providers.dart`
 - `mobile/lib/presentation/providers/savings_providers.dart`
+- `mobile/lib/presentation/providers/session_reset.dart`
 - `mobile/lib/presentation/providers/theme_provider.dart`
+- `mobile/lib/presentation/providers/user_session.dart`
 - `mobile/lib/presentation/screens/auth/forgot_password_screen.dart`
 - `mobile/lib/presentation/screens/auth/login_screen.dart`
 - `mobile/lib/presentation/screens/auth/signup_screen.dart`
@@ -102,6 +110,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/lib/presentation/screens/finances/finances_screen.dart`
 - `mobile/lib/presentation/screens/groups/group_detail_screen.dart`
 - `mobile/lib/presentation/screens/groups/groups_screen.dart`
+- `mobile/lib/presentation/screens/groups/pending_invitations_section.dart`
 - `mobile/lib/presentation/screens/home/conversation_list_screen.dart`
 - `mobile/lib/presentation/screens/home/home_screen.dart`
 - `mobile/lib/presentation/screens/income/income_screen.dart`
@@ -133,15 +142,18 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 
 ## Unit and Widget Tests
 
+- `mobile/test/core/theme/date_picker_theme_test.dart`
 - `mobile/test/helpers/fake_api_client.dart`
 - `mobile/test/helpers/test_helpers.dart`
 - `mobile/test/unit/constants/env_config_test.dart`
+- `mobile/test/unit/guest/guest_migration_test.dart`
 - `mobile/test/unit/models/budget_model_test.dart`
 - `mobile/test/unit/models/conversation_model_test.dart`
 - `mobile/test/unit/models/expense_model_approval_test.dart`
 - `mobile/test/unit/models/expense_model_test.dart`
 - `mobile/test/unit/models/group_activity_model_test.dart`
 - `mobile/test/unit/models/group_income_model_test.dart`
+- `mobile/test/unit/models/group_member_display_name_test.dart`
 - `mobile/test/unit/models/group_member_status_test.dart`
 - `mobile/test/unit/models/group_model_test.dart`
 - `mobile/test/unit/models/group_savings_model_test.dart`
@@ -149,30 +161,54 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/test/unit/models/notification_model_test.dart`
 - `mobile/test/unit/models/notification_preferences_test.dart`
 - `mobile/test/unit/models/savings_model_test.dart`
+- `mobile/test/unit/models/tolerant_parsing_test.dart`
+- `mobile/test/unit/providers/addable_groups_test.dart`
+- `mobile/test/unit/providers/budget_period_clock_test.dart`
 - `mobile/test/unit/providers/budget_providers_test.dart`
+- `mobile/test/unit/providers/budget_usage_period_test.dart`
+- `mobile/test/unit/providers/chat_notifier_test.dart`
 - `mobile/test/unit/providers/default_group_selection_test.dart`
 - `mobile/test/unit/providers/expense_providers_test.dart`
 - `mobile/test/unit/providers/filter_providers_test.dart`
 - `mobile/test/unit/providers/income_providers_test.dart`
+- `mobile/test/unit/providers/rejected_expenses_test.dart`
 - `mobile/test/unit/providers/theme_provider_test.dart`
+- `mobile/test/unit/providers/user_scoped_state_test.dart`
 - `mobile/test/unit/repositories/budget_repository_test.dart`
 - `mobile/test/unit/repositories/conversation_repository_test.dart`
 - `mobile/test/unit/repositories/expense_repository_approval_test.dart`
 - `mobile/test/unit/repositories/expense_repository_test.dart`
 - `mobile/test/unit/repositories/group_income_repository_test.dart`
+- `mobile/test/unit/repositories/group_invitations_repository_test.dart`
 - `mobile/test/unit/repositories/group_savings_repository_test.dart`
 - `mobile/test/unit/repositories/income_repository_test.dart`
 - `mobile/test/unit/repositories/notification_preferences_repository_test.dart`
 - `mobile/test/unit/repositories/notification_repository_test.dart`
+- `mobile/test/unit/repositories/request_fields_test.dart`
 - `mobile/test/unit/repositories/savings_repository_test.dart`
 - `mobile/test/unit/services/duplicate_detector_test.dart`
 - `mobile/test/unit/services/export_service_test.dart`
 - `mobile/test/unit/services/push_notification_service_test.dart`
+- `mobile/test/unit/services/sign_out_and_account_test.dart`
 - `mobile/test/unit/services/storage_service_test.dart`
+- `mobile/test/unit/utils/amount_parser_test.dart`
 - `mobile/test/unit/utils/api_error_message_test.dart`
+- `mobile/test/unit/utils/client_request_id_test.dart`
+- `mobile/test/unit/utils/expense_save_controller_test.dart`
+- `mobile/test/unit/utils/expense_search_date_range_test.dart`
+- `mobile/test/unit/utils/picker_dates_test.dart`
+- `mobile/test/unit/utils/router_guard_test.dart`
 - `mobile/test/unit/utils/validators_test.dart`
+- `mobile/test/widget/screens/dashboard_custom_range_test.dart`
+- `mobile/test/widget/screens/expense_detail_screen_test.dart`
+- `mobile/test/widget/screens/groups_pending_invitations_test.dart`
+- `mobile/test/widget/screens/home_multi_expense_save_test.dart`
+- `mobile/test/widget/screens/notifications_screen_test.dart`
 - `mobile/test/widget_test.dart`
 - `mobile/test/widgets/default_group_preselect_test.dart`
+- `mobile/test/widgets/expense_form_guards_test.dart`
+- `mobile/test/widgets/save_feedback_test.dart`
+- `mobile/test/widgets/success_toast_lifetime_test.dart`
 
 ## Integration Tests
 
@@ -180,6 +216,10 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/integration_test/expense_crud_test.dart`
 - `mobile/integration_test/full_journey_test.dart`
 - `mobile/integration_test/helpers/api_backed_test_app.dart`
+- `mobile/integration_test/local/expenses_auth_flows_test.dart`
+- `mobile/integration_test/local/finances_settings_flows_test.dart`
+- `mobile/integration_test/local/groups_flows_test.dart`
+- `mobile/integration_test/local/real_backend_e2e_test.dart`
 
 ## Native Android
 
@@ -188,6 +228,7 @@ This inventory is scoped to the active Flutter mobile app and mobile release too
 - `mobile/android/app/google-services.json`
 - `mobile/android/app/proguard-rules.pro`
 - `mobile/android/app/src/debug/AndroidManifest.xml`
+- `mobile/android/app/src/debug/res/xml/network_security_config.xml`
 - `mobile/android/app/src/main/AndroidManifest.xml`
 - `mobile/android/app/src/main/kotlin/com/penny/penny_mobile/MainActivity.kt`
 - `mobile/android/app/src/main/res/drawable-hdpi/ic_launcher_foreground.png`
