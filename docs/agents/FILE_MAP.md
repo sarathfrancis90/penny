@@ -4,7 +4,7 @@
 
 This inventory includes every tracked file plus every staged new file visible to Git at generation time. It is intentionally path-focused for agent navigation and does not reproduce generated Firebase config values or secret-bearing file contents.
 
-- Total source-visible files: 928
+- Total source-visible files: 929
 
 | Path | Area |
 |---|---|
@@ -43,6 +43,7 @@ This inventory includes every tracked file plus every staged new file visible to
 | `.github/workflows/security-ci.yml` | workflow |
 | `.github/workflows/store-metrics-fallback.yml` | workflow |
 | `.gitignore` | repo |
+| `.trivyignore` | repo |
 | `.xcodebuildmcp/config.yaml` | repo |
 | `AGENTS.md` | repo |
 | `CLAUDE.md` | repo |

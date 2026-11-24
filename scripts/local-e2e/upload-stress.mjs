@@ -1,5 +1,6 @@
 const API = process.env.API; const N = Number(process.argv[2] ?? 20);
 const AUTH = 'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1';
+// nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request -- reviewed: local Firebase Auth emulator on 127.0.0.1, which only serves HTTP
 const j = await (await fetch(`${AUTH}/accounts:signUp?key=local`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: `stress-${Date.now()}@example.test`, password: 'pw-stress-local', returnSecureToken: true }) })).json();
 const body = JSON.stringify({ fileName: 'big.jpg', contentType: 'image/jpeg', base64: Buffer.alloc(5 * 1024 * 1024, 7).toString('base64') });
 const t0 = Date.now();
