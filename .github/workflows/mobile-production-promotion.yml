@@ -206,7 +206,7 @@ jobs:
         run: echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Ruby + Bundler
-        uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455
+        uses: ruby/setup-ruby@4e97ecde5048e1e0816923020652678063ffbf65 # v1.339.0
         with:
           ruby-version: ${{ steps.tools.outputs.ruby }}
           bundler-cache: true
@@ -262,7 +262,7 @@ jobs:
         run: echo "ruby=$(cat .ruby-version)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Ruby + Bundler
-        uses: ruby/setup-ruby@12fd324f1d0b43274fdc8130f6980590a667c455
+        uses: ruby/setup-ruby@4e97ecde5048e1e0816923020652678063ffbf65 # v1.339.0
         with:
           ruby-version: ${{ steps.tools.outputs.ruby }}
           bundler-cache: true
