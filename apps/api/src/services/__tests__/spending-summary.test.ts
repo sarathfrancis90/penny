@@ -42,6 +42,22 @@ describe('spending summary for the AI chat', () => {
     expect(summary).not.toContain('Too old');
   });
 
+  it('leaves out rejected group expenses, as the app does', async () => {
+    const db = seed();
+    db.seed('expenses/rejected', {
+      userId: 'me',
+      date: at(2026, 6, 12),
+      amount: 300,
+      category: 'Groceries',
+      vendor: 'Rejected Shop',
+      groupId: 'g1',
+      groupMetadata: { approvalStatus: 'rejected' },
+    });
+    const summary = (await createFirestoreSpendingSummary(db as never, now)('me'))!;
+    expect(summary).toContain('- June 2026: $112.50 (3 expenses)');
+    expect(summary).not.toContain('Rejected Shop');
+  });
+
   it('says so when there is nothing yet', async () => {
     const summary = (await createFirestoreSpendingSummary(new FakeFirestore() as never, now)('nobody'))!;
     expect(summary).toContain('This month (June 2026) by category:\n- no expenses');

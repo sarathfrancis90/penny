@@ -148,6 +148,7 @@ void main() {
     test(
       'signs out even when the server already removed the sign-in',
       () async {
+        api.queueResponse({'success': true, 'signInDeleted': true});
         final user = _FakeUser()
           ..deleteError = FirebaseAuthException(code: 'user-token-expired');
         await deleteAccount(
@@ -158,5 +159,33 @@ void main() {
         expect(signedOut, isTrue);
       },
     );
+
+    test('stays signed in to retry when neither the server nor the device '
+        'could remove the sign-in', () async {
+      api.queueResponse({'success': true, 'signInDeleted': false});
+      final user = _FakeUser()
+        ..deleteError = FirebaseAuthException(code: 'requires-recent-login');
+      await expectLater(
+        deleteAccount(
+          api: api,
+          user: user,
+          signOut: () async => signedOut = true,
+        ),
+        throwsA(isA<FirebaseAuthException>()),
+      );
+      expect(signedOut, isFalse);
+    });
+
+    test('finishes on the device when the server kept the sign-in', () async {
+      api.queueResponse({'success': true, 'signInDeleted': false});
+      final user = _FakeUser();
+      await deleteAccount(
+        api: api,
+        user: user,
+        signOut: () async => signedOut = true,
+      );
+      expect(user.deleted, isTrue);
+      expect(signedOut, isTrue);
+    });
   });
 }
