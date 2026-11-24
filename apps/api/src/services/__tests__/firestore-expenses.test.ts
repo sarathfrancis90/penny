@@ -157,6 +157,20 @@ describe('personal budget alerts', () => {
     expect(alerts(other.notificationService)).toEqual([]);
   });
 
+  it('does not count rejected group expenses toward the budget', async () => {
+    const { service, notificationService, db } = withBudget();
+    db.seed('expenses/rejected', {
+      userId: 'member-1',
+      category: 'Groceries',
+      amount: 500,
+      date: Timestamp.fromDate(new Date(2026, 5, 5, 12)),
+      groupId: 'group-1',
+      groupMetadata: { approvalStatus: 'rejected' },
+    });
+    await service.createExpense(grocery(50));
+    expect(alerts(notificationService)).toEqual([]);
+  });
+
   it('still saves the expense when the alert cannot be sent', async () => {
     const { service, notificationService, db } = withBudget();
     vi.mocked(notificationService.notifyUsers).mockRejectedValueOnce(new Error('down'));

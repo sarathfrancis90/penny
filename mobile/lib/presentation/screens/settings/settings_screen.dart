@@ -388,20 +388,26 @@ class SettingsScreen extends ConsumerWidget {
 ///
 /// If the server call fails this throws and leaves the sign-in alone:
 /// deleting only the sign-in would leave the data behind with no way for the
-/// user to reach it again. Once the server has deleted the account, the
-/// device always signs out, whatever deleting the local sign-in reports (the
-/// server usually removed it already, so it fails with codes such as
-/// user-not-found or user-token-expired).
+/// user to reach it again.
+///
+/// The server also deletes the sign-in and reports it in `signInDeleted`.
+/// When it did, deleting it again here fails harmlessly (user-not-found,
+/// user-token-expired) and the device signs out. When it did not, deleting it
+/// here is the only way to finish, so a failure (for example
+/// requires-recent-login) is rethrown and the user stays signed in to retry.
 Future<void> deleteAccount({
   required ApiClient api,
   required User user,
   required Future<void> Function() signOut,
 }) async {
-  await api.delete('/api/account/delete');
+  final response = await api.delete('/api/account/delete');
+  final body = response.data;
+  final signInDeleted = body is Map && body['signInDeleted'] == true;
 
   try {
     await user.delete();
   } on FirebaseAuthException catch (e) {
+    if (!signInDeleted && e.code != 'user-not-found') rethrow;
     debugPrint('[Account Delete] sign-in already removed: ${e.code}');
   }
   await signOut();

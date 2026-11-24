@@ -134,8 +134,10 @@ async function checkPersonalBudget(
       .where('date', '<=', end)
       .get();
     const after = expenses.docs.reduce((sum, doc) => {
-      const amount = doc.data().amount;
-      return sum + (typeof amount === 'number' ? amount : 0);
+      const data = doc.data();
+      // Rejected group expenses don't count toward budgets, as in the app.
+      if (data.groupMetadata?.approvalStatus === 'rejected') return sum;
+      return sum + (typeof data.amount === 'number' ? data.amount : 0);
     }, 0);
     const before = after - input.amount;
     const warnAt = (limit * thresholdPercent) / 100;

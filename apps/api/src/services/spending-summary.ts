@@ -57,6 +57,8 @@ export function createFirestoreSpendingSummary(
     for (const doc of snapshot.docs) {
       const data = doc.data();
       if (!(data.date instanceof Timestamp) || typeof data.amount !== 'number') continue;
+      // Rejected group expenses stay listed but don't count, as in the app.
+      if (data.groupMetadata?.approvalStatus === 'rejected') continue;
       rows.push({
         date: data.date.toDate(),
         vendor: typeof data.vendor === 'string' && data.vendor.trim() ? data.vendor.trim() : 'Unknown',
