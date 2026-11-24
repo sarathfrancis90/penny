@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { isAdmin } from "@/lib/admin-auth";
-import { getAuth } from "firebase-admin/auth";
+import { Timestamp } from "firebase-admin/firestore";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { withObservability } from "@/lib/observability/withObservability";
+
+/** Expense dates are Timestamps stored at local noon; export YYYY-MM-DD. */
+function exportDate(value: unknown): string {
+  if (value instanceof Timestamp) {
+    const d = value.toDate();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+  return typeof value === "string" ? value : "";
+}
 
 // GET - Export all data for a specific user
 async function getHandler(
@@ -11,13 +19,10 @@ async function getHandler(
   context: { params: Promise<{ userId: string }> }
 ) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     const { userId } = await context.params;
 
@@ -31,8 +36,7 @@ async function getHandler(
     // Get user profile from Firebase Auth
     let userProfile = null;
     try {
-      const auth = getAuth();
-      const userRecord = await auth.getUser(userId);
+      const userRecord = await adminAuth.getUser(userId);
       userProfile = {
         uid: userRecord.uid,
         email: userRecord.email || null,
@@ -48,13 +52,11 @@ async function getHandler(
     }
 
     // Get all expenses for this user
-    const expensesRef = collection(db, "expenses");
-    const expensesQuery = query(
-      expensesRef,
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc")
-    );
-    const expensesSnapshot = await getDocs(expensesQuery);
+    const expensesSnapshot = await adminDb
+      .collection("expenses")
+      .where("userId", "==", userId)
+      .orderBy("createdAt", "desc")
+      .get();
     
     interface ExpenseData {
       id: string;
@@ -73,7 +75,7 @@ async function getHandler(
         id: doc.id,
         vendor: data.vendor,
         amount: data.amount,
-        date: data.date,
+        date: exportDate(data.date),
         category: data.category,
         description: data.description || "",
         createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
@@ -82,13 +84,11 @@ async function getHandler(
     });
 
     // Get all analytics for this user
-    const analyticsRef = collection(db, "analytics");
-    const analyticsQuery = query(
-      analyticsRef,
-      where("userId", "==", userId),
-      orderBy("timestamp", "desc")
-    );
-    const analyticsSnapshot = await getDocs(analyticsQuery);
+    const analyticsSnapshot = await adminDb
+      .collection("analytics")
+      .where("userId", "==", userId)
+      .orderBy("timestamp", "desc")
+      .get();
 
     interface AnalyticsData {
       id: string;

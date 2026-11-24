@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { withObservability } from "@/lib/observability/withObservability";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 
 /**
  * Helper function to check if user is admin/owner of a group
@@ -11,6 +12,7 @@ async function isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
     .collection("groupMembers")
     .where("groupId", "==", groupId)
     .where("userId", "==", userId)
+    .where("status", "==", "active")
     .get();
 
   if (memberDoc.empty) {
@@ -32,7 +34,9 @@ async function getHandler(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -54,6 +58,7 @@ async function getHandler(
       .collection("groupMembers")
       .where("groupId", "==", budget?.groupId)
       .where("userId", "==", userId)
+      .where("status", "==", "active")
       .get();
 
     if (memberDoc.empty) {
@@ -84,7 +89,10 @@ async function putHandler(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { userId, monthlyLimit, settings } = body;
+    const { userId: bodyUserId, monthlyLimit, settings } = body;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -164,7 +172,9 @@ async function deleteHandler(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(

@@ -65,7 +65,7 @@ class GroupIncomeSourceModel {
       description: data['description'] as String?,
       netAmount: (data['netAmount'] as num?)?.toDouble(),
       startDate: Timestamp.tryParse(data['startDate']),
-      recurringDate: data['recurringDate'] as int?,
+      recurringDate: (data['recurringDate'] as num?)?.toInt(),
     );
   }
 
@@ -97,7 +97,7 @@ class GroupIncomeSourceModel {
     'biweekly' => '/2wk',
     'weekly' => '/wk',
     'yearly' => '/yr',
-    'once' => 'one-time',
+    'once' => ' one-time',
     _ => '',
   };
 

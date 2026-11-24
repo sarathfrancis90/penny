@@ -215,7 +215,7 @@ void main() {
       });
 
       test('returns one-time for once', () {
-        expect(makeIncome('once').frequencyLabel, 'one-time');
+        expect(makeIncome('once').frequencyLabel, ' one-time');
       });
 
       test('returns empty string for unknown frequency', () {

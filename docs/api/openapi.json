@@ -710,6 +710,33 @@
         }
       }
     },
+    "/api/groups/invitations": {
+      "get": {
+        "summary": "GET /api/groups/invitations",
+        "security": [
+          {
+            "firebaseBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/groups/invitations/accept": {
       "post": {
         "summary": "POST /api/groups/invitations/accept",

@@ -39,8 +39,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   /// Attempt biometric login automatically when the screen first loads,
   /// if biometrics are available and the user has logged in before.
   Future<void> _tryAutoBiometricLogin() async {
-    final biometricAvailable =
-        await ref.read(biometricAvailableProvider.future);
+    final biometricAvailable = await ref.read(
+      biometricAvailableProvider.future,
+    );
     final hasLoggedIn = await ref.read(hasLoggedInBeforeProvider.future);
 
     if (biometricAvailable && hasLoggedIn && mounted) {
@@ -57,7 +58,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      await ref.read(authServiceProvider).signInWithEmail(
+      await ref
+          .read(authServiceProvider)
+          .signInWithEmail(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
@@ -139,22 +142,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           setState(() => _error = null); // User cancelled, no error
         } else {
           final errStr = e.toString();
-          if (errStr.contains('error 1000') || errStr.contains('AuthorizationError')) {
+          if (errStr.contains('error 1000') ||
+              errStr.contains('AuthorizationError')) {
             // Apple Sign-In not available — show as snackbar, not persistent error
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Apple Sign-In is not available on this device. Please use email or Google.'),
-                    backgroundColor: AppColors.warning, behavior: SnackBarBehavior.floating),
+                const SnackBar(
+                  content: Text(
+                    'Apple Sign-In is not available on this device. Please use email or Google.',
+                  ),
+                  backgroundColor: AppColors.warning,
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             }
-          } else if (errStr.contains('network_error') || errStr.contains('ApiException: 10')) {
-            setState(() => _error = 'Network error. Please check your connection.');
-          } else if (errStr.contains('sign_in_failed') || errStr.contains('ApiException: 12500')) {
+          } else if (errStr.contains('network_error') ||
+              errStr.contains('ApiException: 10')) {
+            setState(
+              () => _error = 'Network error. Please check your connection.',
+            );
+          } else if (errStr.contains('sign_in_failed') ||
+              errStr.contains('ApiException: 12500')) {
             // Google config error — show as snackbar
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Google Sign-In is temporarily unavailable. Please use email.'),
-                    backgroundColor: AppColors.warning, behavior: SnackBarBehavior.floating),
+                const SnackBar(
+                  content: Text(
+                    'Google Sign-In is temporarily unavailable. Please use email.',
+                  ),
+                  backgroundColor: AppColors.warning,
+                  behavior: SnackBarBehavior.floating,
+                ),
               );
             }
           } else {
@@ -176,6 +194,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (msg.contains('wrong-password')) {
       return 'Incorrect password';
     }
+    // With email-enumeration protection (on for new Firebase projects) a
+    // wrong password or unknown email both come back as invalid-credential.
+    if (msg.contains('invalid-credential') ||
+        msg.contains('INVALID_LOGIN_CREDENTIALS')) {
+      return 'Incorrect email or password';
+    }
+    if (msg.contains('user-disabled')) {
+      return 'This account has been disabled';
+    }
+    if (msg.contains('network-request-failed')) {
+      return "Couldn't reach Penny. Check your connection and try again.";
+    }
     if (msg.contains('invalid-email')) {
       return 'Invalid email address';
     }
@@ -185,7 +215,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (msg.contains('credential-already-in-use')) {
       return 'This account is already linked to another sign-in method';
     }
-    if (msg.contains('provider-not-enabled') || msg.contains('operation-not-allowed')) {
+    if (msg.contains('provider-not-enabled') ||
+        msg.contains('operation-not-allowed')) {
       return 'This sign-in method is not enabled';
     }
     // Show actual error for debugging
@@ -198,238 +229,302 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final hasLoggedIn = ref.watch(hasLoggedInBeforeProvider);
 
     // Determine if biometric button should be shown.
-    final showBiometric = biometricAvailable.valueOrNull == true &&
+    final showBiometric =
+        biometricAvailable.valueOrNull == true &&
         hasLoggedIn.valueOrNull == true;
 
     return Scaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Spacer(flex: 2),
+          child: LayoutBuilder(
+            // Scrolls when the keyboard leaves too little room, while the
+            // spacers still centre the form on tall screens.
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Spacer(flex: 2),
 
-                // Logo
-                Center(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset('assets/icon/penny_icon.png', width: 72, height: 72),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Penny',
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'AI Expense Tracker',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const Spacer(),
-
-                // Error
-                if (_error != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Email
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  autocorrect: false,
-                  decoration: const InputDecoration(hintText: 'Email'),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Required';
-                    if (!v.contains('@')) return 'Invalid email';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Password
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(hintText: 'Password'),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Required';
-                    return null;
-                  },
-                  onFieldSubmitted: (_) => _signIn(),
-                ),
-                const SizedBox(height: 24),
-
-                // Sign In Button
-                ElevatedButton(
-                  onPressed: _loading ? null : _signIn,
-                  child: _loading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                        // Logo
+                        Center(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              'assets/icon/penny_icon.png',
+                              width: 72,
+                              height: 72,
+                            ),
                           ),
-                        )
-                      : const Text('Sign In'),
-                ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Penny',
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'AI Expense Tracker',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
 
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => context.push('/auth/forgot-password'),
-                    child: Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: 14,
-                      ),
+                        const Spacer(),
+
+                        // Error
+                        if (_error != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              _error!,
+                              style: const TextStyle(
+                                color: AppColors.error,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // Email
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          autocorrect: false,
+                          decoration: const InputDecoration(hintText: 'Email'),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return 'Required';
+                            }
+                            if (!v.contains('@')) return 'Invalid email';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Password
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            hintText: 'Password',
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) return 'Required';
+                            return null;
+                          },
+                          onFieldSubmitted: (_) => _signIn(),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Sign In Button
+                        ElevatedButton(
+                          onPressed: _loading ? null : _signIn,
+                          child: _loading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Sign In'),
+                        ),
+
+                        // Forgot Password
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () =>
+                                context.push('/auth/forgot-password'),
+                            child: Text(
+                              'Forgot Password?',
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Biometric Sign In Button
+                        if (showBiometric) ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _loading ? null : _signInWithBiometrics,
+                            icon: Icon(
+                              Theme.of(context).platform == TargetPlatform.iOS
+                                  ? Icons.face
+                                  : Icons.fingerprint,
+                              size: 20,
+                            ),
+                            label: Text(
+                              Theme.of(context).platform == TargetPlatform.iOS
+                                  ? 'Sign in with Face ID'
+                                  : 'Sign in with Biometrics',
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                              side: const BorderSide(color: AppColors.primary),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 20),
+
+                        // Divider
+                        Row(
+                          children: [
+                            const Expanded(child: Divider()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Text(
+                                'or',
+                                style: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: Divider()),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Google Sign In
+                        OutlinedButton.icon(
+                          onPressed: _loading
+                              ? null
+                              : () => _signInWithOAuth('google'),
+                          icon: Text(
+                            'G',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          label: const Text('Continue with Google'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                            side: BorderSide(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Apple Sign In (only show if available on this device)
+                        FutureBuilder<bool>(
+                          future: ref
+                              .read(oauthServiceProvider)
+                              .isAppleSignInAvailable(),
+                          builder: (context, snapshot) {
+                            if (snapshot.data != true) {
+                              return const SizedBox.shrink();
+                            }
+                            return OutlinedButton.icon(
+                              onPressed: _loading
+                                  ? null
+                                  : () => _signInWithOAuth('apple'),
+                              icon: Icon(
+                                Icons.apple,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              label: const Text('Continue with Apple'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface,
+                                side: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Sign Up Link
+                        TextButton(
+                          onPressed: () => context.go('/auth/signup'),
+                          child: const Text("Don't have an account? Sign Up"),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Guest Mode — prominent for App Store review compliance
+                        OutlinedButton(
+                          onPressed: _loading
+                              ? null
+                              : () {
+                                  setGuestMode(ref, true);
+                                  context.go('/');
+                                },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            side: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.4),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text('Try Without Account'),
+                        ),
+
+                        const Spacer(flex: 2),
+                      ],
                     ),
                   ),
                 ),
-
-                // Biometric Sign In Button
-                if (showBiometric) ...[
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _loading ? null : _signInWithBiometrics,
-                    icon: Icon(
-                      Theme.of(context).platform == TargetPlatform.iOS
-                          ? Icons.face
-                          : Icons.fingerprint,
-                      size: 20,
-                    ),
-                    label: Text(
-                      Theme.of(context).platform == TargetPlatform.iOS
-                          ? 'Sign in with Face ID'
-                          : 'Sign in with Biometrics',
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 20),
-
-                // Divider
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('or', style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Google Sign In
-                OutlinedButton.icon(
-                  onPressed: _loading ? null : () => _signInWithOAuth('google'),
-                  icon: Text('G', style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface)),
-                  label: const Text('Continue with Google'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    side: BorderSide(color: Theme.of(context).dividerColor),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Apple Sign In (only show if available on this device)
-                FutureBuilder<bool>(
-                  future: ref.read(oauthServiceProvider).isAppleSignInAvailable(),
-                  builder: (context, snapshot) {
-                    if (snapshot.data != true) return const SizedBox.shrink();
-                    return OutlinedButton.icon(
-                      onPressed: _loading ? null : () => _signInWithOAuth('apple'),
-                      icon: Icon(Icons.apple, size: 20,
-                        color: Theme.of(context).colorScheme.onSurface),
-                      label: const Text('Continue with Apple'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.onSurface,
-                        side: BorderSide(color: Theme.of(context).dividerColor),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // Sign Up Link
-                TextButton(
-                  onPressed: () => context.go('/auth/signup'),
-                  child: const Text("Don't have an account? Sign Up"),
-                ),
-
-                const SizedBox(height: 8),
-
-                // Guest Mode — prominent for App Store review compliance
-                OutlinedButton(
-                  onPressed: _loading
-                      ? null
-                      : () {
-                          setGuestMode(ref, true);
-                          context.go('/');
-                        },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: BorderSide(
-                      color: AppColors.primary.withValues(alpha: 0.4),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('Try Without Account'),
-                ),
-
-                const Spacer(flex: 2),
-              ],
+              ),
             ),
           ),
         ),

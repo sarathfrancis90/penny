@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { BudgetUsage } from "@/lib/types";
+import { authFetch } from "@/lib/authFetch";
 
 /**
  * Hook to fetch budget usage (personal or group)
@@ -56,7 +57,7 @@ export function useBudgetUsage(
             ? `/api/budgets/usage/personal?${params}`
             : `/api/budgets/usage/group/${groupId}?${params}`;
 
-        const response = await fetch(url);
+        const response = await authFetch(url);
 
         if (!response.ok) {
           throw new Error(`Failed to fetch budget usage: ${response.statusText}`);

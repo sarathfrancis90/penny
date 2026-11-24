@@ -1,41 +1,185 @@
 import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
+import { createHash } from 'node:crypto';
 
+import { formatCalendarDate, isExpenseDateString, parseCalendarDate } from './dates';
 import type {
   CreateExpenseInput,
   DeleteExpenseInput,
   ExpenseService,
   UpdateExpenseInput,
 } from './expenses';
+import { resolveMemberPermissions } from './group-permissions';
 import {
   createNoopNotificationService,
   type NotificationService,
   type NotifyGroupMembersInput,
 } from './notifications';
 
-function parseExpenseDate(date: string): Timestamp {
-  const [year, month, day] = date.split('-').map(Number);
-  return Timestamp.fromDate(new Date(year, month - 1, day, 12, 0, 0));
+function httpError(statusCode: number, message: string) {
+  return Object.assign(new Error(message), { statusCode });
 }
 
-async function requireActiveMembership(
-  db: Firestore,
-  groupId: string,
-  userId: string,
-) {
+function invalidDate() {
+  return httpError(400, 'date must be a valid YYYY-MM-DD date');
+}
+
+/** Stored at local noon so the calendar day survives time-zone conversion. */
+function parseExpenseDate(date: string): Timestamp {
+  const parsed = parseCalendarDate(date);
+  if (!parsed) throw invalidDate();
+  return Timestamp.fromDate(new Date(parsed.year, parsed.month - 1, parsed.day, 12, 0, 0));
+}
+
+function storedDateString(value: unknown): string | undefined {
+  if (!(value instanceof Timestamp)) return undefined;
+  const date = value.toDate();
+  return formatCalendarDate({
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+  });
+}
+
+async function requireActiveMembership(db: Firestore, groupId: string, userId: string) {
   const memberDoc = await db.collection('groupMembers').doc(`${groupId}_${userId}`).get();
   const member = memberDoc.data();
   if (!memberDoc.exists || member?.status !== 'active') {
-    throw Object.assign(new Error('Active group membership required'), {
-      statusCode: 403,
-    });
+    throw httpError(403, 'Active group membership required');
   }
   return member;
 }
 
-function canMutateExpense(expense: FirebaseFirestore.DocumentData, userId: string) {
-  if (expense.userId === userId) return true;
-  const metadata = expense.groupMetadata;
-  return Boolean(expense.groupId && metadata?.approvalStatus);
+/**
+ * Personal expenses belong to their creator. Group expenses need an active
+ * membership and follow the same rules as database/firestore.rules: edit
+ * your own with canEditOwnExpenses or anyone's with canEditAllExpenses;
+ * delete your own, or anyone's with canDeleteExpenses.
+ */
+async function assertCanMutateExpense(
+  db: Firestore,
+  transaction: FirebaseFirestore.Transaction,
+  expense: FirebaseFirestore.DocumentData,
+  userId: string,
+  action: 'edit' | 'delete',
+) {
+  const isOwnExpense = expense.userId === userId;
+  if (!expense.groupId) {
+    if (!isOwnExpense) throw httpError(403, 'Expense access denied');
+    return undefined;
+  }
+
+  const memberDoc = await transaction.get(
+    db.collection('groupMembers').doc(`${expense.groupId}_${userId}`),
+  );
+  const member = memberDoc.data();
+  if (!memberDoc.exists || member?.status !== 'active') {
+    throw httpError(403, 'Expense access denied');
+  }
+  const permissions = resolveMemberPermissions(member);
+  const allowed =
+    action === 'edit'
+      ? (isOwnExpense && permissions.canEditOwnExpenses) || permissions.canEditAllExpenses
+      : isOwnExpense || permissions.canDeleteExpenses;
+  if (!allowed) throw httpError(403, 'Expense access denied');
+  return member;
+}
+
+/** Name shown in the group activity feed for a member. */
+function memberName(member: FirebaseFirestore.DocumentData | undefined): string {
+  for (const value of [member?.userName, member?.userEmail]) {
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return 'Member';
+}
+
+/**
+ * Sends a budget alert when this expense takes the person's monthly budget
+ * for its category past the alert threshold (budget_warning) or past the
+ * limit (budget_exceeded). Each fires once: only when the expense is the one
+ * that crosses the line. Spending counts every expense the person added in
+ * that category and month, as the app's budget screen does. Never throws:
+ * a failed alert must not fail the expense.
+ */
+async function checkPersonalBudget(
+  db: Firestore,
+  notifications: NotificationService,
+  input: { userId: string; category: string; date: string; amount: number },
+) {
+  try {
+    const parsed = parseCalendarDate(input.date);
+    if (!parsed || !(input.amount > 0)) return;
+    const budgets = await db
+      .collection('budgets_personal')
+      .where('userId', '==', input.userId)
+      .where('category', '==', input.category)
+      .where('period.month', '==', parsed.month)
+      .where('period.year', '==', parsed.year)
+      .limit(1)
+      .get();
+    const budgetDoc = budgets.docs[0];
+    const budget = budgetDoc?.data();
+    if (!budgetDoc || !budget || budget.settings?.notificationsEnabled === false) return;
+    const limit = typeof budget.monthlyLimit === 'number' ? budget.monthlyLimit : 0;
+    if (!(limit > 0)) return;
+    const thresholdPercent =
+      typeof budget.settings?.alertThreshold === 'number' ? budget.settings.alertThreshold : 80;
+
+    const start = Timestamp.fromDate(new Date(parsed.year, parsed.month - 1, 1));
+    const end = Timestamp.fromDate(new Date(parsed.year, parsed.month, 0, 23, 59, 59, 999));
+    const expenses = await db
+      .collection('expenses')
+      .where('userId', '==', input.userId)
+      .where('category', '==', input.category)
+      .where('date', '>=', start)
+      .where('date', '<=', end)
+      .get();
+    const after = expenses.docs.reduce((sum, doc) => {
+      const amount = doc.data().amount;
+      return sum + (typeof amount === 'number' ? amount : 0);
+    }, 0);
+    const before = after - input.amount;
+    const warnAt = (limit * thresholdPercent) / 100;
+
+    const exceeded = before < limit && after >= limit;
+    const warned = !exceeded && before < warnAt && after >= warnAt;
+    if (!exceeded && !warned) return;
+
+    const money = (value: number) => `$${value.toFixed(2)}`;
+    const monthName = new Date(parsed.year, parsed.month - 1, 1).toLocaleString('en-CA', {
+      month: 'long',
+    });
+    await notifications.notifyUsers({
+      userIds: [input.userId],
+      type: exceeded ? 'budget_exceeded' : 'budget_warning',
+      title: exceeded ? 'Budget exceeded' : 'Budget alert',
+      body: exceeded
+        ? `You've spent ${money(after)} of your ${money(limit)} ${input.category} budget for ${monthName}.`
+        : `You've used ${Math.floor((after / limit) * 100)}% of your ${money(limit)} ${input.category} budget for ${monthName}.`,
+      category: 'budget',
+      priority: exceeded ? 'high' : 'medium',
+      icon: 'budget',
+      actionUrl: '/budgets',
+      relatedId: budgetDoc.id,
+      relatedType: 'budget',
+      metadata: {
+        budgetId: budgetDoc.id,
+        category: input.category,
+        spent: after,
+        limit,
+        thresholdPercent,
+        month: parsed.month,
+        year: parsed.year,
+      },
+    });
+  } catch (error) {
+    console.error('[Budgets] Could not check the budget for an alert:', error);
+  }
+}
+
+/** Same user + same clientRequestId always maps to the same document. */
+function idempotentExpenseId(userId: string, clientRequestId: string) {
+  const digest = createHash('sha256').update(`${userId}:${clientRequestId}`).digest('hex');
+  return `cr_${digest.slice(0, 32)}`;
 }
 
 export function createFirestoreExpenseService(
@@ -45,16 +189,45 @@ export function createFirestoreExpenseService(
   return {
     async createExpense(input: CreateExpenseInput) {
       const now = Timestamp.now();
+      if (!isExpenseDateString(input.date)) throw invalidDate();
       const expenseDate = parseExpenseDate(input.date);
+      let groupMember: FirebaseFirestore.DocumentData | undefined;
       const expenseType = input.groupId ? 'group' : 'personal';
 
       if (input.groupId) {
-        await requireActiveMembership(db, input.groupId, input.userId);
+        const member = await requireActiveMembership(db, input.groupId, input.userId);
+        if (!resolveMemberPermissions(member).canAddExpenses) {
+          throw httpError(403, 'No permission to add expenses to this group');
+        }
+        groupMember = member;
+        const group = await db.collection('groups').doc(input.groupId).get();
+        const status = group.data()?.status;
+        if (!group.exists || status === 'deleted') {
+          throw httpError(404, 'Group not found');
+        }
+        if (status === 'archived') {
+          throw httpError(409, 'This group is archived, so expenses can no longer be added to it');
+        }
       }
 
-      const expenseRef = db.collection('expenses').doc();
+      const expenseRef = input.clientRequestId
+        ? db.collection('expenses').doc(idempotentExpenseId(input.userId, input.clientRequestId))
+        : db.collection('expenses').doc();
 
-      await db.runTransaction(async (transaction) => {
+      // A retried request finds the document its first attempt wrote. The
+      // read happens inside the transaction, so two concurrent attempts
+      // cannot both create it.
+      const replayed = await db.runTransaction(async (transaction) => {
+        if (input.clientRequestId) {
+          const existing = await transaction.get(expenseRef);
+          if (existing.exists) {
+            if (existing.data()?.userId !== input.userId) {
+              throw httpError(409, 'clientRequestId is already in use');
+            }
+            return true;
+          }
+        }
+
         const expenseData = {
           vendor: input.vendor,
           amount: input.amount,
@@ -70,9 +243,7 @@ export function createFirestoreExpenseService(
           updatedAt: now,
           syncStatus: 'synced',
           history: [{ action: 'created', by: input.userId, at: now }],
-          ...(input.groupId
-            ? { groupMetadata: { approvalStatus: 'approved' } }
-            : {}),
+          ...(input.groupId ? { groupMetadata: { approvalStatus: 'approved' } } : {}),
         };
 
         transaction.set(expenseRef, expenseData);
@@ -89,7 +260,7 @@ export function createFirestoreExpenseService(
           transaction.set(db.collection('groupActivities').doc(), {
             groupId: input.groupId,
             userId: input.userId,
-            userName: 'Member',
+            userName: memberName(groupMember),
             action: 'expense_added',
             details: `Added expense at ${input.vendor}`,
             metadata: {
@@ -101,7 +272,10 @@ export function createFirestoreExpenseService(
             createdAt: now,
           });
         }
+        return false;
       });
+
+      if (replayed) return { id: expenseRef.id };
 
       if (input.groupId) {
         await notifications.notifyGroupMembers({
@@ -125,6 +299,13 @@ export function createFirestoreExpenseService(
         });
       }
 
+      await checkPersonalBudget(db, notifications, {
+        userId: input.userId,
+        category: input.category,
+        date: input.date,
+        amount: input.amount,
+      });
+
       return { id: expenseRef.id };
     },
 
@@ -136,15 +317,13 @@ export function createFirestoreExpenseService(
       await db.runTransaction(async (transaction) => {
         const snapshot = await transaction.get(expenseRef);
         if (!snapshot.exists) {
-          throw Object.assign(new Error('Expense not found'), { statusCode: 404 });
+          throw Object.assign(new Error('Expense not found'), {
+            statusCode: 404,
+          });
         }
 
         const existing = snapshot.data() ?? {};
-        if (!canMutateExpense(existing, input.userId)) {
-          throw Object.assign(new Error('Expense access denied'), {
-            statusCode: 403,
-          });
-        }
+        const actor = await assertCanMutateExpense(db, transaction, existing, input.userId, 'edit');
         const changes: string[] = [];
 
         const updateData: Record<string, unknown> = {
@@ -165,6 +344,11 @@ export function createFirestoreExpenseService(
           changes.push('amount');
         }
         if (input.date !== undefined) {
+          // Resending the stored date is always fine, so an expense saved
+          // with an out-of-range year can still have its other fields edited.
+          if (!isExpenseDateString(input.date) && input.date !== storedDateString(existing.date)) {
+            throw invalidDate();
+          }
           updateData.date = parseExpenseDate(input.date);
           changes.push('date');
         }
@@ -179,6 +363,19 @@ export function createFirestoreExpenseService(
 
         transaction.update(expenseRef, updateData);
 
+        if (
+          existing.groupId &&
+          input.amount !== undefined &&
+          typeof existing.amount === 'number' &&
+          input.amount !== existing.amount
+        ) {
+          transaction.update(db.collection('groups').doc(existing.groupId), {
+            'stats.totalAmount': FieldValue.increment(input.amount - existing.amount),
+            'stats.lastActivityAt': now,
+            updatedAt: now,
+          });
+        }
+
         if (existing.groupId && existing.expenseType === 'group') {
           const vendor = input.vendor ?? existing.vendor ?? 'expense';
           const amount = input.amount ?? existing.amount;
@@ -186,7 +383,7 @@ export function createFirestoreExpenseService(
           transaction.set(db.collection('groupActivities').doc(), {
             groupId: existing.groupId,
             userId: input.userId,
-            userName: 'Member',
+            userName: memberName(actor),
             action: 'expense_updated',
             details: `Updated expense at ${vendor}`,
             metadata: {
@@ -237,14 +434,18 @@ export function createFirestoreExpenseService(
       await db.runTransaction(async (transaction) => {
         const snapshot = await transaction.get(expenseRef);
         if (!snapshot.exists) {
-          throw Object.assign(new Error('Expense not found'), { statusCode: 404 });
-        }
-        const existing = snapshot.data() ?? {};
-        if (!canMutateExpense(existing, input.userId)) {
-          throw Object.assign(new Error('Expense access denied'), {
-            statusCode: 403,
+          throw Object.assign(new Error('Expense not found'), {
+            statusCode: 404,
           });
         }
+        const existing = snapshot.data() ?? {};
+        const actor = await assertCanMutateExpense(
+          db,
+          transaction,
+          existing,
+          input.userId,
+          'delete',
+        );
 
         transaction.delete(expenseRef);
 
@@ -259,7 +460,7 @@ export function createFirestoreExpenseService(
           transaction.set(db.collection('groupActivities').doc(), {
             groupId: existing.groupId,
             userId: input.userId,
-            userName: 'Member',
+            userName: memberName(actor),
             action: 'expense_deleted',
             details: `Deleted expense at ${existing.vendor ?? 'expense'}`,
             metadata: {

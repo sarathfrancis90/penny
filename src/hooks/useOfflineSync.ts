@@ -3,6 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { db } from "@/lib/db";
 import { useLiveQuery } from "dexie-react-hooks";
+import { authFetch } from "@/lib/authFetch";
+
+/** The device's local calendar date (YYYY-MM-DD), so "today" means today here. */
+function localDateString(now = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
 
 interface ExpenseData {
   vendor: string;
@@ -132,12 +140,13 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
         });
 
         // Call the API
-        const response = await fetch("/api/analyze-expense", {
+        const response = await authFetch("/api/analyze-expense", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             text: request.text,
             imageBase64: request.imageBase64,
+            localDate: localDateString(),
           }),
         });
 
@@ -181,7 +190,7 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
     for (const expense of pending) {
       try {
         // Call the API
-        const response = await fetch("/api/expenses", {
+        const response = await authFetch("/api/expenses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -277,12 +286,13 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
       if (isOnline) {
         // Try online first
         try {
-          const response = await fetch("/api/analyze-expense", {
+          const response = await authFetch("/api/analyze-expense", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
               text, 
               imageBase64,
+              localDate: localDateString(),
               userId, // Pass userId to enable group matching
             }),
           });
@@ -335,7 +345,7 @@ export function useOfflineSync(userId: string | undefined): OfflineSyncResult {
       if (isOnline) {
         // Try online first
         try {
-          const response = await fetch("/api/expenses", {
+          const response = await authFetch("/api/expenses", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(expenseData),

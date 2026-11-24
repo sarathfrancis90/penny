@@ -32,7 +32,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   // ---------------------------------------------------------------------------
 
   void _showEditNameSheet() {
-    final user = ref.read(currentUserProvider);
+    final user =
+        ref.read(authServiceProvider).currentUser ??
+        ref.read(currentUserProvider);
     final controller = TextEditingController(text: user?.displayName ?? '');
     final formKey = GlobalKey<FormState>();
 
@@ -285,7 +287,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (isGuest) return _buildGuestProfile(context);
 
-    final user = ref.watch(currentUserProvider);
+    // The auth-state stream does not fire on profile edits, so its User can
+    // hold the old name. After a save the screen rebuilds and reads the
+    // reloaded user from the auth service instead.
+    final streamUser = ref.watch(currentUserProvider);
+    final freshUser = ref.read(authServiceProvider).currentUser;
+    final user = freshUser != null && freshUser.uid == streamUser?.uid
+        ? freshUser
+        : streamUser;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
@@ -410,7 +419,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             // Sign out
             TextButton(
-              onPressed: () => ref.read(authServiceProvider).signOut(),
+              onPressed: () => signOutUser(ref.read),
               child: const Text(
                 'Sign Out',
                 style: TextStyle(color: Color(0xFFFF3B30)),
@@ -580,9 +589,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   String _getInitial(User? user) {
-    return (user?.displayName ?? user?.email ?? '?')
-        .substring(0, 1)
-        .toUpperCase();
+    for (final value in [user?.displayName, user?.email]) {
+      final text = value?.trim() ?? '';
+      if (text.isNotEmpty) return text.characters.first.toUpperCase();
+    }
+    return '?';
   }
 
   Widget _buildEmailVerificationBadge(User? user) {

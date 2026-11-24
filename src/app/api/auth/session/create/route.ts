@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import { cookies } from 'next/headers';
 import { withObservability } from '@/lib/observability/withObservability';
+import { requireAuthenticatedUser } from '@/lib/auth-middleware';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'your-secret-key-min-32-characters-long'
@@ -14,14 +15,13 @@ const JWT_SECRET = new TextEncoder().encode(
  */
 async function postHandler(request: NextRequest) {
   try {
-    const { userId, email } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Missing userId' },
-        { status: 400 }
-      );
-    }
+    // Only mint a session for the user proven by a verified Firebase ID
+    // token; a body userId must match it.
+    const body = await request.json().catch(() => ({}));
+    const auth = await requireAuthenticatedUser(request, body?.userId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
+    const email = auth.email ?? null;
 
     // Create JWT session token
     const token = await new SignJWT({ 

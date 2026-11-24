@@ -485,7 +485,11 @@ export async function registerMobileDataRoutes(
     preHandler: app.requireUser,
     handler: async (request) => {
       const params = request.params as { id: string };
-      return mobileData.declineInvitation({ userId: request.user.uid, id: params.id });
+      return mobileData.declineInvitation({
+        userId: request.user.uid,
+        userEmail: request.user.email,
+        id: params.id,
+      });
     },
   });
 
@@ -589,6 +593,7 @@ export async function registerMobileDataRoutes(
         deviceId: params.deviceId,
         token,
         platform,
+        email: request.user.email,
       });
     },
   });

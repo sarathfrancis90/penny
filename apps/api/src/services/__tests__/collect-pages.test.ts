@@ -1,10 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { collectPages } from '../firestore-mobile-data';
 
+interface FakePage {
+  limit(n: number): FakePage;
+  startAfter(doc: number): FakePage;
+  get(): Promise<{ docs: number[] }>;
+}
+
 function fakeQuery(total: number) {
   const rows = Array.from({ length: total }, (_, i) => i);
   const calls: number[] = [];
-  const make = (start: number, take = Infinity): any => ({
+  const make = (start: number, take = Infinity): FakePage => ({
     limit: (n: number) => make(start, n),
     startAfter: (doc: number) => make(doc + 1, take),
     get: async () => {

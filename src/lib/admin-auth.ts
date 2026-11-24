@@ -3,13 +3,36 @@ import crypto from "crypto";
 import type { NextRequest } from "next/server";
 import { adminAuth } from "@/lib/firebase-admin";
 
-// Admin credentials - stored in environment variables
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "penny_admin_2024";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "PnY@2024#Secure$Admin!";
-
-// Session management
+// Legacy admin-console login. Credentials and the session-signing secret
+// come only from the environment; if any is missing the login fails closed
+// (no credentials accepted, no sessions issued or honoured).
 const ADMIN_SESSION_COOKIE = "penny_admin_session";
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || "admin-secret-key-change-in-production";
+
+interface LegacyAdminConfig {
+  username: string;
+  password: string;
+  secret: string;
+}
+
+/** Read at call time so a removed setting takes effect immediately. */
+function legacyAdminConfig(): LegacyAdminConfig | null {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!username || !password || !secret) return null;
+  return { username, password, secret };
+}
+
+/** Constant-time string comparison. */
+function safeEqual(a: string, b: string): boolean {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
+}
+
+function sign(sessionData: string, secret: string): string {
+  return crypto.createHmac("sha256", secret).update(sessionData).digest("hex");
+}
 
 interface AdminSession {
   username: string;
@@ -18,48 +41,59 @@ interface AdminSession {
 }
 
 /**
- * Verify admin credentials
+ * Verify admin credentials. Always false when the login is not configured.
  */
 export function verifyAdminCredentials(username: string, password: string): boolean {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+  const config = legacyAdminConfig();
+  if (!config) return false;
+  // Evaluate both comparisons so timing does not reveal which one failed.
+  const userOk = safeEqual(username ?? "", config.username);
+  const passOk = safeEqual(password ?? "", config.password);
+  return userOk && passOk;
 }
 
 /**
- * Create admin session token
+ * Create admin session token. Throws when the login is not configured.
  */
 export function createAdminSession(username: string): string {
+  const config = legacyAdminConfig();
+  if (!config) {
+    throw new Error("Legacy admin login is not configured");
+  }
+
   const session: AdminSession = {
     username,
     loginTime: Date.now(),
     expiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
   };
 
-  const sessionData = JSON.stringify(session);
-  const hmac = crypto.createHmac("sha256", SESSION_SECRET);
-  const signature = hmac.update(sessionData).digest("hex");
-  
+  const signature = sign(JSON.stringify(session), config.secret);
   return Buffer.from(JSON.stringify({ session, signature })).toString("base64");
 }
 
 /**
- * Verify admin session token
+ * Verify admin session token. Always false when the login is not configured.
  */
 export function verifyAdminSession(token: string): boolean {
+  const config = legacyAdminConfig();
+  if (!config) return false;
+
   try {
     const decoded = JSON.parse(Buffer.from(token, "base64").toString());
     const { session, signature } = decoded;
 
+    if (typeof signature !== "string" || !session) {
+      return false;
+    }
+
     // Verify signature
-    const hmac = crypto.createHmac("sha256", SESSION_SECRET);
-    const expectedSignature = hmac.update(JSON.stringify(session)).digest("hex");
-    
-    if (signature !== expectedSignature) {
+    if (!safeEqual(signature, sign(JSON.stringify(session), config.secret))) {
       return false;
     }
 
     // Check expiration
     const sessionData: AdminSession = session;
-    if (Date.now() > sessionData.expiresAt) {
+    if (typeof sessionData.expiresAt !== "number" || Date.now() > sessionData.expiresAt) {
       return false;
     }
 

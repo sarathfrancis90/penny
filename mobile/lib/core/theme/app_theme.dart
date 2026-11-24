@@ -65,9 +65,7 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.zero,
       ),
 
@@ -138,12 +136,11 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: const TextStyle(
-          color: AppColors.textTertiary,
-          fontSize: 16,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
         ),
+        hintStyle: const TextStyle(color: AppColors.textTertiary, fontSize: 16),
       ),
 
       // Divider
@@ -171,9 +168,7 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: BorderSide.none,
       ),
     );
@@ -200,6 +195,29 @@ abstract final class AppTheme {
       ),
 
       scaffoldBackgroundColor: AppColors.darkBackground,
+
+      // Overlays: the scheme's surface is pure black (same as the page), so
+      // without these dialogs, menus and the date picker have no visible box.
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.darkSurface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: AppColors.darkSurfaceSecondary,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      datePickerTheme: const DatePickerThemeData(
+        backgroundColor: AppColors.darkSurface,
+        surfaceTintColor: Colors.transparent,
+        headerBackgroundColor: AppColors.darkSurface,
+        headerForegroundColor: AppColors.darkTextPrimary,
+        rangePickerBackgroundColor: AppColors.darkBackground,
+        rangePickerHeaderBackgroundColor: AppColors.darkBackground,
+        rangePickerHeaderForegroundColor: AppColors.darkTextPrimary,
+        rangeSelectionBackgroundColor: Color(0x330A84FF),
+      ),
 
       // AppBar
       appBarTheme: const AppBarTheme(
@@ -237,9 +255,7 @@ abstract final class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.darkSurface,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.zero,
       ),
 
@@ -253,20 +269,14 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -280,10 +290,7 @@ abstract final class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           side: BorderSide.none,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -307,8 +314,10 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         hintStyle: const TextStyle(
           color: AppColors.darkTextTertiary,
           fontSize: 16,
@@ -339,9 +348,7 @@ abstract final class AppTheme {
           fontWeight: FontWeight.w500,
           color: AppColors.darkTextPrimary,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         side: BorderSide.none,
       ),
     );

@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import type { RegistrationResponseJSON } from '@simplewebauthn/types';
 import { withObservability } from '@/lib/observability/withObservability';
+import { requireAuthenticatedUser } from '@/lib/auth-middleware';
 
 /**
  * POST /api/auth/passkey/register/verify
@@ -11,7 +12,12 @@ import { withObservability } from '@/lib/observability/withObservability';
  */
 async function postHandler(request: NextRequest) {
   try {
-    const { userId, response, deviceName } = await request.json();
+    const { userId: bodyUserId, response, deviceName } = await request.json();
+
+    // A passkey may only be added to the signed-in user's own account
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId || !response) {
       return NextResponse.json(

@@ -18,12 +18,25 @@ class ApiClient {
 
   Dio get dio => _dio;
 
+  /// Receive timeout for the slow calls (photo analysis, media upload); the
+  /// default 30 s is too short for those on a slow connection.
+  static const longReceiveTimeout = Duration(seconds: 90);
+
+  /// [receiveTimeout] overrides the default for this request only.
   Future<Response<T>> post<T>(
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
+    Duration? receiveTimeout,
   }) {
-    return _dio.post<T>(path, data: data, queryParameters: queryParameters);
+    return _dio.post<T>(
+      path,
+      data: data ?? const <String, Object?>{},
+      queryParameters: queryParameters,
+      options: receiveTimeout == null
+          ? null
+          : Options(receiveTimeout: receiveTimeout),
+    );
   }
 
   Future<Response<T>> get<T>(
@@ -34,11 +47,11 @@ class ApiClient {
   }
 
   Future<Response<T>> patch<T>(String path, {Object? data}) {
-    return _dio.patch<T>(path, data: data);
+    return _dio.patch<T>(path, data: data ?? const <String, Object?>{});
   }
 
   Future<Response<T>> put<T>(String path, {Object? data}) {
-    return _dio.put<T>(path, data: data);
+    return _dio.put<T>(path, data: data ?? const <String, Object?>{});
   }
 
   Future<Response<T>> delete<T>(

@@ -100,7 +100,7 @@ void main() {
       expect((await create('biweekly')).frequencyLabel, '/2wk');
       expect((await create('weekly')).frequencyLabel, '/wk');
       expect((await create('yearly')).frequencyLabel, '/yr');
-      expect((await create('once')).frequencyLabel, 'one-time');
+      expect((await create('once')).frequencyLabel, ' one-time');
     });
 
     test('toFirestore produces correct map', () async {

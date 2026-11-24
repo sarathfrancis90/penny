@@ -13,6 +13,7 @@ abstract final class ApiEndpoints {
   static String myGroupMembership(String id) => '/api/groups/$id/membership/me';
   static String groupMembers(String id) => '/api/groups/$id/members';
   static String groupLeave(String id) => '/api/groups/$id/leave';
+  static const groupInvitations = '/api/groups/invitations';
   static const acceptInvitation = '/api/groups/invitations/accept';
   static String declineInvitation(String id) =>
       '/api/groups/invitations/$id/decline';

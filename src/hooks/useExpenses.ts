@@ -13,6 +13,7 @@ import { db } from "@/lib/firebase";
 import { Expense } from "@/lib/types";
 import { useGroups } from "./useGroups";
 import { useMemo } from "react";
+import { authFetch } from "@/lib/authFetch";
 
 export function useExpenses(userId: string | undefined) {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -24,7 +25,7 @@ export function useExpenses(userId: string | undefined) {
   // Delete expense
   const deleteExpense = async (expenseId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(`/api/expenses/${expenseId}`, {
+      const response = await authFetch(`/api/expenses/${expenseId}`, {
         method: "DELETE",
       });
 
@@ -55,7 +56,7 @@ export function useExpenses(userId: string | undefined) {
     }
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(`/api/expenses/${expenseId}`, {
+      const response = await authFetch(`/api/expenses/${expenseId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -169,55 +170,61 @@ export function useExpenses(userId: string | undefined) {
         }
       );
 
-      // Query 2: Group expenses (where user is a member)
-      let unsubscribeGroup: (() => void) | null = null;
+      // Query 2: Group expenses, one listener per group the user belongs to.
+      // Security rules only allow a query that filters by a group the user
+      // is an active member of, so each group is queried by its own id.
+      const groupUnsubscribers: Array<() => void> = [];
+      const loadedGroupIds = new Set<string>();
+      const markGroupLoaded = (groupId: string) => {
+        loadedGroupIds.add(groupId);
+        if (loadedGroupIds.size >= userGroupIds.length) {
+          groupsLoaded = true;
+          checkAllLoaded();
+        }
+      };
+
       if (userGroupIds.length > 0) {
-        const groupQuery = query(
-          collection(db, "expenses"),
-          where("expenseType", "==", "group")
-        );
+        userGroupIds.forEach((groupId) => {
+          const groupQuery = query(
+            collection(db, "expenses"),
+            where("groupId", "==", groupId),
+            where("expenseType", "==", "group")
+          );
 
-        unsubscribeGroup = onSnapshot(
-          groupQuery,
-          (snapshot: QuerySnapshot<DocumentData>) => {
-            snapshot.docs.forEach((doc) => {
-              const data = doc.data();
-              // Only include if user is a member of this group
-              if (data.groupId && userGroupIds.includes(data.groupId)) {
-                allExpenses.set(doc.id, {
-                  id: doc.id,
-                  ...data,
-                } as Expense);
+          groupUnsubscribers.push(
+            onSnapshot(
+              groupQuery,
+              (snapshot: QuerySnapshot<DocumentData>) => {
+                snapshot.docs.forEach((doc) => {
+                  allExpenses.set(doc.id, {
+                    id: doc.id,
+                    ...doc.data(),
+                  } as Expense);
+                });
+
+                // Remove this group's expenses that are no longer returned
+                const currentIds = new Set(snapshot.docs.map((d) => d.id));
+                Array.from(allExpenses.keys()).forEach((id) => {
+                  const expense = allExpenses.get(id);
+                  if (
+                    expense?.expenseType === "group" &&
+                    expense.groupId === groupId &&
+                    !currentIds.has(id)
+                  ) {
+                    allExpenses.delete(id);
+                  }
+                });
+
+                markGroupLoaded(groupId);
+              },
+              (err) => {
+                console.error("Error fetching group expenses:", err);
+                // Don't fail completely, just log the error
+                markGroupLoaded(groupId);
               }
-            });
-
-            // Remove group expenses user no longer has access to
-            const currentGroupExpenseIds = new Set(
-              snapshot.docs
-                .filter(d => {
-                  const data = d.data();
-                  return data.groupId && userGroupIds.includes(data.groupId);
-                })
-                .map(d => d.id)
-            );
-            
-            Array.from(allExpenses.keys()).forEach(id => {
-              const expense = allExpenses.get(id);
-              if (expense?.expenseType === "group" && !currentGroupExpenseIds.has(id)) {
-                allExpenses.delete(id);
-              }
-            });
-
-            groupsLoaded = true;
-            checkAllLoaded();
-          },
-          (err) => {
-            console.error("Error fetching group expenses:", err);
-            // Don't fail completely, just log the error
-            groupsLoaded = true;
-            checkAllLoaded();
-          }
-        );
+            )
+          );
+        });
       } else {
         groupsLoaded = true;
         checkAllLoaded();
@@ -226,9 +233,7 @@ export function useExpenses(userId: string | undefined) {
       // Cleanup listeners on unmount
       return () => {
         unsubscribePersonal();
-        if (unsubscribeGroup) {
-          unsubscribeGroup();
-        }
+        groupUnsubscribers.forEach((unsubscribe) => unsubscribe());
       };
     } catch (err) {
       console.error("Error setting up expenses listener:", err);

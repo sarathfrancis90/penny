@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:penny_mobile/core/router/app_links.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
@@ -12,11 +14,19 @@ class PushNotificationService {
   PushNotificationService({
     required ApiClient apiClient,
     FirebaseMessaging? messaging,
+    Stream<RemoteMessage>? onMessage,
+    Stream<RemoteMessage>? onMessageOpenedApp,
   }) : _api = apiClient,
-       _messaging = messaging ?? FirebaseMessaging.instance;
+       _messaging = messaging ?? FirebaseMessaging.instance,
+       _onMessage = onMessage ?? FirebaseMessaging.onMessage,
+       _onMessageOpenedApp =
+           onMessageOpenedApp ?? FirebaseMessaging.onMessageOpenedApp;
 
   final ApiClient _api;
   final FirebaseMessaging _messaging;
+  final Stream<RemoteMessage> _onMessage;
+  final Stream<RemoteMessage> _onMessageOpenedApp;
+  bool _listening = false;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
@@ -41,13 +51,25 @@ class PushNotificationService {
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
+    // initialize() runs again after every sign-in; the message listeners
+    // must only be attached once or each push shows up several times.
+    if (!attachMessageListeners()) return;
 
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       _handleMessageOpenedApp(initialMessage);
     }
+  }
+
+  /// Attaches the foreground/opened-app listeners the first time it is
+  /// called. Returns false when they were already attached.
+  @visibleForTesting
+  bool attachMessageListeners() {
+    if (_listening) return false;
+    _listening = true;
+    _onMessage.listen(_handleForegroundMessage);
+    _onMessageOpenedApp.listen(_handleMessageOpenedApp);
+    return true;
   }
 
   Future<bool> requestPermission() async {
@@ -75,7 +97,11 @@ class PushNotificationService {
     });
   }
 
+  /// Unregisters this device's push token for [userId]. Call before signing
+  /// out (the request needs the user's auth token).
   Future<void> removeToken(String userId) async {
+    await _tokenRefreshSubscription?.cancel();
+    _tokenRefreshSubscription = null;
     final box = Hive.box('app_preferences');
     final deviceId = box.get('device_id') as String?;
     if (deviceId == null) return;
@@ -83,8 +109,6 @@ class PushNotificationService {
       ApiEndpoints.pushToken(deviceId),
       data: {'userId': userId},
     );
-    await _tokenRefreshSubscription?.cancel();
-    _tokenRefreshSubscription = null;
   }
 
   Future<String> _deviceId() async {
@@ -133,7 +157,13 @@ class PushNotificationService {
   }
 
   void _handleMessageOpenedApp(RemoteMessage message) {
-    final actionUrl = message.data['actionUrl'] as String?;
+    final rawUrl = message.data['actionUrl'] as String?;
+    final actionUrl = rawUrl == null
+        ? null
+        : linkForNotification(
+            type: message.data['type'] as String?,
+            url: rawUrl,
+          );
     if (actionUrl != null) {
       _pendingNavigationUrl = actionUrl;
       _navigationController.add(actionUrl);

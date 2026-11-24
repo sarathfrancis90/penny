@@ -2,6 +2,8 @@ export interface AccountService {
   deleteAccount(input: { userId: string }): Promise<{
     success: true;
     message: string;
+    /** False when the data is gone but the sign-in record could not be removed. */
+    signInDeleted?: boolean;
   }>;
 }
 

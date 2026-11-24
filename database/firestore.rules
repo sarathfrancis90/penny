@@ -57,6 +57,48 @@ service cloud.firestore {
              get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.permissions.canApproveExpenses == true;
     }
 
+    // Check if user can remove members from group (owners and admins)
+    function canRemoveGroupMembers(groupId) {
+      return isGroupMember(groupId) &&
+             get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.permissions.canRemoveMembers == true;
+    }
+
+    // Group settings belong to the owner (canManageSettings).
+    function canManageGroupSettings(groupId) {
+      return isGroupOwner(groupId) &&
+             get(/databases/$(database)/documents/groupMembers/$(groupId + '_' + request.auth.uid)).data.permissions.canManageSettings == true;
+    }
+
+    // Top-level fields an update changes.
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Default permissions per non-owner role. Must match
+    // DEFAULT_ROLE_PERMISSIONS in src/lib/types.ts.
+    function rolePermissions(role) {
+      return {
+        'admin': {
+          'canAddExpenses': true, 'canEditOwnExpenses': true, 'canEditAllExpenses': true,
+          'canDeleteExpenses': true, 'canApproveExpenses': true, 'canInviteMembers': true,
+          'canRemoveMembers': true, 'canViewReports': true, 'canExportData': true,
+          'canManageSettings': false
+        },
+        'member': {
+          'canAddExpenses': true, 'canEditOwnExpenses': true, 'canEditAllExpenses': false,
+          'canDeleteExpenses': false, 'canApproveExpenses': false, 'canInviteMembers': false,
+          'canRemoveMembers': false, 'canViewReports': true, 'canExportData': false,
+          'canManageSettings': false
+        },
+        'viewer': {
+          'canAddExpenses': false, 'canEditOwnExpenses': false, 'canEditAllExpenses': false,
+          'canDeleteExpenses': false, 'canApproveExpenses': false, 'canInviteMembers': false,
+          'canRemoveMembers': false, 'canViewReports': true, 'canExportData': false,
+          'canManageSettings': false
+        }
+      }[role];
+    }
+
     // Founder / staff admin (Firebase custom claims)
     function isPlatformAdmin() {
       return isAuthenticated() && request.auth.token.admin == true;
@@ -67,9 +109,14 @@ service cloud.firestore {
     // ============================================
     
     match /expenses/{expenseId} {
-      // List expenses (for queries) - allow authenticated users
-      // The where clause in the query will filter by userId or groupId
-      allow list: if isAuthenticated();
+      // List expenses (for queries). Rules are not filters: a query is only
+      // allowed when its own where clauses prove every result is readable,
+      // so it must filter by the caller's userId or by a group they are an
+      // active member of.
+      allow list: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        (resource.data.groupId is string && isGroupMember(resource.data.groupId))
+      );
       
       // Get specific expense
       allow get: if isAuthenticated() && (
@@ -102,14 +149,19 @@ service cloud.firestore {
       // Update rules
       allow update: if isAuthenticated() && (
         // Personal expense: owner can update
-        (resource.data.expenseType == 'personal' && 
+        // (a personal expense can never be tagged with a group, or it would
+        // count against that group's budgets)
+        (resource.data.expenseType == 'personal' &&
          resource.data.userId == request.auth.uid &&
          request.resource.data.userId == request.auth.uid &&
-         request.resource.data.expenseType == 'personal') ||
+         request.resource.data.expenseType == 'personal' &&
+         request.resource.data.get('groupId', null) == null) ||
         // Group expense: creator or admin can update
         (resource.data.expenseType == 'group' &&
          request.resource.data.expenseType == 'group' &&
          request.resource.data.groupId == resource.data.groupId && // Can't change group
+         request.resource.data.userId == resource.data.userId && // Can't reassign
+         isGroupMember(resource.data.groupId) && // Former members lose access
          (
            // Owner can edit their own expense
            (resource.data.userId == request.auth.uid && 
@@ -117,9 +169,11 @@ service cloud.firestore {
            // Admin can edit any expense
            (get(/databases/$(database)/documents/groupMembers/$(resource.data.groupId + '_' + request.auth.uid)).data.permissions.canEditAllExpenses == true)
          )) ||
-        // Approval action: only approvers
+        // Approval action: only approvers, touching only groupMetadata.
+        // (keys() lists every field of the document, so the old
+        // keys().hasOnly(['groupMetadata']) check could never match.)
         (resource.data.expenseType == 'group' &&
-         request.resource.data.keys().hasOnly(['groupMetadata']) &&
+         changedKeys().hasOnly(['groupMetadata']) &&
          request.resource.data.groupMetadata.keys().hasAny(['approvalStatus', 'approvedBy', 'approvedAt']) &&
          canApproveExpenses(resource.data.groupId))
       );
@@ -129,7 +183,7 @@ service cloud.firestore {
         // Personal expense: owner can delete
         (resource.data.expenseType == 'personal' && resource.data.userId == request.auth.uid) ||
         // Group expense: creator or admin with permission can delete
-        (resource.data.expenseType == 'group' && (
+        (resource.data.expenseType == 'group' && isGroupMember(resource.data.groupId) && (
           (resource.data.userId == request.auth.uid) ||
           (get(/databases/$(database)/documents/groupMembers/$(resource.data.groupId + '_' + request.auth.uid)).data.permissions.canDeleteExpenses == true)
         ))
@@ -144,24 +198,27 @@ service cloud.firestore {
       // Anyone can read groups they're a member of
       allow read: if isAuthenticated() && isGroupMember(groupId);
       
-      // Any authenticated user can create a group
-      allow create: if isAuthenticated() &&
-        request.resource.data.createdBy == request.auth.uid &&
-        request.resource.data.keys().hasAll(['name', 'createdBy', 'createdAt', 'status', 'settings', 'stats']) &&
-        request.resource.data.status == 'active' &&
-        request.resource.data.stats.memberCount == 1;
-      
-      // Only owner can update group settings
-      allow update: if isAuthenticated() && (
-        // Owner can update anything
-        (isGroupOwner(groupId) && request.resource.data.createdBy == resource.data.createdBy) ||
-        // Admin can update non-critical fields
-        (isGroupAdmin(groupId) && 
-         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdBy', 'status', 'settings.requireApproval', 'settings.allowMemberInvites']))
+      // Groups are created through the API only: the group, the owner's
+      // membership and the activity log are written atomically, and
+      // groupMembers cannot be created by clients, so a client-created
+      // group would have no members.
+      allow create: if false;
+
+      // affectedKeys() only reports top-level fields, so settings are
+      // guarded as a whole ('settings.requireApproval' never matched,
+      // which let admins rewrite settings).
+      allow update: if isAuthenticated() &&
+        request.resource.data.createdBy == resource.data.createdBy && (
+        // Owner (canManageSettings) can update details, settings and status
+        canManageGroupSettings(groupId) ||
+        // Admin can update the descriptive fields only
+        (isGroupAdmin(groupId) &&
+         changedKeys().hasOnly(['name', 'description', 'color', 'icon', 'updatedAt']))
       );
-      
-      // Only owner can delete/archive groups
-      allow delete: if isAuthenticated() && isGroupOwner(groupId);
+
+      // Deleting a group cascades to members and expenses, so it is
+      // server-side only (DELETE /api/groups/{groupId}).
+      allow delete: if false;
     }
     
     // ============================================
@@ -169,9 +226,12 @@ service cloud.firestore {
     // ============================================
     
     match /groupMembers/{membershipId} {
-      // Allow authenticated users to list memberships (needed for queries)
-      // The where clause will filter to their own memberships
-      allow list: if isAuthenticated();
+      // List memberships: the caller's own, or those of a group they are an
+      // active member of. The query must filter by userId or groupId.
+      allow list: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isGroupMember(resource.data.groupId)
+      );
       
       // Users can get specific membership if they're in that group
       allow get: if isAuthenticated() && 
@@ -181,32 +241,42 @@ service cloud.firestore {
       // Must be done via server-side (admin SDK) for security
       allow create: if false; // Only server-side
       
-      // Only owner/admin can update member roles
-      allow update: if isAuthenticated() && (
-        // Owner can update anyone (except can't change own status)
-        (isGroupOwner(resource.data.groupId) && 
-         resource.data.userId != request.auth.uid) ||
-        // Admin can update members (not owner or other admins)
-        (isGroupAdmin(resource.data.groupId) && 
+      // Role changes, removals and leaving normally go through the API
+      // (Admin SDK). Clients may only make these narrow writes, mirroring
+      // the API's checks; a membership can never move to another user or
+      // group, and nobody can edit their own role or permissions.
+      allow update: if isAuthenticated() &&
+        request.resource.data.groupId == resource.data.groupId &&
+        request.resource.data.userId == resource.data.userId && (
+        // Self: activity heartbeat only
+        (resource.data.userId == request.auth.uid &&
+         changedKeys().hasOnly(['lastActivityAt'])) ||
+        // Self: leave the group (the owner must transfer ownership first)
+        (resource.data.userId == request.auth.uid &&
          resource.data.role != 'owner' &&
-         resource.data.role != 'admin' &&
-         request.resource.data.role != 'owner') ||
-        // Member can update their own lastActivityAt
-        (resource.data.userId == request.auth.uid &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActivityAt']))
-      );
-      
-      // Members can leave (soft delete by changing status)
-      // Admins can remove members
-      allow update: if isAuthenticated() && (
-        // Member leaving voluntarily
-        (resource.data.userId == request.auth.uid &&
+         resource.data.status == 'active' &&
          request.resource.data.status == 'left' &&
-         resource.data.role != 'owner') || // Owner can't leave
-        // Admin removing a member
-        (isGroupAdmin(resource.data.groupId) &&
+         changedKeys().hasOnly(['status', 'leftAt'])) ||
+        // Change another member's role. The owner may manage admins,
+        // members and viewers; an admin only members and viewers. Nobody
+        // can be made owner here, and permissions must be the role's
+        // defaults (no custom grants such as canManageSettings).
+        (resource.data.userId != request.auth.uid &&
+         resource.data.role != 'owner' &&
+         request.resource.data.role in ['admin', 'member', 'viewer'] &&
+         request.resource.data.permissions == rolePermissions(request.resource.data.role) &&
+         changedKeys().hasOnly(['role', 'permissions', 'lastActivityAt']) &&
+         (isGroupOwner(resource.data.groupId) ||
+          (isGroupAdmin(resource.data.groupId) && resource.data.role in ['member', 'viewer']))) ||
+        // Remove another member (canRemoveMembers). Only the owner may
+        // remove an admin; the owner cannot be removed.
+        (resource.data.userId != request.auth.uid &&
+         resource.data.role != 'owner' &&
          request.resource.data.status == 'removed' &&
-         resource.data.role != 'owner') // Can't remove owner
+         changedKeys().hasOnly(['status', 'removedBy', 'leftAt']) &&
+         (!changedKeys().hasAny(['removedBy']) || request.resource.data.removedBy == request.auth.uid) &&
+         canRemoveGroupMembers(resource.data.groupId) &&
+         (resource.data.role != 'admin' || isGroupOwner(resource.data.groupId)))
       );
       
       // Only server-side can hard delete
@@ -218,25 +288,35 @@ service cloud.firestore {
     // ============================================
     
     match /groupInvitations/{invitationId} {
-      // Only invitee or group members can read
+      // The invitee (matched on email, case-insensitively: invitations are
+      // stored lower-cased) or the group's owner/admins can read. Plain
+      // members and viewers cannot: the document carries the secret
+      // acceptance token.
+      function isInvitee() {
+        return request.auth.token.email is string &&
+          resource.data.invitedEmail == request.auth.token.email.lower();
+      }
+
       allow read: if isAuthenticated() && (
-        resource.data.invitedEmail == request.auth.token.email ||
-        isGroupMember(resource.data.groupId)
+        isInvitee() ||
+        isGroupAdmin(resource.data.groupId)
       );
-      
+
       // Only server-side can create (to generate secure token)
       allow create: if false;
-      
-      // Invitee can accept/reject
-      // Inviter can cancel
+
+      // Invitee can accept/reject; owner/admin can cancel. Only the status
+      // (and its timestamp) may change.
       allow update: if isAuthenticated() && (
         // Invitee accepting/rejecting
-        (resource.data.invitedEmail == request.auth.token.email &&
+        (isInvitee() &&
          request.resource.data.status in ['accepted', 'rejected'] &&
-         resource.data.status == 'pending') ||
+         resource.data.status == 'pending' &&
+         changedKeys().hasOnly(['status', 'respondedAt', 'acceptedAt', 'rejectedAt', 'updatedAt'])) ||
         // Admin canceling
         (isGroupAdmin(resource.data.groupId) &&
-         request.resource.data.status == 'cancelled')
+         request.resource.data.status == 'cancelled' &&
+         changedKeys().hasOnly(['status', 'cancelledAt', 'cancelledBy', 'updatedAt']))
       );
       
       // Only server-side can delete
@@ -261,9 +341,20 @@ service cloud.firestore {
     // ============================================
     
     match /users/{userId} {
+      // The server looks users up by profile email (e.g. to deliver group
+      // invitations), so a client may only store its own verified sign-in
+      // email there, never someone else's.
+      function emailIsCallers() {
+        return request.resource.data.get('email', null) == null ||
+          (request.auth.token.email is string &&
+           request.resource.data.email is string &&
+           request.resource.data.email.lower() == request.auth.token.email.lower());
+      }
+
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow create: if isOwner(userId) && emailIsCallers();
+      allow update: if isOwner(userId) &&
+        (!changedKeys().hasAny(['email']) || emailIsCallers());
       allow delete: if false; // Never allow deletion
     }
     
@@ -272,9 +363,10 @@ service cloud.firestore {
     // ============================================
     
     match /passkeys/{passkeyId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // WebAuthn credentials are registered, listed, verified and deleted
+      // by /api/auth/passkey/* with the Admin SDK only. A client-written
+      // credential would let anyone attach their own key to an account.
+      allow read, write: if false;
     }
     
     // ============================================
@@ -282,7 +374,8 @@ service cloud.firestore {
     // ============================================
     
     match /challenges/{challengeId} {
-      allow read, write: if isAuthenticated();
+      // WebAuthn challenges are created, read and deleted by the server only.
+      allow read, write: if false;
     }
     
     // ============================================
@@ -307,7 +400,8 @@ service cloud.firestore {
     
     match /conversations/{conversationId} {
       // Allow list queries for user's own conversations
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
       
       // Users can get their own conversations
       allow get, delete: if isAuthenticated() && 
@@ -327,8 +421,9 @@ service cloud.firestore {
       
       // Messages subcollection
       match /messages/{messageId} {
-        // Allow list queries for messages
-        allow list: if isAuthenticated();
+        // Allow list queries for messages in the caller's own conversation
+        allow list: if isAuthenticated() &&
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.userId == request.auth.uid;
         
         // Users can read messages from their own conversations
         allow get, create: if isAuthenticated() && 
@@ -347,7 +442,8 @@ service cloud.firestore {
     // Personal Budgets
     match /budgets_personal/{budgetId} {
       // Allow list queries for user's own budgets
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
       
       // Users can read their own budgets
       allow get: if isAuthenticated() && 
@@ -377,7 +473,8 @@ service cloud.firestore {
     match /budgets_group/{budgetId} {
       // Allow list queries only if filtering by a group where user is member
       // Note: Firestore requires that list rules match the query filters
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        isGroupMember(resource.data.groupId);
       
       // Group members can read group budgets
       allow get: if isAuthenticated() && 
@@ -438,7 +535,8 @@ service cloud.firestore {
     // Notifications Collection
     match /notifications/{notificationId} {
       // Users can list their own notifications
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
       
       // Users can read their own notifications
       allow get: if isAuthenticated() && 
@@ -514,7 +612,8 @@ service cloud.firestore {
     // Push Subscriptions
     match /pushSubscriptions/{subscriptionId} {
       // Users can list their own subscriptions
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
       
       // Users can read their own subscriptions
       allow get: if isAuthenticated() && 
@@ -561,7 +660,8 @@ service cloud.firestore {
     // Personal Income Sources
     match /income_sources_personal/{incomeId} {
       // Users can list their own income sources
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
       
       // Users can read their own income sources
       allow get: if isAuthenticated() && 
@@ -587,7 +687,8 @@ service cloud.firestore {
     // Group Income Sources
     match /income_sources_group/{incomeId} {
       // Allow list queries for group members
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        isGroupMember(resource.data.groupId);
       
       // Group members can read group income sources
       allow get: if isAuthenticated() && 
@@ -632,10 +733,16 @@ service cloud.firestore {
         (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
       );
       
-      // Users can update their own status or admins can update group status
-      allow update: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid ||
-        (resource.data.keys().hasAny(['groupId']) && isGroupAdmin(resource.data.groupId))
+      // Users can progress their own status, admins the group status. The
+      // owner, group and month a status belongs to never change.
+      allow update: if isAuthenticated() &&
+        request.resource.data.get('userId', null) == resource.data.get('userId', null) &&
+        request.resource.data.get('groupId', null) == resource.data.get('groupId', null) &&
+        request.resource.data.period == resource.data.period && (
+        (resource.data.get('groupId', null) == null &&
+         resource.data.userId == request.auth.uid) ||
+        (resource.data.get('groupId', null) is string &&
+         isGroupAdmin(resource.data.groupId))
       );
       
       // Only server-side can create/delete status records
@@ -657,7 +764,8 @@ service cloud.firestore {
     // Personal Savings Goals
     match /savings_goals_personal/{goalId} {
       // Users can list their own savings goals
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
       
       // Users can read their own savings goals
       allow get: if isAuthenticated() && 
@@ -687,7 +795,8 @@ service cloud.firestore {
     // Group Savings Goals
     match /savings_goals_group/{goalId} {
       // Allow list queries for group members
-      allow list: if isAuthenticated();
+      allow list: if isAuthenticated() &&
+        isGroupMember(resource.data.groupId);
       
       // Group members can read group savings goals
       allow get: if isAuthenticated() && 
@@ -724,12 +833,17 @@ service cloud.firestore {
         (resource.data.keys().hasAny(['groupId']) && isGroupMember(resource.data.groupId))
       );
       
-      // Users can create their own contributions or group members can contribute to group goals
-      allow create: if isAuthenticated() && (
-        (request.resource.data.keys().hasAny(['userId']) && 
-         request.resource.data.userId == request.auth.uid) ||
-        (request.resource.data.keys().hasAny(['groupId']) && 
-         isGroupMember(request.resource.data.groupId))
+      // A contribution is always recorded by, and attributed to, the
+      // caller: to one of their own goals, or to a goal of a group they
+      // are an active member of.
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.goalId is string && (
+        (request.resource.data.get('groupId', null) == null &&
+         get(/databases/$(database)/documents/savings_goals_personal/$(request.resource.data.goalId)).data.userId == request.auth.uid) ||
+        (request.resource.data.get('groupId', null) is string &&
+         isGroupMember(request.resource.data.groupId) &&
+         get(/databases/$(database)/documents/savings_goals_group/$(request.resource.data.goalId)).data.groupId == request.resource.data.groupId)
       );
       
       // Only server-side can update/delete contributions (for consistency)

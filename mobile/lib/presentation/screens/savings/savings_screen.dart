@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
 import 'package:penny_mobile/data/models/savings_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
@@ -171,7 +173,14 @@ class _SavingsGoalCard extends ConsumerWidget {
         ? DateFormat('MMM yyyy').format(goal.targetDate!.toDate())
         : null;
     void deleteGoal() {
-      ref.read(savingsRepositoryProvider).deleteSavingsGoal(goal.id);
+      // The row is gone once dismissed, so refresh through the container.
+      final container = ProviderScope.containerOf(context, listen: false);
+      container
+          .read(savingsRepositoryProvider)
+          .deleteSavingsGoal(goal.id)
+          // On failure the reload brings the row back.
+          .then<void>((_) {}, onError: (Object _) {})
+          .whenComplete(() => container.invalidate(savingsGoalsProvider));
       HapticFeedback.mediumImpact();
     }
 
@@ -432,8 +441,8 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    final target = double.tryParse(_targetController.text.trim());
-    final monthly = double.tryParse(_monthlyController.text.trim()) ?? 0;
+    final target = parseAmount(_targetController.text);
+    final monthly = parseAmount(_monthlyController.text) ?? 0;
     if (name.isEmpty || target == null || target <= 0) return;
 
     setState(() => _saving = true);
@@ -449,13 +458,14 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
             monthlyContribution: monthly,
             priority: _priority,
           );
+      widget.ref.invalidate(savingsGoalsProvider);
       HapticFeedback.mediumImpact();
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -467,83 +477,90 @@ class _CreateGoalSheetState extends State<_CreateGoalSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SheetHeader(title: 'Create Savings Goal'),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(hintText: 'Goal name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _targetController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Target amount',
-              prefixText: '\$ ',
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SheetHeader(title: 'Create Savings Goal'),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(hintText: 'Goal name'),
             ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _monthlyController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Monthly contribution',
-              prefixText: '\$ ',
+            const SizedBox(height: 12),
+            TextField(
+              controller: _targetController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Target amount',
+                prefixText: '\$ ',
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            decoration: const InputDecoration(hintText: 'Category'),
-            items: _categories
-                .map(
-                  (c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(c.replaceAll('_', ' ')),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _category = v);
-            },
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _priority,
-            decoration: const InputDecoration(hintText: 'Priority'),
-            items: _priorities
-                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _priority = v);
-            },
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
+            const SizedBox(height: 12),
+            TextField(
+              controller: _monthlyController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Monthly contribution',
+                prefixText: '\$ ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _category,
+              decoration: const InputDecoration(hintText: 'Category'),
+              items: _categories
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c.replaceAll('_', ' ')),
                     ),
                   )
-                : const Text('Create Goal'),
-          ),
-        ],
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _category = v);
+              },
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _priority,
+              decoration: const InputDecoration(hintText: 'Priority'),
+              items: _priorities
+                  .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _priority = v);
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Create Goal'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -664,8 +681,8 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
-    final target = double.tryParse(_targetController.text.trim());
-    final monthly = double.tryParse(_monthlyController.text.trim()) ?? 0;
+    final target = parseAmount(_targetController.text);
+    final monthly = parseAmount(_monthlyController.text) ?? 0;
     if (name.isEmpty || target == null || target <= 0) return;
 
     setState(() => _saving = true);
@@ -682,6 +699,7 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
             'priority': _priority,
             'progressPercentage': progress,
           });
+      widget.ref.invalidate(savingsGoalsProvider);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -693,7 +711,7 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -705,67 +723,74 @@ class _EditGoalSheetState extends State<_EditGoalSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SheetHeader(title: 'Edit Savings Goal'),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _nameController,
-            decoration: const InputDecoration(hintText: 'Goal name'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _targetController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Target amount',
-              prefixText: '\$ ',
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SheetHeader(title: 'Edit Savings Goal'),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(hintText: 'Goal name'),
             ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _monthlyController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Monthly contribution',
-              prefixText: '\$ ',
+            const SizedBox(height: 12),
+            TextField(
+              controller: _targetController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Target amount',
+                prefixText: '\$ ',
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            initialValue: _priority,
-            decoration: const InputDecoration(hintText: 'Priority'),
-            items: _priorities
-                .map((p) => DropdownMenuItem(value: p, child: Text(p)))
-                .toList(),
-            onChanged: (v) {
-              if (v != null) setState(() => _priority = v);
-            },
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Save Changes'),
-          ),
-        ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: _monthlyController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Monthly contribution',
+                prefixText: '\$ ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _priority,
+              decoration: const InputDecoration(hintText: 'Priority'),
+              items: _priorities
+                  .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _priority = v);
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Save Changes'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -792,7 +817,7 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
   }
 
   Future<void> _save() async {
-    final amount = double.tryParse(_amountController.text.trim());
+    final amount = parseAmount(_amountController.text);
     if (amount == null || amount <= 0) return;
 
     setState(() => _saving = true);
@@ -800,6 +825,7 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
       await widget.ref
           .read(savingsRepositoryProvider)
           .addContribution(widget.goal.id, amount);
+      widget.ref.invalidate(savingsGoalsProvider);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -815,7 +841,7 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -830,46 +856,51 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
     final remaining = widget.goal.targetAmount - widget.goal.currentAmount;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SheetHeader(
-            title: 'Add Contribution',
-            subtitle: '${formatter.format(remaining)} remaining to goal',
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _amountController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Amount',
-              prefixText: '\$ ',
+    return SingleChildScrollView(
+      // Scrolls when the keyboard leaves too little room for the form.
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SheetHeader(
+              title: 'Add Contribution',
+              subtitle: '${formatter.format(remaining)} remaining to goal',
             ),
-            autofocus: true,
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            child: _saving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Add Contribution'),
-          ),
-        ],
+            const SizedBox(height: 20),
+            TextField(
+              controller: _amountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Amount',
+                prefixText: '\$ ',
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _saving ? null : _save,
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Add Contribution'),
+            ),
+          ],
+        ),
       ),
     );
   }

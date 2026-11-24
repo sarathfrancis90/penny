@@ -5,6 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
+import 'package:penny_mobile/core/utils/client_request_id.dart';
+import 'package:penny_mobile/core/utils/picker_dates.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
 import 'package:penny_mobile/data/models/group_activity_model.dart';
 import 'package:penny_mobile/data/models/group_income_model.dart';
@@ -14,6 +18,7 @@ import 'package:penny_mobile/data/models/group_savings_model.dart';
 import 'package:penny_mobile/data/models/budget_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
+import 'package:penny_mobile/presentation/providers/expense_refresh.dart';
 import 'package:penny_mobile/presentation/providers/group_budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_income_providers.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
@@ -168,7 +173,7 @@ class GroupDetailScreen extends ConsumerWidget {
                           .toList(),
                     ),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text('Error: $e'),
+              error: (e, _) => Text('Error: ${apiErrorMessage(e)}'),
             ),
 
             const SizedBox(height: 24),
@@ -250,7 +255,8 @@ class GroupDetailScreen extends ConsumerWidget {
                           .toList(),
                     ),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text('Error loading expenses: $e'),
+              error: (e, _) =>
+                  Text('Error loading expenses: ${apiErrorMessage(e)}'),
             ),
 
             const SizedBox(height: 24),
@@ -386,6 +392,7 @@ class GroupDetailScreen extends ConsumerWidget {
                           await ref
                               .read(groupRepositoryProvider)
                               .leaveGroup(group.id, user!.uid);
+                          ref.invalidate(userGroupsProvider);
                           HapticFeedback.mediumImpact();
                           if (context.mounted) {
                             Navigator.pop(context);
@@ -400,7 +407,9 @@ class GroupDetailScreen extends ConsumerWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Failed to leave: $e'),
+                                content: Text(
+                                  'Failed to leave: ${apiErrorMessage(e)}',
+                                ),
                                 backgroundColor: AppColors.error,
                               ),
                             );
@@ -472,6 +481,7 @@ class GroupDetailScreen extends ConsumerWidget {
                           await ref
                               .read(groupRepositoryProvider)
                               .deleteGroup(group.id, user!.uid);
+                          ref.invalidate(userGroupsProvider);
                           HapticFeedback.mediumImpact();
                           if (context.mounted) {
                             Navigator.pop(context);
@@ -486,7 +496,9 @@ class GroupDetailScreen extends ConsumerWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Failed to delete: $e'),
+                                content: Text(
+                                  'Failed to delete: ${apiErrorMessage(e)}',
+                                ),
                                 backgroundColor: AppColors.error,
                               ),
                             );
@@ -583,7 +595,7 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to invite: $e'),
+            content: Text('Failed to invite: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -708,6 +720,15 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
     super.dispose();
   }
 
+  /// Unknown permissions fall back to "is the creator".
+  bool get _canManageSettings =>
+      widget.group.myPermissions?.canManageSettings ??
+      widget.group.createdBy == widget.ref.read(currentUserProvider)?.uid;
+
+  bool get _settingsChanged =>
+      _requireApproval != widget.group.settings.requireApproval ||
+      _allowMemberInvites != widget.group.settings.allowMemberInvites;
+
   Future<void> _save() async {
     final name = _nameController.text.trim();
     if (name.isEmpty) return;
@@ -725,11 +746,15 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
               'description': _descController.text.trim(),
               'icon': _icon,
               'color': _color,
-              'settings': {
-                ...widget.group.settings.toMap(),
-                'requireApproval': _requireApproval,
-                'allowMemberInvites': _allowMemberInvites,
-              },
+              // Only send settings when they changed: the server allows only
+              // the owner to change them, so always sending them blocked
+              // admins from saving a plain rename.
+              if (_settingsChanged)
+                'settings': {
+                  ...widget.group.settings.toMap(),
+                  'requireApproval': _requireApproval,
+                  'allowMemberInvites': _allowMemberInvites,
+                },
             },
           );
       _refreshGroupCaches(widget.ref, widget.group.id);
@@ -747,7 +772,7 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update: $e'),
+            content: Text('Failed to update: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -868,50 +893,53 @@ class _EditGroupSheetState extends State<_EditGroupSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Settings section
-          Text(
-            'Settings',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 4),
-          SwitchListTile(
-            title: const Text(
-              'Require expense approval',
-              style: TextStyle(fontSize: 15),
-            ),
-            subtitle: Text(
-              'Admins must approve member expenses',
+          // Settings section: only people allowed to change group settings
+          // (the owner) see it; the server refuses the change for others.
+          if (_canManageSettings) ...[
+            Text(
+              'Settings',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            value: _requireApproval,
-            onChanged: (v) => setState(() => _requireApproval = v),
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
-            contentPadding: EdgeInsets.zero,
-          ),
-          SwitchListTile(
-            title: const Text(
-              'Allow member invites',
-              style: TextStyle(fontSize: 15),
-            ),
-            subtitle: Text(
-              'Members can invite others to the group',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+            const SizedBox(height: 4),
+            SwitchListTile(
+              title: const Text(
+                'Require expense approval',
+                style: TextStyle(fontSize: 15),
               ),
+              subtitle: Text(
+                'Admins must approve member expenses',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              value: _requireApproval,
+              onChanged: (v) => setState(() => _requireApproval = v),
+              activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+              contentPadding: EdgeInsets.zero,
             ),
-            value: _allowMemberInvites,
-            onChanged: (v) => setState(() => _allowMemberInvites = v),
-            activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
-            contentPadding: EdgeInsets.zero,
-          ),
+            SwitchListTile(
+              title: const Text(
+                'Allow member invites',
+                style: TextStyle(fontSize: 15),
+              ),
+              subtitle: Text(
+                'Members can invite others to the group',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              value: _allowMemberInvites,
+              onChanged: (v) => setState(() => _allowMemberInvites = v),
+              activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ],
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: _saving ? null : _save,
@@ -956,6 +984,10 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
   String _category = expenseCategories.first;
   DateTime _date = DateTime.now();
   bool _saving = false;
+  String? _amountError;
+
+  /// One `clientRequestId` per save, reused when the same save is retried.
+  final _saveAttempt = SaveAttemptId();
 
   @override
   void dispose() {
@@ -965,11 +997,16 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
   }
 
   Future<void> _pickDate() async {
+    final firstDate = DateTime(2020);
+    final lastDate = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      // Full keyboard so "/" can be typed; numeric pads on many
+      // Android keyboards have no separator key.
+      keyboardType: TextInputType.text,
+      initialDate: clampPickerDate(_date, firstDate, lastDate),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -979,28 +1016,34 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
     final amountText = _amountController.text.trim();
     if (vendor.isEmpty || amountText.isEmpty) return;
 
-    final amount = double.tryParse(amountText);
-    if (amount == null || amount <= 0) return;
+    final amount = parseAmount(amountText);
+    setState(() {
+      _amountError = amount == null ? 'Enter a valid amount' : null;
+    });
+    if (amount == null) return;
 
     setState(() => _saving = true);
     try {
       final dateStr = DateFormat('yyyy-MM-dd').format(_date);
       // Group expenses go through the API for atomic operations
       await widget.ref
-          .read(apiClientProvider)
-          .post(
-            ApiEndpoints.expenses,
-            data: {
-              'userId': widget.userId,
+          .read(expenseRepositoryProvider)
+          .saveExpense(
+            userId: widget.userId,
+            vendor: vendor,
+            amount: amount,
+            category: _category,
+            date: dateStr,
+            groupId: widget.groupId,
+            clientRequestId: _saveAttempt.idFor({
               'vendor': vendor,
               'amount': amount,
               'category': _category,
               'date': dateStr,
-              'groupId': widget.groupId,
-              'expenseType': 'group',
-            },
+            }),
           );
       _refreshGroupCaches(widget.ref, widget.groupId);
+      refreshExpenseData(widget.ref.invalidate);
       HapticFeedback.mediumImpact();
       if (mounted) {
         Navigator.pop(context);
@@ -1015,7 +1058,7 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to add expense: $e'),
+            content: Text("Couldn't add the expense. ${apiErrorMessage(e)}"),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1052,9 +1095,10 @@ class _AddGroupExpenseSheetState extends State<_AddGroupExpenseSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: _amountController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Amount',
-              prefixIcon: Icon(Icons.attach_money),
+              prefixIcon: const Icon(Icons.attach_money),
+              errorText: _amountError,
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
@@ -1305,9 +1349,7 @@ class _MemberTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final initial = (member.userName ?? member.userEmail)
-        .substring(0, 1)
-        .toUpperCase();
+    final initial = member.initial;
     // Can manage this member: must be owner/admin, member is not owner,
     // and the member is not the current user.
     final canManage =
@@ -1316,7 +1358,7 @@ class _MemberTile extends ConsumerWidget {
         member.userId != currentUserId;
 
     return Semantics(
-      label: '${member.userName ?? member.userEmail}, role: ${member.role}',
+      label: '${member.displayName}, role: ${member.role}',
       container: true,
       child: InkWell(
         onLongPress: canManage
@@ -1344,7 +1386,7 @@ class _MemberTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      member.userName ?? member.userEmail,
+                      member.displayName,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
@@ -1410,7 +1452,7 @@ class _MemberTile extends ConsumerWidget {
   }
 
   void _showMemberManagementSheet(BuildContext context, WidgetRef ref) {
-    final displayName = member.userName ?? member.userEmail;
+    final displayName = member.displayName;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
@@ -1511,7 +1553,7 @@ class _MemberTile extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${member.userName ?? member.userEmail} is now ${newRole[0].toUpperCase()}${newRole.substring(1)}',
+              '${member.displayName} is now ${newRole[0].toUpperCase()}${newRole.substring(1)}',
             ),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
@@ -1522,7 +1564,7 @@ class _MemberTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to change role: $e'),
+            content: Text('Failed to change role: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1607,9 +1649,7 @@ class _MemberTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '${member.userName ?? member.userEmail} has been removed',
-            ),
+            content: Text('${member.displayName} has been removed'),
             backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1619,7 +1659,7 @@ class _MemberTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove member: $e'),
+            content: Text('Failed to remove member: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1668,7 +1708,7 @@ class _OverflowMenu extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to set default: $e'),
+            content: Text('Failed to set default: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1703,7 +1743,7 @@ class _OverflowMenu extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to clear default: $e'),
+            content: Text('Failed to clear default: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1909,6 +1949,8 @@ class _PendingExpenseTile extends ConsumerWidget {
           .approveExpense(expenseId: expense.id, userId: user.uid);
       final groupId = expense.groupId;
       if (groupId != null) _refreshGroupCaches(ref, groupId);
+      // Approval changes what counts toward the dashboard totals.
+      refreshExpenseData(ref.invalidate);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1923,7 +1965,7 @@ class _PendingExpenseTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1951,6 +1993,8 @@ class _PendingExpenseTile extends ConsumerWidget {
           );
       final groupId = expense.groupId;
       if (groupId != null) _refreshGroupCaches(ref, groupId);
+      // Approval changes what counts toward the dashboard totals.
+      refreshExpenseData(ref.invalidate);
       HapticFeedback.mediumImpact();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1965,7 +2009,7 @@ class _PendingExpenseTile extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -2185,6 +2229,7 @@ class _GroupBudgetsSection extends ConsumerWidget {
                   final spent = expenses
                       .where(
                         (e) =>
+                            e.countsTowardTotals &&
                             e.category == budget.category &&
                             e.date.toDate().month == now.month &&
                             e.date.toDate().year == now.year,
@@ -2276,7 +2321,7 @@ class _GroupBudgetsSection extends ConsumerWidget {
           ),
           error: (e, _) => Padding(
             padding: const EdgeInsets.only(bottom: 24),
-            child: Text('Error loading budgets: $e'),
+            child: Text('Error loading budgets: ${apiErrorMessage(e)}'),
           ),
         ),
       ],
@@ -2381,8 +2426,8 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
 
   Future<void> _save() async {
     if (_selectedCategory == null || _limitController.text.isEmpty) return;
-    final limit = double.tryParse(_limitController.text);
-    if (limit == null || limit <= 0) return;
+    final limit = parseAmount(_limitController.text);
+    if (limit == null) return;
 
     setState(() => _saving = true);
     try {
@@ -2404,9 +2449,11 @@ class _AddGroupBudgetSheetState extends State<_AddGroupBudgetSheet> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to create budget: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create budget: ${apiErrorMessage(e)}'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -2626,8 +2673,8 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
     final name = _nameController.text.trim();
     final amountText = _amountController.text.trim();
     if (name.isEmpty || amountText.isEmpty) return;
-    final amount = double.tryParse(amountText);
-    if (amount == null || amount <= 0) return;
+    final amount = parseAmount(amountText);
+    if (amount == null) return;
 
     setState(() => _saving = true);
     try {
@@ -2661,7 +2708,7 @@ class _AddGroupIncomeSheetState extends State<_AddGroupIncomeSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -3006,8 +3053,8 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
   }
 
   Future<void> _save() async {
-    final amount = double.tryParse(_amountController.text.trim());
-    if (amount == null || amount <= 0) return;
+    final amount = parseAmount(_amountController.text);
+    if (amount == null) return;
     setState(() => _saving = true);
     try {
       final user = widget.ref.read(currentUserProvider);
@@ -3033,7 +3080,7 @@ class _AddContributionSheetState extends State<_AddContributionSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -3138,9 +3185,9 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
     final targetText = _targetController.text.trim();
     final contribText = _contributionController.text.trim();
     if (name.isEmpty || targetText.isEmpty) return;
-    final target = double.tryParse(targetText);
-    if (target == null || target <= 0) return;
-    final contribution = double.tryParse(contribText) ?? 0;
+    final target = parseAmount(targetText);
+    if (target == null) return;
+    final contribution = parseAmount(contribText) ?? 0;
 
     setState(() => _saving = true);
     try {
@@ -3173,7 +3220,7 @@ class _AddGroupSavingsSheetState extends State<_AddGroupSavingsSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );

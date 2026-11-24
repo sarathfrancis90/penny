@@ -40,6 +40,7 @@ import { useGroupMembers } from "@/hooks/useGroupMembers";
 import { useAuth } from "@/hooks/useAuth";
 import { ArrowLeft, Crown, Shield, User, Eye, UserX, Loader2, UserPlus } from "lucide-react";
 import { GroupRole } from "@/lib/types";
+import { authFetch } from "@/lib/authFetch";
 
 interface MembersPageProps {
   params: Promise<{ id: string }>;
@@ -78,7 +79,7 @@ export default function MembersPage({ params }: MembersPageProps) {
     setActionLoading(true);
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/groups/${groupId}/members/${memberId}`,
         {
           method: "PUT",
@@ -110,7 +111,7 @@ export default function MembersPage({ params }: MembersPageProps) {
     setActionLoading(true);
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/groups/${groupId}/members/${removingMemberId}?action=remove&userId=${user.uid}`,
         {
           method: "DELETE",
@@ -141,7 +142,7 @@ export default function MembersPage({ params }: MembersPageProps) {
     setInviting(true);
 
     try {
-      const response = await fetch(`/api/groups/${groupId}/members`, {
+      const response = await authFetch(`/api/groups/${groupId}/members`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
@@ -14,6 +15,7 @@ import 'package:penny_mobile/presentation/widgets/chat_bubble.dart';
 import 'package:penny_mobile/presentation/widgets/expense_card.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
 import 'package:penny_mobile/presentation/widgets/sheet_header.dart';
+import 'package:penny_mobile/presentation/widgets/success_overlay.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -27,16 +29,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scrollController = ScrollController();
   final _focusNode = FocusNode();
   final _picker = ImagePicker();
-  final _saveTrigger = ValueNotifier<VoidCallback?>(null);
-  final _savingNotifier = ValueNotifier<bool>(false);
+  final _saveController = ExpenseSaveController();
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    _saveTrigger.dispose();
-    _savingNotifier.dispose();
+    _saveController.dispose();
     super.dispose();
   }
 
@@ -113,9 +113,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  /// Clear pending expenses after save or dismiss.
-  void _onExpenseSaved() {
-    ref.read(chatProvider.notifier).clearPendingExpenses();
+  /// A saved expense leaves the panel; the ones not saved yet stay.
+  void _onExpenseSaved(ParsedExpense expense) {
+    ref.read(chatProvider.notifier).removePendingExpense(expense);
+  }
+
+  /// "Confirm & Save": saves every pending expense card. Cards that could
+  /// not be saved stay on screen with their error.
+  Future<void> _saveAllPending() async {
+    final count = ref.read(chatProvider).pendingExpenses?.expenses.length ?? 0;
+    final result = await _saveController.saveAll();
+    if (!mounted || count < 2 || result.saved == 0) return;
+    // A single card shows its own confirmation; several get one summary.
+    SuccessOverlay.show(
+      context,
+      title: result.saved == 1
+          ? '1 expense saved'
+          : '${result.saved} expenses saved',
+      subtitle: result.failed == 0 ? 'All done' : '${result.failed} not saved',
+    );
   }
 
   void _onExpenseDismissed() {
@@ -232,6 +248,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
 
+            // Note about the pending expense (e.g. photo not attached)
+            if (chatState.notice != null)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
+                child: Text(
+                  chatState.notice!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+
             // Pending expense panel + action bar, OR input bar
             if (chatState.pendingExpenses != null) ...[
               _PendingExpensePanel(
@@ -239,12 +271,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 receiptUrl: chatState.receiptUrl,
                 onExpenseSaved: _onExpenseSaved,
                 onExpenseDismissed: _onExpenseDismissed,
-                saveTrigger: _saveTrigger,
-                savingNotifier: _savingNotifier,
+                saveController: _saveController,
               ),
               _ActionBar(
-                saveTrigger: _saveTrigger,
-                savingNotifier: _savingNotifier,
+                savingNotifier: _saveController.saving,
+                onSave: _saveAllPending,
                 onCancel: _onExpenseDismissed,
               ),
             ] else
@@ -272,16 +303,14 @@ class _PendingExpensePanel extends StatelessWidget {
     this.receiptUrl,
     this.onExpenseSaved,
     this.onExpenseDismissed,
-    this.saveTrigger,
-    this.savingNotifier,
+    this.saveController,
   });
 
   final AnalyzeExpenseResult pendingExpenses;
   final String? receiptUrl;
-  final VoidCallback? onExpenseSaved;
+  final ValueChanged<ParsedExpense>? onExpenseSaved;
   final VoidCallback? onExpenseDismissed;
-  final ValueNotifier<VoidCallback?>? saveTrigger;
-  final ValueNotifier<bool>? savingNotifier;
+  final ExpenseSaveController? saveController;
 
   @override
   Widget build(BuildContext context) {
@@ -331,12 +360,16 @@ class _PendingExpensePanel extends StatelessWidget {
                     child: Divider(height: 1, color: theme.dividerColor),
                   ),
                 ExpenseCard(
+                  // Keyed by its expense so each card keeps its own edits
+                  // when another card is saved and removed.
+                  key: ObjectKey(pendingExpenses.expenses[i]),
                   expense: pendingExpenses.expenses[i],
                   receiptUrl: receiptUrl,
-                  onSaved: onExpenseSaved,
+                  onSaved: () =>
+                      onExpenseSaved?.call(pendingExpenses.expenses[i]),
                   onDismiss: onExpenseDismissed,
-                  saveTrigger: saveTrigger,
-                  savingNotifier: savingNotifier,
+                  saveController: saveController,
+                  showSuccess: !isMultiple,
                 ),
               ],
             ],
@@ -351,13 +384,13 @@ class _PendingExpensePanel extends StatelessWidget {
 /// Replaces the [_InputBar] so the user sees Cancel / Confirm & Save.
 class _ActionBar extends StatelessWidget {
   const _ActionBar({
-    required this.saveTrigger,
     required this.savingNotifier,
+    required this.onSave,
     required this.onCancel,
   });
 
-  final ValueNotifier<VoidCallback?> saveTrigger;
   final ValueNotifier<bool> savingNotifier;
+  final VoidCallback onSave;
   final VoidCallback onCancel;
 
   @override
@@ -385,7 +418,7 @@ class _ActionBar extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: ElevatedButton.icon(
-                    onPressed: saving ? null : () => saveTrigger.value?.call(),
+                    onPressed: saving ? null : onSave,
                     icon: saving
                         ? const SizedBox(
                             width: 18,
@@ -422,53 +455,61 @@ class _EmptyState extends StatelessWidget {
       'How much did I spend this month?',
     ];
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 48,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Track an expense',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
+    return LayoutBuilder(
+      // Scrolls when the keyboard leaves too little room.
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 48,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Track an expense',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Describe an expense, upload a receipt,\nor ask about your spending',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.5),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: suggestions.map((s) {
+                      return ActionChip(
+                        label: Text(s),
+                        onPressed: () => onSuggestionTap(s),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Describe an expense, upload a receipt,\nor ask about your spending',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.5),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: suggestions.map((s) {
-                return ActionChip(
-                  label: Text(s),
-                  onPressed: () => onSuggestionTap(s),
-                );
-              }).toList(),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -518,7 +559,7 @@ class _MessageList extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(
         child: Text(
-          'Error loading messages: $e',
+          'Error loading messages: ${apiErrorMessage(e)}',
           style: const TextStyle(color: AppColors.error),
         ),
       ),
@@ -618,7 +659,9 @@ class _NotificationBell extends ConsumerWidget {
         label: Text('$unread', style: const TextStyle(fontSize: 10)),
         child: const Icon(Icons.notifications_outlined),
       ),
-      tooltip: unread > 0 ? '$unread unread notifications' : 'Notifications',
+      tooltip: unread > 0
+          ? '$unread unread notification${unread == 1 ? '' : 's'}'
+          : 'Notifications',
       onPressed: () => context.push('/notifications'),
     );
   }

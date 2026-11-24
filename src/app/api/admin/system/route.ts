@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
-import { isAdmin } from "@/lib/admin-auth";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { getAuth } from "firebase-admin/auth";
 import { withObservability } from "@/lib/observability/withObservability";
 
@@ -57,15 +57,12 @@ function estimateCollectionSize(docCount: number, avgDocSizeKB: number): string 
 }
 
 // GET - Get comprehensive system statistics
-async function getHandler() {
+async function getHandler(request: NextRequest) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     // Calculate time periods
     const now = new Date();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 let genAI: GoogleGenAI | null = null;
@@ -33,9 +33,10 @@ async function postHandler(
 ) {
   try {
     const { conversationId } = await params;
-    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json().catch(() => ({}));
-    const userId = tokenUserId ?? body?.userId;
+    const auth = await requireAuthenticatedUser(request, body?.userId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

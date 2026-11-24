@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
-import { isAdmin } from "@/lib/admin-auth";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { withObservability } from "@/lib/observability/withObservability";
 
 interface AnalyticsData {
@@ -17,13 +17,10 @@ interface AnalyticsData {
 // GET - Get analytics data
 async function getHandler(request: NextRequest) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get("days") || "30");

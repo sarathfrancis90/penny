@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
@@ -205,7 +206,7 @@ class _DashboardContent extends ConsumerWidget {
 
           // Total spending card
           _TotalCard(
-                total: filteredExpenses.fold(0.0, (sum, e) => sum + e.amount),
+                total: sumExpenses(filteredExpenses),
                 trend: trend,
                 lastTotal: lastTotal,
               )
@@ -402,7 +403,19 @@ class _PeriodSelector extends ConsumerWidget {
               ),
             ],
             selected: {selected},
+            // SegmentedButton ignores a tap on the segment that is already
+            // selected unless an empty selection is allowed. Allowing it lets
+            // the calendar segment reopen the picker while a custom range is
+            // active; the selection itself never becomes empty because it is
+            // driven by the provider.
+            emptySelectionAllowed: true,
             onSelectionChanged: (set) {
+              if (set.isEmpty) {
+                if (selected == DashboardPeriod.custom) {
+                  _showDateRangePicker(context, ref);
+                }
+                return;
+              }
               final period = set.first;
               if (period == DashboardPeriod.custom) {
                 _showDateRangePicker(context, ref);
@@ -426,11 +439,30 @@ class _PeriodSelector extends ConsumerWidget {
         ),
         if (selected == DashboardPeriod.custom && customRange != null)
           Padding(
-            padding: const EdgeInsets.only(top: 6, left: 4),
-            child: Text(
-              '${DateFormat('MMM d').format(customRange.start)} – ${DateFormat('MMM d, yyyy').format(customRange.end)}',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+            padding: const EdgeInsets.only(top: 2),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => _showDateRangePicker(context, ref),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${DateFormat(customRange.start.year == customRange.end.year ? 'MMM d' : 'MMM d, yyyy').format(customRange.start)} – ${DateFormat('MMM d, yyyy').format(customRange.end)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.edit_calendar_outlined,
+                      size: 14,
+                      color: theme.colorScheme.onSurfaceVariant,
+                      semanticLabel: 'Change date range',
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -442,6 +474,9 @@ class _PeriodSelector extends ConsumerWidget {
     final now = DateTime.now();
     final picked = await showDateRangePicker(
       context: context,
+      // Full keyboard so "/" can be typed; numeric pads on many
+      // Android keyboards have no separator key.
+      keyboardType: TextInputType.text,
       firstDate: DateTime(2020),
       lastDate: now,
       initialDateRange:
@@ -1268,7 +1303,7 @@ class _ExportSheetState extends State<_ExportSheet> {
   Future<void> _export() async {
     setState(() => _exporting = true);
     try {
-      final expenses = widget.ref.read(filteredExpensesProvider);
+      final expenses = widget.ref.read(filteredCountedExpensesProvider);
       final groups = widget.ref.read(userGroupsProvider).valueOrNull ?? [];
       final groupNames = {for (final g in groups) g.id: g.name};
       final period = widget.ref.read(dashboardPeriodProvider);
@@ -1311,7 +1346,7 @@ class _ExportSheetState extends State<_ExportSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Export failed: $e'),
+            content: Text('Export failed: ${apiErrorMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -1323,7 +1358,7 @@ class _ExportSheetState extends State<_ExportSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final expenses = widget.ref.read(filteredExpensesProvider);
+    final expenses = widget.ref.read(filteredCountedExpensesProvider);
     final period = widget.ref.read(dashboardPeriodProvider);
     final customRange = widget.ref.read(customDateRangeProvider);
     final filter = widget.ref.read(expenseFilterProvider);

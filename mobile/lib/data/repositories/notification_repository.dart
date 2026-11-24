@@ -17,9 +17,10 @@ class NotificationRepository {
       ApiEndpoints.notifications,
       queryParameters: {'userId': userId},
     );
-    return listValue(responseMap(response)['notifications'])
-        .map((json) => NotificationModel.fromFirestore(apiDocument(json)))
-        .toList();
+    return parseList(
+      responseMap(response)['notifications'],
+      NotificationModel.fromFirestore,
+    );
   }
 
   Future<void> markAsRead(String notificationId) async {

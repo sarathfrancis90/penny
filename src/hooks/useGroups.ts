@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./useAuth";
 import { Group, GroupMember } from "@/lib/types";
+import { authFetch } from "@/lib/authFetch";
 
 export interface GroupWithRole extends Group {
   myRole: string;
@@ -122,7 +123,7 @@ export function useGroups() {
       }
 
       try {
-        const response = await fetch("/api/groups", {
+        const response = await authFetch("/api/groups", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -165,7 +166,7 @@ export function useGroups() {
       }
 
       try {
-        const response = await fetch(`/api/groups/${groupId}`, {
+        const response = await authFetch(`/api/groups/${groupId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -197,7 +198,7 @@ export function useGroups() {
       }
 
       try {
-        const response = await fetch(`/api/groups/${groupId}?userId=${user.uid}`, {
+        const response = await authFetch(`/api/groups/${groupId}?userId=${user.uid}`, {
           method: "DELETE",
         });
 

@@ -58,7 +58,7 @@ class IncomeSourceModel {
       startDate: Timestamp.fromJson(data['startDate']),
       createdAt: Timestamp.fromJson(data['createdAt']),
       updatedAt: Timestamp.fromJson(data['updatedAt']),
-      recurringDate: data['recurringDate'] as int?,
+      recurringDate: (data['recurringDate'] as num?)?.toInt(),
       endDate: Timestamp.tryParse(data['endDate']),
       description: data['description'] as String?,
       netAmount: (data['netAmount'] as num?)?.toDouble(),
@@ -94,7 +94,7 @@ class IncomeSourceModel {
       'biweekly' => '/2wk',
       'weekly' => '/wk',
       'yearly' => '/yr',
-      'once' => 'one-time',
+      'once' => ' one-time',
       _ => '',
     };
   }

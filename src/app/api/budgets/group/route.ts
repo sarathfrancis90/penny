@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -12,6 +12,7 @@ async function isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
     .collection("groupMembers")
     .where("groupId", "==", groupId)
     .where("userId", "==", userId)
+    .where("status", "==", "active")
     .get();
 
   if (memberDoc.empty) {
@@ -30,8 +31,9 @@ async function isGroupAdmin(groupId: string, userId: string): Promise<boolean> {
 async function getHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const tokenUserId = await getAuthenticatedUserId(request);
-    const userId = tokenUserId || searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
     const groupId = searchParams.get("groupId");
     const category = searchParams.get("category");
     const month = searchParams.get("month");
@@ -56,6 +58,7 @@ async function getHandler(request: NextRequest) {
       .collection("groupMembers")
       .where("groupId", "==", groupId)
       .where("userId", "==", userId)
+      .where("status", "==", "active")
       .get();
 
     if (memberDoc.empty) {
@@ -102,10 +105,11 @@ async function getHandler(request: NextRequest) {
  */
 async function postHandler(request: NextRequest) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
     const { userId: bodyUserId, groupId, category, monthlyLimit, period, settings } = body;
-    const userId = tokenUserId || bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     // Validation
     if (!userId || !groupId || !category || !monthlyLimit || !period) {
@@ -149,6 +153,7 @@ async function postHandler(request: NextRequest) {
       .collection("groupMembers")
       .where("groupId", "==", groupId)
       .where("userId", "==", userId)
+      .where("status", "==", "active")
       .get();
 
     const userRole = memberDoc.docs[0].data().role;

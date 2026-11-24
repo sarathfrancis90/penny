@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { Timestamp } from "firebase-admin/firestore";
 import { withObservability } from "@/lib/observability/withObservability";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 
 /**
  * GET /api/conversations/[conversationId]
@@ -14,7 +15,9 @@ async function getHandler(
   try {
     const { conversationId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -86,7 +89,10 @@ async function patchHandler(
   try {
     const { conversationId } = await params;
     const body = await request.json();
-    const { userId, title, summary, isPinned, status } = body;
+    const { userId: bodyUserId, title, summary, isPinned, status } = body;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -158,7 +164,9 @@ async function deleteHandler(
   try {
     const { conversationId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(

@@ -3,7 +3,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { DEFAULT_ROLE_PERMISSIONS, GroupRole } from "@/lib/types";
 import { PushService } from "@/lib/services/pushService";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -15,10 +15,11 @@ async function patchHandler(
 ) {
   try {
     const { groupId, memberId } = await params;
-    const tokenUserId = await getAuthenticatedUserId(request);
     const body = await request.json();
     const { newRole, userId: bodyUserId } = body;
-    const userId = tokenUserId || bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -48,7 +49,7 @@ async function patchHandler(
       .doc(`${groupId}_${userId}`)
       .get();
 
-    if (!requesterMembershipDoc.exists) {
+    if (!requesterMembershipDoc.exists || requesterMembershipDoc.data()?.status !== "active") {
       return NextResponse.json(
         { error: "Not a member of this group" },
         { status: 403 }
@@ -79,7 +80,7 @@ async function patchHandler(
       .doc(memberId)
       .get();
 
-    if (!targetMemberDoc.exists) {
+    if (!targetMemberDoc.exists || targetMemberDoc.data()?.groupId !== groupId) {
       return NextResponse.json(
         { error: "Member not found" },
         { status: 404 }
@@ -132,7 +133,7 @@ async function patchHandler(
     });
 
     // Log activity
-    await adminDb.collection("groupActivity").add({
+    await adminDb.collection("groupActivities").add({
       groupId,
       userId: userId,
       userName: requesterData.userName || requesterData.userEmail || "Admin",
@@ -217,8 +218,9 @@ async function deleteHandler(
   try {
     const { groupId, memberId } = await params;
     const { searchParams } = new URL(request.url);
-    const tokenUserId = await getAuthenticatedUserId(request);
-    const userId = tokenUserId || searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
     const action = searchParams.get("action"); // "leave" or "remove"
 
     if (!userId) {
@@ -234,7 +236,7 @@ async function deleteHandler(
       .doc(memberId)
       .get();
 
-    if (!targetMemberDoc.exists) {
+    if (!targetMemberDoc.exists || targetMemberDoc.data()?.groupId !== groupId) {
       return NextResponse.json(
         { error: "Member not found" },
         { status: 404 }
@@ -276,7 +278,7 @@ async function deleteHandler(
       });
 
       // Log activity
-      await adminDb.collection("groupActivity").add({
+      await adminDb.collection("groupActivities").add({
         groupId,
         userId: userId,
         userName: targetMemberData.userName || targetMemberData.userEmail || "Member",
@@ -349,7 +351,7 @@ async function deleteHandler(
       .doc(`${groupId}_${userId}`)
       .get();
 
-    if (!requesterMembershipDoc.exists) {
+    if (!requesterMembershipDoc.exists || requesterMembershipDoc.data()?.status !== "active") {
       return NextResponse.json(
         { error: "Not a member of this group" },
         { status: 403 }
@@ -399,7 +401,7 @@ async function deleteHandler(
     });
 
     // Log activity
-    await adminDb.collection("groupActivity").add({
+    await adminDb.collection("groupActivities").add({
       groupId,
       userId: userId,
       userName: requesterData.userName || requesterData.userEmail || "Admin",

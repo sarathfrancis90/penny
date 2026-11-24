@@ -90,10 +90,8 @@ export function IncomeSourceForm({
         submitData.description = formData.description.trim();
       }
 
+      // The page shows the success message, only once the save worked.
       await onSubmit(submitData as Partial<PersonalIncomeSource>);
-      toast.success(
-        initialData ? 'Income source updated successfully' : 'Income source created successfully'
-      );
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to save income source');

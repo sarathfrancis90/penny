@@ -3,7 +3,7 @@
 import { AppLayout } from "@/components/app-layout";
 import { useGroups } from "@/hooks/useGroups";
 import { useGroupStats } from "@/hooks/useGroupStats";
-import { CreateGroupDialog } from "@/components/groups";
+import { CreateGroupDialog, GroupInvitations } from "@/components/groups";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, DollarSign, Calendar, TrendingUp, ChevronRight } from "lucide-react";
@@ -43,6 +43,15 @@ export default function GroupsPage() {
             {error}
           </div>
         )}
+
+        {/* Pending Invitations */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Users className="h-6 w-6 text-violet-500" />
+            Pending Invitations
+          </h2>
+          <GroupInvitations />
+        </div>
 
         {/* Groups List */}
         <div className="space-y-4">

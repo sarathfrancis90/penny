@@ -69,9 +69,10 @@ class GroupBudgetRepository {
         'year': period.year,
       },
     );
-    return listValue(
+    return parseList(
       responseMap(response)['budgets'],
-    ).map(GroupBudgetModel.fromJson).toList();
+      (doc) => GroupBudgetModel.fromJson(doc.data()),
+    );
   }
 
   Future<String> createGroupBudget({

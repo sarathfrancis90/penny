@@ -4,6 +4,7 @@ import {
   type Query,
 } from 'firebase-admin/firestore';
 
+import { calendarDateInZone, parseCalendarDate } from './dates';
 import type {
   BudgetPeriod,
   BudgetQueryInput,
@@ -20,9 +21,15 @@ import {
   type NotificationService,
 } from './notifications';
 
-function currentPeriod(): BudgetPeriod {
-  const now = new Date();
-  return { month: now.getMonth() + 1, year: now.getFullYear() };
+/**
+ * The budget month it is for Penny's (Canadian) users. The server runs in
+ * UTC, where the evening of the last day of a month is already next month.
+ */
+export function currentPeriod(now: Date = new Date()): BudgetPeriod {
+  const today = parseCalendarDate(calendarDateInZone(now));
+  return today
+    ? { month: today.month, year: today.year }
+    : { month: now.getMonth() + 1, year: now.getFullYear() };
 }
 
 function previousPeriod(period: BudgetPeriod): BudgetPeriod {

@@ -69,7 +69,15 @@ class PennyApp extends ConsumerWidget {
             );
           };
         }
-        return child ?? const SizedBox.shrink();
+        // Tapping outside a text field closes the keyboard. The iPhone number
+        // pad has no Done key, so without this an open keypad can cover
+        // buttons such as "Confirm & Save". Buttons and fields still get
+        // their own taps first.
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: child ?? const SizedBox.shrink(),
+        );
       },
     );
   }

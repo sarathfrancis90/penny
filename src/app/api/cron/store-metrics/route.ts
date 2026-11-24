@@ -14,7 +14,8 @@ interface PlatformResult {
 async function handler(req: NextRequest) {
   // Vercel Cron auth: Vercel injects `Authorization: Bearer <CRON_SECRET>` on scheduled invocations.
   const auth = req.headers.get('authorization');
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  // An unset CRON_SECRET must not let "Bearer undefined" through.
+  if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },

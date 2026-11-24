@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   getConsentState,
@@ -10,10 +10,18 @@ import { onConsentChange } from '@/lib/observability/posthog';
 
 /**
  * First-visit consent banner. Gates PostHog capture opt-in.
- * Only renders when consent state is "unset".
+ * Only renders when consent state is "unset" (checked after mount).
  */
 export function ConsentBanner() {
-  const [visible, setVisible] = useState(() => getConsentState() === 'unset');
+  // Decide after mount: the server can't read the consent cookie, so deciding
+  // during render would mismatch the server HTML and break hydration.
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    // Reading a browser-only cookie after mount is the intended sync here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setVisible(getConsentState() === 'unset');
+  }, []);
 
   if (!visible) return null;
 

@@ -34,10 +34,8 @@ export function createFirestoreUserPreferenceService(
 ): UserPreferenceService {
   return {
     async getDefaultGroup(input) {
+      // A user who has never saved a profile simply has no default group.
       const userDoc = await db.collection('users').doc(input.userId).get();
-      if (!userDoc.exists) {
-        throw Object.assign(new Error('User not found'), { statusCode: 404 });
-      }
       const user = userDoc.data() ?? {};
       return {
         defaultGroupId:

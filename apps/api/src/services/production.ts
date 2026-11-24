@@ -10,6 +10,7 @@ import { createFirestoreNotificationService } from './notifications';
 import { initializeFirebaseAdmin } from './firebase-admin';
 import { createUnavailableAiService } from './ai';
 import { createGeminiAiService } from './gemini-ai';
+import { createFirestoreSpendingSummary } from './spending-summary';
 import type { ApiServices } from './index';
 import type { AuthVerifier } from '../app';
 
@@ -22,14 +23,21 @@ export function createProductionServices(): ApiServices {
   );
 
   return {
-    accounts: createFirestoreAccountService(firebase.db, firebase.auth),
+    accounts: createFirestoreAccountService(
+      firebase.db,
+      firebase.auth,
+      firebase.storage,
+    ),
     ai: env.geminiApiKey
-      ? createGeminiAiService(env.geminiApiKey)
+      ? createGeminiAiService(env.geminiApiKey, {
+          model: env.geminiModel,
+          spendingSummary: createFirestoreSpendingSummary(firebase.db),
+        })
       : createUnavailableAiService(),
     budgets: createFirestoreBudgetService(firebase.db, notifications),
     conversations: createFirestoreConversationService(firebase.db),
     expenses: createFirestoreExpenseService(firebase.db, notifications),
-    groups: createFirestoreGroupService(firebase.db, notifications),
+    groups: createFirestoreGroupService(firebase.db, notifications, firebase.auth),
     mobileData: createFirestoreMobileDataService(
       firebase.db,
       firebase.auth,

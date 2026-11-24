@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:penny_mobile/core/network/api_client.dart';
 import 'package:penny_mobile/core/network/api_endpoints.dart';
 import 'package:penny_mobile/data/models/expense_model.dart';
@@ -34,6 +35,30 @@ class DuplicateDetector {
       addedBy: data['userId'] as String?,
       requestingUserId: userId,
     );
+  }
+
+  /// Like [checkForDuplicate], but a failed check (network or API error)
+  /// counts as "no duplicate found": the check is a convenience and must
+  /// never stop an expense from being saved.
+  Future<DuplicateResult?> checkForDuplicateOrNull({
+    required String vendor,
+    required double amount,
+    required DateTime date,
+    required String userId,
+    String? groupId,
+  }) async {
+    try {
+      return await checkForDuplicate(
+        vendor: vendor,
+        amount: amount,
+        date: date,
+        userId: userId,
+        groupId: groupId,
+      );
+    } catch (error) {
+      debugPrint('[Duplicates] Check failed, saving without it: $error');
+      return null;
+    }
   }
 
   String _dateString(DateTime date) {

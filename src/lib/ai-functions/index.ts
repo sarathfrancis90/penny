@@ -1,10 +1,22 @@
 /**
  * AI Function Implementations
- * 
+ *
  * Server-side functions that the AI agent can call to answer user queries.
  * Each function fetches data from Firestore and returns formatted results.
+ *
+ * These run with the Admin SDK, so security rules do not apply: every group
+ * read is gated on the caller's active membership here.
+ *
+ * Document shapes (src/lib/types.ts):
+ * - expenses.date is a Timestamp stored at local noon of the calendar day;
+ *   the AI speaks YYYY-MM-DD, so we convert both ways.
+ * - Group expenses carry groupId + expenseType 'group' and belong to the
+ *   whole group, not only to the member who logged them.
+ * - budgets_group documents have no userId (setBy is the author).
+ * - Budgets are per month: period { month: 1-12, year }.
  */
 
+import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Expense } from "@/lib/types";
 import {
@@ -16,6 +28,140 @@ import {
   RecentExpensesParams,
   ComparePeriodsParams,
 } from "@/lib/gemini-functions";
+
+/** Upper bound on documents read when filtering in memory. */
+const MAX_SCAN = 1000;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function parseDay(value: string, field: string): [number, number, number] {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? "");
+  if (!match) {
+    throw new Error(`${field} must be a date in YYYY-MM-DD format`);
+  }
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const check = new Date(year, month - 1, day);
+  if (check.getFullYear() !== year || check.getMonth() !== month - 1 || check.getDate() !== day) {
+    throw new Error(`${field} must be a date in YYYY-MM-DD format`);
+  }
+  return [year, month, day];
+}
+
+/** Start of a calendar day (inclusive lower bound). */
+function startOfDay(value: string, field: string): Timestamp {
+  const [y, m, d] = parseDay(value, field);
+  return Timestamp.fromDate(new Date(y, m - 1, d, 0, 0, 0, 0));
+}
+
+/** End of a calendar day (inclusive upper bound). */
+function endOfDay(value: string, field: string): Timestamp {
+  const [y, m, d] = parseDay(value, field);
+  return Timestamp.fromDate(new Date(y, m - 1, d, 23, 59, 59, 999));
+}
+
+function toDayString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Expense date (Timestamp, legacy string or Date) as YYYY-MM-DD. */
+function formatExpenseDate(value: unknown): string | null {
+  if (value instanceof Timestamp) return toDayString(value.toDate());
+  if (value instanceof Date) return toDayString(value);
+  if (typeof value === "string") return value.slice(0, 10);
+  if (value && typeof (value as { toDate?: unknown }).toDate === "function") {
+    return toDayString((value as { toDate: () => Date }).toDate());
+  }
+  return null;
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+/** Throws unless the user is an active member of the group. */
+async function assertActiveMember(userId: string, groupId: string): Promise<void> {
+  const membership = await adminDb
+    .collection("groupMembers")
+    .doc(`${groupId}_${userId}`)
+    .get();
+  if (!membership.exists || membership.data()?.status !== "active") {
+    throw new Error("You are not an active member of this group");
+  }
+}
+
+interface ExpenseScope {
+  userId: string;
+  groupId?: string;
+  startDate?: string;
+  endDate?: string;
+  limit?: number;
+}
+
+/**
+ * Fetches expenses newest first. Without a groupId: the user's own
+ * expenses. With a groupId: every member's expenses in that group (after a
+ * membership check). Served by the (userId, date DESC) and
+ * (expenseType, groupId, date DESC) composite indexes.
+ */
+async function fetchExpenses(scope: ExpenseScope): Promise<Expense[]> {
+  const { userId, groupId, startDate, endDate, limit = MAX_SCAN } = scope;
+
+  let query = groupId
+    ? adminDb
+        .collection("expenses")
+        .where("groupId", "==", groupId)
+        .where("expenseType", "==", "group")
+    : adminDb.collection("expenses").where("userId", "==", userId);
+
+  if (groupId) {
+    await assertActiveMember(userId, groupId);
+  }
+  if (startDate) {
+    query = query.where("date", ">=", startOfDay(startDate, "startDate"));
+  }
+  if (endDate) {
+    query = query.where("date", "<=", endOfDay(endDate, "endDate"));
+  }
+
+  const snapshot = await query.orderBy("date", "desc").limit(limit).get();
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Expense));
+}
+
+function sumAmounts(expenses: Expense[]): number {
+  return expenses.reduce((sum, e) => sum + (typeof e.amount === "number" ? e.amount : 0), 0);
+}
+
+function describeExpense(e: Expense) {
+  return {
+    id: e.id,
+    vendor: e.vendor,
+    amount: e.amount,
+    date: formatExpenseDate(e.date),
+    category: e.category,
+    description: e.description,
+    groupId: e.groupId || null,
+  };
+}
+
+/** Every { month, year } touched by [start, end]. */
+function monthsBetween(start: Date, end: Date): Array<{ month: number; year: number }> {
+  const months: Array<{ month: number; year: number }> = [];
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  while (cursor <= end) {
+    months.push({ month: cursor.getMonth() + 1, year: cursor.getFullYear() });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return months;
+}
+
+// ---------------------------------------------------------------------------
+// Functions
+// ---------------------------------------------------------------------------
 
 /**
  * Get budget status for categories
@@ -45,52 +191,48 @@ export async function getBudgetStatus(
       break;
   }
 
-  // Fetch budgets
-  const budgetCollection = groupId ? "budgets_group" : "budgets_personal";
-  let budgetQuery = adminDb.collection(budgetCollection).where("userId", "==", userId);
+  const startDay = toDayString(startDate);
+  const endDay = toDayString(endDate);
 
   if (groupId) {
-    budgetQuery = budgetQuery.where("groupId", "==", groupId);
+    await assertActiveMember(userId, groupId);
   }
 
-  if (category) {
-    budgetQuery = budgetQuery.where("category", "==", category);
+  // Budgets are monthly documents: sum the limits of every month in range.
+  const limits = new Map<string, number>();
+  for (const { month, year } of monthsBetween(startDate, endDate)) {
+    let budgetQuery = groupId
+      ? adminDb.collection("budgets_group").where("groupId", "==", groupId)
+      : adminDb.collection("budgets_personal").where("userId", "==", userId);
+    budgetQuery = budgetQuery
+      .where("period.month", "==", month)
+      .where("period.year", "==", year);
+    if (category) {
+      budgetQuery = budgetQuery.where("category", "==", category);
+    }
+    const snapshot = await budgetQuery.get();
+    for (const doc of snapshot.docs) {
+      const budget = doc.data();
+      if (typeof budget.monthlyLimit !== "number") continue;
+      limits.set(budget.category, (limits.get(budget.category) ?? 0) + budget.monthlyLimit);
+    }
   }
 
-  const budgetsSnapshot = await budgetQuery.get();
+  // Personal budgets track personal expenses only (as /api/budgets/usage
+  // does); group budgets track all of the group's expenses.
+  const expenses = (
+    await fetchExpenses({ userId, groupId, startDate: startDay, endDate: endDay })
+  ).filter((e) => (groupId ? true : !e.groupId));
 
-  // Fetch actual spending
-  let expenseQuery = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .where("date", ">=", startDate.toISOString().split("T")[0])
-    .where("date", "<=", endDate.toISOString().split("T")[0]);
-
-  if (groupId) {
-    expenseQuery = expenseQuery.where("groupId", "==", groupId);
-  }
-
-  const expensesSnapshot = await expenseQuery.get();
-  const expenses: Expense[] = expensesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  // Calculate budget status
-  const budgetStatus = budgetsSnapshot.docs.map((doc) => {
-    const budget = doc.data();
-    const categoryExpenses = expenses.filter(
-      (e) => e.category === budget.category
-    );
-    const spent = categoryExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const remaining = budget.monthlyLimit - spent;
-    const percentUsed = (spent / budget.monthlyLimit) * 100;
+  const budgetStatus = Array.from(limits.entries()).map(([budgetCategory, limit]) => {
+    const spent = round2(sumAmounts(expenses.filter((e) => e.category === budgetCategory)));
+    const percentUsed = limit > 0 ? (spent / limit) * 100 : 0;
 
     return {
-      category: budget.category,
-      limit: budget.monthlyLimit,
+      category: budgetCategory,
+      limit,
       spent,
-      remaining,
+      remaining: round2(limit - spent),
       percentUsed: Math.round(percentUsed),
       status:
         percentUsed >= 100
@@ -105,11 +247,12 @@ export async function getBudgetStatus(
 
   return {
     period,
-    startDate: startDate.toISOString().split("T")[0],
-    endDate: endDate.toISOString().split("T")[0],
+    startDate: startDay,
+    endDate: endDay,
+    groupId: groupId || null,
     budgets: budgetStatus,
-    totalBudget: budgetStatus.reduce((sum, b) => sum + b.limit, 0),
-    totalSpent: budgetStatus.reduce((sum, b) => sum + b.spent, 0),
+    totalBudget: round2(budgetStatus.reduce((sum, b) => sum + b.limit, 0)),
+    totalSpent: round2(budgetStatus.reduce((sum, b) => sum + b.spent, 0)),
   };
 }
 
@@ -122,31 +265,17 @@ export async function getExpenseSummary(
 ) {
   const { startDate, endDate, groupId } = params;
 
-  let query = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .where("date", ">=", startDate)
-    .where("date", "<=", endDate);
+  const expenses = await fetchExpenses({ userId, groupId, startDate, endDate });
 
-  if (groupId) {
-    query = query.where("groupId", "==", groupId);
-  }
-
-  const snapshot = await query.get();
-  const expenses: Expense[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalAmount = sumAmounts(expenses);
   const avgAmount = expenses.length > 0 ? totalAmount / expenses.length : 0;
 
   return {
     startDate,
     endDate,
     totalExpenses: expenses.length,
-    totalAmount: Math.round(totalAmount * 100) / 100,
-    averageAmount: Math.round(avgAmount * 100) / 100,
+    totalAmount: round2(totalAmount),
+    averageAmount: round2(avgAmount),
     groupId: groupId || null,
   };
 }
@@ -160,21 +289,7 @@ export async function getCategoryBreakdown(
 ) {
   const { startDate, endDate, groupId, limit = 10 } = params;
 
-  let query = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .where("date", ">=", startDate)
-    .where("date", "<=", endDate);
-
-  if (groupId) {
-    query = query.where("groupId", "==", groupId);
-  }
-
-  const snapshot = await query.get();
-  const expenses: Expense[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
+  const expenses = await fetchExpenses({ userId, groupId, startDate, endDate });
 
   // Group by category
   const categoryMap = new Map<string, { amount: number; count: number }>();
@@ -187,15 +302,15 @@ export async function getCategoryBreakdown(
     });
   });
 
-  const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalAmount = sumAmounts(expenses);
 
   // Convert to array and calculate percentages
   const breakdown = Array.from(categoryMap.entries())
     .map(([category, data]) => ({
       category,
-      amount: Math.round(data.amount * 100) / 100,
+      amount: round2(data.amount),
       count: data.count,
-      percentage: Math.round((data.amount / totalAmount) * 100),
+      percentage: totalAmount > 0 ? Math.round((data.amount / totalAmount) * 100) : 0,
     }))
     .sort((a, b) => b.amount - a.amount)
     .slice(0, limit);
@@ -203,7 +318,8 @@ export async function getCategoryBreakdown(
   return {
     startDate,
     endDate,
-    totalAmount: Math.round(totalAmount * 100) / 100,
+    groupId: groupId || null,
+    totalAmount: round2(totalAmount),
     categories: breakdown,
   };
 }
@@ -217,42 +333,19 @@ export async function getGroupExpenses(
 ) {
   const { groupId, startDate, endDate, limit = 50 } = params;
 
-  let query = adminDb
-    .collection("expenses")
-    .where("groupId", "==", groupId)
-    .orderBy("date", "desc")
-    .limit(limit);
-
-  if (startDate) {
-    query = query.where("date", ">=", startDate);
-  }
-
-  if (endDate) {
-    query = query.where("date", "<=", endDate);
-  }
-
-  const snapshot = await query.get();
-  const expenses: Expense[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const expenses = await fetchExpenses({ userId, groupId, startDate, endDate, limit });
 
   return {
     groupId,
     startDate: startDate || null,
     endDate: endDate || null,
     totalExpenses: expenses.length,
-    totalAmount: Math.round(totalAmount * 100) / 100,
-    expenses: expenses.map((e) => ({
-      id: e.id,
-      vendor: e.vendor,
-      amount: e.amount,
-      date: e.date,
-      category: e.category,
-      description: e.description,
-    })),
+    totalAmount: round2(sumAmounts(expenses)),
+    expenses: expenses.map((e) => {
+      const { groupId: _groupId, ...rest } = describeExpense(e);
+      void _groupId;
+      return { ...rest, userId: e.userId };
+    }),
   };
 }
 
@@ -274,39 +367,17 @@ export async function searchExpenses(
     limit = 20,
   } = params;
 
-  let query = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .limit(limit);
+  let expenses = await fetchExpenses({ userId, groupId, startDate, endDate });
 
-  // Apply filters
+  // Filter in memory, then apply the limit, so a vendor or amount filter is
+  // not limited to the first N documents.
   if (category) {
-    query = query.where("category", "==", category);
+    expenses = expenses.filter((e) => e.category === category);
   }
 
-  if (groupId) {
-    query = query.where("groupId", "==", groupId);
-  }
-
-  if (startDate) {
-    query = query.where("date", ">=", startDate);
-  }
-
-  if (endDate) {
-    query = query.where("date", "<=", endDate);
-  }
-
-  const snapshot = await query.get();
-  let expenses: Expense[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  // Client-side filters (Firestore limitations)
   if (vendor) {
-    expenses = expenses.filter((e) =>
-      e.vendor.toLowerCase().includes(vendor.toLowerCase())
-    );
+    const needle = vendor.toLowerCase();
+    expenses = expenses.filter((e) => (e.vendor ?? "").toLowerCase().includes(needle));
   }
 
   if (minAmount !== undefined) {
@@ -317,22 +388,17 @@ export async function searchExpenses(
     expenses = expenses.filter((e) => e.amount <= maxAmount);
   }
 
+  const results = expenses.slice(0, limit);
+
   return {
-    totalResults: expenses.length,
-    expenses: expenses.map((e) => ({
-      id: e.id,
-      vendor: e.vendor,
-      amount: e.amount,
-      date: e.date,
-      category: e.category,
-      description: e.description,
-      groupId: e.groupId || null,
-    })),
+    totalResults: results.length,
+    totalMatches: expenses.length,
+    expenses: results.map(describeExpense),
   };
 }
 
 /**
- * Get recent expenses
+ * Get recent expenses (newest expense date first)
  */
 export async function getRecentExpenses(
   userId: string,
@@ -340,36 +406,12 @@ export async function getRecentExpenses(
 ) {
   const { limit = 10, groupId } = params;
 
-  let query = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .orderBy("createdAt", "desc")
-    .limit(limit);
-
-  if (groupId) {
-    query = query.where("groupId", "==", groupId);
-  }
-
-  const snapshot = await query.get();
-  const expenses: Expense[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const expenses = await fetchExpenses({ userId, groupId, limit });
 
   return {
     totalExpenses: expenses.length,
-    totalAmount: Math.round(totalAmount * 100) / 100,
-    expenses: expenses.map((e) => ({
-      id: e.id,
-      vendor: e.vendor,
-      amount: e.amount,
-      date: e.date,
-      category: e.category,
-      description: e.description,
-      groupId: e.groupId || null,
-    })),
+    totalAmount: round2(sumAmounts(expenses)),
+    expenses: expenses.map(describeExpense),
   };
 }
 
@@ -382,50 +424,17 @@ export async function comparePeriods(
 ) {
   const { period1Start, period1End, period2Start, period2End, category, groupId } = params;
 
-  // Fetch Period 1 expenses
-  let query1 = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .where("date", ">=", period1Start)
-    .where("date", "<=", period1End);
+  const inCategory = (e: Expense) => !category || e.category === category;
 
-  if (category) {
-    query1 = query1.where("category", "==", category);
-  }
+  const expenses1 = (
+    await fetchExpenses({ userId, groupId, startDate: period1Start, endDate: period1End })
+  ).filter(inCategory);
+  const expenses2 = (
+    await fetchExpenses({ userId, groupId, startDate: period2Start, endDate: period2End })
+  ).filter(inCategory);
 
-  if (groupId) {
-    query1 = query1.where("groupId", "==", groupId);
-  }
-
-  const snapshot1 = await query1.get();
-  const expenses1: Expense[] = snapshot1.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  // Fetch Period 2 expenses
-  let query2 = adminDb
-    .collection("expenses")
-    .where("userId", "==", userId)
-    .where("date", ">=", period2Start)
-    .where("date", "<=", period2End);
-
-  if (category) {
-    query2 = query2.where("category", "==", category);
-  }
-
-  if (groupId) {
-    query2 = query2.where("groupId", "==", groupId);
-  }
-
-  const snapshot2 = await query2.get();
-  const expenses2: Expense[] = snapshot2.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  } as Expense));
-
-  const total1 = expenses1.reduce((sum, e) => sum + e.amount, 0);
-  const total2 = expenses2.reduce((sum, e) => sum + e.amount, 0);
+  const total1 = sumAmounts(expenses1);
+  const total2 = sumAmounts(expenses2);
   const difference = total2 - total1;
   const percentageChange =
     total1 > 0 ? Math.round(((total2 - total1) / total1) * 100) : 0;
@@ -435,19 +444,18 @@ export async function comparePeriods(
       startDate: period1Start,
       endDate: period1End,
       totalExpenses: expenses1.length,
-      totalAmount: Math.round(total1 * 100) / 100,
+      totalAmount: round2(total1),
     },
     period2: {
       startDate: period2Start,
       endDate: period2End,
       totalExpenses: expenses2.length,
-      totalAmount: Math.round(total2 * 100) / 100,
+      totalAmount: round2(total2),
     },
     comparison: {
-      difference: Math.round(difference * 100) / 100,
+      difference: round2(difference),
       percentageChange,
       trend: difference > 0 ? "increased" : difference < 0 ? "decreased" : "unchanged",
     },
   };
 }
-

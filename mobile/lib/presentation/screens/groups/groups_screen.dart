@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
+import 'package:penny_mobile/presentation/screens/groups/pending_invitations_section.dart';
 import 'package:go_router/go_router.dart';
 import 'package:penny_mobile/presentation/widgets/animated_list_item.dart';
 import 'package:penny_mobile/presentation/widgets/guest_sign_up_prompt.dart';
@@ -35,24 +37,50 @@ class GroupsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: groupsAsync.when(
-        data: (groups) => groups.isEmpty
-            ? ref.watch(guestModeProvider)
-                  ? _GuestLockedState()
-                  : _EmptyState(onAdd: () => _showCreateGroup(context, ref))
-            : _GroupList(groups: groups),
-        loading: () => ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          children: const [
-            ShimmerContentCard(height: 80),
-            ShimmerContentCard(height: 80),
-            ShimmerContentCard(height: 80),
-          ],
-        ),
-        error: (e, _) => ErrorState(
-          message: 'Could not load groups',
-          onRetry: () => ref.invalidate(userGroupsProvider),
-        ),
+      body: Column(
+        children: [
+          // Answerable here even if the invitation notification never came.
+          const PendingInvitationsSection(),
+          Expanded(
+            child: groupsAsync.when(
+              data: (groups) => groups.isEmpty
+                  // Pending invitations above take part of the height, so
+                  // the empty state scrolls instead of overflowing.
+                  ? LayoutBuilder(
+                      builder: (context, constraints) => SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Center(
+                            child: ref.watch(guestModeProvider)
+                                ? _GuestLockedState()
+                                : _EmptyState(
+                                    onAdd: () => _showCreateGroup(context, ref),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : _GroupList(groups: groups),
+              loading: () => ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                children: const [
+                  ShimmerContentCard(height: 80),
+                  ShimmerContentCard(height: 80),
+                  ShimmerContentCard(height: 80),
+                ],
+              ),
+              error: (e, _) => ErrorState(
+                message: 'Could not load groups',
+                onRetry: () => ref.invalidate(userGroupsProvider),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -139,6 +167,7 @@ class _GroupList extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(userGroupsProvider);
+        ref.invalidate(pendingInvitationsProvider);
         HapticFeedback.lightImpact();
       },
       child: ListView.builder(
@@ -332,12 +361,13 @@ class _CreateGroupSheetState extends State<_CreateGroupSheet> {
             userName: user.displayName,
           );
       HapticFeedback.mediumImpact();
+      widget.ref.invalidate(userGroupsProvider);
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text(apiErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );

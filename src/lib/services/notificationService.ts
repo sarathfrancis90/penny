@@ -3,17 +3,15 @@
  * 
  * Core service for creating and managing notifications.
  * Handles preference checking, quiet hours, and notification creation.
+ *
+ * SERVER-ONLY. Notifications are created by API routes (e.g. /api/expenses
+ * via BudgetNotificationService). There is no signed-in user on the server
+ * and the security rules make notification creation server-only, so this
+ * module uses the Admin SDK. Do not import it from client components.
  */
 
-import { 
-  collection, 
-  addDoc, 
-  doc, 
-  getDoc, 
-  Timestamp,
-  serverTimestamp
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
+import { adminDb } from '@/lib/firebase-admin';
 import {
   Notification,
   NotificationType,
@@ -21,7 +19,7 @@ import {
   NotificationCategory,
   NotificationAction
 } from '@/lib/types/notifications';
-import { processNotificationGrouping, isGroupable } from './notificationGrouping';
+import { processNotificationGrouping, isGroupable, withoutUndefined } from './notificationGrouping';
 
 /**
  * Data for creating a notification
@@ -60,10 +58,10 @@ export class NotificationService {
   static async create(data: CreateNotificationData): Promise<string | null> {
     try {
       // Check global mute settings
-      const settingsDoc = await getDoc(doc(db, 'userNotificationSettings', data.userId));
+      const settingsDoc = await adminDb.collection('userNotificationSettings').doc(data.userId).get();
       
-      if (settingsDoc.exists()) {
-        const settings = settingsDoc.data();
+      if (settingsDoc.exists) {
+        const settings = settingsDoc.data() ?? {};
         
         // Check if notifications are globally muted
         if (settings.globalMute) {
@@ -87,10 +85,15 @@ export class NotificationService {
       }
 
       // Check type-specific preferences
-      const prefsDoc = await getDoc(doc(db, 'users', data.userId, 'notificationPreferences', 'default'));
+      const prefsDoc = await adminDb
+        .collection('users')
+        .doc(data.userId)
+        .collection('notificationPreferences')
+        .doc('default')
+        .get();
       
-      if (prefsDoc.exists()) {
-        const prefs = prefsDoc.data();
+      if (prefsDoc.exists) {
+        const prefs = prefsDoc.data() ?? {};
         const typePref = prefs[data.type];
         
         // Check if this notification type is enabled for in-app
@@ -127,7 +130,7 @@ export class NotificationService {
         actorId: data.actorId,
         actorName: data.actorName,
         actorAvatar: data.actorAvatar,
-        createdAt: serverTimestamp() as Timestamp,
+        createdAt: FieldValue.serverTimestamp() as unknown as Notification['createdAt'],
         metadata: data.metadata,
       };
 
@@ -153,7 +156,9 @@ export class NotificationService {
       }
 
       // Not groupable, create regular notification
-      const docRef = await addDoc(collection(db, 'notifications'), notification);
+      const docRef = await adminDb
+        .collection('notifications')
+        .add(withoutUndefined(notification));
       
       console.log('[NotificationService] Regular notification created:', {
         id: docRef.id,

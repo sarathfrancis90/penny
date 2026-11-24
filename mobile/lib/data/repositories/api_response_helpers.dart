@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 Map<String, dynamic> responseMap(Response<dynamic> response) {
   final data = response.data;
@@ -19,6 +20,20 @@ List<Map<String, dynamic>> listValue(Object? value) {
 }
 
 ApiDocument apiDocument(Map<String, dynamic> data) => ApiDocument(data);
+
+/// Parses every item of an API list, skipping an item that fails to parse so
+/// one malformed document cannot fail the whole list.
+List<T> parseList<T>(Object? value, T Function(ApiDocument doc) parse) {
+  final items = <T>[];
+  for (final json in listValue(value)) {
+    try {
+      items.add(parse(apiDocument(json)));
+    } catch (error) {
+      debugPrint('[API] Skipped an unreadable $T: $error');
+    }
+  }
+  return items;
+}
 
 class ApiDocument {
   ApiDocument(Map<String, dynamic> data)

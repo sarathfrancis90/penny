@@ -34,10 +34,39 @@ void main() {
 
       expect(goals.single.id, 'goal-1');
       expect(api.calls.single.path, ApiEndpoints.personalSavings);
-      expect(api.calls.single.queryParameters, {
+      expect(api.calls.single.queryParameters, {'userId': 'user-1'});
+    });
+
+    test('keeps achieved and paused goals but not cancelled ones', () async {
+      Map<String, Object?> goal(String id, String status) => {
+        'id': id,
         'userId': 'user-1',
-        'status': 'active',
-      });
+        'name': id,
+        'category': 'emergency_fund',
+        'targetAmount': 100,
+        'currentAmount': status == 'achieved' ? 100 : 10,
+        'status': status,
+        'monthlyContribution': 0,
+        'isActive': true,
+        'priority': 'medium',
+        'currency': 'CAD',
+        'startDate': '2026-06-01T00:00:00.000Z',
+        'createdAt': '2026-06-01T00:00:00.000Z',
+        'updatedAt': '2026-06-01T00:00:00.000Z',
+      };
+      final api = FakeApiClient()
+        ..queueResponse({
+          'savingsGoals': [
+            goal('active', 'active'),
+            goal('done', 'achieved'),
+            goal('paused', 'paused'),
+            goal('gone', 'cancelled'),
+          ],
+        });
+      final goals = await SavingsRepository(
+        apiClient: api,
+      ).watchSavingsGoals('user-1').first;
+      expect(goals.map((g) => g.id), ['active', 'done', 'paused']);
     });
 
     test(

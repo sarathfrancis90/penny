@@ -11,6 +11,8 @@ export interface ApiEnv {
   firestoreProjectId?: string;
   firestoreDatabaseId?: string;
   geminiApiKey?: string;
+  /** Optional model override; the AI service picks its default when unset. */
+  geminiModel?: string;
   cronSecret?: string;
   observabilityEnabled: boolean;
   observabilityEnv: string;
@@ -64,6 +66,7 @@ export function loadApiEnv(env: NodeJS.ProcessEnv = process.env): ApiEnv {
     firestoreProjectId: env.FIRESTORE_PROJECT_ID,
     firestoreDatabaseId: env.FIRESTORE_DATABASE_ID,
     geminiApiKey: env.GEMINI_API_KEY,
+    geminiModel: env.GEMINI_MODEL?.trim() || undefined,
     cronSecret: env.CRON_SECRET,
     observabilityEnabled: env.OBSERVABILITY_ENABLED === 'true',
     observabilityEnv: env.OBSERVABILITY_ENV ?? nodeEnv,

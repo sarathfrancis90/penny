@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { authFetch } from "@/lib/authFetch";
 
 interface GroupDetailPageProps {
   params: Promise<{
@@ -148,7 +149,7 @@ export default function GroupDetailPage({ params }: GroupDetailPageProps) {
   const handleLeaveGroup = async () => {
     setLeaving(true);
     try {
-      const response = await fetch(`/api/groups/${groupId}/leave`, {
+      const response = await authFetch(`/api/groups/${groupId}/leave`, {
         method: "POST",
       });
 

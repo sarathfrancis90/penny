@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { isAdmin } from "@/lib/admin-auth";
+import { adminDb } from "@/lib/firebase-admin";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { withObservability } from "@/lib/observability/withObservability";
+
+/** Deletes every document of `collection` whose userId matches, in batches. */
+async function deleteUserDocs(collection: string, userId: string): Promise<number> {
+  const snapshot = await adminDb.collection(collection).where("userId", "==", userId).get();
+  for (let i = 0; i < snapshot.docs.length; i += 400) {
+    const batch = adminDb.batch();
+    snapshot.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+  }
+  return snapshot.size;
+}
 
 interface ExpenseData {
   amount?: number;
@@ -19,13 +29,10 @@ async function deleteHandler(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     const { userId } = await params;
 
@@ -44,44 +51,13 @@ async function deleteHandler(
 
     // Delete user's expenses
     if (deleteType === "expenses" || deleteType === "all") {
-      const expensesRef = collection(db, "expenses");
-      const expensesQuery = query(expensesRef, where("userId", "==", userId));
-      const expensesSnapshot = await getDocs(expensesQuery);
-
-      const deletePromises = expensesSnapshot.docs.map((expenseDoc) =>
-        deleteDoc(expenseDoc.ref)
-      );
-
-      await Promise.all(deletePromises);
-      deletedCount += expensesSnapshot.size;
+      deletedCount += await deleteUserDocs("expenses", userId);
     }
 
-    // Delete user's analytics data
+    // Delete user's analytics data. (Offline expenses live in the browser's
+    // IndexedDB, not in Firestore, so there is nothing to delete for them.)
     if (deleteType === "all") {
-      const analyticsRef = collection(db, "analytics");
-      const analyticsQuery = query(analyticsRef, where("userId", "==", userId));
-      const analyticsSnapshot = await getDocs(analyticsQuery);
-
-      const deletePromises = analyticsSnapshot.docs.map((analyticsDoc) =>
-        deleteDoc(analyticsDoc.ref)
-      );
-
-      await Promise.all(deletePromises);
-      deletedCount += analyticsSnapshot.size;
-    }
-
-    // Delete offline data if exists
-    if (deleteType === "all") {
-      const offlineRef = collection(db, "offlineExpenses");
-      const offlineQuery = query(offlineRef, where("userId", "==", userId));
-      const offlineSnapshot = await getDocs(offlineQuery);
-
-      const deletePromises = offlineSnapshot.docs.map((offlineDoc) =>
-        deleteDoc(offlineDoc.ref)
-      );
-
-      await Promise.all(deletePromises);
-      deletedCount += offlineSnapshot.size;
+      deletedCount += await deleteUserDocs("analytics", userId);
     }
 
     return NextResponse.json({
@@ -108,13 +84,10 @@ async function getHandler(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     const { userId } = await params;
 
@@ -126,9 +99,10 @@ async function getHandler(
     }
 
     // Get user's expenses
-    const expensesRef = collection(db, "expenses");
-    const expensesQuery = query(expensesRef, where("userId", "==", userId));
-    const expensesSnapshot = await getDocs(expensesQuery);
+    const expensesSnapshot = await adminDb
+      .collection("expenses")
+      .where("userId", "==", userId)
+      .get();
 
     const expenses = expensesSnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -138,9 +112,10 @@ async function getHandler(
     const totalAmount = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
 
     // Get user's analytics
-    const analyticsRef = collection(db, "analytics");
-    const analyticsQuery = query(analyticsRef, where("userId", "==", userId));
-    const analyticsSnapshot = await getDocs(analyticsQuery);
+    const analyticsSnapshot = await adminDb
+      .collection("analytics")
+      .where("userId", "==", userId)
+      .get();
 
     const analytics = analyticsSnapshot.docs.map((doc) => doc.data()) as AnalyticsData[];
     const totalCost = analytics.reduce((sum: number, a) => sum + (a.estimatedCost || 0), 0);

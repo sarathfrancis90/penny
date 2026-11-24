@@ -1,36 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { isAdmin } from "@/lib/admin-auth";
-import { getAuth } from "firebase-admin/auth";
-import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { withObservability } from "@/lib/observability/withObservability";
-
-// Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  try {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  } catch (error) {
-    console.warn("Firebase Admin SDK initialization skipped:", error);
-  }
-}
 
 // GET - List all users (from Firebase Auth + expense data)
 async function getHandler(request: NextRequest) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // Admin SDK (rules bypassed): require a Firebase ID token with the
+    // `admin: true` custom claim.
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     // Get search params
     const { searchParams } = new URL(request.url);
@@ -50,8 +29,7 @@ async function getHandler(request: NextRequest) {
     }> = [];
 
     try {
-      const auth = getAuth();
-      const listUsersResult = await auth.listUsers(maxResults);
+      const listUsersResult = await adminAuth.listUsers(maxResults);
       
       allAuthUsers = listUsersResult.users.map((userRecord) => ({
         userId: userRecord.uid,
@@ -71,8 +49,10 @@ async function getHandler(request: NextRequest) {
     }
 
     // Get all expenses to aggregate expense data
-    const expensesRef = collection(db, "expenses");
-    const expensesSnapshot = await getDocs(expensesRef);
+    const expensesSnapshot = await adminDb
+      .collection("expenses")
+      .select("userId", "amount", "createdAt")
+      .get();
 
     // Aggregate expense data by user
     const expenseMap = new Map<string, {

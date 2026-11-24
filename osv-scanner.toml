@@ -1,9 +1,14 @@
 [[IgnoredVulns]]
-id = "GHSA-qx2v-qp2m-jg93"
-ignoreUntil = 2026-07-15
-reason = "PostCSS is pulled through Next.js internals; current npm audit data does not offer a safe forward upgrade path."
+id = "GHSA-g7r4-m6w7-qqqr"
+ignoreUntil = 2027-01-06
+reason = "esbuild dev-server file read affects Windows dev servers only; esbuild is used here by build tooling (tsx, tsup, @serwist/cli) on macOS/Linux and never serves production traffic. The fix needs esbuild 0.28, outside tsx's supported range."
 
 [[IgnoredVulns]]
-id = "GHSA-w5hq-g745-h8pq"
-ignoreUntil = 2026-07-15
-reason = "uuid is pulled through Firebase Admin Google client transitive dependencies; npm audit suggests an unsafe major downgrade."
+id = "GHSA-3g3m-2fjr-6pw4"
+ignoreUntil = 2027-01-06
+reason = "glob 10/13 come from build-time tools (rimraf, @serwist/build, @sentry/bundler-plugins) that match fixed repository paths; no user input reaches them and no AbortSignal is passed. The fix is glob 14, a major version those tools do not support yet."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2027-01-06
+reason = "minimatch 9/10 are pulled in by the same build-time glob users with patterns fixed in source; no user-supplied pattern reaches them at runtime. The fix is minimatch 11, a major version those tools do not support yet."

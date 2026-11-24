@@ -80,6 +80,10 @@ const adminAuth = {
     getAuthClient().then((client) => client.createUser(...args)),
   createCustomToken: (...args: Parameters<Auth['createCustomToken']>) =>
     getAuthClient().then((client) => client.createCustomToken(...args)),
+  listUsers: (...args: Parameters<Auth['listUsers']>) =>
+    getAuthClient().then((client) => client.listUsers(...args)),
+  getUserByEmail: (...args: Parameters<Auth['getUserByEmail']>) =>
+    getAuthClient().then((client) => client.getUserByEmail(...args)),
 } satisfies Pick<
   Auth,
   | 'verifyIdToken'
@@ -88,6 +92,8 @@ const adminAuth = {
   | 'getUser'
   | 'createUser'
   | 'createCustomToken'
+  | 'listUsers'
+  | 'getUserByEmail'
 >;
 
 export { app as adminApp, db as adminDb, adminAuth, messaging as adminMessaging };

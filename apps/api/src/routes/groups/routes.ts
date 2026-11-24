@@ -216,14 +216,33 @@ export async function registerGroupRoutes(
     },
   });
 
+  // Lets an invitee find invitations whose notification never reached them.
+  // Only the verified token email is used; the token is never returned.
+  app.get('/api/groups/invitations', {
+    preHandler: app.requireUser,
+    handler: async (request) => {
+      const userEmail = request.user.email?.trim();
+      if (!userEmail) return { invitations: [] };
+      const invitations = await groups.listMyInvitations({
+        userId: request.user.uid,
+        userEmail,
+      });
+      return { invitations };
+    },
+  });
+
   app.post('/api/groups/invitations/accept', {
     preHandler: app.requireUser,
     handler: async (request) => {
       const body = request.body as Record<string, unknown>;
       const result = await groups.acceptInvitation({
-        token: String(body.token ?? ''),
+        token: typeof body.token === 'string' ? body.token : '',
+        invitationId:
+          typeof body.invitationId === 'string' ? body.invitationId : undefined,
         userId: request.user.uid,
-        userEmail: String(body.userEmail ?? request.user.email ?? ''),
+        // The verified token email wins; the body value is only a fallback
+        // for accounts whose token carries no email.
+        userEmail: request.user.email || String(body.userEmail ?? ''),
         userName: typeof body.userName === 'string' ? body.userName : undefined,
       });
       return {

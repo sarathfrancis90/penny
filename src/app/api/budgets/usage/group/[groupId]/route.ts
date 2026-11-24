@@ -8,6 +8,7 @@ import {
 import { Expense } from "@/lib/types";
 import { Timestamp } from "firebase-admin/firestore";
 import { withObservability } from "@/lib/observability/withObservability";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 
 /**
  * GET /api/budgets/usage/group/[groupId]
@@ -21,7 +22,9 @@ async function getHandler(
   try {
     const { groupId } = await params;
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
     const monthParam = searchParams.get("month");
     const yearParam = searchParams.get("year");
 
@@ -37,6 +40,7 @@ async function getHandler(
       .collection("groupMembers")
       .where("groupId", "==", groupId)
       .where("userId", "==", userId)
+      .where("status", "==", "active")
       .get();
 
     if (memberDoc.empty) {

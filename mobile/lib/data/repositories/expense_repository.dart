@@ -37,12 +37,14 @@ class ExpenseRepository {
       },
     );
     final data = responseMap(response);
-    return listValue(
-      data['expenses'],
-    ).map((json) => ExpenseModel.fromFirestore(apiDocument(json))).toList();
+    return parseList(data['expenses'], ExpenseModel.fromFirestore);
   }
 
-  Future<String> savePersonalExpense({
+  /// Creates an expense; with a [groupId] it is saved as a group expense.
+  ///
+  /// [clientRequestId] identifies this save. Pass the same value when the
+  /// same save is retried so the server does not create a duplicate.
+  Future<String> saveExpense({
     required String userId,
     required String vendor,
     required double amount,
@@ -51,6 +53,7 @@ class ExpenseRepository {
     String? description,
     String? receiptUrl,
     String? groupId,
+    String? clientRequestId,
   }) async {
     final response = await _api.post(
       ApiEndpoints.expenses,
@@ -62,10 +65,33 @@ class ExpenseRepository {
         'date': date,
         'description': ?description,
         'receiptUrl': ?receiptUrl,
-        'groupId': ?groupId,
+        if (groupId != null) ...{'groupId': groupId, 'expenseType': 'group'},
+        'clientRequestId': ?clientRequestId,
       },
     );
     return (responseMap(response)['id'] ?? '').toString();
+  }
+
+  Future<String> savePersonalExpense({
+    required String userId,
+    required String vendor,
+    required double amount,
+    required String category,
+    required String date,
+    String? description,
+    String? receiptUrl,
+    String? clientRequestId,
+  }) {
+    return saveExpense(
+      userId: userId,
+      vendor: vendor,
+      amount: amount,
+      category: category,
+      date: date,
+      description: description,
+      receiptUrl: receiptUrl,
+      clientRequestId: clientRequestId,
+    );
   }
 
   Future<void> updateExpense({

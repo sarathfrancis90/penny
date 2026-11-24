@@ -366,7 +366,7 @@ class _SavingsSection extends ConsumerWidget {
           summary: isEmpty ? '' : '${currencyFormat.format(totalSaved)} saved',
           details: isEmpty
               ? ''
-              : '${progressPercent.toStringAsFixed(0)}% progress \u00b7 ${activeGoals.length} goal${activeGoals.length == 1 ? '' : 's'}',
+              : '${progressPercent.toStringAsFixed(0)}% progress \u00b7 ${goals.length} goal${goals.length == 1 ? '' : 's'}',
           isEmpty: isEmpty,
           emptyLabel: 'No savings goals yet',
           onManage: () {

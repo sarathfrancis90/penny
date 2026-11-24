@@ -54,4 +54,12 @@ describe('API environment validation', () => {
       geminiApiKey: 'gemini-secret',
     });
   });
+
+  it('reads an optional Gemini model override and ignores a blank one', () => {
+    process.env = { NODE_ENV: 'test', GEMINI_MODEL: ' gemini-3.5-flash ' };
+    expect(loadApiEnv().geminiModel).toBe('gemini-3.5-flash');
+
+    process.env = { NODE_ENV: 'test', GEMINI_MODEL: '  ' };
+    expect(loadApiEnv().geminiModel).toBeUndefined();
+  });
 });

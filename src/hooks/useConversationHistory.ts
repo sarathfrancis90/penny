@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./useAuth";
+import { authFetch } from "@/lib/authFetch";
 
 interface CreateConversationData {
   title: string;
@@ -56,7 +57,7 @@ export function useConversationHistory(): UseConversationHistoryResult {
 
     setCreating(true);
     try {
-      const response = await fetch("/api/conversations", {
+      const response = await authFetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -96,7 +97,7 @@ export function useConversationHistory(): UseConversationHistoryResult {
 
     setUpdating(true);
     try {
-      const response = await fetch(`/api/conversations/${conversationId}`, {
+      const response = await authFetch(`/api/conversations/${conversationId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -130,7 +131,7 @@ export function useConversationHistory(): UseConversationHistoryResult {
 
     setDeleting(true);
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `/api/conversations/${conversationId}?userId=${userId}`,
         {
           method: "DELETE",

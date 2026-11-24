@@ -55,9 +55,11 @@ export function SavingsGoalForm({
   // Calculate estimated completion time
   const calculateMonthsToGoal = () => {
     const target = parseFloat(formData.targetAmount);
-    const current = parseFloat(formData.currentAmount);
+    const current = parseFloat(formData.currentAmount) || 0;
     const monthly = parseFloat(formData.monthlyContribution);
 
+    // Empty fields parse to NaN, which would render as "NaN"
+    if (!Number.isFinite(target) || !Number.isFinite(monthly)) return null;
     if (monthly <= 0 || target <= current) return null;
 
     const remaining = target - current;
@@ -226,7 +228,7 @@ export function SavingsGoalForm({
           }
           required
         />
-        {monthsToGoal && (
+        {monthsToGoal !== null && (
           <p className="text-sm text-muted-foreground">
             📅 Estimated completion: {monthsToGoal} month{monthsToGoal !== 1 ? 's' : ''} (
             {new Date(

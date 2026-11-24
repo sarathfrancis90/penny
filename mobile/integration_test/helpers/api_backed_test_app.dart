@@ -407,6 +407,7 @@ class IntegrationFakeApiClient extends ApiClient {
     String path, {
     Object? data,
     Map<String, dynamic>? queryParameters,
+    Duration? receiveTimeout,
   }) async {
     calls.add(ApiCall('POST', path, data, queryParameters));
     return _response<T>(_post(path, _mapData(data)), path);

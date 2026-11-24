@@ -13,6 +13,11 @@ export interface AnalyzeExpenseInput {
   userId: string;
   text?: string;
   imageBase64?: string;
+  /**
+   * The user's current calendar date (YYYY-MM-DD) as their device sees it.
+   * Optional; the AI service validates it and falls back to Toronto time.
+   */
+  localDate?: string;
 }
 
 export interface ChatInput {

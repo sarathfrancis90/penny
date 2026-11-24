@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/data/repositories/group_budget_repository.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
+import 'package:penny_mobile/presentation/providers/user_session.dart';
 
 /// Group budget repository provider.
 final groupBudgetRepositoryProvider = Provider<GroupBudgetRepository>((ref) {
@@ -9,8 +10,9 @@ final groupBudgetRepositoryProvider = Provider<GroupBudgetRepository>((ref) {
 });
 
 /// Stream group budgets for a group (current period).
-final groupBudgetsProvider =
-    StreamProvider.family<List<GroupBudgetModel>, String>((ref, groupId) {
+final groupBudgetsProvider = StreamProvider.autoDispose
+    .family<List<GroupBudgetModel>, String>((ref, groupId) {
+      if (keepForCurrentSession(ref) == null) return const Stream.empty();
       final period = ref.watch(budgetPeriodProvider);
       return ref
           .watch(groupBudgetRepositoryProvider)
@@ -18,10 +20,9 @@ final groupBudgetsProvider =
     });
 
 /// Total group budget limit for the month.
-final totalGroupBudgetLimitProvider = Provider.family<double, String>((
-  ref,
-  groupId,
-) {
-  final budgets = ref.watch(groupBudgetsProvider(groupId)).valueOrNull ?? [];
-  return budgets.fold(0.0, (sum, b) => sum + b.monthlyLimit);
-});
+final totalGroupBudgetLimitProvider = Provider.autoDispose
+    .family<double, String>((ref, groupId) {
+      final budgets =
+          ref.watch(groupBudgetsProvider(groupId)).valueOrNull ?? [];
+      return budgets.fold(0.0, (sum, b) => sum + b.monthlyLimit);
+    });

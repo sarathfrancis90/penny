@@ -47,14 +47,19 @@ class ExpenseModel {
   bool get isRejected => approvalStatus == 'rejected';
   String? get rejectedReason => groupMetadata?['rejectedReason'] as String?;
 
+  /// Rejected group expenses stay visible in lists but are left out of
+  /// totals, breakdowns and exports.
+  bool get countsTowardTotals => !isRejected;
+
   factory ExpenseModel.fromFirestore(dynamic doc) {
     final data = doc.data()! as Map<String, dynamic>;
     return ExpenseModel(
       id: doc.id,
-      userId: data['userId'] as String,
-      vendor: data['vendor'] as String,
+      userId: data['userId'] as String? ?? '',
+      vendor: data['vendor'] as String? ?? '',
+      // An expense without an amount is unusable; list endpoints skip it.
       amount: (data['amount'] as num).toDouble(),
-      category: data['category'] as String,
+      category: data['category'] as String? ?? '',
       date: Timestamp.fromJson(data['date']),
       expenseType: data['expenseType'] as String? ?? 'personal',
       createdAt: Timestamp.fromJson(data['createdAt']),

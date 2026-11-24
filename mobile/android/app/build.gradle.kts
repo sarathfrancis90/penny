@@ -61,7 +61,7 @@ android {
     defaultConfig {
         applicationId = "com.penny.penny_mobile"
         minSdk = flutter.minSdkVersion
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { Group, GroupMember, DEFAULT_ROLE_PERMISSIONS } from "@/lib/types";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -12,7 +12,9 @@ async function getHandler(request: NextRequest) {
   try {
     // Get userId from query params (set by middleware/auth)
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json(
@@ -82,13 +84,14 @@ async function getHandler(request: NextRequest) {
  */
 async function postHandler(request: NextRequest) {
   try {
-    // Authenticate: prefer Bearer token (mobile), fall back to body userId (web)
-    const tokenUserId = await getAuthenticatedUserId(request);
+    // Authenticate with the verified ID token; a body userId must match it
 
     const body = await request.json();
     const { name, description, color, icon, settings, userId: bodyUserId } = body;
 
-    const userId = tokenUserId ?? bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     // Validation
     if (!name || !userId) {

@@ -33,20 +33,40 @@ class GroupMemberModel {
     final data = doc.data()! as Map<String, dynamic>;
     return GroupMemberModel(
       id: doc.id,
-      groupId: data['groupId'] as String,
-      userId: data['userId'] as String,
-      userEmail: data['userEmail'] as String,
-      role: data['role'] as String,
+      groupId: data['groupId'] as String? ?? '',
+      userId: data['userId'] as String? ?? '',
+      userEmail: data['userEmail'] as String? ?? '',
+      // Unknown role → least privilege.
+      role: data['role'] as String? ?? 'viewer',
       status: data['status'] as String? ?? 'active',
       permissions: GroupPermissions.fromMap(
         Map<String, dynamic>.from(data['permissions'] as Map? ?? {}),
       ),
       invitedAt: Timestamp.fromJson(data['invitedAt']),
-      invitedBy: data['invitedBy'] as String,
+      invitedBy: data['invitedBy'] as String? ?? '',
       userName: data['userName'] as String?,
       joinedAt: Timestamp.tryParse(data['joinedAt']),
       lastActivityAt: Timestamp.tryParse(data['lastActivityAt']),
     );
+  }
+
+  /// The name to show: the member's name, else their email, else "Member".
+  /// A member who joined without a display name has an empty `userName`,
+  /// so an empty or blank value counts as missing.
+  String get displayName {
+    final name = userName?.trim() ?? '';
+    if (name.isNotEmpty) return name;
+    final email = userEmail.trim();
+    return email.isNotEmpty ? email : 'Member';
+  }
+
+  /// One letter for the avatar; `?` when there is nothing to show.
+  String get initial {
+    final name = userName?.trim() ?? '';
+    final source = name.isNotEmpty ? name : userEmail.trim();
+    return source.isEmpty
+        ? '?'
+        : String.fromCharCode(source.runes.first).toUpperCase();
   }
 
   bool get isOwner => role == 'owner';

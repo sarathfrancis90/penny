@@ -6,6 +6,7 @@ import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/data/guest/guest_migration_service.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
+import 'package:penny_mobile/presentation/providers/session_reset.dart';
 import 'package:penny_mobile/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:penny_mobile/presentation/screens/auth/login_screen.dart';
 import 'package:penny_mobile/presentation/screens/auth/signup_screen.dart';
@@ -53,6 +54,8 @@ class _AuthNotifier extends ChangeNotifier {
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authNotifier = _AuthNotifier(ref);
+  // Clears the previous user's dashboard filters when the user changes.
+  ref.watch(sessionResetProvider);
 
   return GoRouter(
     initialLocation: '/',
@@ -164,10 +167,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/expenses/detail',
-        pageBuilder: (context, state) => _buildCupertinoPage(
-          key: state.pageKey,
-          child: ExpenseDetailScreen(expense: state.extra as ExpenseModel),
-        ),
+        // The expense travels in `extra`, which is gone after state
+        // restoration or a deep link — go to the dashboard instead of
+        // crashing on a cast.
+        redirect: (context, state) => expenseDetailRedirect(state.extra),
+        pageBuilder: (context, state) {
+          final extra = state.extra;
+          return _buildCupertinoPage(
+            key: state.pageKey,
+            child: extra is ExpenseModel
+                ? ExpenseDetailScreen(expense: extra)
+                : const SizedBox.shrink(),
+          );
+        },
       ),
 
       // Main app routes (with bottom nav shell — no transition)
@@ -204,6 +216,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Where to send `/expenses/detail` when it has no expense to show.
+String? expenseDetailRedirect(Object? extra) {
+  return extra is ExpenseModel ? null : '/dashboard';
+}
 
 /// Builds a [CustomTransitionPage] with iOS-style Cupertino slide transition.
 /// This provides the native swipe-back gesture and parallax effect.

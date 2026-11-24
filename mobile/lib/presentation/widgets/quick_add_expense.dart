@@ -3,11 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
+import 'package:penny_mobile/core/utils/client_request_id.dart';
+import 'package:penny_mobile/core/utils/picker_dates.dart';
 import 'package:penny_mobile/data/guest/guest_expense_store.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/default_group_selection.dart';
+import 'package:penny_mobile/presentation/providers/expense_refresh.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
@@ -38,6 +43,9 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
   bool _defaultGroupApplied = false;
   bool _saving = false;
 
+  /// One `clientRequestId` per save, reused when the same save is retried.
+  final _saveAttempt = SaveAttemptId();
+
   @override
   void initState() {
     super.initState();
@@ -58,12 +66,11 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final vendor = _vendorController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
-    if (vendor.isEmpty ||
-        amount == null ||
-        amount <= 0 ||
-        _selectedCategory == null) {
+    final amount = parseAmount(_amountController.text);
+    final category = _selectedCategory;
+    if (vendor.isEmpty || amount == null || category == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill all required fields'),
@@ -79,7 +86,7 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
       final result = notifier.add(
         vendor: vendor,
         amount: amount,
-        category: _selectedCategory!,
+        category: category,
         date: _selectedDate,
         description: _descController.text.trim(),
       );
@@ -91,29 +98,46 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
       }
       HapticFeedback.mediumImpact();
       if (mounted) {
-        await SuccessOverlay.show(
+        SuccessOverlay.show(
           context,
           title: vendor,
           subtitle: '\$${amount.toStringAsFixed(2)} saved locally',
         );
-        if (mounted) Navigator.pop(context);
+        Navigator.pop(context);
       }
       return;
     }
 
-    // Duplicate check
     final user = ref.read(currentUserProvider);
-    if (user != null) {
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Not signed in'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    // Busy from here on, so a second tap cannot start a second save while
+    // the duplicate check runs.
+    setState(() => _saving = true);
+    final groupId = _selectedGroupId;
+
+    try {
+      // A failed duplicate check counts as "none found": saving matters
+      // more.
       final duplicateResult = await ref
           .read(duplicateDetectorProvider)
-          .checkForDuplicate(
+          .checkForDuplicateOrNull(
             vendor: vendor,
             amount: amount,
             date: _selectedDate,
             userId: user.uid,
-            groupId: _selectedGroupId,
+            groupId: groupId,
           );
-      if (duplicateResult != null && mounted) {
+      if (!mounted) return;
+      if (duplicateResult != null) {
         final addAnyway = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -131,92 +155,78 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
             ],
           ),
         );
-        if (addAnyway != true) return;
-        if (!mounted) return;
+        if (addAnyway != true || !mounted) return;
       }
-    }
 
-    // Budget check for personal expenses
-    if (_selectedGroupId == null) {
-      final usage = ref.read(
-        budgetUsageForCategoryProvider(_selectedCategory!),
-      );
-      if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
-        if (!mounted) return;
-        final proceed = await OverBudgetWarningSheet.show(
-          context,
-          category: _selectedCategory!,
-          budgetLimit: usage.budgetLimit,
-          currentSpent: usage.totalSpent,
-          expenseAmount: amount,
-        );
-        if (proceed != true) return;
+      // Budget check for personal expenses
+      if (groupId == null) {
+        final usage = ref.read(budgetUsageForCategoryProvider(category));
+        if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
+          final proceed = await OverBudgetWarningSheet.show(
+            context,
+            category: category,
+            budgetLimit: usage.budgetLimit,
+            currentSpent: usage.totalSpent,
+            expenseAmount: amount,
+          );
+          if (proceed != true || !mounted) return;
+        }
       }
-    }
-
-    setState(() => _saving = true);
-
-    try {
-      if (user == null) return;
 
       final dateStr =
           '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+      final description = _descController.text.trim();
 
-      if (_selectedGroupId != null) {
-        // Group expense — use API (triggers notifications + stats)
-        await ref
-            .read(apiClientProvider)
-            .post(
-              '/api/expenses',
-              data: {
-                'vendor': vendor,
-                'amount': amount,
-                'category': _selectedCategory,
-                'date': dateStr,
-                'description': _descController.text.trim(),
-                'userId': user.uid,
-                'groupId': _selectedGroupId,
-              },
-            );
-      } else {
-        // Personal expense through the API-backed repository.
-        await ref
-            .read(expenseRepositoryProvider)
-            .savePersonalExpense(
-              userId: user.uid,
-              vendor: vendor,
-              amount: amount,
-              category: _selectedCategory!,
-              date: dateStr,
-              description: _descController.text.trim(),
-            );
-      }
+      // A group expense also triggers notifications and stats server-side.
+      await ref
+          .read(expenseRepositoryProvider)
+          .saveExpense(
+            userId: user.uid,
+            vendor: vendor,
+            amount: amount,
+            category: category,
+            date: dateStr,
+            description: description,
+            groupId: groupId,
+            clientRequestId: _saveAttempt.idFor({
+              'vendor': vendor,
+              'amount': amount,
+              'category': category,
+              'date': dateStr,
+              'description': description,
+              'groupId': groupId,
+            }),
+          );
 
       HapticFeedback.mediumImpact();
       if (mounted) {
-        final groupName = _selectedGroupId != null
+        refreshExpenseData(ref.invalidate, groupId: groupId);
+
+        final groupName = groupId != null
             ? ref
                       .read(userGroupsProvider)
                       .valueOrNull
-                      ?.where((g) => g.id == _selectedGroupId)
+                      ?.where((g) => g.id == groupId)
                       .firstOrNull
                       ?.name ??
                   'group'
             : null;
 
-        await SuccessOverlay.show(
+        // The confirmation does not block the screen, so the sheet closes
+        // right away.
+        SuccessOverlay.show(
           context,
           title: vendor,
           subtitle:
               '\$${amount.toStringAsFixed(2)} saved${groupName != null ? ' to $groupName' : ''}',
         );
-        if (mounted) Navigator.pop(context);
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: $e'),
+            content: Text("Couldn't save. ${apiErrorMessage(e)}"),
             backgroundColor: AppColors.error,
           ),
         );
@@ -270,7 +280,9 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
   @override
   Widget build(BuildContext context) {
     final isGuest = ref.watch(guestModeProvider);
-    final groupsAsync = ref.watch(userGroupsProvider);
+    // Only groups the user may add expenses to (viewers are left out); a
+    // default group that is not among them falls back to Personal.
+    final groupsAsync = ref.watch(addableGroupsProvider);
     final defaultGroupAsync = ref.watch(defaultGroupProvider);
 
     // Apply the saved default group once it and the groups list have loaded.
@@ -414,15 +426,22 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
                         InkWell(
                           onTap: () async {
                             final now = DateTime.now();
+                            final firstDate = isGuest
+                                ? DateTime(now.year, now.month)
+                                : DateTime(2020);
+                            final lastDate = now.add(const Duration(days: 1));
                             final picked = await showDatePicker(
                               context: context,
-                              initialDate: _selectedDate,
-                              firstDate: isGuest
-                                  ? DateTime(now.year, now.month)
-                                  : DateTime(2020),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 1),
+                              // Full keyboard so "/" can be typed; numeric pads on many
+                              // Android keyboards have no separator key.
+                              keyboardType: TextInputType.text,
+                              initialDate: clampPickerDate(
+                                _selectedDate,
+                                firstDate,
+                                lastDate,
                               ),
+                              firstDate: firstDate,
+                              lastDate: lastDate,
                             );
                             if (picked != null) {
                               setState(() => _selectedDate = picked);
@@ -462,18 +481,12 @@ class _QuickAddExpenseState extends ConsumerState<QuickAddExpense> {
                         // Budget impact preview (personal only)
                         if (_selectedGroupId == null &&
                             _selectedCategory != null &&
-                            (double.tryParse(_amountController.text.trim()) ??
-                                    0) >
-                                0)
+                            (parseAmount(_amountController.text) ?? 0) > 0)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 12),
                             child: BudgetImpactPreview(
                               category: _selectedCategory!,
-                              amount:
-                                  double.tryParse(
-                                    _amountController.text.trim(),
-                                  ) ??
-                                  0,
+                              amount: parseAmount(_amountController.text) ?? 0,
                             ),
                           ),
 

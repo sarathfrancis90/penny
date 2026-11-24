@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { isAdmin } from "@/lib/admin-auth";
+import { adminDb } from "@/lib/firebase-admin";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { withObservability } from "@/lib/observability/withObservability";
 
 interface SystemConfig {
@@ -61,22 +60,20 @@ const DEFAULT_CONFIG: SystemConfig = {
   updatedBy: "system",
 };
 
+// Admin SDK (rules bypassed): every handler first verifies a Firebase ID
+// token with the `admin: true` custom claim.
+const configRef = () => adminDb.collection("system").doc("config");
+
 // GET - Get current system configuration
-async function getHandler() {
+async function getHandler(request: NextRequest) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     // Get config from Firestore
-    const configRef = doc(db, "system", "config");
-    const configDoc = await getDoc(configRef);
+    const configDoc = await configRef().get();
 
-    if (!configDoc.exists()) {
+    if (!configDoc.exists) {
       // Return default config if not found
       return NextResponse.json({
         success: true,
@@ -106,21 +103,15 @@ async function getHandler() {
 // POST - Update system configuration
 async function postHandler(request: NextRequest) {
   try {
-    // Check admin authentication
-    if (!(await isAdmin())) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const admin = await verifyAdmin(request);
+    if (admin instanceof Response) return admin;
 
     const updates = await request.json();
 
     // Get current config
-    const configRef = doc(db, "system", "config");
-    const configDoc = await getDoc(configRef);
+    const configDoc = await configRef().get();
     
-    const currentConfig = configDoc.exists() 
+    const currentConfig = configDoc.exists 
       ? (configDoc.data() as SystemConfig)
       : DEFAULT_CONFIG;
 
@@ -129,7 +120,7 @@ async function postHandler(request: NextRequest) {
       ...currentConfig,
       ...updates,
       lastUpdated: new Date().toISOString(),
-      updatedBy: "admin", // In a real app, use actual admin user ID
+      updatedBy: admin.uid,
     };
 
     // Validate config
@@ -155,7 +146,7 @@ async function postHandler(request: NextRequest) {
     }
 
     // Save to Firestore
-    await setDoc(configRef, newConfig);
+    await configRef().set(newConfig);
 
     return NextResponse.json({
       success: true,

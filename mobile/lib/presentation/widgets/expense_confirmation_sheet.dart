@@ -4,12 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:penny_mobile/core/constants/app_colors.dart';
 import 'package:penny_mobile/core/constants/categories.dart';
-import 'package:penny_mobile/core/network/api_endpoints.dart';
+import 'package:penny_mobile/core/network/api_error_message.dart';
+import 'package:penny_mobile/core/utils/amount_parser.dart';
+import 'package:penny_mobile/core/utils/client_request_id.dart';
+import 'package:penny_mobile/core/utils/picker_dates.dart';
 import 'package:penny_mobile/data/models/group_model.dart';
 import 'package:penny_mobile/data/repositories/ai_repository.dart';
 import 'package:penny_mobile/presentation/providers/auth_provider.dart';
 import 'package:penny_mobile/presentation/providers/budget_providers.dart';
 import 'package:penny_mobile/presentation/providers/default_group_selection.dart';
+import 'package:penny_mobile/presentation/providers/expense_refresh.dart';
 import 'package:penny_mobile/presentation/providers/group_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/widgets/budget_impact_preview.dart';
@@ -80,6 +84,9 @@ class _ExpenseConfirmationSheetState
   bool _saving = false;
   bool _defaultGroupApplied = false;
 
+  /// One `clientRequestId` per save, reused when the same save is retried.
+  final _saveAttempt = SaveAttemptId();
+
   @override
   void initState() {
     super.initState();
@@ -121,11 +128,16 @@ class _ExpenseConfirmationSheetState
   }
 
   Future<void> _pickDate() async {
+    final firstDate = DateTime(2020);
+    final lastDate = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _date,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      // Full keyboard so "/" can be typed; numeric pads on many
+      // Android keyboards have no separator key.
+      keyboardType: TextInputType.text,
+      initialDate: clampPickerDate(_date, firstDate, lastDate),
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -138,8 +150,8 @@ class _ExpenseConfirmationSheetState
       return;
     }
 
-    final amount = double.tryParse(_amountController.text.trim());
-    if (amount == null || amount <= 0) {
+    final amount = parseAmount(_amountController.text);
+    if (amount == null) {
       _showError('Enter a valid amount');
       return;
     }
@@ -150,102 +162,96 @@ class _ExpenseConfirmationSheetState
       return;
     }
 
-    // Duplicate check
-    final duplicateResult = await ref
-        .read(duplicateDetectorProvider)
-        .checkForDuplicate(
-          vendor: vendor,
-          amount: amount,
-          date: _date,
-          userId: user.uid,
-          groupId: _selectedGroupId,
-        );
-    if (duplicateResult != null && mounted) {
-      final addAnyway = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Possible Duplicate'),
-          content: Text(duplicateResult.warningMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Add Anyway'),
-            ),
-          ],
-        ),
-      );
-      if (addAnyway != true) return;
-      if (!mounted) return;
-    }
-
-    // Budget check for personal expenses
-    if (_selectedGroupId == null) {
-      final usage = ref.read(budgetUsageForCategoryProvider(_category));
-      if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
-        if (!mounted) return;
-        final proceed = await OverBudgetWarningSheet.show(
-          context,
-          category: _category,
-          budgetLimit: usage.budgetLimit,
-          currentSpent: usage.totalSpent,
-          expenseAmount: amount,
-        );
-        if (proceed != true) return;
-      }
-    }
-
+    // Busy from here on, so a second tap cannot start a second save while
+    // the duplicate check runs.
     setState(() => _saving = true);
+    final groupId = _selectedGroupId;
 
     try {
+      // A failed duplicate check counts as "none found": saving matters
+      // more.
+      final duplicateResult = await ref
+          .read(duplicateDetectorProvider)
+          .checkForDuplicateOrNull(
+            vendor: vendor,
+            amount: amount,
+            date: _date,
+            userId: user.uid,
+            groupId: groupId,
+          );
+      if (!mounted) return;
+      if (duplicateResult != null) {
+        final addAnyway = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Possible Duplicate'),
+            content: Text(duplicateResult.warningMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Add Anyway'),
+              ),
+            ],
+          ),
+        );
+        if (addAnyway != true || !mounted) return;
+      }
+
+      // Budget check for personal expenses
+      if (groupId == null) {
+        final usage = ref.read(budgetUsageForCategoryProvider(_category));
+        if (usage != null && usage.totalSpent + amount > usage.budgetLimit) {
+          final proceed = await OverBudgetWarningSheet.show(
+            context,
+            category: _category,
+            budgetLimit: usage.budgetLimit,
+            currentSpent: usage.totalSpent,
+            expenseAmount: amount,
+          );
+          if (proceed != true || !mounted) return;
+        }
+      }
+
       final dateStr = DateFormat('yyyy-MM-dd').format(_date);
       final description = _descriptionController.text.trim();
 
-      if (_selectedGroupId != null) {
-        // Group expense — route through the API for atomic operations
-        // (group stats update, activity log, member notifications).
-        await ref
-            .read(apiClientProvider)
-            .post(
-              ApiEndpoints.expenses,
-              data: {
-                'userId': user.uid,
-                'vendor': vendor,
-                'amount': amount,
-                'category': _category,
-                'date': dateStr,
-                'description': description,
-                'groupId': _selectedGroupId,
-                'expenseType': 'group',
-                if (widget.receiptUrl != null) 'receiptUrl': widget.receiptUrl,
-              },
-            );
-      } else {
-        // Personal expense through the API-backed repository.
-        await ref
-            .read(expenseRepositoryProvider)
-            .savePersonalExpense(
-              userId: user.uid,
-              vendor: vendor,
-              amount: amount,
-              category: _category,
-              date: dateStr,
-              description: description,
-              receiptUrl: widget.receiptUrl,
-            );
-      }
+      // A group expense also updates group stats, the activity log and
+      // member notifications server-side.
+      await ref
+          .read(expenseRepositoryProvider)
+          .saveExpense(
+            userId: user.uid,
+            vendor: vendor,
+            amount: amount,
+            category: _category,
+            date: dateStr,
+            description: description,
+            receiptUrl: widget.receiptUrl,
+            groupId: groupId,
+            clientRequestId: _saveAttempt.idFor({
+              'vendor': vendor,
+              'amount': amount,
+              'category': _category,
+              'date': dateStr,
+              'description': description,
+              'groupId': groupId,
+            }),
+          );
 
       HapticFeedback.mediumImpact();
 
       if (mounted) {
-        final groupName = _selectedGroupId != null
+        refreshExpenseData(ref.invalidate, groupId: groupId);
+
+        final groupName = groupId != null
             ? ref
                       .read(userGroupsProvider)
                       .valueOrNull
-                      ?.where((g) => g.id == _selectedGroupId)
+                      ?.where((g) => g.id == groupId)
                       .firstOrNull
                       ?.name ??
                   'group'
@@ -263,7 +269,7 @@ class _ExpenseConfirmationSheetState
       }
     } catch (e) {
       if (mounted) {
-        _showError('Failed to save: $e');
+        _showError("Couldn't save. ${apiErrorMessage(e)}");
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -282,7 +288,9 @@ class _ExpenseConfirmationSheetState
 
   @override
   Widget build(BuildContext context) {
-    final groupsAsync = ref.watch(userGroupsProvider);
+    // Only groups the user may add expenses to (viewers are left out); a
+    // default group that is not among them falls back to Personal.
+    final groupsAsync = ref.watch(addableGroupsProvider);
     final defaultGroupAsync = ref.watch(defaultGroupProvider);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
@@ -454,12 +462,12 @@ class _ExpenseConfirmationSheetState
 
             // Budget impact preview (personal only)
             if (_selectedGroupId == null &&
-                (double.tryParse(_amountController.text.trim()) ?? 0) > 0)
+                (parseAmount(_amountController.text) ?? 0) > 0)
               Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: BudgetImpactPreview(
                   category: _category,
-                  amount: double.tryParse(_amountController.text.trim()) ?? 0,
+                  amount: parseAmount(_amountController.text) ?? 0,
                 ),
               ),
 

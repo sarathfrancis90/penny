@@ -8,6 +8,11 @@ export interface CreateExpenseInput {
   receiptUrl?: string;
   receiptPath?: string;
   groupId?: string | null;
+  /**
+   * Optional idempotency key chosen by the client. Retrying a create with the
+   * same key returns the expense the first attempt made.
+   */
+  clientRequestId?: string;
 }
 
 export interface UpdateExpenseInput {

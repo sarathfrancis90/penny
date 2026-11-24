@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
-import { getAuthenticatedUserId } from "@/lib/auth-middleware";
+import { requireAuthenticatedUser } from "@/lib/auth-middleware";
 import { withObservability } from "@/lib/observability/withObservability";
 
 /**
@@ -9,8 +9,9 @@ import { withObservability } from "@/lib/observability/withObservability";
  */
 async function getHandler(request: NextRequest) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
-    const userId = tokenUserId || request.nextUrl.searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, request.nextUrl.searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -42,9 +43,10 @@ async function getHandler(request: NextRequest) {
  */
 async function postHandler(request: NextRequest) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
     const { userId: bodyUserId, groupId } = await request.json();
-    const userId = tokenUserId || bodyUserId;
+    const auth = await requireAuthenticatedUser(request, bodyUserId);
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -101,8 +103,9 @@ async function postHandler(request: NextRequest) {
  */
 async function deleteHandler(request: NextRequest) {
   try {
-    const tokenUserId = await getAuthenticatedUserId(request);
-    const userId = tokenUserId || request.nextUrl.searchParams.get("userId");
+    const auth = await requireAuthenticatedUser(request, request.nextUrl.searchParams.get("userId"));
+    if (!auth.ok) return auth.response;
+    const userId = auth.userId;
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });

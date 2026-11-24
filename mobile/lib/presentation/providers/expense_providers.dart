@@ -8,15 +8,20 @@ import 'package:penny_mobile/presentation/providers/guest_provider.dart';
 import 'package:penny_mobile/presentation/providers/income_providers.dart';
 import 'package:penny_mobile/presentation/providers/providers.dart';
 import 'package:penny_mobile/presentation/screens/dashboard/widgets/cash_flow_chart.dart';
+import 'package:penny_mobile/presentation/providers/user_session.dart';
 
 /// Stream all expenses for current user (or guest's real local expenses).
-final allExpensesProvider = StreamProvider<List<ExpenseModel>>((ref) {
+///
+/// Cached for the signed-in user only (see [keepForCurrentSession]); every
+/// provider derived from it is `autoDispose` so it cannot keep it alive for
+/// the next user.
+final allExpensesProvider = StreamProvider.autoDispose<List<ExpenseModel>>((
+  ref,
+) {
+  keepForCurrentSession(ref);
   if (ref.watch(guestModeProvider)) {
     // Guest mode: return real local expenses (no sample data).
     // ref.watch(guestExpenseProvider) triggers rebuild when expenses change.
-    // ref.keepAlive() prevents the StreamProvider from going through loading
-    // state during rebuild, avoiding shimmer flicker.
-    ref.keepAlive();
     final localExpenses = ref.watch(guestExpenseProvider);
     return Stream.value(localExpenses);
   }
@@ -26,7 +31,9 @@ final allExpensesProvider = StreamProvider<List<ExpenseModel>>((ref) {
 });
 
 /// Current month's expenses filtered from all expenses.
-final currentMonthExpensesProvider = Provider<List<ExpenseModel>>((ref) {
+final currentMonthExpensesProvider = Provider.autoDispose<List<ExpenseModel>>((
+  ref,
+) {
   final expenses = ref.watch(allExpensesProvider).valueOrNull ?? [];
   final now = DateTime.now();
   return expenses.where((e) {
@@ -36,7 +43,9 @@ final currentMonthExpensesProvider = Provider<List<ExpenseModel>>((ref) {
 });
 
 /// Last month's expenses.
-final lastMonthExpensesProvider = Provider<List<ExpenseModel>>((ref) {
+final lastMonthExpensesProvider = Provider.autoDispose<List<ExpenseModel>>((
+  ref,
+) {
   final expenses = ref.watch(allExpensesProvider).valueOrNull ?? [];
   final now = DateTime.now();
   final lastMonth = DateTime(now.year, now.month - 1);
@@ -47,22 +56,22 @@ final lastMonthExpensesProvider = Provider<List<ExpenseModel>>((ref) {
 });
 
 /// Total spent this month.
-final currentMonthTotalProvider = Provider<double>((ref) {
-  final expenses = ref.watch(currentMonthExpensesProvider);
-  return expenses.fold(0.0, (sum, e) => sum + e.amount);
+final currentMonthTotalProvider = Provider.autoDispose<double>((ref) {
+  return sumExpenses(ref.watch(currentMonthExpensesProvider));
 });
 
 /// Total spent last month.
-final lastMonthTotalProvider = Provider<double>((ref) {
-  final expenses = ref.watch(lastMonthExpensesProvider);
-  return expenses.fold(0.0, (sum, e) => sum + e.amount);
+final lastMonthTotalProvider = Provider.autoDispose<double>((ref) {
+  return sumExpenses(ref.watch(lastMonthExpensesProvider));
 });
 
 /// Category breakdown for current month.
-final categoryBreakdownProvider = Provider<List<CategoryBreakdown>>((ref) {
-  final expenses = ref.watch(currentMonthExpensesProvider);
-  return _computeBreakdown(expenses);
-});
+final categoryBreakdownProvider = Provider.autoDispose<List<CategoryBreakdown>>(
+  (ref) {
+    final expenses = ref.watch(currentMonthExpensesProvider);
+    return _computeBreakdown(expenses);
+  },
+);
 
 // ============================================================
 // DASHBOARD FILTERS
@@ -122,7 +131,9 @@ final expenseFilterProvider = StateProvider<ExpenseFilter>(
 );
 
 /// Expenses filtered by period + type + category + group.
-final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
+final filteredExpensesProvider = Provider.autoDispose<List<ExpenseModel>>((
+  ref,
+) {
   final expenses = ref.watch(allExpensesProvider).valueOrNull ?? [];
   final period = ref.watch(dashboardPeriodProvider);
   final customRange = ref.watch(customDateRangeProvider);
@@ -187,20 +198,36 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
   return filtered;
 });
 
+/// Filtered expenses that count toward totals and exports (the list above
+/// minus rejected group expenses).
+final filteredCountedExpensesProvider =
+    Provider.autoDispose<List<ExpenseModel>>((ref) {
+      return ref
+          .watch(filteredExpensesProvider)
+          .where((e) => e.countsTowardTotals)
+          .toList();
+    });
+
 /// Category breakdown derived from filtered expenses.
-final filteredCategoryBreakdownProvider = Provider<List<CategoryBreakdown>>((
-  ref,
-) {
-  return _computeBreakdown(ref.watch(filteredExpensesProvider));
-});
+final filteredCategoryBreakdownProvider =
+    Provider.autoDispose<List<CategoryBreakdown>>((ref) {
+      return _computeBreakdown(ref.watch(filteredExpensesProvider));
+    });
 
 // ============================================================
 // HELPERS
 // ============================================================
 
+/// Sum of the expenses that count toward totals (rejected ones do not).
+double sumExpenses(Iterable<ExpenseModel> expenses) {
+  return expenses
+      .where((e) => e.countsTowardTotals)
+      .fold(0.0, (sum, e) => sum + e.amount);
+}
+
 List<CategoryBreakdown> _computeBreakdown(List<ExpenseModel> expenses) {
   final totals = <String, double>{};
-  for (final e in expenses) {
+  for (final e in expenses.where((e) => e.countsTowardTotals)) {
     totals[e.category] = (totals[e.category] ?? 0) + e.amount;
   }
   final total = totals.values.fold(0.0, (a, b) => a + b);
@@ -236,8 +263,8 @@ class DailySpending {
   final double amount;
 }
 
-final dailySpendingProvider = Provider<List<DailySpending>>((ref) {
-  final expenses = ref.watch(filteredExpensesProvider);
+final dailySpendingProvider = Provider.autoDispose<List<DailySpending>>((ref) {
+  final expenses = ref.watch(filteredCountedExpensesProvider);
   final Map<DateTime, double> daily = {};
 
   for (final e in expenses) {
@@ -254,9 +281,9 @@ final dailySpendingProvider = Provider<List<DailySpending>>((ref) {
 });
 
 /// Cash flow data for the last 3 months.
-final cashFlowProvider = Provider<List<MonthCashFlow>>((ref) {
+final cashFlowProvider = Provider.autoDispose<List<MonthCashFlow>>((ref) {
   final expenses = ref.watch(allExpensesProvider).valueOrNull ?? [];
-  final monthlyIncome = ref.watch(totalMonthlyIncomeProvider);
+  final incomeSources = ref.watch(activeIncomeSourcesProvider);
   final now = DateTime.now();
   final months = <MonthCashFlow>[];
 
@@ -267,11 +294,11 @@ final cashFlowProvider = Provider<List<MonthCashFlow>>((ref) {
       final d = e.date.toDate();
       return d.year == target.year && d.month == target.month;
     });
-    final totalExpenses = monthExpenses.fold(0.0, (sum, e) => sum + e.amount);
+    final totalExpenses = sumExpenses(monthExpenses);
     months.add(
       MonthCashFlow(
         monthLabel: label,
-        income: monthlyIncome,
+        income: totalIncomeForMonth(incomeSources, target),
         expenses: totalExpenses,
       ),
     );
