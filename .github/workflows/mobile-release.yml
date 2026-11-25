@@ -225,6 +225,7 @@ jobs:
         with:
           name: mobile-release-evidence-ios
           path: mobile/build/release-evidence/mobile-release-evidence-ios.json
+          if-no-files-found: error
           retention-days: 90
 
       - name: Always cleanup keychain + secrets
@@ -318,6 +319,7 @@ jobs:
         with:
           name: mobile-release-evidence-android
           path: mobile/build/release-evidence/mobile-release-evidence-android.json
+          if-no-files-found: error
           retention-days: 90
 
       - name: Always cleanup secrets

@@ -240,6 +240,7 @@ jobs:
         with:
           name: mobile-production-evidence-ios
           path: mobile/build/release-evidence/mobile-release-evidence-ios.json
+          if-no-files-found: error
           retention-days: 180
 
       - name: Cleanup App Store Connect API key
@@ -295,6 +296,7 @@ jobs:
         with:
           name: mobile-production-evidence-android
           path: mobile/build/release-evidence/mobile-release-evidence-android.json
+          if-no-files-found: error
           retention-days: 180
 
       - name: Cleanup Play Store key

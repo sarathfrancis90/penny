@@ -26,8 +26,14 @@ def write_android_changelog(build_number, notes)
   File.write(File.join(notes_dir, "#{build_number}.txt"), notes)
 end
 
+# Lanes run with mobile/fastlane as the working directory, and __dir__ in the
+# eval'd Fastfile is relative to it, so the old dirname(__dir__) anchor landed
+# in mobile/fastlane/build. Anchor on the mobile/ project root explicitly so the
+# workflows' upload-artifact steps find the file.
 def release_evidence_path(platform)
-  File.expand_path("build/release-evidence/mobile-release-evidence-#{platform}.json", File.dirname(__dir__))
+  workspace = ENV["GITHUB_WORKSPACE"].to_s
+  mobile_root = workspace.empty? ? File.expand_path("..", Dir.pwd) : File.join(workspace, "mobile")
+  File.join(mobile_root, "build", "release-evidence", "mobile-release-evidence-#{platform}.json")
 end
 
 def write_release_evidence(platform:, target:, version:, build:, store_identifier:)
